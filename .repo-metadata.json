@@ -1,0 +1,10 @@
+{
+  "name": "spanner-jdbc",
+  "name_pretty": "Google Cloud Spanner JDBC",
+  "product_documentation": "https://cloud.google.com/pubsub/docs/",
+  "client_documentation": "https://googleapis.dev/java/google-cloud-clients/latest/index.html?com/google/cloud/spanner/jdbc/v1",
+  "release_level": "ga",
+  "language": "java",
+  "repo": "googleapis/java-spanner-jdbc",
+  "repo_short": "java-spanner-jdbc"
+}
