@@ -1,5 +1,5 @@
 {
-  "updateTime": "2020-01-10T09:11:13.740638Z",
+  "updateTime": "2020-01-16T09:11:16.210833Z",
   "sources": [
     {
       "template": {
@@ -7,6 +7,812 @@
         "origin": "synthtool.gcp",
         "version": "2019.10.17"
       }
+    }
+  ],
+  "newFiles": [
+    {
+      "path": "pom.xml"
+    },
+    {
+      "path": ".repo-metadata.json"
+    },
+    {
+      "path": "java.header"
+    },
+    {
+      "path": "CONTRIBUTING.md"
+    },
+    {
+      "path": "synth.metadata"
+    },
+    {
+      "path": "renovate.json"
+    },
+    {
+      "path": "versions.txt"
+    },
+    {
+      "path": "synth.py"
+    },
+    {
+      "path": "license-checks.xml"
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md"
+    },
+    {
+      "path": "LICENSE"
+    },
+    {
+      "path": "codecov.yaml"
+    },
+    {
+      "path": ".gitignore"
+    },
+    {
+      "path": "README.md"
+    },
+    {
+      "path": ".github/release-please.yml"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.md"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/support_request.md"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md"
+    },
+    {
+      "path": ".kokoro/build.sh"
+    },
+    {
+      "path": ".kokoro/common.cfg"
+    },
+    {
+      "path": ".kokoro/build.bat"
+    },
+    {
+      "path": ".kokoro/linkage-monitor.sh"
+    },
+    {
+      "path": ".kokoro/coerce_logs.sh"
+    },
+    {
+      "path": ".kokoro/dependencies.sh"
+    },
+    {
+      "path": ".kokoro/trampoline.sh"
+    },
+    {
+      "path": ".kokoro/continuous/samples.cfg"
+    },
+    {
+      "path": ".kokoro/continuous/java8.cfg"
+    },
+    {
+      "path": ".kokoro/continuous/integration.cfg"
+    },
+    {
+      "path": ".kokoro/continuous/java11.cfg"
+    },
+    {
+      "path": ".kokoro/continuous/propose_release.cfg"
+    },
+    {
+      "path": ".kokoro/continuous/common.cfg"
+    },
+    {
+      "path": ".kokoro/continuous/propose_release.sh"
+    },
+    {
+      "path": ".kokoro/continuous/java7.cfg"
+    },
+    {
+      "path": ".kokoro/continuous/lint.cfg"
+    },
+    {
+      "path": ".kokoro/continuous/java8-osx.cfg"
+    },
+    {
+      "path": ".kokoro/continuous/dependencies.cfg"
+    },
+    {
+      "path": ".kokoro/continuous/java8-win.cfg"
+    },
+    {
+      "path": ".kokoro/nightly/samples.cfg"
+    },
+    {
+      "path": ".kokoro/nightly/java8.cfg"
+    },
+    {
+      "path": ".kokoro/nightly/integration.cfg"
+    },
+    {
+      "path": ".kokoro/nightly/java11.cfg"
+    },
+    {
+      "path": ".kokoro/nightly/common.cfg"
+    },
+    {
+      "path": ".kokoro/nightly/java7.cfg"
+    },
+    {
+      "path": ".kokoro/nightly/lint.cfg"
+    },
+    {
+      "path": ".kokoro/nightly/java8-osx.cfg"
+    },
+    {
+      "path": ".kokoro/nightly/dependencies.cfg"
+    },
+    {
+      "path": ".kokoro/nightly/java8-win.cfg"
+    },
+    {
+      "path": ".kokoro/release/publish_javadoc.cfg"
+    },
+    {
+      "path": ".kokoro/release/common.sh"
+    },
+    {
+      "path": ".kokoro/release/promote.sh"
+    },
+    {
+      "path": ".kokoro/release/common.cfg"
+    },
+    {
+      "path": ".kokoro/release/publish_javadoc.sh"
+    },
+    {
+      "path": ".kokoro/release/drop.sh"
+    },
+    {
+      "path": ".kokoro/release/stage.sh"
+    },
+    {
+      "path": ".kokoro/release/promote.cfg"
+    },
+    {
+      "path": ".kokoro/release/snapshot.cfg"
+    },
+    {
+      "path": ".kokoro/release/bump_snapshot.cfg"
+    },
+    {
+      "path": ".kokoro/release/drop.cfg"
+    },
+    {
+      "path": ".kokoro/release/bump_snapshot.sh"
+    },
+    {
+      "path": ".kokoro/release/stage.cfg"
+    },
+    {
+      "path": ".kokoro/release/snapshot.sh"
+    },
+    {
+      "path": ".kokoro/presubmit/samples.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/java8.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/integration.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/java11.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/linkage-monitor.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/common.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/java7.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/lint.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/java8-osx.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/dependencies.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/clirr.cfg"
+    },
+    {
+      "path": ".kokoro/presubmit/java8-win.cfg"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/AutocommitDmlModeConverterTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/StatementResultImplTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcConnectionGeneratedSqlScriptTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcDriverTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ConnectionStatementExecutorTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcPreparedStatementTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ReplaceableForwardingResultSetTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcParameterStoreTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcResultSetMetaDataTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcDatabaseMetaDataWithMockedServerTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcTypeConverterTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/AbstractSqlScriptVerifier.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcGrpcErrorTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ConnectionImplTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/AbstractJdbcWrapperTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/SqlScriptVerifier.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/SetReadOnlyStalenessSqlScriptTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ConnectionOptionsTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcDatabaseMetaDataTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcConnectionTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ITConnectionImpl.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/SingleUseTransactionTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ITAbstractJdbcTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcResultSetTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcArrayTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/SpannerExceptionMatcher.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcBlobTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/DurationConverterTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ReadOnlyTransactionTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/SqlTestScriptsGenerator.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ConnectionStatementWithOneParameterTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ConnectionImplAutocommitReadWriteTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/DmlBatchTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ConnectionImplTransactionalReadWriteTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/AbstractJdbcResultSetTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/AbortedTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcAbortedTransactionTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/SpannerPoolTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/RandomResultSetGenerator.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ReadOnlyStalenessTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcExceptionMatcher.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/TransactionModeConverterTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/DirectExecuteResultSetTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/SpannerJdbcExceptionMatcher.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/DdlBatchTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ReadOnlyStalenessUtilTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcClobTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/DdlClientTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/AbstractConnectionImplTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ConnectionImplGeneratedSqlScriptTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ConnectionImplTransactionalReadOnlyTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/StatementTimeoutTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ConnectionStatementWithNoParametersTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcTimeoutSqlTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcStatementTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/JdbcSqlScriptVerifier.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ClientSideStatementsTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/CredentialsServiceTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/BooleanConverterTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ConnectionImplAutocommitReadOnlyTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/StatementParserTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ITAbstractSpannerTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ReadOnlyStalenessConverterTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/SetStatementTimeoutSqlScriptTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/AutocommitDmlModeTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/ReadWriteTransactionTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITBulkConnectionTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITJdbcConnectTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITJdbcDdlTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITJdbcSqlScriptTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITJdbcDatabaseMetaDataTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITTransactionModeTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITJdbcPreparedStatementTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITJdbcSqlMusicScriptTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITReadOnlySpannerTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITJdbcReadWriteAutocommitTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITJdbcReadOnlyTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITJdbcSimpleStatementsTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITSqlScriptTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITDdlTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITTransactionRetryTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITReadWriteAutocommitSpannerTest.java"
+    },
+    {
+      "path": "src/test/java/com/google/cloud/spanner/jdbc/it/ITSqlMusicScriptTest.java"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestSetStatements.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestStatementTimeout.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/test-key-cloud-storage.json"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/CommentsTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestAutocommitReadOnly.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/TimeoutSqlScriptTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/test-key-app-default.json"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestInvalidStatements.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestReadOnlyStaleness.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/test-key.json"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_InsertTestData.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestTransactionMode_ReadOnly.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITTransactionModeTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/SetStatementTimeoutTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ClientSideStatementsTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestAutocommitDmlMode.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITReadOnlySpannerTest_CreateTables.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlMusicScriptTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestGetReadTimestamp.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestGetCommitTimestamp.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_CreateTables.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ConnectionImplGeneratedSqlScriptTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITDdlTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestTransactionMode.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/SetReadOnlyStalenessTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITSqlScriptTest_TestTemporaryTransactions.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITReadOnlySpannerTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/ITReadWriteAutocommitSpannerTest.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/it/Songs.txt"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/it/CreateMusicTables.sql"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/it/Singers.txt"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/it/Albums.txt"
+    },
+    {
+      "path": "src/test/resources/com/google/cloud/spanner/jdbc/it/Concerts.txt"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ConnectionStatementExecutorImpl.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ClientSideStatement.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcBlob.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/RetriableUpdate.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ClientSideStatements.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/AbstractJdbcResultSet.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ReadOnlyStalenessUtil.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/AbstractJdbcWrapper.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ConnectionImpl.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcStatement.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcResultSet.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcPreparedStatement.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcSqlException.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ClientSideStatementSetExecutor.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/StatementExecutionInterceptor.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ConnectionStatementExecutor.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ConnectionPreconditions.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/AbstractJdbcPreparedStatement.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/TransactionMode.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/AbstractJdbcStatement.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcConnection.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/DmlBatch.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcParameterMetaData.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/DdlClient.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/AbstractMultiUseTransaction.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/AbstractJdbcConnection.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/AnalyzeMode.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ClientSideStatementImpl.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/StatementParser.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcResultSetMetaData.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcPreconditions.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ClientSideStatementValueConverter.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcConstants.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcDataSource.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcDriver.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ClientSideStatementNoParamExecutor.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ConnectionOptions.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcClob.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/TransactionRetryListener.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/SingleUseTransaction.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/StatementExecutor.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ChecksumResultSet.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/StatementResultImpl.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/AutocommitDmlMode.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/RetriableBatchUpdate.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/Connection.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcArray.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcDatabaseMetaData.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcTypeConverter.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcSqlExceptionFactory.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/DdlBatch.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/SpannerPool.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/UnitOfWork.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/FailedBatchUpdate.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/StatementResult.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcParameterStore.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ClientSideStatementExecutor.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/CredentialsService.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ReadOnlyTransaction.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/FailedQuery.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ReadWriteTransaction.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/FailedUpdate.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/JdbcDataType.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ReplaceableForwardingResultSet.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/AbstractBaseUnitOfWork.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/ClientSideStatementValueConverters.java"
+    },
+    {
+      "path": "src/main/java/com/google/cloud/spanner/jdbc/DirectExecuteResultSet.java"
+    },
+    {
+      "path": "src/main/resources/com/google/cloud/spanner/jdbc/DatabaseMetaData_GetImportedKeys.sql"
+    },
+    {
+      "path": "src/main/resources/com/google/cloud/spanner/jdbc/DatabaseMetaData_GetExportedKeys.sql"
+    },
+    {
+      "path": "src/main/resources/com/google/cloud/spanner/jdbc/ClientSideStatements.json"
+    },
+    {
+      "path": "src/main/resources/com/google/cloud/spanner/jdbc/DatabaseMetaData_GetPrimaryKeys.sql"
+    },
+    {
+      "path": "src/main/resources/com/google/cloud/spanner/jdbc/DatabaseMetaData_GetIndexInfo.sql"
+    },
+    {
+      "path": "src/main/resources/com/google/cloud/spanner/jdbc/DatabaseMetaData_GetCrossReferences.sql"
+    },
+    {
+      "path": "src/main/resources/com/google/cloud/spanner/jdbc/DatabaseMetaData_GetColumns.sql"
+    },
+    {
+      "path": "src/main/resources/com/google/cloud/spanner/jdbc/DatabaseMetaData_GetTables.sql"
+    },
+    {
+      "path": "src/main/resources/com/google/cloud/spanner/jdbc/DatabaseMetaData_GetSchemas.sql"
+    },
+    {
+      "path": "src/main/resources/META-INF/services/java.sql.Driver"
     }
   ]
 }
