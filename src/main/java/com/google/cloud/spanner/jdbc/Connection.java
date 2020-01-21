@@ -25,6 +25,7 @@ import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.SpannerBatchUpdateException;
 import com.google.cloud.spanner.SpannerException;
+import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.jdbc.StatementResult.ResultType;
@@ -120,6 +121,9 @@ import java.util.concurrent.TimeUnit;
  * <p>Use {@link ConnectionOptions} to create a {@link Connection}.
  */
 interface Connection extends AutoCloseable {
+
+  /** @return the {@link SpannerOptions} that were used to create this connection. */
+  SpannerOptions getSpannerOptions();
 
   /** Closes this connection. This is a no-op if the {@link Connection} has alread been closed. */
   @Override

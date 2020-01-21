@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.SpannerOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.rpc.Code;
 import java.sql.CallableStatement;
@@ -71,6 +72,11 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
 
   ConnectionOptions getConnectionOptions() {
     return options;
+  }
+
+  @Override
+  public SpannerOptions getSpannerOptions() {
+    return spanner.getSpannerOptions();
   }
 
   @Override

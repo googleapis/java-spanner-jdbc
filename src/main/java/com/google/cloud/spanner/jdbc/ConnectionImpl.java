@@ -26,6 +26,7 @@ import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.SpannerExceptionFactory;
+import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.TimestampBound.Mode;
@@ -229,6 +230,12 @@ class ConnectionImpl implements Connection {
     setReadOnly(options.isReadOnly());
     setAutocommit(options.isAutocommit());
     setDefaultTransactionOptions();
+  }
+
+  /** @return the {@link SpannerOptions} that were used to create this connection. */
+  @Override
+  public SpannerOptions getSpannerOptions() {
+    return spanner.getOptions();
   }
 
   private DdlClient createDdlClient() {

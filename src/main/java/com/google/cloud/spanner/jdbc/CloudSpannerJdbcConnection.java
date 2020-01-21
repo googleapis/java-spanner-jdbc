@@ -19,6 +19,7 @@ package com.google.cloud.spanner.jdbc;
 import com.google.cloud.spanner.AbortedException;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.ResultSet;
+import com.google.cloud.spanner.SpannerOptions;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -149,6 +150,8 @@ public interface CloudSpannerJdbcConnection extends Connection {
    *     that is returned.
    */
   String getConnectionUrl();
+
+  SpannerOptions getSpannerOptions();
 
   /**
    * @see
