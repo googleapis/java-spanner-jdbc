@@ -17,7 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import io.grpc.Server;

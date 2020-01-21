@@ -19,7 +19,7 @@ package com.google.cloud.spanner.jdbc;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.startsWith;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.cloud.spanner.jdbc.StatementResult.ResultType;
 import com.google.rpc.Code;
