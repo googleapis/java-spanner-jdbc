@@ -18,11 +18,14 @@ package com.google.cloud.spanner.jdbc.it;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcDataSource;
+import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -195,27 +198,14 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   }
 
   @Test
-  public void testConnectWithOAuthToken() throws SQLException {
-    String url = createBaseUrl();
-    try (Connection connection = DriverManager.getConnection(url)) {
-      CloudSpannerJdbcConnection cc = connection.unwrap(CloudSpannerJdbcConnection.class);
-      if (cc.getSpannerOptions().getCredentials() instanceof GoogleCredentials) {
-        GoogleCredentials credentials = (GoogleCredentials) cc.getSpannerOptions().getCredentials();
-        // Get the OAuth token from this connection and open a new connection using that token.
-        String token = credentials.getAccessToken().getTokenValue();
-        String urlWithOAuth = createBaseUrl() + "?OAuthToken=" + token;
-        try (Connection connectionWithOAuth = DriverManager.getConnection(urlWithOAuth)) {
-          // Check that the two connections use two different SpannerOptions instances.
-          assertThat(
-                  connectionWithOAuth.unwrap(CloudSpannerJdbcConnection.class).getSpannerOptions())
-              .isNotEqualTo(cc.getSpannerOptions());
-          // Try to do a query using the connection created with an OAuth token.
-          testDefaultConnection(connectionWithOAuth);
-        }
-      } else {
-        throw new IllegalArgumentException(
-            "Unknown credentials type used: " + cc.getSpannerOptions().getCredentials());
-      }
+  public void testConnectWithOAuthToken() throws Exception {
+    GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(getKeyFile()));
+    credentials = credentials.createScoped(SpannerOptions.getDefaultInstance().getScopes());
+    AccessToken token = credentials.refreshAccessToken();
+    String urlWithOAuth = createBaseUrl() + "?OAuthToken=" + token.getTokenValue();
+    try (Connection connectionWithOAuth = DriverManager.getConnection(urlWithOAuth)) {
+      // Try to do a query using the connection created with an OAuth token.
+      testDefaultConnection(connectionWithOAuth);
     }
   }
 }
