@@ -199,7 +199,12 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
 
   @Test
   public void testConnectWithOAuthToken() throws Exception {
-    GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(getKeyFile()));
+    GoogleCredentials credentials;
+    if (hasValidKeyFile()) {
+      credentials = GoogleCredentials.fromStream(new FileInputStream(getKeyFile()));
+    } else {
+      credentials = GoogleCredentials.getApplicationDefault();
+    }
     credentials = credentials.createScoped(SpannerOptions.getDefaultInstance().getScopes());
     AccessToken token = credentials.refreshAccessToken();
     String urlWithOAuth = createBaseUrl() + "?OAuthToken=" + token.getTokenValue();
