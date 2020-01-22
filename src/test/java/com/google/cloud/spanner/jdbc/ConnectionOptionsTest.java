@@ -19,6 +19,7 @@ package com.google.cloud.spanner.jdbc;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.spanner.SpannerOptions;
 import java.util.Arrays;
