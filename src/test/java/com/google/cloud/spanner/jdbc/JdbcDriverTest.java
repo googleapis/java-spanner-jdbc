@@ -16,8 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import io.grpc.Server;
@@ -72,9 +71,9 @@ public class JdbcDriverTest {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
-                "jdbc:cloudspanner://localhost:%d/projects/test-project/instances/static-test-instance/databases/test-database;usePlainText=true;credentials=%s",
+                "jdbc:cloudspanner://localhost:%d/projects/some-company.com:test-project/instances/static-test-instance/databases/test-database;usePlainText=true;credentials=%s",
                 server.getPort(), TEST_KEY_PATH))) {
-      assertThat(connection.isClosed(), is(false));
+      assertThat(connection.isClosed()).isFalse();
     }
   }
 
@@ -83,9 +82,9 @@ public class JdbcDriverTest {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
-                "jdbc:cloudspanner://localhost:%d/projects/test-project/instances/static-test-instance/databases/test-database;usePlainText=true;credentialsUrl=%s",
+                "jdbc:cloudspanner://localhost:%d/projects/some-company.com:test-project/instances/static-test-instance/databases/test-database;usePlainText=true;credentialsUrl=%s",
                 server.getPort(), TEST_KEY_PATH))) {
-      assertThat(connection.isClosed(), is(false));
+      assertThat(connection.isClosed()).isFalse();
     }
   }
 }
