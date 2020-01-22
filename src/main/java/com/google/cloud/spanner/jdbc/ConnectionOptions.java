@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.auth.Credentials;
+import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.NoCredentials;
@@ -140,6 +141,7 @@ class ConnectionOptions {
   static final boolean DEFAULT_READONLY = false;
   static final boolean DEFAULT_RETRY_ABORTS_INTERNALLY = true;
   private static final String DEFAULT_CREDENTIALS = null;
+  private static final String DEFAULT_OAUTH_TOKEN = null;
   private static final String DEFAULT_NUM_CHANNELS = null;
   private static final String DEFAULT_USER_AGENT = null;
 
@@ -156,6 +158,10 @@ class ConnectionOptions {
   public static final String RETRY_ABORTS_INTERNALLY_PROPERTY_NAME = "retryAbortsInternally";
   /** Name of the 'credentials' connection property. */
   public static final String CREDENTIALS_PROPERTY_NAME = "credentials";
+  /**
+   * OAuth token to use for authentication. Cannot be used in combination with a credentials file.
+   */
+  public static final String OAUTH_TOKEN_PROPERTY_NAME = "oauthToken";
   /** Name of the 'numChannels' connection property. */
   public static final String NUM_CHANNELS_PROPERTY_NAME = "numChannels";
   /** Custom user agent string is only for other Google libraries. */
@@ -173,6 +179,7 @@ class ConnectionOptions {
                   ConnectionProperty.createBooleanProperty(
                       RETRY_ABORTS_INTERNALLY_PROPERTY_NAME, "", DEFAULT_RETRY_ABORTS_INTERNALLY),
                   ConnectionProperty.createStringProperty(CREDENTIALS_PROPERTY_NAME, ""),
+                  ConnectionProperty.createStringProperty(OAUTH_TOKEN_PROPERTY_NAME, ""),
                   ConnectionProperty.createStringProperty(NUM_CHANNELS_PROPERTY_NAME, ""),
                   ConnectionProperty.createBooleanProperty(
                       USE_PLAIN_TEXT_PROPERTY_NAME, "", DEFAULT_USE_PLAIN_TEXT),
@@ -223,6 +230,7 @@ class ConnectionOptions {
   public static class Builder {
     private String uri;
     private String credentialsUrl;
+    private String oauthToken;
     private Credentials credentials;
     private List<StatementExecutionInterceptor> statementExecutionInterceptors =
         Collections.emptyList();
@@ -308,6 +316,22 @@ class ConnectionOptions {
       return this;
     }
 
+    /**
+     * Sets the OAuth token to use with this connection. The token must be a valid token with access
+     * to the resources (project/instance/database) that the connection will be accessing. This
+     * authentication method cannot be used in combination with a credentials file. If both an OAuth
+     * token and a credentials file is specified, the {@link #build()} method will throw an
+     * exception.
+     *
+     * @param oauthToken A valid OAuth token for the Google Cloud project that is used by this
+     *     connection.
+     * @return this builder
+     */
+    public Builder setOAuthToken(String oauthToken) {
+      this.oauthToken = oauthToken;
+      return this;
+    }
+
     @VisibleForTesting
     Builder setStatementExecutionInterceptors(List<StatementExecutionInterceptor> interceptors) {
       this.statementExecutionInterceptors = interceptors;
@@ -339,6 +363,7 @@ class ConnectionOptions {
 
   private final String uri;
   private final String credentialsUrl;
+  private final String oauthToken;
 
   private final boolean usePlainText;
   private final String host;
@@ -363,6 +388,13 @@ class ConnectionOptions {
     this.uri = builder.uri;
     this.credentialsUrl =
         builder.credentialsUrl != null ? builder.credentialsUrl : parseCredentials(builder.uri);
+    this.oauthToken =
+        builder.oauthToken != null ? builder.oauthToken : parseOAuthToken(builder.uri);
+    // Check that not both credentials and an OAuth token have been specified.
+    Preconditions.checkArgument(
+        (builder.credentials == null && this.credentialsUrl == null) || this.oauthToken == null,
+        "Cannot specify both credentials and an OAuth token.");
+
     this.usePlainText = parseUsePlainText(this.uri);
     this.userAgent = parseUserAgent(this.uri);
 
@@ -376,8 +408,13 @@ class ConnectionOptions {
     // Using credentials on a plain text connection is not allowed, so if the user has not specified
     // any credentials and is using a plain text connection, we should not try to get the
     // credentials from the environment, but default to NoCredentials.
-    if (builder.credentials == null && this.credentialsUrl == null && this.usePlainText) {
+    if (builder.credentials == null
+        && this.credentialsUrl == null
+        && this.oauthToken == null
+        && this.usePlainText) {
       this.credentials = NoCredentials.getInstance();
+    } else if (this.oauthToken != null) {
+      this.credentials = new GoogleCredentials(new AccessToken(oauthToken, null));
     } else {
       this.credentials =
           builder.credentials == null
@@ -444,6 +481,12 @@ class ConnectionOptions {
   static String parseCredentials(String uri) {
     String value = parseUriProperty(uri, CREDENTIALS_PROPERTY_NAME);
     return value != null ? value : DEFAULT_CREDENTIALS;
+  }
+
+  @VisibleForTesting
+  static String parseOAuthToken(String uri) {
+    String value = parseUriProperty(uri, OAUTH_TOKEN_PROPERTY_NAME);
+    return value != null ? value : DEFAULT_OAUTH_TOKEN;
   }
 
   @VisibleForTesting

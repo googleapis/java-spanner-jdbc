@@ -16,14 +16,16 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
+import com.google.auth.oauth2.AccessToken;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcDataSource;
+import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -57,30 +59,30 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   }
 
   private void testDefaultConnection(Connection connection) throws SQLException {
-    assertThat(connection.isWrapperFor(CloudSpannerJdbcConnection.class), is(true));
+    assertThat(connection.isWrapperFor(CloudSpannerJdbcConnection.class)).isTrue();
     CloudSpannerJdbcConnection cs = connection.unwrap(CloudSpannerJdbcConnection.class);
-    assertThat(cs.getAutoCommit(), is(true));
-    assertThat(cs.isReadOnly(), is(false));
+    assertThat(cs.getAutoCommit()).isTrue();
+    assertThat(cs.isReadOnly()).isFalse();
     try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getInt(1), is(equalTo(1)));
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getInt(1)).isEqualTo(1);
     }
     cs.setAutoCommit(false);
-    assertThat(cs.isRetryAbortsInternally(), is(true));
+    assertThat(cs.isRetryAbortsInternally()).isTrue();
   }
 
   private void testNonDefaultConnection(Connection connection) throws SQLException {
-    assertThat(connection.isWrapperFor(CloudSpannerJdbcConnection.class), is(true));
+    assertThat(connection.isWrapperFor(CloudSpannerJdbcConnection.class)).isTrue();
     CloudSpannerJdbcConnection cs = connection.unwrap(CloudSpannerJdbcConnection.class);
-    assertThat(cs.getAutoCommit(), is(false));
-    assertThat(cs.isReadOnly(), is(true));
+    assertThat(cs.getAutoCommit()).isFalse();
+    assertThat(cs.isReadOnly()).isTrue();
     try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getInt(1), is(equalTo(1)));
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getInt(1)).isEqualTo(1);
     }
     connection.commit();
     cs.setReadOnly(false);
-    assertThat(cs.isRetryAbortsInternally(), is(false));
+    assertThat(cs.isRetryAbortsInternally()).isFalse();
   }
 
   @Test
@@ -192,6 +194,23 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
     ds.setRetryAbortsInternally(true);
     try (Connection connection = ds.getConnection()) {
       testNonDefaultConnection(connection);
+    }
+  }
+
+  @Test
+  public void testConnectWithOAuthToken() throws Exception {
+    GoogleCredentials credentials;
+    if (hasValidKeyFile()) {
+      credentials = GoogleCredentials.fromStream(new FileInputStream(getKeyFile()));
+    } else {
+      credentials = GoogleCredentials.getApplicationDefault();
+    }
+    credentials = credentials.createScoped(SpannerOptions.getDefaultInstance().getScopes());
+    AccessToken token = credentials.refreshAccessToken();
+    String urlWithOAuth = createBaseUrl() + "?OAuthToken=" + token.getTokenValue();
+    try (Connection connectionWithOAuth = DriverManager.getConnection(urlWithOAuth)) {
+      // Try to do a query using the connection created with an OAuth token.
+      testDefaultConnection(connectionWithOAuth);
     }
   }
 }

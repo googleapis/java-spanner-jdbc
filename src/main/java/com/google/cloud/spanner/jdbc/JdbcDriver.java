@@ -74,6 +74,12 @@ import java.util.regex.Pattern;
  *   <li>credentials (String): URL for the credentials file to use for the connection. If you do not
  *       specify any credentials at all, the default credentials of the environment as returned by
  *       {@link GoogleCredentials#getApplicationDefault()} will be used.
+ *   <li>oauthtoken (String): A valid OAuth2 token to use for the JDBC connection. The token must
+ *       have been obtained with one or both of the scopes
+ *       'https://www.googleapis.com/auth/spanner.admin' and/or
+ *       'https://www.googleapis.com/auth/spanner.data'. If you specify both a credentials file and
+ *       an OAuth token, the JDBC driver will throw an exception when you try to obtain a
+ *       connection.
  *   <li>autocommit (boolean): Sets the initial autocommit mode for the connection. Default is true.
  *   <li>readonly (boolean): Sets the initial readonly mode for the connection. Default is false.
  *   <li>retryAbortsInternally (boolean): Sets the initial retryAbortsInternally mode for the

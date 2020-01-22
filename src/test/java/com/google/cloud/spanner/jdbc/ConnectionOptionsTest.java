@@ -19,6 +19,7 @@ package com.google.cloud.spanner.jdbc;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.spanner.SpannerOptions;
 import java.util.Arrays;
@@ -322,5 +323,67 @@ public class ConnectionOptionsTest {
         .setUri(
             "cloudspanner:/projects/test-project-123/instances/test-instance/databases/test-database"
                 + ";autocommit=false;readonly=false;autocommit=true");
+  }
+
+  @Test
+  public void testParseOAuthToken() {
+    assertThat(
+            ConnectionOptions.parseUriProperty(
+                "cloudspanner:/projects/test-project-123/instances/test-instance/databases/test-database"
+                    + "?oauthtoken=RsT5OjbzRn430zqMLgV3Ia",
+                "OAuthToken"))
+        .isEqualTo("RsT5OjbzRn430zqMLgV3Ia");
+    // Try to use both credentials and an OAuth token. That should fail.
+    ConnectionOptions.Builder builder =
+        ConnectionOptions.newBuilder()
+            .setUri(
+                "cloudspanner:/projects/test-project-123/instances/test-instance/databases/test-database"
+                    + "?OAuthToken=RsT5OjbzRn430zqMLgV3Ia;credentials=/path/to/credentials.json");
+    try {
+      builder.build();
+      fail("missing expected exception");
+    } catch (IllegalArgumentException e) {
+      assertThat(e.getMessage()).contains("Cannot specify both credentials and an OAuth token");
+    }
+
+    // Now try to use only an OAuth token.
+    builder =
+        ConnectionOptions.newBuilder()
+            .setUri(
+                "cloudspanner:/projects/test-project-123/instances/test-instance/databases/test-database"
+                    + "?OAuthToken=RsT5OjbzRn430zqMLgV3Ia");
+    ConnectionOptions options = builder.build();
+    assertThat(options.getCredentials()).isInstanceOf(GoogleCredentials.class);
+    GoogleCredentials credentials = (GoogleCredentials) options.getCredentials();
+    assertThat(credentials.getAccessToken().getTokenValue()).isEqualTo("RsT5OjbzRn430zqMLgV3Ia");
+  }
+
+  @Test
+  public void testSetOAuthToken() {
+    ConnectionOptions options =
+        ConnectionOptions.newBuilder()
+            .setUri(
+                "cloudspanner:/projects/test-project-123/instances/test-instance/databases/test-database")
+            .setOAuthToken("RsT5OjbzRn430zqMLgV3Ia")
+            .build();
+    assertThat(options.getCredentials()).isInstanceOf(GoogleCredentials.class);
+    GoogleCredentials credentials = (GoogleCredentials) options.getCredentials();
+    assertThat(credentials.getAccessToken()).isNotNull();
+    assertThat(credentials.getAccessToken().getTokenValue()).isEqualTo("RsT5OjbzRn430zqMLgV3Ia");
+  }
+
+  @Test
+  public void testSetOAuthTokenAndCredentials() {
+    try {
+      ConnectionOptions.newBuilder()
+          .setUri(
+              "cloudspanner:/projects/test-project-123/instances/test-instance/databases/test-database")
+          .setOAuthToken("RsT5OjbzRn430zqMLgV3Ia")
+          .setCredentialsUrl(FILE_TEST_PATH)
+          .build();
+      fail("missing expected exception");
+    } catch (IllegalArgumentException e) {
+      assertThat(e.getMessage()).contains("Cannot specify both credentials and an OAuth token");
+    }
   }
 }

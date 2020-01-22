@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import io.grpc.Server;
@@ -85,6 +86,19 @@ public class JdbcDriverTest {
                 "jdbc:cloudspanner://localhost:%d/projects/some-company.com:test-project/instances/static-test-instance/databases/test-database;usePlainText=true;credentialsUrl=%s",
                 server.getPort(), TEST_KEY_PATH))) {
       assertThat(connection.isClosed()).isFalse();
+    }
+  }
+
+  @Test
+  public void testConnectWithCredentialsAndOAuthToken() throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner://localhost:%d/projects/test-project/instances/static-test-instance/databases/test-database;usePlainText=true;credentials=%s;OAuthToken=%s",
+                server.getPort(), TEST_KEY_PATH, "some-token"))) {
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(e.getMessage()).contains("Cannot specify both credentials and an OAuth token");
     }
   }
 }
