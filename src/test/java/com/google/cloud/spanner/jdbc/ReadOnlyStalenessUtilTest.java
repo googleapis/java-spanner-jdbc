@@ -23,7 +23,7 @@ import static com.google.cloud.spanner.jdbc.ReadOnlyStalenessUtil.parseTimeUnit;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.cloud.Timestamp;
 import com.google.cloud.spanner.ErrorCode;
