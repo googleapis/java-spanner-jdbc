@@ -19,7 +19,6 @@ package com.google.cloud.spanner.jdbc;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
-import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.spanner.SpannerOptions;
 import java.util.Arrays;
@@ -32,6 +31,23 @@ public class ConnectionOptionsTest {
   private static final String FILE_TEST_PATH =
       ConnectionOptionsTest.class.getResource("test-key.json").getFile();
   private static final String DEFAULT_HOST = "https://spanner.googleapis.com";
+
+  @Test
+  public void testBuildWithURIWithDots() {
+    ConnectionOptions.Builder builder = ConnectionOptions.newBuilder();
+    builder.setUri(
+        "cloudspanner:/projects/some-company.com:test-project-123/instances/test-instance-123/databases/test-database-123");
+    builder.setCredentialsUrl(FILE_TEST_PATH);
+    ConnectionOptions options = builder.build();
+    assertThat(options.getHost()).isEqualTo(DEFAULT_HOST);
+    assertThat(options.getProjectId()).isEqualTo("some-company.com:test-project-123");
+    assertThat(options.getInstanceId()).isEqualTo("test-instance-123");
+    assertThat(options.getDatabaseName()).isEqualTo("test-database-123");
+    assertThat(options.getCredentials())
+        .isEqualTo(new CredentialsService().createCredentials(FILE_TEST_PATH));
+    assertThat(options.isAutocommit()).isEqualTo(ConnectionOptions.DEFAULT_AUTOCOMMIT);
+    assertThat(options.isReadOnly()).isEqualTo(ConnectionOptions.DEFAULT_READONLY);
+  }
 
   @Test
   public void testBuildWithValidURIAndCredentialsFileURL() {

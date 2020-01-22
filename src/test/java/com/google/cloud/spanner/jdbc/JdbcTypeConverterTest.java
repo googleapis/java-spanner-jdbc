@@ -16,7 +16,19 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.*;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.convert;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.getAsSqlTimestamp;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.setTimestampInCalendar;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toGoogleBytes;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toGoogleDate;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toGoogleDates;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toGoogleTimestamp;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toJavaByteArrays;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlDate;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlDates;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlTime;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlTimestamp;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlTimestamps;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
