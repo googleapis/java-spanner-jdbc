@@ -266,6 +266,27 @@ public class StatementParserTest {
     assertTrue(parser.isQuery("select * from foo"));
     assertFalse(parser.isQuery("INSERT INTO FOO (ID, NAME) SELECT ID+1, NAME FROM FOO"));
 
+    assertTrue(
+        parser.isQuery(
+            "WITH subQ1 AS (SELECT SchoolID FROM Roster),\n"
+                + "     subQ2 AS (SELECT OpponentID FROM PlayerStats)\n"
+                + "SELECT * FROM subQ1\n"
+                + "UNION ALL\n"
+                + "SELECT * FROM subQ2"));
+    assertTrue(
+        parser.isQuery(
+            "with subQ1 AS (SELECT SchoolID FROM Roster),\n"
+                + "     subQ2 AS (SELECT OpponentID FROM PlayerStats)\n"
+                + "select * FROM subQ1\n"
+                + "UNION ALL\n"
+                + "SELECT * FROM subQ2"));
+    assertTrue(
+        parser
+            .parse(
+                Statement.of(
+                    "-- this is a comment\nwith foo as (select * from bar)\nselect * from foo"))
+            .isQuery());
+
     assertTrue(parser.parse(Statement.of("-- this is a comment\nselect * from foo")).isQuery());
     assertTrue(
         parser
@@ -310,6 +331,13 @@ public class StatementParserTest {
     assertTrue(
         parser.isQuery(
             "@{JOIN_METHOD=HASH_JOIN}\n /* Multi line comment\n with more comments\n */SELECT * FROM PersonsTable"));
+    assertTrue(
+        parser.isQuery(
+            "@{JOIN_METHOD=HASH_JOIN} WITH subQ1 AS (SELECT SchoolID FROM Roster),\n"
+                + "     subQ2 AS (SELECT OpponentID FROM PlayerStats)\n"
+                + "SELECT * FROM subQ1\n"
+                + "UNION ALL\n"
+                + "SELECT * FROM subQ2"));
 
     // Invalid query hints.
     assertFalse(parser.isQuery("@{JOIN_METHOD=HASH_JOIN SELECT * FROM PersonsTable"));

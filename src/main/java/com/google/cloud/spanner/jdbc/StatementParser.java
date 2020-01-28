@@ -161,7 +161,7 @@ class StatementParser {
   }
 
   private final Set<String> ddlStatements = ImmutableSet.of("CREATE", "DROP", "ALTER");
-  private final Set<String> selectStatements = ImmutableSet.of("SELECT");
+  private final Set<String> selectStatements = ImmutableSet.of("SELECT", "WITH");
   private final Set<String> dmlStatements = ImmutableSet.of("INSERT", "UPDATE", "DELETE");
   private final Set<ClientSideStatementImpl> statements;
 
