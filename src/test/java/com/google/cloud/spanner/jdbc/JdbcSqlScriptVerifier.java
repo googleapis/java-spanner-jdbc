@@ -21,7 +21,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.google.cloud.spanner.jdbc.StatementResult.ResultType;
+import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
+import com.google.cloud.spanner.connection.StatementParser;
+import com.google.cloud.spanner.connection.StatementResult.ResultType;
 import com.google.rpc.Code;
 import java.sql.Array;
 import java.sql.Connection;

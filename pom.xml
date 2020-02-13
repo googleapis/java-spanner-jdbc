@@ -69,6 +69,7 @@
     <protobuf.version>3.11.3</protobuf.version>
     <threeten.version>1.4.1</threeten.version>
     <google.api-common.version>1.8.1</google.api-common.version>
+    <spanner-connection-api.version>1.0.0</spanner-connection-api.version>
     <spanner.version>1.47.0</spanner.version>
     <hamcrest.version>2.2</hamcrest.version>
     <error-prone.version>2.3.4</error-prone.version>
@@ -153,8 +154,8 @@
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
-      <artifactId>google-cloud-spanner</artifactId>
-      <version>${spanner.version}</version>
+      <artifactId>google-cloud-spanner-connection-api</artifactId>
+      <version>${spanner-connection-api.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
@@ -222,21 +223,18 @@
       <version>3.5</version>
     </dependency>
     <dependency>
-      <groupId>com.google.api.grpc</groupId>
-      <artifactId>proto-google-cloud-spanner-v1</artifactId>
-      <version>${spanner.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.api.grpc</groupId>
-      <artifactId>proto-google-cloud-spanner-admin-database-v1</artifactId>
-      <version>${spanner.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java-util</artifactId>
       <version>${protobuf.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-spanner-connection-api</artifactId>
+      <version>${spanner-connection-api.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>

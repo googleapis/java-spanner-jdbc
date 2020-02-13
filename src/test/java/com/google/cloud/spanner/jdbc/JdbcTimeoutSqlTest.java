@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.JdbcConnectionGeneratedSqlScriptTest.TestConnectionProvider;
 import java.sql.Connection;
 import java.sql.Statement;
@@ -35,6 +36,6 @@ public class JdbcTimeoutSqlTest {
   @Test
   public void testTimeoutScript() throws Exception {
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new TestConnectionProvider());
-    verifier.verifyStatementsInFile("TimeoutSqlScriptTest.sql", getClass());
+    verifier.verifyStatementsInFile("TimeoutSqlScriptTest.sql", SqlScriptVerifier.class);
   }
 }

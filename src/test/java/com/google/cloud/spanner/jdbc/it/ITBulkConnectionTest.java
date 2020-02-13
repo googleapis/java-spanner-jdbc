@@ -23,7 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.Statement;
-import com.google.cloud.spanner.jdbc.ITAbstractSpannerTest;
+import com.google.cloud.spanner.connection.ITAbstractSpannerTest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;

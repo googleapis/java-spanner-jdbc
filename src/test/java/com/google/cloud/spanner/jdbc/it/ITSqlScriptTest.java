@@ -17,9 +17,9 @@
 package com.google.cloud.spanner.jdbc.it;
 
 import com.google.cloud.spanner.IntegrationTest;
-import com.google.cloud.spanner.jdbc.ITAbstractSpannerTest;
-import com.google.cloud.spanner.jdbc.SqlScriptVerifier;
-import com.google.cloud.spanner.jdbc.SqlScriptVerifier.SpannerGenericConnection;
+import com.google.cloud.spanner.connection.ITAbstractSpannerTest;
+import com.google.cloud.spanner.connection.SqlScriptVerifier;
+import com.google.cloud.spanner.connection.SqlScriptVerifier.SpannerGenericConnection;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;

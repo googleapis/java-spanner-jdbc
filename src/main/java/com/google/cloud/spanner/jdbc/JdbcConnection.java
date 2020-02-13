@@ -18,6 +18,9 @@ package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerException;
+import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.StatementParser;
+import com.google.cloud.spanner.connection.TransactionRetryListener;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;

@@ -16,7 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import com.google.cloud.spanner.jdbc.StatementResult.ResultType;
+import com.google.cloud.spanner.connection.StatementResult.ResultType;
 import java.sql.ResultSet;
 import java.sql.Statement;
 

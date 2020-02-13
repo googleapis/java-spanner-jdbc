@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.Options.QueryOption;
 import com.google.cloud.spanner.Statement;
+import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.jdbc.JdbcParameterStore.ParametersInfo;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
