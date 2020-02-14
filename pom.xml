@@ -69,7 +69,7 @@
     <protobuf.version>3.11.3</protobuf.version>
     <threeten.version>1.4.1</threeten.version>
     <google.api-common.version>1.8.1</google.api-common.version>
-    <spanner.version>1.47.0</spanner.version>
+    <spanner.version>1.49.2</spanner.version>
     <hamcrest.version>2.2</hamcrest.version>
     <error-prone.version>2.3.4</error-prone.version>
     <google.auth.version>0.20.0</google.auth.version>
@@ -242,6 +242,24 @@
       <artifactId>google-cloud-spanner</artifactId>
       <version>${spanner.version}</version>
       <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.api.grpc</groupId>
+      <artifactId>grpc-google-cloud-spanner-v1</artifactId>
+      <version>${spanner.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.api.grpc</groupId>
+      <artifactId>grpc-google-cloud-spanner-admin-instance-v1</artifactId>
+      <version>${spanner.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.api.grpc</groupId>
+      <artifactId>grpc-google-cloud-spanner-admin-database-v1</artifactId>
+      <version>${spanner.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
