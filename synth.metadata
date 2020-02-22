@@ -1,11 +1,11 @@
 {
-  "updateTime": "2020-02-21T23:11:00.093008Z",
+  "updateTime": "2020-02-22T10:16:10.861561Z",
   "sources": [
     {
       "git": {
         "name": ".",
         "remote": "https://github.com/googleapis/java-spanner-jdbc.git",
-        "sha": "8739015f62289adb92fd55b19a5bff8762da20a9"
+        "sha": "e6ec261803cbdfd2f82aa8d524de1cbed2fae44e"
       }
     },
     {
