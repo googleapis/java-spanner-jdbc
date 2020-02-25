@@ -1,20 +1,6 @@
 {
-  "updateTime": "2020-02-22T10:16:10.861561Z",
+  "updateTime": "2020-02-24T23:15:28.206977Z",
   "sources": [
-    {
-      "git": {
-        "name": ".",
-        "remote": "https://github.com/googleapis/java-spanner-jdbc.git",
-        "sha": "e6ec261803cbdfd2f82aa8d524de1cbed2fae44e"
-      }
-    },
-    {
-      "git": {
-        "name": "synthtool",
-        "remote": "rpc://devrel/cloud/libraries/tools/autosynth",
-        "sha": "706a38c26db42299845396cdae55db635c38794a"
-      }
-    },
     {
       "template": {
         "name": "java_library",
