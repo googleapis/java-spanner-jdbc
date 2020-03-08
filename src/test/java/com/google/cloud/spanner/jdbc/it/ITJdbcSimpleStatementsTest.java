@@ -69,7 +69,7 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
           ps.setInt(1, i);
           try (ResultSet rs = ps.executeQuery()) {
             assertThat(rs.next()).isTrue();
-            assertThat(rs.getInt(1)).isEqualTo(1);
+            assertThat(rs.getInt(1)).isEqualTo(i);
             assertThat(rs.next()).isFalse();
           }
         }
