@@ -50,16 +50,12 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.TimeZone;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class JdbcPreparedStatementTest {
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   private String generateSqlWithParameters(int numberOfParams) {
     StringBuilder sql = new StringBuilder("INSERT INTO FOO (");
     boolean first = true;
@@ -100,6 +96,7 @@ public class JdbcPreparedStatementTest {
     return connection;
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testParameters() throws SQLException, MalformedURLException {
     final int numberOfParams = 48;

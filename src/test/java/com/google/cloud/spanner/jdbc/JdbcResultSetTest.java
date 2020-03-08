@@ -16,12 +16,14 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import com.google.cloud.ByteArray;
@@ -33,6 +35,7 @@ import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
+import io.grpc.Status.Code;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -50,9 +53,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -110,8 +111,6 @@ public class JdbcResultSetTest {
   private static final String URL_VALUE = "https://cloud.google.com/spanner/docs/apis";
   private static final int URL_COLINDEX_NULL = 19;
   private static final int URL_COLINDEX_NOTNULL = 20;
-
-  @Rule public ExpectedException thrown = ExpectedException.none();
 
   private JdbcResultSet subject;
 
@@ -262,10 +261,19 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetURLIndexInvalid() throws SQLException, MalformedURLException {
-    thrown.expect(JdbcSqlExceptionImpl.class);
-    thrown.expectMessage("Invalid URL");
-    assertNotNull(subject.getURL(STRING_COLINDEX_NOTNULL));
+  public void testGetURLIndexInvalid() throws SQLException {
+    try {
+      subject.getURL(STRING_COLINDEX_NOTNULL);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+              SpannerJdbcExceptionMatcher.matchCodeAndMessage(
+                      JdbcSqlExceptionImpl.class,
+                      Code.INVALID_ARGUMENT,
+                      "Invalid URL: " + subject.getString(STRING_COLINDEX_NOTNULL))
+                  .matches(e))
+          .isTrue();
+    }
   }
 
   @Test
@@ -294,6 +302,7 @@ public class JdbcResultSetTest {
     assertTrue(subject.wasNull());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testGetBigDecimalIndexAndScale() throws SQLException {
     assertNotNull(subject.getBigDecimal(DOUBLE_COLINDEX_NOTNULL, 2));
@@ -376,9 +385,18 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetURLLabelInvalid() throws SQLException {
-    thrown.expect(JdbcSqlExceptionImpl.class);
-    thrown.expectMessage("Invalid URL");
-    assertNotNull(subject.getURL(STRING_COL_NOT_NULL));
+    try {
+      subject.getURL(STRING_COL_NOT_NULL);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+              SpannerJdbcExceptionMatcher.matchCodeAndMessage(
+                      JdbcSqlExceptionImpl.class,
+                      Code.INVALID_ARGUMENT,
+                      "Invalid URL: " + subject.getString(STRING_COL_NOT_NULL))
+                  .matches(e))
+          .isTrue();
+    }
   }
 
   @Test
@@ -407,6 +425,7 @@ public class JdbcResultSetTest {
     assertTrue(subject.wasNull());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testGetBigDecimalLabelAndScale() throws SQLException {
     assertNotNull(subject.getBigDecimal(DOUBLE_COL_NOT_NULL, 2));
@@ -839,6 +858,7 @@ public class JdbcResultSetTest {
     assertTrue(subject.wasNull());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testGetUnicodeStreamIndex() throws SQLException, IOException {
     assertNotNull(subject.getUnicodeStream(STRING_COLINDEX_NOTNULL));
@@ -861,7 +881,7 @@ public class JdbcResultSetTest {
     assertArrayEquals(BYTES_VALUE.toByteArray(), cbuf);
     assertEquals(3, len);
     assertFalse(subject.wasNull());
-    assertNull(subject.getUnicodeStream(BYTES_COLINDEX_NULL));
+    assertNull(subject.getBinaryStream(BYTES_COLINDEX_NULL));
     assertTrue(subject.wasNull());
   }
 
@@ -878,6 +898,7 @@ public class JdbcResultSetTest {
     assertTrue(subject.wasNull());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testGetUnicodeStreamLabel() throws SQLException, IOException {
     assertNotNull(subject.getUnicodeStream(STRING_COL_NOT_NULL));
@@ -900,39 +921,59 @@ public class JdbcResultSetTest {
     assertArrayEquals(ByteArray.copyFrom("FOO").toByteArray(), cbuf);
     assertEquals(3, len);
     assertFalse(subject.wasNull());
-    assertNull(subject.getUnicodeStream(BYTES_COL_NULL));
+    assertNull(subject.getBinaryStream(BYTES_COL_NULL));
     assertTrue(subject.wasNull());
   }
 
   @Test
-  public void testGetBeforeNext() throws SQLException {
+  public void testGetBeforeNext() {
     try (JdbcResultSet rs = JdbcResultSet.of(mock(Statement.class), getMockResultSet())) {
-      thrown.expect(SQLException.class);
-      thrown.expectMessage(
-          "FAILED_PRECONDITION: ResultSet is before first row. Call next() first.");
       rs.getBigDecimal(LONG_COLINDEX_NOTNULL);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+              SpannerJdbcExceptionMatcher.matchCodeAndMessage(
+                      JdbcSqlExceptionImpl.class,
+                      Code.FAILED_PRECONDITION,
+                      "ResultSet is before first row. Call next() first.")
+                  .matches(e))
+          .isTrue();
     }
   }
 
   @Test
-  public void testGetAfterLast() throws SQLException {
+  public void testGetAfterLast() {
     try (JdbcResultSet rs = JdbcResultSet.of(mock(Statement.class), getMockResultSet())) {
       while (rs.next()) {
         // do nothing
       }
-      thrown.expect(SQLException.class);
-      thrown.expectMessage(
-          "FAILED_PRECONDITION: ResultSet is after last row. There is no more data available.");
       rs.getBigDecimal(LONG_COLINDEX_NOTNULL);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+              SpannerJdbcExceptionMatcher.matchCodeAndMessage(
+                      JdbcSqlExceptionImpl.class,
+                      Code.FAILED_PRECONDITION,
+                      "ResultSet is after last row. There is no more data available.")
+                  .matches(e))
+          .isTrue();
     }
   }
 
   @Test
   public void testFindIllegalColumnName() throws SQLException {
-    thrown.expect(SQLException.class);
-    thrown.expectMessage("INVALID_ARGUMENT: no column with label " + UNKNOWN_COLUMN + " found");
-    int index = subject.findColumn(UNKNOWN_COLUMN);
-    assertEquals(0, index);
+    try {
+      subject.findColumn(UNKNOWN_COLUMN);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+              SpannerJdbcExceptionMatcher.matchCodeAndMessage(
+                      JdbcSqlExceptionImpl.class,
+                      Code.INVALID_ARGUMENT,
+                      "no column with label " + UNKNOWN_COLUMN + " found")
+                  .matches(e))
+          .isTrue();
+    }
   }
 
   @Test

@@ -16,6 +16,9 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
+
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.MockSpannerServiceImpl.SimulatedExecutionTime;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
@@ -43,9 +46,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -84,7 +85,6 @@ public class JdbcGrpcErrorTest {
   private static Server server;
   private static InetSocketAddress address;
 
-  @Rule public ExpectedException expected = ExpectedException.none();
   // FAILED_PRECONDITION is chosen as the test error code as it should never be retryable.
   private final Exception serverException =
       Status.FAILED_PRECONDITION.withDescription("test exception").asRuntimeException();
@@ -143,87 +143,100 @@ public class JdbcGrpcErrorTest {
   @Ignore(
       "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
-  public void autocommitBeginTransaction() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void autocommitBeginTransaction() {
     mockSpanner.setBeginTransactionExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Ignore(
       "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
-  public void autocommitBeginPDMLTransaction() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void autocommitBeginPDMLTransaction() {
     mockSpanner.setBeginTransactionExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().execute("SET AUTOCOMMIT_DML_MODE='PARTITIONED_NON_ATOMIC'");
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Ignore(
       "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
-  public void transactionalBeginTransaction() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void transactionalBeginTransaction() {
     mockSpanner.setBeginTransactionExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Ignore(
       "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
-  public void readOnlyBeginTransaction() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void readOnlyBeginTransaction() {
     mockSpanner.setBeginTransactionExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
       connection.createStatement().executeQuery(SELECT1.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Test
-  public void autocommitExecuteSql() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void autocommitExecuteSql() {
     mockSpanner.setExecuteSqlExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Test
-  public void autocommitPDMLExecuteSql() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void autocommitPDMLExecuteSql() {
     mockSpanner.setExecuteSqlExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().execute("SET AUTOCOMMIT_DML_MODE='PARTITIONED_NON_ATOMIC'");
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Test
-  public void transactionalExecuteSql() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void transactionalExecuteSql() {
     mockSpanner.setExecuteSqlExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Test
   public void autocommitExecuteBatchDml() throws SQLException {
-    expected.expect(testExceptionMatcher);
     mockSpanner.setExecuteBatchDmlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
@@ -231,13 +244,15 @@ public class JdbcGrpcErrorTest {
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.executeBatch();
+        fail("missing expected exception");
+      } catch (SQLException e) {
+        assertThat(testExceptionMatcher.matches(e)).isTrue();
       }
     }
   }
 
   @Test
   public void transactionalExecuteBatchDml() throws SQLException {
-    expected.expect(testExceptionMatcher);
     mockSpanner.setExecuteBatchDmlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
@@ -246,40 +261,51 @@ public class JdbcGrpcErrorTest {
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.executeBatch();
+        fail("missing expected exception");
+      } catch (SQLException e) {
+        assertThat(testExceptionMatcher.matches(e)).isTrue();
       }
     }
   }
 
   @Test
-  public void autocommitCommit() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void autocommitCommit() {
     mockSpanner.setCommitExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Test
-  public void transactionalCommit() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void transactionalCommit() {
     mockSpanner.setCommitExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
       connection.commit();
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Test
-  public void autocommitRollback() throws SQLException {
+  public void autocommitRollback() {
     // The JDBC driver should throw the exception of the SQL statement and ignore any errors from
     // the rollback() method.
-    expected.expect(
-        SpannerJdbcExceptionMatcher.matchCodeAndMessage(
-            JdbcSqlExceptionImpl.class, Code.NOT_FOUND, "Unknown table name"));
     mockSpanner.setRollbackExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().executeUpdate(INVALID_UPDATE_STATEMENT.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+              SpannerJdbcExceptionMatcher.matchCodeAndMessage(
+                      JdbcSqlExceptionImpl.class, Code.NOT_FOUND, "Unknown table name")
+                  .matches(e))
+          .isTrue();
     }
   }
 
@@ -296,74 +322,86 @@ public class JdbcGrpcErrorTest {
   }
 
   @Test
-  public void autocommitExecuteStreamingSql() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void autocommitExecuteStreamingSql() {
     mockSpanner.setExecuteStreamingSqlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().executeQuery(SELECT1.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Test
-  public void transactionalExecuteStreamingSql() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void transactionalExecuteStreamingSql() {
     mockSpanner.setExecuteStreamingSqlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.createStatement().executeQuery(SELECT1.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Test
-  public void readOnlyExecuteStreamingSql() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void readOnlyExecuteStreamingSql() {
     mockSpanner.setExecuteStreamingSqlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
       connection.createStatement().executeQuery(SELECT1.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Ignore(
       "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
-  public void autocommitCreateSession() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void autocommitCreateSession() {
     mockSpanner.setBatchCreateSessionsExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Ignore(
       "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
-  public void transactionalCreateSession() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void transactionalCreateSession() {
     mockSpanner.setBatchCreateSessionsExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 
   @Ignore(
       "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
-  public void readOnlyCreateSession() throws SQLException {
-    expected.expect(testExceptionMatcher);
+  public void readOnlyCreateSession() {
     mockSpanner.setBatchCreateSessionsExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
       connection.createStatement().executeQuery(SELECT1.getSql());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
   }
 }

@@ -27,10 +27,8 @@ import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.SqlScriptVerifier;
 import org.junit.FixMethodOrder;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.junit.runners.MethodSorters;
@@ -39,8 +37,6 @@ import org.junit.runners.MethodSorters;
 @RunWith(JUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
-
-  @Rule public ExpectedException exception = ExpectedException.none();
 
   @Override
   protected void appendConnectionUri(StringBuilder uri) {

@@ -16,11 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.hamcrest.CoreMatchers.endsWith;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.cloud.Timestamp;
@@ -53,9 +49,7 @@ import java.util.Collection;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
@@ -109,8 +103,6 @@ public class JdbcAbortedTransactionTest {
 
   @Parameter(0)
   public boolean retryAbortsInternally;
-
-  @Rule public ExpectedException expected = ExpectedException.none();
 
   @Parameters(name = "retryAbortsInternally = {0}")
   public static Collection<Object[]> data() {
@@ -175,7 +167,7 @@ public class JdbcAbortedTransactionTest {
     try (java.sql.Connection connection = createConnection()) {
       mockSpanner.abortNextStatement();
       int updateCount = connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      assertThat(updateCount, is(equalTo(UPDATE_COUNT)));
+      assertThat(updateCount).isEqualTo(UPDATE_COUNT);
     }
   }
 
@@ -183,15 +175,17 @@ public class JdbcAbortedTransactionTest {
   public void testTransactionalUpdateAborted() throws SQLException {
     // Updates in transactional mode are automatically retried by default, but this can be switched
     // off.
-    if (!retryAbortsInternally) {
-      expected.expect(JdbcAbortedException.class);
-    }
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       mockSpanner.abortNextStatement();
       int updateCount = connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      assertThat(updateCount, is(equalTo(UPDATE_COUNT)));
-      assertThat(getRetryCount(connection), is(equalTo(1)));
+      if (!retryAbortsInternally) {
+        fail("missing expected exception");
+      }
+      assertThat(updateCount).isEqualTo(UPDATE_COUNT);
+      assertThat(getRetryCount(connection)).isEqualTo(1);
+    } catch (JdbcAbortedException e) {
+      assertThat(retryAbortsInternally).isFalse();
     }
   }
 
@@ -203,16 +197,13 @@ public class JdbcAbortedTransactionTest {
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.addBatch(UPDATE_STATEMENT.getSql());
         int[] updateCounts = statement.executeBatch();
-        assertThat(updateCounts, is(equalTo(new int[] {UPDATE_COUNT, UPDATE_COUNT})));
+        assertThat(updateCounts).asList().containsExactly(UPDATE_COUNT, UPDATE_COUNT);
       }
     }
   }
 
   @Test
   public void testTransactionalBatchUpdateAborted() throws SQLException {
-    if (!retryAbortsInternally) {
-      expected.expect(JdbcAbortedException.class);
-    }
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       mockSpanner.abortNextStatement();
@@ -220,8 +211,13 @@ public class JdbcAbortedTransactionTest {
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.addBatch(UPDATE_STATEMENT.getSql());
         int[] updateCounts = statement.executeBatch();
-        assertThat(updateCounts, is(equalTo(new int[] {UPDATE_COUNT, UPDATE_COUNT})));
-        assertThat(getRetryCount(connection), is(equalTo(1)));
+        if (!retryAbortsInternally) {
+          fail("missing expected exception");
+        }
+        assertThat(updateCounts).asList().containsExactly(UPDATE_COUNT, UPDATE_COUNT);
+        assertThat(getRetryCount(connection)).isEqualTo(1);
+      } catch (JdbcAbortedException e) {
+        assertThat(retryAbortsInternally).isFalse();
       }
     }
   }
@@ -233,7 +229,7 @@ public class JdbcAbortedTransactionTest {
       mockSpanner.abortNextStatement();
       try (ResultSet rs = connection.createStatement().executeQuery(SELECT1.getSql())) {
         while (rs.next()) {
-          assertThat(rs.getLong(1), is(equalTo(1L)));
+          assertThat(rs.getLong(1)).isEqualTo(1L);
         }
       }
     }
@@ -241,30 +237,27 @@ public class JdbcAbortedTransactionTest {
 
   @Test
   public void testTransactionalSelectAborted() throws SQLException {
-    if (!retryAbortsInternally) {
-      expected.expect(JdbcAbortedException.class);
-    }
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       mockSpanner.abortNextStatement();
       try (ResultSet rs = connection.createStatement().executeQuery(SELECT1.getSql())) {
         while (rs.next()) {
-          assertThat(rs.getLong(1), is(equalTo(1L)));
+          if (!retryAbortsInternally) {
+            fail("missing expected exception");
+          }
+          assertThat(rs.getLong(1)).isEqualTo(1L);
         }
       }
-      assertThat(getRetryCount(connection), is(equalTo(1)));
+      assertThat(getRetryCount(connection)).isEqualTo(1);
+    } catch (JdbcAbortedException e) {
+      assertThat(retryAbortsInternally).isFalse();
     }
   }
 
   @Test
   public void testTransactionalUpdateWithConcurrentModificationsAborted() throws SQLException {
-    if (retryAbortsInternally) {
-      // As the transaction does a random select, the retry will always see different data than the
-      // original attempt.
-      expected.expect(JdbcAbortedDueToConcurrentModificationException.class);
-    } else {
-      expected.expect(JdbcAbortedException.class);
-    }
+    // As the transaction does a random select, the retry will always see different data than the
+    // original attempt.
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       // Set a random answer.
@@ -281,14 +274,15 @@ public class JdbcAbortedTransactionTest {
       // This will abort and start an internal retry.
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
       fail("missing expected aborted exception");
+    } catch (JdbcAbortedDueToConcurrentModificationException e) {
+      assertThat(retryAbortsInternally).isTrue();
+    } catch (JdbcAbortedException e) {
+      assertThat(retryAbortsInternally).isFalse();
     }
   }
 
   @Test
   public void testTransactionalUpdateWithErrorOnOriginalAndRetry() throws SQLException {
-    if (!retryAbortsInternally) {
-      expected.expect(JdbcAbortedException.class);
-    }
     final String sql = "UPDATE SOMETHING SET OTHER=1";
     mockSpanner.putStatementResult(
         StatementResult.exception(
@@ -298,7 +292,7 @@ public class JdbcAbortedTransactionTest {
       connection.setAutoCommit(false);
       try (ResultSet rs = connection.createStatement().executeQuery(SELECT1.getSql())) {
         while (rs.next()) {
-          assertThat(rs.getLong(1), is(equalTo(1L)));
+          assertThat(rs.getLong(1)).isEqualTo(1L);
         }
       }
       try {
@@ -309,16 +303,16 @@ public class JdbcAbortedTransactionTest {
       }
       mockSpanner.abortNextStatement();
       connection.commit();
+      if (!retryAbortsInternally) {
+        fail("missing expected exception");
+      }
+    } catch (JdbcAbortedException e) {
+      assertThat(retryAbortsInternally).isFalse();
     }
   }
 
   @Test
   public void testTransactionalUpdateWithErrorOnRetryAndNotOnOriginal() throws SQLException {
-    if (retryAbortsInternally) {
-      expected.expect(JdbcAbortedDueToConcurrentModificationException.class);
-    } else {
-      expected.expect(JdbcAbortedException.class);
-    }
     final String sql = "UPDATE SOMETHING SET OTHER=1";
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
@@ -335,20 +329,17 @@ public class JdbcAbortedTransactionTest {
       connection.commit();
       fail("missing expected aborted exception");
     } catch (JdbcAbortedDueToConcurrentModificationException e) {
-      assertThat(
-          e.getDatabaseErrorDuringRetry().getErrorCode(), is(equalTo(ErrorCode.INVALID_ARGUMENT)));
-      assertThat(e.getDatabaseErrorDuringRetry().getMessage(), endsWith("test"));
-      throw e;
+      assertThat(retryAbortsInternally).isTrue();
+      assertThat(e.getDatabaseErrorDuringRetry().getErrorCode())
+          .isEqualTo(ErrorCode.INVALID_ARGUMENT);
+      assertThat(e.getDatabaseErrorDuringRetry().getMessage()).endsWith("test");
+    } catch (JdbcAbortedException e) {
+      assertThat(retryAbortsInternally).isFalse();
     }
   }
 
   @Test
   public void testTransactionalUpdateWithErrorOnOriginalAndNotOnRetry() throws SQLException {
-    if (retryAbortsInternally) {
-      expected.expect(JdbcAbortedDueToConcurrentModificationException.class);
-    } else {
-      expected.expect(JdbcAbortedException.class);
-    }
     final String sql = "UPDATE SOMETHING SET OTHER=1";
     mockSpanner.putStatementResult(
         StatementResult.exception(
@@ -358,7 +349,7 @@ public class JdbcAbortedTransactionTest {
       connection.setAutoCommit(false);
       try (ResultSet rs = connection.createStatement().executeQuery(SELECT1.getSql())) {
         while (rs.next()) {
-          assertThat(rs.getLong(1), is(equalTo(1L)));
+          assertThat(rs.getLong(1)).isEqualTo(1L);
         }
       }
       try {
@@ -373,8 +364,10 @@ public class JdbcAbortedTransactionTest {
       connection.commit();
       fail("missing expected aborted exception");
     } catch (JdbcAbortedDueToConcurrentModificationException e) {
-      assertThat(e.getDatabaseErrorDuringRetry(), is(nullValue()));
-      throw e;
+      assertThat(retryAbortsInternally).isTrue();
+      assertThat(e.getDatabaseErrorDuringRetry()).isNull();
+    } catch (JdbcAbortedException e) {
+      assertThat(retryAbortsInternally).isFalse();
     }
   }
 }
