@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc.it;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -44,7 +45,9 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
   private static final String SINGERS_TABLE = "Singers";
   private static final String ALBUMS_TABLE = "Albums";
   private static final String SONGS_TABLE = "Songs";
+  private static final String CONCERTS_TABLE = "Concerts";
   private static final String TABLE_WITH_ALL_COLS = "TableWithAllColumnTypes";
+  private static final String TABLE_WITH_REF = "TableWithRef";
 
   @Override
   protected boolean doCreateMusicTables() {
@@ -276,6 +279,109 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
             rs.getShort("DEFERRABILITY"),
             is(equalTo((short) DatabaseMetaData.importedKeyNotDeferrable)));
       }
+
+      try (ResultSet rs =
+          connection
+              .getMetaData()
+              .getCrossReference(
+                  DEFAULT_CATALOG,
+                  DEFAULT_SCHEMA,
+                  SINGERS_TABLE,
+                  DEFAULT_CATALOG,
+                  DEFAULT_SCHEMA,
+                  CONCERTS_TABLE)) {
+        assertThat(rs.next(), is(true));
+        assertThat(rs.getString("PKTABLE_CAT"), is(equalTo("")));
+        assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo("")));
+        assertThat(rs.getString("PKTABLE_NAME"), is(equalTo("Singers")));
+        assertThat(rs.getString("PKCOLUMN_NAME"), is(equalTo("SingerId")));
+        assertThat(rs.getString("FKTABLE_CAT"), is(equalTo("")));
+        assertThat(rs.getString("FKTABLE_SCHEM"), is(equalTo("")));
+        assertThat(rs.getString("FKTABLE_NAME"), is(equalTo("Concerts")));
+        assertThat(rs.getString("FKCOLUMN_NAME"), is(equalTo("SingerId")));
+        assertThat(rs.getShort("KEY_SEQ"), is(equalTo((short) 1)));
+        assertThat(
+            rs.getShort("UPDATE_RULE"), is(equalTo((short) DatabaseMetaData.importedKeyNoAction)));
+        assertThat(
+            rs.getShort("DELETE_RULE"), is(equalTo((short) DatabaseMetaData.importedKeyNoAction)));
+        assertThat(rs.getString("FK_NAME"), is(equalTo("Fk_Concerts_Singer")));
+        assertThat(rs.getString("PK_NAME"), is(equalTo("PK_Singers")));
+        assertThat(
+            rs.getShort("DEFERRABILITY"),
+            is(equalTo((short) DatabaseMetaData.importedKeyNotDeferrable)));
+        assertThat(rs.next(), is(false));
+      }
+
+      try (ResultSet rs =
+          connection
+              .getMetaData()
+              .getCrossReference(
+                  DEFAULT_CATALOG,
+                  DEFAULT_SCHEMA,
+                  TABLE_WITH_ALL_COLS,
+                  DEFAULT_CATALOG,
+                  DEFAULT_SCHEMA,
+                  TABLE_WITH_REF)) {
+
+        assertThat(rs.next(), is(true));
+        assertThat(rs.getString("PKTABLE_CAT"), is(equalTo("")));
+        assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo("")));
+        assertThat(rs.getString("PKTABLE_NAME"), is(equalTo(TABLE_WITH_ALL_COLS)));
+        assertThat(rs.getString("PKCOLUMN_NAME"), is(equalTo("ColFloat64")));
+        assertThat(rs.getString("FKTABLE_CAT"), is(equalTo("")));
+        assertThat(rs.getString("FKTABLE_SCHEM"), is(equalTo("")));
+        assertThat(rs.getString("FKTABLE_NAME"), is(equalTo(TABLE_WITH_REF)));
+        assertThat(rs.getString("FKCOLUMN_NAME"), is(equalTo("RefFloat")));
+        assertThat(rs.getShort("KEY_SEQ"), is(equalTo((short) 1)));
+        assertThat(
+            rs.getShort("UPDATE_RULE"), is(equalTo((short) DatabaseMetaData.importedKeyNoAction)));
+        assertThat(
+            rs.getShort("DELETE_RULE"), is(equalTo((short) DatabaseMetaData.importedKeyNoAction)));
+        assertThat(rs.getString("FK_NAME"), is(equalTo("Fk_TableWithRef_TableWithAllColumnTypes")));
+        assertThat(
+            rs.getShort("DEFERRABILITY"),
+            is(equalTo((short) DatabaseMetaData.importedKeyNotDeferrable)));
+
+        assertThat(rs.next(), is(true));
+        assertThat(rs.getString("PKTABLE_CAT"), is(equalTo("")));
+        assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo("")));
+        assertThat(rs.getString("PKTABLE_NAME"), is(equalTo(TABLE_WITH_ALL_COLS)));
+        assertThat(rs.getString("PKCOLUMN_NAME"), is(equalTo("ColString")));
+        assertThat(rs.getString("FKTABLE_CAT"), is(equalTo("")));
+        assertThat(rs.getString("FKTABLE_SCHEM"), is(equalTo("")));
+        assertThat(rs.getString("FKTABLE_NAME"), is(equalTo(TABLE_WITH_REF)));
+        assertThat(rs.getString("FKCOLUMN_NAME"), is(equalTo("RefString")));
+        assertThat(rs.getShort("KEY_SEQ"), is(equalTo((short) 2)));
+        assertThat(
+            rs.getShort("UPDATE_RULE"), is(equalTo((short) DatabaseMetaData.importedKeyNoAction)));
+        assertThat(
+            rs.getShort("DELETE_RULE"), is(equalTo((short) DatabaseMetaData.importedKeyNoAction)));
+        assertThat(rs.getString("FK_NAME"), is(equalTo("Fk_TableWithRef_TableWithAllColumnTypes")));
+        assertThat(
+            rs.getShort("DEFERRABILITY"),
+            is(equalTo((short) DatabaseMetaData.importedKeyNotDeferrable)));
+
+        assertThat(rs.next(), is(true));
+        assertThat(rs.getString("PKTABLE_CAT"), is(equalTo("")));
+        assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo("")));
+        assertThat(rs.getString("PKTABLE_NAME"), is(equalTo(TABLE_WITH_ALL_COLS)));
+        assertThat(rs.getString("PKCOLUMN_NAME"), is(equalTo("ColDate")));
+        assertThat(rs.getString("FKTABLE_CAT"), is(equalTo("")));
+        assertThat(rs.getString("FKTABLE_SCHEM"), is(equalTo("")));
+        assertThat(rs.getString("FKTABLE_NAME"), is(equalTo(TABLE_WITH_REF)));
+        assertThat(rs.getString("FKCOLUMN_NAME"), is(equalTo("RefDate")));
+        assertThat(rs.getShort("KEY_SEQ"), is(equalTo((short) 3)));
+        assertThat(
+            rs.getShort("UPDATE_RULE"), is(equalTo((short) DatabaseMetaData.importedKeyNoAction)));
+        assertThat(
+            rs.getShort("DELETE_RULE"), is(equalTo((short) DatabaseMetaData.importedKeyNoAction)));
+        assertThat(rs.getString("FK_NAME"), is(equalTo("Fk_TableWithRef_TableWithAllColumnTypes")));
+        assertThat(
+            rs.getShort("DEFERRABILITY"),
+            is(equalTo((short) DatabaseMetaData.importedKeyNotDeferrable)));
+
+        assertThat(rs.next(), is(false));
+      }
       // try getting self-references
       try (ResultSet rs =
           connection
@@ -292,7 +398,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
       // try getting all cross-references in the database
       try (ResultSet rs =
           connection.getMetaData().getCrossReference(null, null, null, null, null, null)) {
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 7; i++) {
           assertThat(rs.next(), is(true));
         }
         assertThat(rs.next(), is(false));
@@ -334,6 +440,13 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new IndexInfo("Concerts", false, "PRIMARY_KEY", 1, "VenueId", "A"),
           new IndexInfo("Concerts", false, "PRIMARY_KEY", 2, "SingerId", "A"),
           new IndexInfo("Concerts", false, "PRIMARY_KEY", 3, "ConcertDate", "A"),
+          new IndexInfo(
+              "Concerts",
+              true,
+              "FOREIGN_KEY",
+              1,
+              "SingerId",
+              "A"), // Index automatically added by Cloud Spanner for the referencing column.
           new IndexInfo("Singers", false, "PRIMARY_KEY", 1, "SingerId", "A"),
           new IndexInfo("Singers", true, "SingersByFirstLastName", 1, "FirstName", "A"),
           new IndexInfo("Singers", true, "SingersByFirstLastName", 2, "LastName", "A"),
@@ -344,7 +457,20 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new IndexInfo("Songs", false, "SongsBySingerAlbumSongNameDesc", 2, "AlbumId", "A"),
           new IndexInfo("Songs", false, "SongsBySingerAlbumSongNameDesc", 3, "SongName", "D"),
           new IndexInfo("Songs", true, "SongsBySongName", 1, "SongName", "A"),
-          new IndexInfo("TableWithAllColumnTypes", false, "PRIMARY_KEY", 1, "ColInt64", "A"));
+          new IndexInfo(
+              "TableWithAllColumnTypes",
+              false,
+              "GENERATED",
+              1,
+              "ColFloat64",
+              "A"), // Index automatically added by Cloud Spanner for the referencing foreign key.
+          new IndexInfo("TableWithAllColumnTypes", false, "GENERATED", 2, "ColString", "A"),
+          new IndexInfo("TableWithAllColumnTypes", false, "GENERATED", 3, "ColDate", "A"),
+          new IndexInfo("TableWithAllColumnTypes", false, "PRIMARY_KEY", 1, "ColInt64", "A"),
+          new IndexInfo("TableWithRef", false, "PRIMARY_KEY", 1, "Id", "A"),
+          new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 1, "RefFloat", "A"),
+          new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 2, "RefString", "A"),
+          new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 3, "RefDate", "A"));
 
   @Test
   public void testGetIndexInfo() throws SQLException {
@@ -361,7 +487,10 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           assertThat(rs.getString("TABLE_NAME"), is(equalTo(index.tableName)));
           assertThat(rs.getBoolean("NON_UNIQUE"), is(index.nonUnique));
           assertThat(rs.getString("INDEX_QUALIFIER"), is(equalTo(DEFAULT_CATALOG)));
-          assertThat(rs.getString("INDEX_NAME"), is(equalTo(index.indexName)));
+          // Foreign key index names are automatically generated.
+          if (!"FOREIGN_KEY".equals(index.indexName) && !"GENERATED".equals(index.indexName)) {
+            assertThat(rs.getString("INDEX_NAME"), is(equalTo(index.indexName)));
+          }
           if (index.indexName.equals("PRIMARY_KEY")) {
             assertThat(rs.getShort("TYPE"), is(equalTo(DatabaseMetaData.tableIndexClustered)));
           } else {
@@ -390,7 +519,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           connection
               .getMetaData()
               .getExportedKeys(DEFAULT_CATALOG, DEFAULT_SCHEMA, SINGERS_TABLE)) {
-        assertKeysSingersAlbums(rs);
+        assertExportedKeysSingers(rs);
       }
       try (ResultSet rs =
           connection.getMetaData().getExportedKeys(DEFAULT_CATALOG, DEFAULT_SCHEMA, ALBUMS_TABLE)) {
@@ -403,17 +532,91 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
   public void testGetImportedKeys() throws SQLException {
     try (Connection connection = createConnection()) {
       try (ResultSet rs =
+          connection
+              .getMetaData()
+              .getImportedKeys(DEFAULT_CATALOG, DEFAULT_SCHEMA, SINGERS_TABLE)) {
+        assertImportedKeysSingers(rs);
+      }
+      try (ResultSet rs =
           connection.getMetaData().getImportedKeys(DEFAULT_CATALOG, DEFAULT_SCHEMA, ALBUMS_TABLE)) {
-        assertKeysSingersAlbums(rs);
+        assertImportedKeysAlbums(rs);
+      }
+      try (ResultSet rs =
+          connection
+              .getMetaData()
+              .getImportedKeys(DEFAULT_CATALOG, DEFAULT_SCHEMA, CONCERTS_TABLE)) {
+        assertImportedKeysConcerts(rs);
       }
       try (ResultSet rs =
           connection.getMetaData().getImportedKeys(DEFAULT_CATALOG, DEFAULT_SCHEMA, SONGS_TABLE)) {
         assertKeysAlbumsSongs(rs);
       }
+      try (ResultSet rs =
+          connection
+              .getMetaData()
+              .getImportedKeys(DEFAULT_CATALOG, DEFAULT_SCHEMA, TABLE_WITH_REF)) {
+        assertImportedKeysTableWithRef(rs);
+      }
     }
   }
 
-  private void assertKeysSingersAlbums(ResultSet rs) throws SQLException {
+  private void assertImportedKeysSingers(ResultSet rs) throws SQLException {
+    assertThat(rs.next(), is(false));
+  }
+
+  private void assertImportedKeysTableWithRef(ResultSet rs) throws SQLException {
+    assertThat(rs.next(), is(true));
+    assertThat(rs.getString("PKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("PKTABLE_NAME"), is(equalTo(TABLE_WITH_ALL_COLS)));
+    assertThat(rs.getString("PKCOLUMN_NAME"), is(equalTo("ColFloat64")));
+    assertThat(rs.getString("FKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("FKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("FKTABLE_NAME"), is(equalTo(TABLE_WITH_REF)));
+    assertThat(rs.getString("FKCOLUMN_NAME"), is(equalTo("RefFloat")));
+    assertThat(rs.getShort("KEY_SEQ"), is(equalTo((short) 1)));
+    assertThat(rs.getInt("UPDATE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getInt("DELETE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getString("FK_NAME"), is("Fk_TableWithRef_TableWithAllColumnTypes"));
+    assertThat(rs.getString("PK_NAME"), is(notNullValue())); // Index name is generated.
+    assertThat(rs.getInt("DEFERRABILITY"), is(equalTo(DatabaseMetaData.importedKeyNotDeferrable)));
+
+    assertThat(rs.next(), is(true));
+    assertThat(rs.getString("PKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("PKTABLE_NAME"), is(equalTo(TABLE_WITH_ALL_COLS)));
+    assertThat(rs.getString("PKCOLUMN_NAME"), is(equalTo("ColString")));
+    assertThat(rs.getString("FKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("FKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("FKTABLE_NAME"), is(equalTo(TABLE_WITH_REF)));
+    assertThat(rs.getString("FKCOLUMN_NAME"), is(equalTo("RefString")));
+    assertThat(rs.getShort("KEY_SEQ"), is(equalTo((short) 2)));
+    assertThat(rs.getInt("UPDATE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getInt("DELETE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getString("FK_NAME"), is("Fk_TableWithRef_TableWithAllColumnTypes"));
+    assertThat(rs.getString("PK_NAME"), is(notNullValue())); // Index name is generated.
+    assertThat(rs.getInt("DEFERRABILITY"), is(equalTo(DatabaseMetaData.importedKeyNotDeferrable)));
+
+    assertThat(rs.next(), is(true));
+    assertThat(rs.getString("PKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("PKTABLE_NAME"), is(equalTo(TABLE_WITH_ALL_COLS)));
+    assertThat(rs.getString("PKCOLUMN_NAME"), is(equalTo("ColDate")));
+    assertThat(rs.getString("FKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("FKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("FKTABLE_NAME"), is(equalTo(TABLE_WITH_REF)));
+    assertThat(rs.getString("FKCOLUMN_NAME"), is(equalTo("RefDate")));
+    assertThat(rs.getShort("KEY_SEQ"), is(equalTo((short) 3)));
+    assertThat(rs.getInt("UPDATE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getInt("DELETE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getString("FK_NAME"), is("Fk_TableWithRef_TableWithAllColumnTypes"));
+    assertThat(rs.getString("PK_NAME"), is(notNullValue())); // Index name is generated.
+    assertThat(rs.getInt("DEFERRABILITY"), is(equalTo(DatabaseMetaData.importedKeyNotDeferrable)));
+
+    assertThat(rs.next(), is(false));
+  }
+
+  private void assertImportedKeysAlbums(ResultSet rs) throws SQLException {
     assertThat(rs.next(), is(true));
     assertThat(rs.getString("PKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
     assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
@@ -429,6 +632,63 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
     assertThat(rs.getString("FK_NAME"), is(nullValue()));
     assertThat(rs.getString("PK_NAME"), is(equalTo("PRIMARY_KEY")));
     assertThat(rs.getInt("DEFERRABILITY"), is(equalTo(DatabaseMetaData.importedKeyNotDeferrable)));
+
+    assertThat(rs.next(), is(false));
+  }
+
+  private void assertImportedKeysConcerts(ResultSet rs) throws SQLException {
+    assertThat(rs.next(), is(true));
+    assertThat(rs.getString("PKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("PKTABLE_NAME"), is(equalTo(SINGERS_TABLE)));
+    assertThat(rs.getString("PKCOLUMN_NAME"), is(equalTo("SingerId")));
+    assertThat(rs.getString("FKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("FKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("FKTABLE_NAME"), is(equalTo(CONCERTS_TABLE)));
+    assertThat(rs.getString("FKCOLUMN_NAME"), is(equalTo("SingerId")));
+    assertThat(rs.getShort("KEY_SEQ"), is(equalTo((short) 1)));
+    assertThat(rs.getInt("UPDATE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getInt("DELETE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getString("FK_NAME"), is("Fk_Concerts_Singer"));
+    assertThat(rs.getString("PK_NAME"), is(equalTo("PK_Singers")));
+    assertThat(rs.getInt("DEFERRABILITY"), is(equalTo(DatabaseMetaData.importedKeyNotDeferrable)));
+
+    assertThat(rs.next(), is(false));
+  }
+
+  private void assertExportedKeysSingers(ResultSet rs) throws SQLException {
+    assertThat(rs.next(), is(true));
+    assertThat(rs.getString("PKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("PKTABLE_NAME"), is(equalTo(SINGERS_TABLE)));
+    assertThat(rs.getString("PKCOLUMN_NAME"), is(equalTo("SingerId")));
+    assertThat(rs.getString("FKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("FKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("FKTABLE_NAME"), is(equalTo(ALBUMS_TABLE)));
+    assertThat(rs.getString("FKCOLUMN_NAME"), is(equalTo("SingerId")));
+    assertThat(rs.getShort("KEY_SEQ"), is(equalTo((short) 1)));
+    assertThat(rs.getInt("UPDATE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getInt("DELETE_RULE"), is(equalTo(DatabaseMetaData.importedKeyCascade)));
+    assertThat(rs.getString("FK_NAME"), is(nullValue()));
+    assertThat(rs.getString("PK_NAME"), is(equalTo("PRIMARY_KEY")));
+    assertThat(rs.getInt("DEFERRABILITY"), is(equalTo(DatabaseMetaData.importedKeyNotDeferrable)));
+
+    assertThat(rs.next(), is(true));
+    assertThat(rs.getString("PKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("PKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("PKTABLE_NAME"), is(equalTo(SINGERS_TABLE)));
+    assertThat(rs.getString("PKCOLUMN_NAME"), is(equalTo("SingerId")));
+    assertThat(rs.getString("FKTABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
+    assertThat(rs.getString("FKTABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
+    assertThat(rs.getString("FKTABLE_NAME"), is(equalTo(CONCERTS_TABLE)));
+    assertThat(rs.getString("FKCOLUMN_NAME"), is(equalTo("SingerId")));
+    assertThat(rs.getShort("KEY_SEQ"), is(equalTo((short) 1)));
+    assertThat(rs.getInt("UPDATE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getInt("DELETE_RULE"), is(equalTo(DatabaseMetaData.importedKeyRestrict)));
+    assertThat(rs.getString("FK_NAME"), is("Fk_Concerts_Singer"));
+    assertThat(rs.getString("PK_NAME"), is(equalTo("PK_Singers")));
+    assertThat(rs.getInt("DEFERRABILITY"), is(equalTo(DatabaseMetaData.importedKeyNotDeferrable)));
+
     assertThat(rs.next(), is(false));
   }
 
@@ -533,7 +793,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new Table("Concerts"),
           new Table("Singers"),
           new Table("Songs"),
-          new Table("TableWithAllColumnTypes"));
+          new Table("TableWithAllColumnTypes"),
+          new Table("TableWithRef"));
 
   @Test
   public void testGetTables() throws SQLException {
