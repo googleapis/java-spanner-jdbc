@@ -93,7 +93,6 @@ public class JdbcConnectionTest {
       // start a transaction
       connection.createStatement().execute("begin transaction");
       // setting readonly should no longer be allowed
-      //      exception.expect(JdbcExceptionMatcher.matchCode(Code.FAILED_PRECONDITION));
       connection.setReadOnly(true);
       fail("missing expected exception");
     } catch (SQLException e) {
