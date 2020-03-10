@@ -29,10 +29,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -41,8 +39,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
   private static final long TEST_ROWS_COUNT = 1000L;
-
-  @Rule public ExpectedException exception = ExpectedException.none();
 
   @Override
   protected void appendConnectionUri(StringBuilder url) {

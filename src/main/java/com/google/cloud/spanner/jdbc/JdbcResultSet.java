@@ -215,6 +215,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   @Override
+  @Deprecated
   public InputStream getUnicodeStream(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
     return getInputStream(getString(columnIndex), StandardCharsets.UTF_16LE);
@@ -314,6 +315,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   @Override
+  @Deprecated
   public InputStream getUnicodeStream(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
     return getInputStream(getString(columnLabel), StandardCharsets.UTF_16LE);
@@ -406,12 +408,14 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   @Override
+  @Deprecated
   public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
     checkClosedAndValidRow();
     return getBigDecimal(columnIndex, true, scale);
   }
 
   @Override
+  @Deprecated
   public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
     checkClosedAndValidRow();
     return getBigDecimal(spanner.getColumnIndex(columnLabel) + 1, true, scale);

@@ -169,6 +169,7 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   }
 
   @Override
+  @Deprecated
   public void setUnicodeStream(int parameterIndex, InputStream value, int length)
       throws SQLException {
     checkClosed();

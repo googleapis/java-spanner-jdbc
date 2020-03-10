@@ -16,11 +16,8 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -48,15 +45,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class JdbcConnectionTest {
-  @Rule public final ExpectedException exception = ExpectedException.none();
   private static final com.google.cloud.spanner.ResultSet SELECT1_RESULTSET =
       ResultSets.forRows(
           Type.struct(StructField.of("", Type.int64())),
@@ -76,14 +70,14 @@ public class JdbcConnectionTest {
     ConnectionOptions options = mock(ConnectionOptions.class);
     when(options.isAutocommit()).thenReturn(true);
     try (Connection connection = createConnection(options)) {
-      assertThat(connection.getAutoCommit(), is(true));
+      assertThat(connection.getAutoCommit()).isTrue();
       connection.setAutoCommit(false);
-      assertThat(connection.getAutoCommit(), is(false));
+      assertThat(connection.getAutoCommit()).isFalse();
       // execute a query that will start a transaction
       connection.createStatement().executeQuery(AbstractConnectionImplTest.SELECT);
       // setting autocommit will automatically commit the transaction
       connection.setAutoCommit(true);
-      assertThat(connection.getAutoCommit(), is(true));
+      assertThat(connection.getAutoCommit()).isTrue();
     }
   }
 
@@ -93,14 +87,16 @@ public class JdbcConnectionTest {
     when(options.isAutocommit()).thenReturn(true);
     when(options.isReadOnly()).thenReturn(true);
     try (Connection connection = createConnection(options)) {
-      assertThat(connection.isReadOnly(), is(true));
+      assertThat(connection.isReadOnly()).isTrue();
       connection.setReadOnly(false);
-      assertThat(connection.isReadOnly(), is(false));
+      assertThat(connection.isReadOnly()).isFalse();
       // start a transaction
       connection.createStatement().execute("begin transaction");
       // setting readonly should no longer be allowed
-      exception.expect(JdbcExceptionMatcher.matchCode(Code.FAILED_PRECONDITION));
       connection.setReadOnly(true);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(JdbcExceptionMatcher.matchCode(Code.FAILED_PRECONDITION).matches(e)).isTrue();
     }
   }
 
@@ -109,17 +105,17 @@ public class JdbcConnectionTest {
     ConnectionOptions options = mock(ConnectionOptions.class);
     try (JdbcConnection connection = createConnection(options)) {
       // verify that there is no transaction started
-      assertThat(connection.getSpannerConnection().isTransactionStarted(), is(false));
+      assertThat(connection.getSpannerConnection().isTransactionStarted()).isFalse();
       // start a transaction
       connection.createStatement().execute(AbstractConnectionImplTest.SELECT);
       // verify that we did start a transaction
-      assertThat(connection.getSpannerConnection().isTransactionStarted(), is(true));
+      assertThat(connection.getSpannerConnection().isTransactionStarted()).isTrue();
       // do a commit
       connection.commit();
       // verify that there is no transaction started anymore
-      assertThat(connection.getSpannerConnection().isTransactionStarted(), is(false));
+      assertThat(connection.getSpannerConnection().isTransactionStarted()).isFalse();
       // verify that there is a commit timestamp
-      assertThat(connection.getSpannerConnection().getCommitTimestamp(), is(notNullValue()));
+      assertThat(connection.getSpannerConnection().getCommitTimestamp()).isNotNull();
     }
   }
 
@@ -128,20 +124,20 @@ public class JdbcConnectionTest {
     ConnectionOptions options = mock(ConnectionOptions.class);
     try (JdbcConnection connection = createConnection(options)) {
       // verify that there is no transaction started
-      assertThat(connection.getSpannerConnection().isTransactionStarted(), is(false));
+      assertThat(connection.getSpannerConnection().isTransactionStarted()).isFalse();
       // start a transaction
       connection.createStatement().execute(AbstractConnectionImplTest.SELECT);
       // verify that we did start a transaction
-      assertThat(connection.getSpannerConnection().isTransactionStarted(), is(true));
+      assertThat(connection.getSpannerConnection().isTransactionStarted()).isTrue();
       // do a rollback
       connection.rollback();
       // verify that there is no transaction started anymore
-      assertThat(connection.getSpannerConnection().isTransactionStarted(), is(false));
+      assertThat(connection.getSpannerConnection().isTransactionStarted()).isFalse();
       // verify that there is no commit timestamp
       try (ResultSet rs =
           connection.createStatement().executeQuery("show variable commit_timestamp")) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getTimestamp("COMMIT_TIMESTAMP"), is(nullValue()));
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getTimestamp("COMMIT_TIMESTAMP")).isNull();
       }
     }
   }
@@ -310,18 +306,17 @@ public class JdbcConnectionTest {
         valid = true;
       }
     }
-    assertThat(
-        "Method did not throw exception on closed connection: " + method.getName(),
-        valid,
-        is(true));
+    assertWithMessage("Method did not throw exception on closed connection: " + method.getName())
+        .that(valid)
+        .isTrue();
   }
 
   @Test
   public void testTransactionIsolation() throws SQLException {
     ConnectionOptions options = mock(ConnectionOptions.class);
     try (JdbcConnection connection = createConnection(options)) {
-      assertThat(
-          connection.getTransactionIsolation(), is(equalTo(Connection.TRANSACTION_SERIALIZABLE)));
+      assertThat(connection.getTransactionIsolation())
+          .isEqualTo(Connection.TRANSACTION_SERIALIZABLE);
       // assert that setting it to this value is ok.
       connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
       // assert that setting it to something else is not ok.
@@ -347,7 +342,7 @@ public class JdbcConnectionTest {
                     && ((JdbcSqlException) e).getCode() == Code.UNIMPLEMENTED);
           }
         }
-        assertThat(exception, is(true));
+        assertThat(exception).isTrue();
       }
     }
   }
@@ -356,7 +351,7 @@ public class JdbcConnectionTest {
   public void testHoldability() throws SQLException {
     ConnectionOptions options = mock(ConnectionOptions.class);
     try (JdbcConnection connection = createConnection(options)) {
-      assertThat(connection.getHoldability(), is(equalTo(ResultSet.CLOSE_CURSORS_AT_COMMIT)));
+      assertThat(connection.getHoldability()).isEqualTo(ResultSet.CLOSE_CURSORS_AT_COMMIT);
       // assert that setting it to this value is ok.
       connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
       // assert that setting it to something else is not ok.
@@ -376,7 +371,7 @@ public class JdbcConnectionTest {
                     && ((JdbcSqlException) e).getCode() == Code.UNIMPLEMENTED);
           }
         }
-        assertThat(exception, is(true));
+        assertThat(exception).isTrue();
       }
     }
   }
@@ -385,24 +380,24 @@ public class JdbcConnectionTest {
   public void testWarnings() throws SQLException {
     ConnectionOptions options = mock(ConnectionOptions.class);
     try (JdbcConnection connection = createConnection(options)) {
-      assertThat(connection.getWarnings(), is(nullValue()));
+      assertThat((Object) connection.getWarnings()).isNull();
 
       // Push one warning and get it twice.
       connection.pushWarning(new SQLWarning("test"));
-      assertThat(connection.getWarnings().getMessage(), is(equalTo("test")));
-      assertThat(connection.getWarnings().getMessage(), is(equalTo("test")));
+      assertThat(connection.getWarnings().getMessage()).isEqualTo("test");
+      assertThat(connection.getWarnings().getMessage()).isEqualTo("test");
 
       // Clear warnings and push two warnings and get them both.
       connection.clearWarnings();
       connection.pushWarning(new SQLWarning("test 1"));
       connection.pushWarning(new SQLWarning("test 2"));
-      assertThat(connection.getWarnings().getMessage(), is(equalTo("test 1")));
-      assertThat(connection.getWarnings().getMessage(), is(equalTo("test 1")));
-      assertThat(connection.getWarnings().getNextWarning().getMessage(), is(equalTo("test 2")));
+      assertThat(connection.getWarnings().getMessage()).isEqualTo("test 1");
+      assertThat(connection.getWarnings().getMessage()).isEqualTo("test 1");
+      assertThat(connection.getWarnings().getNextWarning().getMessage()).isEqualTo("test 2");
 
       // Clear warnings.
       connection.clearWarnings();
-      assertThat(connection.getWarnings(), is(nullValue()));
+      assertThat((Object) connection.getWarnings()).isNull();
     }
   }
 
@@ -410,23 +405,21 @@ public class JdbcConnectionTest {
   public void testSetClientInfo() throws SQLException {
     ConnectionOptions options = mock(ConnectionOptions.class);
     try (JdbcConnection connection = createConnection(options)) {
-      assertThat(connection.getWarnings(), is(nullValue()));
+      assertThat((Object) connection.getWarnings()).isNull();
       connection.setClientInfo("test", "foo");
-      assertThat(connection.getWarnings(), is(notNullValue()));
-      assertThat(
-          connection.getWarnings().getMessage(),
-          is(equalTo(AbstractJdbcConnection.CLIENT_INFO_NOT_SUPPORTED)));
+      assertThat((Object) connection.getWarnings()).isNotNull();
+      assertThat(connection.getWarnings().getMessage())
+          .isEqualTo(AbstractJdbcConnection.CLIENT_INFO_NOT_SUPPORTED);
 
       connection.clearWarnings();
-      assertThat(connection.getWarnings(), is(nullValue()));
+      assertThat((Object) connection.getWarnings()).isNull();
 
       Properties props = new Properties();
       props.setProperty("test", "foo");
       connection.setClientInfo(props);
-      assertThat(connection.getWarnings(), is(notNullValue()));
-      assertThat(
-          connection.getWarnings().getMessage(),
-          is(equalTo(AbstractJdbcConnection.CLIENT_INFO_NOT_SUPPORTED)));
+      assertThat((Object) connection.getWarnings()).isNotNull();
+      assertThat(connection.getWarnings().getMessage())
+          .isEqualTo(AbstractJdbcConnection.CLIENT_INFO_NOT_SUPPORTED);
     }
   }
 
@@ -442,13 +435,13 @@ public class JdbcConnectionTest {
     // Verify that an opened connection that returns a result set is valid.
     try (JdbcConnection connection = new JdbcConnection("url", options)) {
       when(spannerConnection.executeQuery(statement)).thenReturn(SELECT1_RESULTSET);
-      assertThat(connection.isValid(1), is(true));
+      assertThat(connection.isValid(1)).isTrue();
       try {
         // Invalid timeout value.
         connection.isValid(-1);
         fail("missing expected exception");
       } catch (JdbcSqlExceptionImpl e) {
-        assertThat(e.getCode(), is(equalTo(Code.INVALID_ARGUMENT)));
+        assertThat(e.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
       }
 
       // Now let the query return an error. isValid should now return false.
@@ -456,7 +449,7 @@ public class JdbcConnectionTest {
           .thenThrow(
               SpannerExceptionFactory.newSpannerException(
                   ErrorCode.ABORTED, "the current transaction has been aborted"));
-      assertThat(connection.isValid(1), is(false));
+      assertThat(connection.isValid(1)).isFalse();
     }
   }
 
@@ -464,7 +457,7 @@ public class JdbcConnectionTest {
   public void testIsValidOnClosedConnection() throws SQLException {
     Connection connection = createConnection(mock(ConnectionOptions.class));
     connection.close();
-    assertThat(connection.isValid(1), is(false));
+    assertThat(connection.isValid(1)).isFalse();
   }
 
   @Test
@@ -483,8 +476,8 @@ public class JdbcConnectionTest {
           {
             java.sql.Statement statement =
                 connection.createStatement(resultSetType, resultSetConcurrency);
-            assertThat(statement.getResultSetType(), is(equalTo(resultSetType)));
-            assertThat(statement.getResultSetConcurrency(), is(equalTo(resultSetConcurrency)));
+            assertThat(statement.getResultSetType()).isEqualTo(resultSetType);
+            assertThat(statement.getResultSetConcurrency()).isEqualTo(resultSetConcurrency);
           } else {
             assertCreateStatementFails(connection, resultSetType, resultSetConcurrency);
           }
@@ -499,9 +492,9 @@ public class JdbcConnectionTest {
               java.sql.Statement statement =
                   connection.createStatement(
                       resultSetType, resultSetConcurrency, resultSetHoldability);
-              assertThat(statement.getResultSetType(), is(equalTo(resultSetType)));
-              assertThat(statement.getResultSetConcurrency(), is(equalTo(resultSetConcurrency)));
-              assertThat(statement.getResultSetHoldability(), is(equalTo(resultSetHoldability)));
+              assertThat(statement.getResultSetType()).isEqualTo(resultSetType);
+              assertThat(statement.getResultSetConcurrency()).isEqualTo(resultSetConcurrency);
+              assertThat(statement.getResultSetHoldability()).isEqualTo(resultSetHoldability);
             } else {
               assertCreateStatementFails(
                   connection, resultSetType, resultSetConcurrency, resultSetHoldability);
@@ -557,8 +550,8 @@ public class JdbcConnectionTest {
           {
             PreparedStatement ps =
                 connection.prepareStatement("SELECT 1", resultSetType, resultSetConcurrency);
-            assertThat(ps.getResultSetType(), is(equalTo(resultSetType)));
-            assertThat(ps.getResultSetConcurrency(), is(equalTo(resultSetConcurrency)));
+            assertThat(ps.getResultSetType()).isEqualTo(resultSetType);
+            assertThat(ps.getResultSetConcurrency()).isEqualTo(resultSetConcurrency);
           } else {
             assertPrepareStatementFails(connection, resultSetType, resultSetConcurrency);
           }
@@ -573,9 +566,9 @@ public class JdbcConnectionTest {
               PreparedStatement ps =
                   connection.prepareStatement(
                       "SELECT 1", resultSetType, resultSetConcurrency, resultSetHoldability);
-              assertThat(ps.getResultSetType(), is(equalTo(resultSetType)));
-              assertThat(ps.getResultSetConcurrency(), is(equalTo(resultSetConcurrency)));
-              assertThat(ps.getResultSetHoldability(), is(equalTo(resultSetHoldability)));
+              assertThat(ps.getResultSetType()).isEqualTo(resultSetType);
+              assertThat(ps.getResultSetConcurrency()).isEqualTo(resultSetConcurrency);
+              assertThat(ps.getResultSetHoldability()).isEqualTo(resultSetHoldability);
             } else {
               assertPrepareStatementFails(
                   connection, resultSetType, resultSetConcurrency, resultSetHoldability);
@@ -623,7 +616,7 @@ public class JdbcConnectionTest {
       PreparedStatement statement =
           connection.prepareStatement(sql, java.sql.Statement.NO_GENERATED_KEYS);
       ResultSet rs = statement.getGeneratedKeys();
-      assertThat(rs.next(), is(false));
+      assertThat(rs.next()).isFalse();
       try {
         statement = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
         fail("missing expected SQLFeatureNotSupportedException");
@@ -638,7 +631,7 @@ public class JdbcConnectionTest {
     ConnectionOptions options = mock(ConnectionOptions.class);
     when(options.getDatabaseName()).thenReturn("test");
     try (JdbcConnection connection = createConnection(options)) {
-      assertThat(connection.getCatalog(), is(equalTo("test")));
+      assertThat(connection.getCatalog()).isEqualTo("test");
       // This should be allowed.
       connection.setCatalog("");
       try {
@@ -646,7 +639,7 @@ public class JdbcConnectionTest {
         connection.setCatalog("other");
         fail("missing expected exception");
       } catch (JdbcSqlExceptionImpl e) {
-        assertThat(e.getCode(), is(equalTo(Code.INVALID_ARGUMENT)));
+        assertThat(e.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
       }
     }
   }
@@ -654,7 +647,7 @@ public class JdbcConnectionTest {
   @Test
   public void testSchema() throws SQLException {
     try (JdbcConnection connection = createConnection(mock(ConnectionOptions.class))) {
-      assertThat(connection.getSchema(), is(equalTo("")));
+      assertThat(connection.getSchema()).isEqualTo("");
       // This should be allowed.
       connection.setSchema("");
       try {
@@ -662,7 +655,7 @@ public class JdbcConnectionTest {
         connection.setSchema("other");
         fail("missing expected exception");
       } catch (JdbcSqlExceptionImpl e) {
-        assertThat(e.getCode(), is(equalTo(Code.INVALID_ARGUMENT)));
+        assertThat(e.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
       }
     }
   }

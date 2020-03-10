@@ -16,9 +16,8 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
@@ -27,10 +26,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -38,15 +35,13 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 @Category(IntegrationTest.class)
 public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
-  @Rule public final ExpectedException expected = ExpectedException.none();
-
   @Test
   public void testSelect1() throws SQLException {
     try (Connection connection = createConnection()) {
       try (ResultSet rs = connection.createStatement().executeQuery("select 1")) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getInt(1), is(equalTo(1)));
-        assertThat(rs.next(), is(false));
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getInt(1)).isEqualTo(1);
+        assertThat(rs.next()).isFalse();
       }
     }
   }
@@ -56,9 +51,9 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
     try (Connection connection = createConnection()) {
       try (PreparedStatement ps = connection.prepareStatement("select 1")) {
         try (ResultSet rs = ps.executeQuery()) {
-          assertThat(rs.next(), is(true));
-          assertThat(rs.getInt(1), is(equalTo(1)));
-          assertThat(rs.next(), is(false));
+          assertThat(rs.next()).isTrue();
+          assertThat(rs.getInt(1)).isEqualTo(1);
+          assertThat(rs.next()).isFalse();
         }
       }
     }
@@ -73,9 +68,9 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
         for (int i = 1; i <= 3; i++) {
           ps.setInt(1, i);
           try (ResultSet rs = ps.executeQuery()) {
-            assertThat(rs.next(), is(true));
-            assertThat(rs.getInt(1), is(equalTo(i)));
-            assertThat(rs.next(), is(false));
+            assertThat(rs.next()).isTrue();
+            assertThat(rs.getInt(1)).isEqualTo(i);
+            assertThat(rs.next()).isFalse();
           }
         }
       }
@@ -92,17 +87,17 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
         statement.addBatch(
             "CREATE TABLE FOO2 (ID INT64 NOT NULL, NAME STRING(100)) PRIMARY KEY (ID)");
         int[] updateCounts = statement.executeBatch();
-        assertThat(
-            updateCounts,
-            is(equalTo(new int[] {Statement.SUCCESS_NO_INFO, Statement.SUCCESS_NO_INFO})));
+        assertThat(updateCounts)
+            .asList()
+            .containsExactly(Statement.SUCCESS_NO_INFO, Statement.SUCCESS_NO_INFO);
       }
       try (ResultSet rs =
           connection
               .createStatement()
               .executeQuery(
                   "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='' AND TABLE_NAME LIKE 'FOO%'")) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getLong(1), is(equalTo(2L)));
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getLong(1)).isEqualTo(2L);
       }
     }
     // Execute a batch of DDL statements that contains a statement that will fail.
@@ -121,35 +116,37 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
       } catch (SQLException e) {
         gotExpectedException = true;
       }
-      assertThat(gotExpectedException, is(true));
+      assertThat(gotExpectedException).isTrue();
       // The table should have been created, the index should not.
       try (ResultSet rs =
           connection
               .createStatement()
               .executeQuery(
                   "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='' AND TABLE_NAME LIKE 'FOO%'")) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getLong(1), is(equalTo(3L)));
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getLong(1)).isEqualTo(3L);
       }
       try (ResultSet rs =
           connection
               .createStatement()
               .executeQuery(
                   "SELECT COUNT(*) FROM INFORMATION_SCHEMA.INDEXES WHERE TABLE_SCHEMA='' AND INDEX_NAME='IDX_FOO1_UNIQUE'")) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getLong(1), is(equalTo(0L)));
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getLong(1)).isEqualTo(0L);
       }
     }
   }
 
   @Test
-  public void testAddBatchWhenAlreadyInBatch() throws SQLException {
-    expected.expect(SQLException.class);
-    expected.expectMessage(
-        "Calling addBatch() is not allowed when a DML or DDL batch has been started on the connection.");
+  public void testAddBatchWhenAlreadyInBatch() {
     try (Connection connection = createConnection()) {
       connection.createStatement().execute("START BATCH DML");
       connection.createStatement().addBatch("INSERT INTO Singers (SingerId) VALUES (-1)");
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(e.getMessage())
+          .contains(
+              "Calling addBatch() is not allowed when a DML or DDL batch has been started on the connection.");
     }
   }
 }

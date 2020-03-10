@@ -16,11 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -39,9 +35,7 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Matchers;
@@ -50,13 +44,10 @@ import org.mockito.stubbing.Answer;
 
 @RunWith(JUnit4.class)
 public class JdbcStatementTest {
-  @Rule public final ExpectedException thrown = ExpectedException.none();
   private static final String SELECT = "SELECT 1";
   private static final String UPDATE = "UPDATE FOO SET BAR=1 WHERE BAZ=2";
   private static final String LARGE_UPDATE = "UPDATE FOO SET BAR=1 WHERE 1=1";
   private static final String DDL = "CREATE INDEX FOO ON BAR(ID)";
-
-  @Rule public final ExpectedException expected = ExpectedException.none();
 
   private JdbcStatement createStatement() {
     Connection spanner = mock(Connection.class);
@@ -140,13 +131,13 @@ public class JdbcStatementTest {
     when(result.getResultSet()).thenReturn(mock(com.google.cloud.spanner.ResultSet.class));
     when(spanner.execute(com.google.cloud.spanner.Statement.of(select))).thenReturn(result);
     try (Statement statement = new JdbcStatement(connection)) {
-      assertThat(statement.getQueryTimeout(), is(equalTo(0)));
+      assertThat(statement.getQueryTimeout()).isEqualTo(0);
       statement.setQueryTimeout(1);
-      assertThat(statement.getQueryTimeout(), is(equalTo(1)));
+      assertThat(statement.getQueryTimeout()).isEqualTo(1);
       statement.setQueryTimeout(99);
-      assertThat(statement.getQueryTimeout(), is(equalTo(99)));
+      assertThat(statement.getQueryTimeout()).isEqualTo(99);
       statement.setQueryTimeout(0);
-      assertThat(statement.getQueryTimeout(), is(equalTo(0)));
+      assertThat(statement.getQueryTimeout()).isEqualTo(0);
     }
 
     when(spanner.getStatementTimeout(TimeUnit.SECONDS)).thenReturn(1L);
@@ -155,7 +146,7 @@ public class JdbcStatementTest {
     when(spanner.getStatementTimeout(TimeUnit.NANOSECONDS)).thenReturn(1000000000L);
     when(spanner.hasStatementTimeout()).thenReturn(true);
     try (Statement statement = new JdbcStatement(connection)) {
-      assertThat(statement.getQueryTimeout(), is(equalTo(0)));
+      assertThat(statement.getQueryTimeout()).isEqualTo(0);
       statement.execute(select);
       // statement has no timeout, so it should also not be set on the connection
       verify(spanner, never()).setStatementTimeout(1L, TimeUnit.SECONDS);
@@ -175,12 +166,12 @@ public class JdbcStatementTest {
   public void testExecuteWithSelectStatement() throws SQLException {
     Statement statement = createStatement();
     boolean res = statement.execute(SELECT);
-    assertThat(res, is(true));
-    assertThat(statement.getUpdateCount(), is(equalTo(JdbcConstants.STATEMENT_RESULT_SET)));
+    assertThat(res).isTrue();
+    assertThat(statement.getUpdateCount()).isEqualTo(JdbcConstants.STATEMENT_RESULT_SET);
     try (ResultSet rs = statement.getResultSet()) {
-      assertThat(rs, is(notNullValue()));
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getLong(1), is(equalTo(1L)));
+      assertThat(rs).isNotNull();
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(1)).isEqualTo(1L);
     }
   }
 
@@ -188,16 +179,16 @@ public class JdbcStatementTest {
   public void testExecuteWithUpdateStatement() throws SQLException {
     Statement statement = createStatement();
     boolean res = statement.execute(UPDATE);
-    assertThat(res, is(false));
-    assertThat(statement.getResultSet(), is(nullValue()));
-    assertThat(statement.getUpdateCount(), is(equalTo(1)));
+    assertThat(res).isFalse();
+    assertThat(statement.getResultSet()).isNull();
+    assertThat(statement.getUpdateCount()).isEqualTo(1);
     try {
-      assertThat(statement.execute(LARGE_UPDATE), is(false));
-      assertThat(statement.getResultSet(), is(nullValue()));
+      assertThat(statement.execute(LARGE_UPDATE)).isFalse();
+      assertThat(statement.getResultSet()).isNull();
       statement.getUpdateCount();
       fail("missing expected exception");
     } catch (JdbcSqlExceptionImpl e) {
-      assertThat(e.getCode(), is(equalTo(Code.OUT_OF_RANGE)));
+      assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
     }
   }
 
@@ -205,17 +196,17 @@ public class JdbcStatementTest {
   public void testExecuteWithDdlStatement() throws SQLException {
     Statement statement = createStatement();
     boolean res = statement.execute(DDL);
-    assertThat(res, is(false));
-    assertThat(statement.getResultSet(), is(nullValue()));
-    assertThat(statement.getUpdateCount(), is(equalTo(JdbcConstants.STATEMENT_NO_RESULT)));
+    assertThat(res).isFalse();
+    assertThat(statement.getResultSet()).isNull();
+    assertThat(statement.getUpdateCount()).isEqualTo(JdbcConstants.STATEMENT_NO_RESULT);
   }
 
   @Test
   public void testExecuteWithGeneratedKeys() throws SQLException {
     Statement statement = createStatement();
-    assertThat(statement.execute(UPDATE, Statement.NO_GENERATED_KEYS), is(false));
+    assertThat(statement.execute(UPDATE, Statement.NO_GENERATED_KEYS)).isFalse();
     ResultSet keys = statement.getGeneratedKeys();
-    assertThat(keys.next(), is(false));
+    assertThat(keys.next()).isFalse();
     try {
       statement.execute(UPDATE, Statement.RETURN_GENERATED_KEYS);
       fail("missing expected exception");
@@ -228,59 +219,79 @@ public class JdbcStatementTest {
   public void testExecuteQuery() throws SQLException {
     Statement statement = createStatement();
     try (ResultSet rs = statement.executeQuery(SELECT)) {
-      assertThat(rs, is(notNullValue()));
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getLong(1), is(equalTo(1L)));
+      assertThat(rs).isNotNull();
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(1)).isEqualTo(1L);
     }
   }
 
   @Test
-  public void testExecuteQueryWithUpdateStatement() throws SQLException {
+  public void testExecuteQueryWithUpdateStatement() {
     Statement statement = createStatement();
-    expected.expect(JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query"));
-    statement.executeQuery(UPDATE);
+    try {
+      statement.executeQuery(UPDATE);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+              JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query")
+                  .matches(e))
+          .isTrue();
+    }
   }
 
   @Test
-  public void testExecuteQueryWithDdlStatement() throws SQLException {
+  public void testExecuteQueryWithDdlStatement() {
     Statement statement = createStatement();
-    expected.expect(JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query"));
-    statement.executeQuery(DDL);
+    try {
+      statement.executeQuery(DDL);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+              JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query")
+                  .matches(e))
+          .isTrue();
+    }
   }
 
   @Test
   public void testExecuteUpdate() throws SQLException {
     Statement statement = createStatement();
-    assertThat(statement.executeUpdate(UPDATE), is(equalTo(1)));
+    assertThat(statement.executeUpdate(UPDATE)).isEqualTo(1);
     try {
       statement.executeUpdate(LARGE_UPDATE);
       fail("missing expected exception");
     } catch (JdbcSqlExceptionImpl e) {
-      assertThat(e.getCode(), is(equalTo(Code.OUT_OF_RANGE)));
+      assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
     }
   }
 
   @Test
   public void testExecuteUpdateWithSelectStatement() throws SQLException {
     Statement statement = createStatement();
-    expected.expect(
-        JdbcExceptionMatcher.matchCodeAndMessage(
-            Code.INVALID_ARGUMENT, "The statement is not an update or DDL statement"));
-    statement.executeUpdate(SELECT);
+    try {
+      statement.executeUpdate(SELECT);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+              JdbcExceptionMatcher.matchCodeAndMessage(
+                      Code.INVALID_ARGUMENT, "The statement is not an update or DDL statement")
+                  .matches(e))
+          .isTrue();
+    }
   }
 
   @Test
   public void testExecuteUpdateWithDdlStatement() throws SQLException {
     Statement statement = createStatement();
-    assertThat(statement.executeUpdate(DDL), is(equalTo(0)));
+    assertThat(statement.executeUpdate(DDL)).isEqualTo(0);
   }
 
   @Test
   public void testExecuteUpdateWithGeneratedKeys() throws SQLException {
     Statement statement = createStatement();
-    assertThat(statement.executeUpdate(UPDATE, Statement.NO_GENERATED_KEYS), is(equalTo(1)));
+    assertThat(statement.executeUpdate(UPDATE, Statement.NO_GENERATED_KEYS)).isEqualTo(1);
     ResultSet keys = statement.getGeneratedKeys();
-    assertThat(keys.next(), is(false));
+    assertThat(keys.next()).isFalse();
     try {
       statement.executeUpdate(UPDATE, Statement.RETURN_GENERATED_KEYS);
       fail("missing expected exception");
@@ -292,36 +303,46 @@ public class JdbcStatementTest {
   @Test
   public void testMoreResults() throws SQLException {
     Statement statement = createStatement();
-    assertThat(statement.execute(SELECT), is(true));
+    assertThat(statement.execute(SELECT)).isTrue();
     ResultSet rs = statement.getResultSet();
-    assertThat(statement.getMoreResults(), is(false));
-    assertThat(statement.getResultSet(), is(nullValue()));
-    assertThat(rs.isClosed(), is(true));
+    assertThat(statement.getMoreResults()).isFalse();
+    assertThat(statement.getResultSet()).isNull();
+    assertThat(rs.isClosed()).isTrue();
 
-    assertThat(statement.execute(SELECT), is(true));
+    assertThat(statement.execute(SELECT)).isTrue();
     rs = statement.getResultSet();
-    assertThat(statement.getMoreResults(Statement.KEEP_CURRENT_RESULT), is(false));
-    assertThat(statement.getResultSet(), is(nullValue()));
-    assertThat(rs.isClosed(), is(false));
+    assertThat(statement.getMoreResults(Statement.KEEP_CURRENT_RESULT)).isFalse();
+    assertThat(statement.getResultSet()).isNull();
+    assertThat(rs.isClosed()).isFalse();
   }
 
   @Test
-  public void testNoBatchMixing() throws SQLException {
-    thrown.expect(SQLException.class);
-    thrown.expectMessage("Mixing DML and DDL statements in a batch is not allowed.");
+  public void testNoBatchMixing() {
     try (Statement statement = createStatement()) {
       statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (1, 'FOO')");
       statement.addBatch("CREATE TABLE FOO (ID INT64, NAME STRING(100)) PRIMARY KEY (ID)");
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+              JdbcExceptionMatcher.matchCodeAndMessage(
+                      Code.INVALID_ARGUMENT,
+                      "Mixing DML and DDL statements in a batch is not allowed.")
+                  .matches(e))
+          .isTrue();
     }
   }
 
   @Test
-  public void testNoBatchQuery() throws SQLException {
-    thrown.expect(SQLException.class);
-    thrown.expectMessage(
-        "The statement is not suitable for batching. Only DML and DDL statements are allowed for batching.");
+  public void testNoBatchQuery() {
     try (Statement statement = createStatement()) {
       statement.addBatch("SELECT * FROM FOO");
+    } catch (SQLException e) {
+      assertThat(
+              JdbcExceptionMatcher.matchCodeAndMessage(
+                      Code.INVALID_ARGUMENT,
+                      "The statement is not suitable for batching. Only DML and DDL statements are allowed for batching.")
+                  .matches(e))
+          .isTrue();
     }
   }
 
@@ -333,7 +354,7 @@ public class JdbcStatementTest {
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (1, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (2, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (3, 'TEST')");
-        assertThat(statement.executeBatch(), is(equalTo(new int[] {1, 1, 1})));
+        assertThat(statement.executeBatch()).asList().containsExactly(1, 1, 1);
       }
     }
   }
@@ -342,12 +363,14 @@ public class JdbcStatementTest {
   public void testConvertUpdateCounts() throws SQLException {
     try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
       int[] updateCounts = statement.convertUpdateCounts(new long[] {1L, 2L, 3L});
-      assertThat(updateCounts, is(equalTo(new int[] {1, 2, 3})));
+      assertThat(updateCounts).asList().containsExactly(1, 2, 3);
       updateCounts = statement.convertUpdateCounts(new long[] {0L, 0L, 0L});
-      assertThat(updateCounts, is(equalTo(new int[] {0, 0, 0})));
+      assertThat(updateCounts).asList().containsExactly(0, 0, 0);
 
-      expected.expect(JdbcExceptionMatcher.matchCode(Code.OUT_OF_RANGE));
       statement.convertUpdateCounts(new long[] {1L, Integer.MAX_VALUE + 1L});
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(JdbcExceptionMatcher.matchCode(Code.OUT_OF_RANGE).matches(e)).isTrue();
     }
   }
 
@@ -356,35 +379,28 @@ public class JdbcStatementTest {
     try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
       int[] updateCounts = new int[3];
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 2L, 3L}, updateCounts);
-      assertThat(
-          updateCounts,
-          is(
-              equalTo(
-                  new int[] {
-                    Statement.SUCCESS_NO_INFO, Statement.SUCCESS_NO_INFO, Statement.SUCCESS_NO_INFO
-                  })));
+      assertThat(updateCounts)
+          .asList()
+          .containsExactly(
+              Statement.SUCCESS_NO_INFO, Statement.SUCCESS_NO_INFO, Statement.SUCCESS_NO_INFO);
 
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {0L, 0L, 0L}, updateCounts);
-      assertThat(
-          updateCounts,
-          is(
-              equalTo(
-                  new int[] {
-                    Statement.EXECUTE_FAILED, Statement.EXECUTE_FAILED, Statement.EXECUTE_FAILED
-                  })));
+      assertThat(updateCounts)
+          .asList()
+          .containsExactly(
+              Statement.EXECUTE_FAILED, Statement.EXECUTE_FAILED, Statement.EXECUTE_FAILED);
 
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 0L, 2L}, updateCounts);
-      assertThat(
-          updateCounts,
-          is(
-              equalTo(
-                  new int[] {
-                    Statement.SUCCESS_NO_INFO, Statement.EXECUTE_FAILED, Statement.SUCCESS_NO_INFO
-                  })));
+      assertThat(updateCounts)
+          .asList()
+          .containsExactly(
+              Statement.SUCCESS_NO_INFO, Statement.EXECUTE_FAILED, Statement.SUCCESS_NO_INFO);
 
-      expected.expect(JdbcExceptionMatcher.matchCode(Code.OUT_OF_RANGE));
       statement.convertUpdateCountsToSuccessNoInfo(
           new long[] {1L, Integer.MAX_VALUE + 1L}, updateCounts);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(JdbcExceptionMatcher.matchCode(Code.OUT_OF_RANGE).matches(e)).isTrue();
     }
   }
 }
