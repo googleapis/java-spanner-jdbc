@@ -40,11 +40,10 @@ import org.junit.runners.JUnit4;
  * {@link QueryOptions} can be used with the JDBC driver on three different levels:
  *
  * <ol>
- *   <li>Specify {@link QueryOptions} in environment variables (TODO: Set environment variables
- *       runtime)
+ *   <li>Specify {@link QueryOptions} in environment variables.
  *   <li>Specify {@link QueryOptions} in the connection URL or by setting these using <code>
  *       SET &lt;query_option&gt; = '&lt;value&gt;'</code> statements.
- *   <li>Specify {@link QueryOptions} in a query hint (TODO: Check SQL syntax)
+ *   <li>Specify {@link QueryOptions} in a query hint.
  * </ol>
  *
  * This class tests all three possibilities.
@@ -151,6 +150,25 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
   }
 
   @Test
+  public void optimizerVersionInQueryHint() throws SQLException {
+    try (Connection connection = createConnection()) {
+      verifyOptimizerVersion(connection, "");
+      try (ResultSet rs =
+          connection.createStatement().executeQuery("{@optimizer_version=1} SELECT 1")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getLong(1)).isEqualTo(1L);
+        assertThat(rs.next()).isFalse();
+      }
+      try (ResultSet rs =
+          connection.createStatement().executeQuery("{@optimizer_version=latest} SELECT 1")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getLong(1)).isEqualTo(1L);
+        assertThat(rs.next()).isFalse();
+      }
+    }
+  }
+
+  @Test
   public void optimizerVersionInEnvironment() throws SQLException {
     try {
       SpannerOptions.useEnvironment(
@@ -158,11 +176,6 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
             @Override
             public String getOptimizerVersion() {
               return "1";
-            }
-
-            @Override
-            public String getOptimizerStatisticsPackage() {
-              return "";
             }
           });
       try (Connection connection = createConnection()) {
@@ -183,11 +196,6 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
             @Override
             public String getOptimizerVersion() {
               return "9999999";
-            }
-
-            @Override
-            public String getOptimizerStatisticsPackage() {
-              return "";
             }
           });
       try (Connection connection = createConnection()) {

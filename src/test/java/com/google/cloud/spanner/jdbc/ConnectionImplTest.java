@@ -1215,7 +1215,7 @@ public class ConnectionImplTest {
                       .build()),
               AnalyzeMode.NONE);
 
-      // Execute query with an optimizer version and statistics package set on the connection.
+      // Execute query with an optimizer version set on the connection.
       impl.setOptimizerVersion("2");
       impl.executeQuery(Statement.of("SELECT FOO FROM BAR"));
       verify(unitOfWork)
@@ -1226,8 +1226,8 @@ public class ConnectionImplTest {
                       .build()),
               AnalyzeMode.NONE);
 
-      // Execute query with an optimizer version and statistics package set on the connection and
-      // PrefetchChunks query option specified for the query.
+      // Execute query with an optimizer version set on the connection and PrefetchChunks query
+      // option specified for the query.
       QueryOption prefetchOption = Options.prefetchChunks(100);
       impl.setOptimizerVersion("3");
       impl.executeQuery(Statement.of("SELECT FOO FROM BAR"), prefetchOption);
@@ -1240,9 +1240,8 @@ public class ConnectionImplTest {
               AnalyzeMode.NONE,
               prefetchOption);
 
-      // Execute query with an optimizer version and statistics package set on the connection, and
-      // the same options also passed in to the query. The specific options passed in to the query
-      // should take precedence.
+      // Execute query with an optimizer version set on the connection, and the same options also
+      // passed in to the query. The specific options passed in to the query should take precedence.
       impl.setOptimizerVersion("4");
       impl.executeQuery(
           Statement.newBuilder("SELECT FOO FROM BAR")
