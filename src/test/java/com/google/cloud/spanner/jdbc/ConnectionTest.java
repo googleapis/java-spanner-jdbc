@@ -86,7 +86,7 @@ public class ConnectionTest extends AbstractMockServerTest {
           assertThat(rs.next()).isFalse();
 
           ExecuteSqlRequest request = getLastExecuteSqlRequest();
-          // Optimizer version should come from the connection.
+          // Optimizer version should come from the query.
           assertThat(request.getQueryOptions().getOptimizerVersion())
               .isEqualTo("user-defined-version");
         }

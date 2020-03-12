@@ -154,11 +154,6 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
             public String getOptimizerVersion() {
               return "20";
             }
-
-            @Override
-            public String getOptimizerStatisticsPackage() {
-              return "auto_20200127_20_24_19UTC";
-            }
           });
       try (java.sql.Connection connection =
           DriverManager.getConnection(String.format("jdbc:%s", getBaseUrl()))) {
