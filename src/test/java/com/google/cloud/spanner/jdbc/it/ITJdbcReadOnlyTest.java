@@ -84,6 +84,8 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
 
   @Test
   public void testSqlScript() throws Exception {
+    // Wait 100ms to ensure that staleness tests in the script succeed.
+    Thread.sleep(100L);
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
     verifier.verifyStatementsInFile("ITReadOnlySpannerTest.sql", SqlScriptVerifier.class);
   }
