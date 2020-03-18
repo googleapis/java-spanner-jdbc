@@ -18,7 +18,9 @@ package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
 import com.google.cloud.spanner.SpannerOptions;
+import com.google.cloud.spanner.Statement;
 import com.google.common.base.MoreObjects;
 import com.google.spanner.v1.ExecuteSqlRequest;
 import java.sql.DriverManager;
@@ -183,6 +185,31 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
       }
     } finally {
       SpannerOptions.useDefaultEnvironment();
+    }
+  }
+
+  @Test
+  public void testUseQueryHint() throws SQLException {
+    mockSpanner.putStatementResult(
+        StatementResult.query(
+            Statement.of(
+                String.format("@{optimizer_version=1} %s", SELECT_COUNT_STATEMENT.getSql())),
+            SELECT_COUNT_RESULTSET_BEFORE_INSERT));
+    try (java.sql.Connection connection =
+        DriverManager.getConnection(String.format("jdbc:%s", getBaseUrl()))) {
+      try (java.sql.ResultSet rs =
+          connection
+              .createStatement()
+              .executeQuery(
+                  String.format("@{optimizer_version=1} %s", SELECT_COUNT_STATEMENT.getSql()))) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getLong(1)).isEqualTo(COUNT_BEFORE_INSERT);
+        assertThat(rs.next()).isFalse();
+        // The optimizer version used in the ExecuteSqlRequest should be empty as the query hint is
+        // parsed by the backend.
+        ExecuteSqlRequest request = getLastExecuteSqlRequest();
+        assertThat(request.getQueryOptions().getOptimizerVersion()).isEqualTo("");
+      }
     }
   }
 }

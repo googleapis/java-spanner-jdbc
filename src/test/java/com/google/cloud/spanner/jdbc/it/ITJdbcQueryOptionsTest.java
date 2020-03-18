@@ -154,13 +154,13 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
     try (Connection connection = createConnection()) {
       verifyOptimizerVersion(connection, "");
       try (ResultSet rs =
-          connection.createStatement().executeQuery("{@optimizer_version=1} SELECT 1")) {
+          connection.createStatement().executeQuery("@{optimizer_version=1} SELECT 1")) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getLong(1)).isEqualTo(1L);
         assertThat(rs.next()).isFalse();
       }
       try (ResultSet rs =
-          connection.createStatement().executeQuery("{@optimizer_version=latest} SELECT 1")) {
+          connection.createStatement().executeQuery("@{optimizer_version=latest} SELECT 1")) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getLong(1)).isEqualTo(1L);
         assertThat(rs.next()).isFalse();
