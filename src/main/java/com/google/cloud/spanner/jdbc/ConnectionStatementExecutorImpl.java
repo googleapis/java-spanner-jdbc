@@ -23,7 +23,6 @@ import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementT
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.RUN_BATCH;
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SET_AUTOCOMMIT;
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SET_AUTOCOMMIT_DML_MODE;
-import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SET_OPTIMIZER_VERSION;
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SET_READONLY;
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SET_READ_ONLY_STALENESS;
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SET_RETRY_ABORTS_INTERNALLY;
@@ -32,7 +31,6 @@ import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementT
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SHOW_AUTOCOMMIT;
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SHOW_AUTOCOMMIT_DML_MODE;
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SHOW_COMMIT_TIMESTAMP;
-import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SHOW_OPTIMIZER_VERSION;
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SHOW_READONLY;
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SHOW_READ_ONLY_STALENESS;
 import static com.google.cloud.spanner.jdbc.StatementResult.ClientSideStatementType.SHOW_READ_TIMESTAMP;
@@ -183,18 +181,6 @@ class ConnectionStatementExecutorImpl implements ConnectionStatementExecutor {
         "READ_ONLY_STALENESS",
         ReadOnlyStalenessUtil.timestampBoundToString(staleness),
         SHOW_READ_ONLY_STALENESS);
-  }
-
-  @Override
-  public StatementResult statementSetOptimizerVersion(String optimizerVersion) {
-    getConnection().setOptimizerVersion(optimizerVersion);
-    return noResult(SET_OPTIMIZER_VERSION);
-  }
-
-  @Override
-  public StatementResult statementShowOptimizerVersion() {
-    return resultSet(
-        "OPTIMIZER_VERSION", getConnection().getOptimizerVersion(), SHOW_OPTIMIZER_VERSION);
   }
 
   @Override

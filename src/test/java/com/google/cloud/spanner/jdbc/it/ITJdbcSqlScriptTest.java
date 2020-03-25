@@ -61,7 +61,6 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
       "ITSqlScriptTest_TestAutocommitDmlMode.sql";
   private static final String TEST_AUTOCOMMIT_READ_ONLY =
       "ITSqlScriptTest_TestAutocommitReadOnly.sql";
-  private static final String TEST_QUERY_OPTIONS = "ITSqlScriptTest_TestQueryOptions.sql";
   private static final String TEST_STATEMENT_TIMEOUT = "ITSqlScriptTest_TestStatementTimeout.sql";
   private static final String TEST_SET_STATEMENTS = "ITSqlScriptTest_TestSetStatements.sql";
   private static final String TEST_INVALID_STATEMENTS = "ITSqlScriptTest_TestInvalidStatements.sql";
@@ -207,14 +206,6 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection), TEST_INVALID_STATEMENTS, SqlScriptVerifier.class);
-    }
-  }
-
-  @Test
-  public void test14_TestQueryOptions() throws Exception {
-    try (Connection connection = createConnection()) {
-      verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_QUERY_OPTIONS, SqlScriptVerifier.class);
     }
   }
 }

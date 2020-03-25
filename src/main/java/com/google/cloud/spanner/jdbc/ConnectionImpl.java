@@ -35,7 +35,6 @@ import com.google.cloud.spanner.jdbc.StatementParser.StatementType;
 import com.google.cloud.spanner.jdbc.UnitOfWork.UnitOfWorkState;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.spanner.v1.ExecuteSqlRequest.QueryOptions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -193,7 +192,6 @@ class ConnectionImpl implements Connection {
   private final List<TransactionRetryListener> transactionRetryListeners = new ArrayList<>();
   private AutocommitDmlMode autocommitDmlMode = AutocommitDmlMode.TRANSACTIONAL;
   private TimestampBound readOnlyStaleness = TimestampBound.strong();
-  private QueryOptions queryOptions = QueryOptions.getDefaultInstance();
 
   /** Create a connection and register it in the SpannerPool. */
   ConnectionImpl(ConnectionOptions options) {
@@ -206,7 +204,6 @@ class ConnectionImpl implements Connection {
     this.retryAbortsInternally = options.isRetryAbortsInternally();
     this.readOnly = options.isReadOnly();
     this.autocommit = options.isAutocommit();
-    this.queryOptions = this.queryOptions.toBuilder().mergeFrom(options.getQueryOptions()).build();
     this.ddlClient = createDdlClient();
     setDefaultTransactionOptions();
   }
@@ -390,19 +387,6 @@ class ConnectionImpl implements Connection {
     ConnectionPreconditions.checkState(!isClosed(), CLOSED_ERROR_MSG);
     ConnectionPreconditions.checkState(!isBatchActive(), "Cannot get read-only while in a batch");
     return this.readOnlyStaleness;
-  }
-
-  @Override
-  public void setOptimizerVersion(String optimizerVersion) {
-    Preconditions.checkNotNull(optimizerVersion);
-    ConnectionPreconditions.checkState(!isClosed(), CLOSED_ERROR_MSG);
-    this.queryOptions = queryOptions.toBuilder().setOptimizerVersion(optimizerVersion).build();
-  }
-
-  @Override
-  public String getOptimizerVersion() {
-    ConnectionPreconditions.checkState(!isClosed(), CLOSED_ERROR_MSG);
-    return this.queryOptions.getOptimizerVersion();
   }
 
   @Override
@@ -655,7 +639,7 @@ class ConnectionImpl implements Connection {
   public StatementResult execute(Statement statement) {
     Preconditions.checkNotNull(statement);
     ConnectionPreconditions.checkState(!isClosed(), CLOSED_ERROR_MSG);
-    ParsedStatement parsedStatement = parser.parse(statement, this.queryOptions);
+    ParsedStatement parsedStatement = parser.parse(statement);
     switch (parsedStatement.getType()) {
       case CLIENT_SIDE:
         return parsedStatement
@@ -696,7 +680,7 @@ class ConnectionImpl implements Connection {
     Preconditions.checkNotNull(query);
     Preconditions.checkNotNull(analyzeMode);
     ConnectionPreconditions.checkState(!isClosed(), CLOSED_ERROR_MSG);
-    ParsedStatement parsedStatement = parser.parse(query, this.queryOptions);
+    ParsedStatement parsedStatement = parser.parse(query);
     if (parsedStatement.isQuery()) {
       switch (parsedStatement.getType()) {
         case CLIENT_SIDE:
@@ -825,8 +809,7 @@ class ConnectionImpl implements Connection {
    * Returns the current {@link UnitOfWork} of this connection, or creates a new one based on the
    * current transaction settings of the connection and returns that.
    */
-  @VisibleForTesting
-  UnitOfWork getCurrentUnitOfWorkOrStartNewUnitOfWork() {
+  private UnitOfWork getCurrentUnitOfWorkOrStartNewUnitOfWork() {
     if (this.currentUnitOfWork == null || !this.currentUnitOfWork.isActive()) {
       this.currentUnitOfWork = createNewUnitOfWork();
     }
