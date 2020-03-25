@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.15.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.14.0...v1.15.0) (2020-03-24)
+
+
+### Features
+
+* add support for QueryOptions ([#76](https://www.github.com/googleapis/java-spanner-jdbc/issues/76)) ([b3f4cf7](https://www.github.com/googleapis/java-spanner-jdbc/commit/b3f4cf7852a2fd5f22660cc3f25a6253b9a118ab))
+
+
+### Dependencies
+
+* update spanner.version to v1.52.0 ([#95](https://www.github.com/googleapis/java-spanner-jdbc/issues/95)) ([cdf9d30](https://www.github.com/googleapis/java-spanner-jdbc/commit/cdf9d30e8ca387d87a6ffe00fa09818d135547f4))
+
 ## [1.14.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.13.0...v1.14.0) (2020-03-18)
 
 
