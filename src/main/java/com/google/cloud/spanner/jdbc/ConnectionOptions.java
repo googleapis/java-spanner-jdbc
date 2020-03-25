@@ -31,6 +31,7 @@ import com.google.cloud.spanner.SpannerOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.google.spanner.v1.ExecuteSqlRequest.QueryOptions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -144,6 +145,7 @@ class ConnectionOptions {
   private static final String DEFAULT_OAUTH_TOKEN = null;
   private static final String DEFAULT_NUM_CHANNELS = null;
   private static final String DEFAULT_USER_AGENT = null;
+  private static final String DEFAULT_OPTIMIZER_VERSION = "";
 
   private static final String PLAIN_TEXT_PROTOCOL = "http:";
   private static final String HOST_PROTOCOL = "https:";
@@ -166,6 +168,8 @@ class ConnectionOptions {
   public static final String NUM_CHANNELS_PROPERTY_NAME = "numChannels";
   /** Custom user agent string is only for other Google libraries. */
   private static final String USER_AGENT_PROPERTY_NAME = "userAgent";
+  /** Query optimizer version to use for a connection. */
+  private static final String OPTIMIZER_VERSION_PROPERTY_NAME = "optimizerVersion";
 
   /** All valid connection properties. */
   public static final Set<ConnectionProperty> VALID_PROPERTIES =
@@ -183,7 +187,8 @@ class ConnectionOptions {
                   ConnectionProperty.createStringProperty(NUM_CHANNELS_PROPERTY_NAME, ""),
                   ConnectionProperty.createBooleanProperty(
                       USE_PLAIN_TEXT_PROPERTY_NAME, "", DEFAULT_USE_PLAIN_TEXT),
-                  ConnectionProperty.createStringProperty(USER_AGENT_PROPERTY_NAME, ""))));
+                  ConnectionProperty.createStringProperty(USER_AGENT_PROPERTY_NAME, ""),
+                  ConnectionProperty.createStringProperty(OPTIMIZER_VERSION_PROPERTY_NAME, ""))));
 
   private static final Set<ConnectionProperty> INTERNAL_PROPERTIES =
       Collections.unmodifiableSet(
@@ -281,6 +286,7 @@ class ConnectionOptions {
      *       false.
      *   <li>retryAbortsInternally (boolean): Sets the initial retryAbortsInternally mode for the
      *       connection. Default is true.
+     *   <li>optimizerVersion (string): Sets the query optimizer version to use for the connection.
      * </ul>
      *
      * @param uri The URI of the Spanner database to connect to.
@@ -373,6 +379,7 @@ class ConnectionOptions {
   private final Credentials credentials;
   private final Integer numChannels;
   private final String userAgent;
+  private final QueryOptions queryOptions;
 
   private final boolean autocommit;
   private final boolean readOnly;
@@ -397,6 +404,9 @@ class ConnectionOptions {
 
     this.usePlainText = parseUsePlainText(this.uri);
     this.userAgent = parseUserAgent(this.uri);
+    QueryOptions.Builder queryOptionsBuilder = QueryOptions.newBuilder();
+    queryOptionsBuilder.setOptimizerVersion(parseOptimizerVersion(this.uri));
+    this.queryOptions = queryOptionsBuilder.build();
 
     this.host =
         matcher.group(Builder.HOST_GROUP) == null
@@ -499,6 +509,12 @@ class ConnectionOptions {
   static String parseUserAgent(String uri) {
     String value = parseUriProperty(uri, USER_AGENT_PROPERTY_NAME);
     return value != null ? value : DEFAULT_USER_AGENT;
+  }
+
+  @VisibleForTesting
+  static String parseOptimizerVersion(String uri) {
+    String value = parseUriProperty(uri, OPTIMIZER_VERSION_PROPERTY_NAME);
+    return value != null ? value : DEFAULT_OPTIMIZER_VERSION;
   }
 
   @VisibleForTesting
@@ -631,6 +647,11 @@ class ConnectionOptions {
    */
   String getUserAgent() {
     return userAgent;
+  }
+
+  /** The {@link QueryOptions} to use for the connection. */
+  QueryOptions getQueryOptions() {
+    return queryOptions;
   }
 
   /** Interceptors that should be executed after each statement */
