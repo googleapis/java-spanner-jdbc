@@ -29,7 +29,7 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner-jdbc</artifactId>
-      <version></version>
+      <version>1.15.0</version>
     </dependency>
     <!-- [END spanner-jdbc_install_without_bom] -->
 
