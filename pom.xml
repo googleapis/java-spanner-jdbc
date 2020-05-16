@@ -60,7 +60,11 @@
     <site.installationModule>google-cloud-spanner-jdbc</site.installationModule>
     <spanner.test.version>1.53.0</spanner.test.version>
     <junit.version>4.13</junit.version>
-    <threeten.version>1.4.3</threeten.version>
+    <google.common-protos.version>1.18.0</google.common-protos.version>
+    <protobuf.version>3.11.4</protobuf.version>
+    <threeten.version>1.4.4</threeten.version>
+    <google.api-common.version>1.9.0</google.api-common.version>
+    <spanner.version>1.52.0</spanner.version>
     <hamcrest.version>2.2</hamcrest.version>
   </properties>
 
