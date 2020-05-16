@@ -18,10 +18,10 @@ package com.google.cloud.spanner.jdbc.it;
 
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.Mutation;
+import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
-import com.google.cloud.spanner.jdbc.SqlScriptVerifier;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.MockSpannerServiceImpl;
+import com.google.cloud.spanner.connection.SpannerPool;
 import io.grpc.Server;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import java.io.IOException;
@@ -51,7 +52,7 @@ public class JdbcDriverTest {
   private static Server server;
   private static InetSocketAddress address;
   private static final String TEST_KEY_PATH =
-      ConnectionOptionsTest.class.getResource("test-key.json").getFile();
+      JdbcDriverTest.class.getResource("test-key.json").getFile();
 
   @BeforeClass
   public static void startStaticServer() throws IOException {

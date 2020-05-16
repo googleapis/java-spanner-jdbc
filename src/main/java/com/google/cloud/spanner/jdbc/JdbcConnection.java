@@ -16,8 +16,13 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.api.client.util.Preconditions;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerException;
+import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.StatementParser;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -383,21 +388,103 @@ class JdbcConnection extends AbstractJdbcConnection {
     }
   }
 
+  @SuppressWarnings("deprecation")
+  private static final class JdbcToSpannerTransactionRetryListener
+      implements com.google.cloud.spanner.connection.TransactionRetryListener {
+    private final TransactionRetryListener delegate;
+
+    JdbcToSpannerTransactionRetryListener(TransactionRetryListener delegate) {
+      this.delegate = Preconditions.checkNotNull(delegate);
+    }
+
+    @Override
+    public void retryStarting(
+        com.google.cloud.Timestamp transactionStarted, long transactionId, int retryAttempt) {
+      delegate.retryStarting(transactionStarted, transactionId, retryAttempt);
+    }
+
+    @Override
+    public void retryFinished(
+        com.google.cloud.Timestamp transactionStarted,
+        long transactionId,
+        int retryAttempt,
+        RetryResult result) {
+      delegate.retryFinished(
+          transactionStarted,
+          transactionId,
+          retryAttempt,
+          TransactionRetryListener.RetryResult.valueOf(result.name()));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (!(o instanceof JdbcToSpannerTransactionRetryListener)) {
+        return false;
+      }
+      JdbcToSpannerTransactionRetryListener other = (JdbcToSpannerTransactionRetryListener) o;
+      return this.delegate.equals(other.delegate);
+    }
+
+    @Override
+    public int hashCode() {
+      return delegate.hashCode();
+    }
+  }
+
+  @SuppressWarnings("deprecation")
   @Override
   public void addTransactionRetryListener(TransactionRetryListener listener) throws SQLException {
+    checkClosed();
+    getSpannerConnection()
+        .addTransactionRetryListener(new JdbcToSpannerTransactionRetryListener(listener));
+  }
+
+  @Override
+  public void addTransactionRetryListener(
+      com.google.cloud.spanner.connection.TransactionRetryListener listener) throws SQLException {
     checkClosed();
     getSpannerConnection().addTransactionRetryListener(listener);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public boolean removeTransactionRetryListener(TransactionRetryListener listener)
       throws SQLException {
     checkClosed();
-    return getSpannerConnection().removeTransactionRetryListener(listener);
+    return getSpannerConnection()
+        .removeTransactionRetryListener(new JdbcToSpannerTransactionRetryListener(listener));
   }
 
   @Override
+  public boolean removeTransactionRetryListener(
+      com.google.cloud.spanner.connection.TransactionRetryListener listener) throws SQLException {
+    checkClosed();
+    return getSpannerConnection().removeTransactionRetryListener(listener);
+  }
+
+  @SuppressWarnings("deprecation")
+  @Override
   public Iterator<TransactionRetryListener> getTransactionRetryListeners() throws SQLException {
+    checkClosed();
+    return Iterators.transform(
+        getSpannerConnection().getTransactionRetryListeners(),
+        new Function<
+            com.google.cloud.spanner.connection.TransactionRetryListener,
+            TransactionRetryListener>() {
+          @Override
+          public TransactionRetryListener apply(
+              com.google.cloud.spanner.connection.TransactionRetryListener input) {
+            if (input instanceof JdbcToSpannerTransactionRetryListener) {
+              return ((JdbcToSpannerTransactionRetryListener) input).delegate;
+            }
+            return null;
+          }
+        });
+  }
+
+  @Override
+  public Iterator<com.google.cloud.spanner.connection.TransactionRetryListener>
+      getTransactionRetryListenersFromConnection() throws SQLException {
     checkClosed();
     return getSpannerConnection().getTransactionRetryListeners();
   }

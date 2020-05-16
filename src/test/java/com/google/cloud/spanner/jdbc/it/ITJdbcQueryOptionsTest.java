@@ -21,9 +21,9 @@ import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.SpannerOptions;
+import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlException;
-import com.google.cloud.spanner.jdbc.SpannerPool;
 import com.google.rpc.Code;
 import com.google.spanner.v1.ExecuteSqlRequest.QueryOptions;
 import java.sql.Connection;

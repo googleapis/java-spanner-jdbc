@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.rpc.Code;
 import java.io.PrintWriter;
 import java.sql.Connection;

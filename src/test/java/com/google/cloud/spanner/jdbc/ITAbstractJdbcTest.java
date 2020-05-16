@@ -20,7 +20,8 @@ import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.GceTestEnvConfig;
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.IntegrationTestEnv;
-import com.google.cloud.spanner.jdbc.AbstractSqlScriptVerifier.GenericConnectionProvider;
+import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
+import com.google.cloud.spanner.connection.ITAbstractSpannerTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -41,7 +42,9 @@ import org.junit.experimental.categories.Category;
 /** Base class for all JDBC integration tests. */
 @Category(IntegrationTest.class)
 public class ITAbstractJdbcTest {
-  protected class ITJdbcConnectionProvider implements GenericConnectionProvider {
+  protected class ITJdbcConnectionProvider
+      implements com.google.cloud.spanner.connection.AbstractSqlScriptVerifier
+          .GenericConnectionProvider {
     public ITJdbcConnectionProvider() {}
 
     @Override

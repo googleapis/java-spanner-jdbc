@@ -19,7 +19,6 @@ package com.google.cloud.spanner.jdbc;
 import static com.google.cloud.spanner.jdbc.JdbcParameterStore.convertPositionalParametersToNamedParameters;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -28,6 +27,7 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.common.io.CharStreams;
+import com.google.common.truth.Truth;
 import com.google.rpc.Code;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -740,21 +740,18 @@ public class JdbcParameterStoreTest {
   }
 
   private void assertUnclosedLiteral(String sql) {
-    boolean exception = false;
     try {
       convertPositionalParametersToNamedParameters(sql);
+      fail("missing expected exception");
     } catch (SQLException t) {
-      assertThat(t instanceof JdbcSqlException, is(true));
+      Truth.assertThat((Throwable) t).isInstanceOf(JdbcSqlException.class);
       JdbcSqlException e = (JdbcSqlException) t;
-      assertThat(e.getCode(), is(Code.INVALID_ARGUMENT));
-      assertThat(
-          e.getMessage(),
-          startsWith(
+      Truth.assertThat(e.getCode()).isSameInstanceAs(Code.INVALID_ARGUMENT);
+      Truth.assertThat(e.getMessage())
+          .startsWith(
               Code.INVALID_ARGUMENT.name()
                   + ": SQL statement contains an unclosed literal: "
-                  + sql));
-      exception = true;
+                  + sql);
     }
-    assertThat(exception, is(true));
   }
 }

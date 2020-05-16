@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.rpc.Code;
 import java.sql.CallableStatement;
@@ -48,7 +49,7 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
 
   private final String connectionUrl;
   private final ConnectionOptions options;
-  private final com.google.cloud.spanner.jdbc.Connection spanner;
+  private final com.google.cloud.spanner.connection.Connection spanner;
 
   private SQLWarning firstWarning = null;
   private SQLWarning lastWarning = null;
@@ -59,8 +60,8 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
     this.spanner = options.getConnection();
   }
 
-  /** Return the corresponding {@link com.google.cloud.spanner.jdbc.Connection} */
-  com.google.cloud.spanner.jdbc.Connection getSpannerConnection() {
+  /** Return the corresponding {@link com.google.cloud.spanner.connection.Connection} */
+  com.google.cloud.spanner.connection.Connection getSpannerConnection() {
     return spanner;
   }
 

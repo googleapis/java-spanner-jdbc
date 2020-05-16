@@ -34,6 +34,7 @@ import static org.junit.Assert.fail;
 
 import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.Type;
+import com.google.cloud.spanner.connection.ReadOnlyStalenessUtil;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.rpc.Code;
 import java.math.BigDecimal;
