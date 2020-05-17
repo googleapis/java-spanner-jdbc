@@ -252,6 +252,7 @@
           <configuration>
             <ignoredUnusedDeclaredDependencies>
               <ignoredDependency>com.google.api:gax-grpc</ignoredDependency>
+              <ignoredDependency>com.google.cloud:google-cloud-core-grpc</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-instance-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-database-v1</ignoredDependency>

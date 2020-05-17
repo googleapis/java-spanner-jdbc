@@ -20,14 +20,23 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.MockSpannerServiceImpl;
+import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.ConnectionOptions.ConnectionProperty;
 import com.google.cloud.spanner.connection.SpannerPool;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
+import com.google.rpc.Code;
 import io.grpc.Server;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -69,6 +78,27 @@ public class JdbcDriverTest {
   }
 
   @Test
+  public void testClientLibToken() {
+    assertThat(JdbcDriver.getClientLibToken()).isEqualTo("sp-jdbc");
+  }
+
+  @Test
+  public void testRegister() throws SQLException {
+    assertThat(JdbcDriver.isRegistered()).isTrue();
+    JdbcDriver.deregister();
+    assertThat(JdbcDriver.isRegistered()).isFalse();
+    try {
+      JdbcDriver.getRegisteredDriver();
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(e.getErrorCode()).isEqualTo(Code.FAILED_PRECONDITION_VALUE);
+    }
+    JdbcDriver.register();
+    assertThat(JdbcDriver.isRegistered()).isTrue();
+    assertThat(JdbcDriver.getRegisteredDriver()).isNotNull();
+  }
+
+  @Test
   public void testConnect() throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
@@ -101,5 +131,34 @@ public class JdbcDriverTest {
     } catch (SQLException e) {
       assertThat(e.getMessage()).contains("Cannot specify both credentials and an OAuth token");
     }
+  }
+
+  @Test
+  public void testGetPropertyInfo() throws SQLException {
+    DriverPropertyInfo[] props =
+        JdbcDriver.getRegisteredDriver()
+            .getPropertyInfo(
+                "jdbc:cloudspanner:/projects/p/instances/i/databases/d", new Properties());
+    assertThat(props).hasLength(ConnectionOptions.VALID_PROPERTIES.size());
+
+    Collection<String> validConnectionPropertyNames =
+        Collections2.transform(
+            ConnectionOptions.VALID_PROPERTIES,
+            new Function<ConnectionProperty, String>() {
+              @Override
+              public String apply(ConnectionProperty input) {
+                return input.getName();
+              }
+            });
+    Collection<String> driverPropertyNames =
+        Collections2.transform(
+            ImmutableList.copyOf(props),
+            new Function<DriverPropertyInfo, String>() {
+              @Override
+              public String apply(DriverPropertyInfo input) {
+                return input.name;
+              }
+            });
+    assertThat(driverPropertyNames).containsExactlyElementsIn(validConnectionPropertyNames);
   }
 }
