@@ -84,17 +84,25 @@
       <artifactId>grpc-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-core-grpc</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-common-protos</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>
+      <!-- Excluded to prevent version conflicts -->
       <exclusions>
-        <!-- Excluded to prevent version conflicts -->
         <exclusion>
           <groupId>io.grpc</groupId>
           <artifactId>grpc-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.cloud</groupId>
+          <artifactId>google-cloud-core-grpc</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
