@@ -68,7 +68,7 @@
     <google.common-protos.version>1.18.0</google.common-protos.version>
     <protobuf.version>3.11.4</protobuf.version>
     <threeten.version>1.4.4</threeten.version>
-    <google.api-common.version>1.9.0</google.api-common.version>
+    <google.api-common.version>1.9.1</google.api-common.version>
     <spanner.version>1.52.0</spanner.version>
     <hamcrest.version>2.2</hamcrest.version>
     <error-prone.version>2.3.4</error-prone.version>
