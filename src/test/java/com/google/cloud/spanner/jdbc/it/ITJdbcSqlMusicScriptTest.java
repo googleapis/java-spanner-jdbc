@@ -17,10 +17,10 @@
 package com.google.cloud.spanner.jdbc.it;
 
 import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
-import com.google.cloud.spanner.jdbc.SqlScriptVerifier;
 import java.sql.Connection;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;

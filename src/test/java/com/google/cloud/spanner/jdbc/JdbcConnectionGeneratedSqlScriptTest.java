@@ -19,8 +19,11 @@ package com.google.cloud.spanner.jdbc;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.cloud.spanner.jdbc.AbstractSqlScriptVerifier.GenericConnection;
-import com.google.cloud.spanner.jdbc.AbstractSqlScriptVerifier.GenericConnectionProvider;
+import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnection;
+import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnectionProvider;
+import com.google.cloud.spanner.connection.ConnectionImplTest;
+import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +43,7 @@ public class JdbcConnectionGeneratedSqlScriptTest {
     public GenericConnection getConnection() {
       ConnectionOptions options = mock(ConnectionOptions.class);
       when(options.getUri()).thenReturn(ConnectionImplTest.URI);
-      com.google.cloud.spanner.jdbc.Connection spannerConnection =
+      com.google.cloud.spanner.connection.Connection spannerConnection =
           ConnectionImplTest.createConnection(options);
       when(options.getConnection()).thenReturn(spannerConnection);
       JdbcConnection connection =

@@ -34,6 +34,7 @@ import static org.junit.Assert.fail;
 
 import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.Type;
+import com.google.cloud.spanner.connection.ReadOnlyStalenessUtil;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.rpc.Code;
 import java.math.BigDecimal;
@@ -50,6 +51,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -580,6 +582,7 @@ public class JdbcTypeConverterTest {
     }
   }
 
+  @Ignore("ignore until java-core 1.93.3 is available")
   @SuppressWarnings("deprecation")
   @Test
   public void testToGoogleTimestamp() {

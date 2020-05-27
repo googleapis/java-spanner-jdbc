@@ -18,10 +18,10 @@ package com.google.cloud.spanner.jdbc.it;
 
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.Mutation;
+import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
-import com.google.cloud.spanner.jdbc.SqlScriptVerifier;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -84,6 +84,8 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
 
   @Test
   public void testSqlScript() throws Exception {
+    // Wait 100ms to ensure that staleness tests in the script succeed.
+    Thread.sleep(100L);
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
     verifier.verifyStatementsInFile("ITReadOnlySpannerTest.sql", SqlScriptVerifier.class);
   }

@@ -19,7 +19,8 @@ package com.google.cloud.spanner.jdbc;
 import com.google.api.core.InternalApi;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.spanner.SpannerException;
-import com.google.cloud.spanner.jdbc.ConnectionOptions.ConnectionProperty;
+import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.ConnectionOptions.ConnectionProperty;
 import com.google.rpc.Code;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -86,6 +87,7 @@ import java.util.regex.Pattern;
  *       connection. Default is true. @see {@link
  *       com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection#setRetryAbortsInternally(boolean)}
  *       for more information.
+ *   <li>optimizerVersion (string): The query optimizer version to use for the connection. The value must be either a valid version number or <code>LATEST</code>. If no value is specified, the query optimizer version specified in the environment variable <code>SPANNER_OPTIMIZER_VERSION<code> will be used. If no query optimizer version is specified in the connection URL or in the environment variable, the default query optimizer version of Cloud Spanner will be used.
  * </ul>
  */
 public class JdbcDriver implements Driver {
