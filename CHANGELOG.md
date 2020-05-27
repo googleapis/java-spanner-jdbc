@@ -1,5 +1,25 @@
 # Changelog
 
+### [1.15.1](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.15.0...v1.15.1) (2020-05-27)
+
+
+### Bug Fixes
+
+* test allowed a too old staleness ([#131](https://www.github.com/googleapis/java-spanner-jdbc/issues/131)) ([8a5e443](https://www.github.com/googleapis/java-spanner-jdbc/commit/8a5e44321b6587e1f719f4189dfe2af3482e47cc))
+
+
+### Dependencies
+
+* update core dependencies ([#105](https://www.github.com/googleapis/java-spanner-jdbc/issues/105)) ([d7c7095](https://www.github.com/googleapis/java-spanner-jdbc/commit/d7c7095e0f22cd477f56419e8300d67d48eb8484))
+* update core dependencies to v1.29.0 ([#121](https://www.github.com/googleapis/java-spanner-jdbc/issues/121)) ([1324769](https://www.github.com/googleapis/java-spanner-jdbc/commit/13247691db249a6bdd56ac1f5b03837ebfb0624f))
+* update core dependencies to v1.93.4 ([#111](https://www.github.com/googleapis/java-spanner-jdbc/issues/111)) ([a44b498](https://www.github.com/googleapis/java-spanner-jdbc/commit/a44b498be79189aa3ae2f9a32c4105a41d81922b))
+* update core dependencies to v29 (major) ([#114](https://www.github.com/googleapis/java-spanner-jdbc/issues/114)) ([143e6b6](https://www.github.com/googleapis/java-spanner-jdbc/commit/143e6b645fd09b91e9b3d8d1db2e522a04103c1e))
+* update dependency com.google.api:api-common to v1.9.0 ([#100](https://www.github.com/googleapis/java-spanner-jdbc/issues/100)) ([dc0793c](https://www.github.com/googleapis/java-spanner-jdbc/commit/dc0793ce0ea3ec1faaebcf59989e0b0977deffcf))
+* update dependency com.google.api.grpc:proto-google-common-protos to v1.18.0 ([#128](https://www.github.com/googleapis/java-spanner-jdbc/issues/128)) ([3f00adb](https://www.github.com/googleapis/java-spanner-jdbc/commit/3f00adbe0d1d317dfefe5ec3ee5a0be9fe0f5923))
+* update dependency com.google.cloud.samples:shared-configuration to v1.0.13 ([#99](https://www.github.com/googleapis/java-spanner-jdbc/issues/99)) ([63717c2](https://www.github.com/googleapis/java-spanner-jdbc/commit/63717c2fc9cc2b3a43a6b0412fefca7bbfd7e12d))
+* update dependency org.threeten:threetenbp to v1.4.3 ([#94](https://www.github.com/googleapis/java-spanner-jdbc/issues/94)) ([cb7229f](https://www.github.com/googleapis/java-spanner-jdbc/commit/cb7229fbbf3e1d71b8a4331eb5ab889af5d4fd31))
+* update dependency org.threeten:threetenbp to v1.4.4 ([#124](https://www.github.com/googleapis/java-spanner-jdbc/issues/124)) ([4d3daa4](https://www.github.com/googleapis/java-spanner-jdbc/commit/4d3daa484394f790e07557175aa7311b248da6f7))
+
 ## [1.15.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.14.0...v1.15.0) (2020-03-24)
 
 
