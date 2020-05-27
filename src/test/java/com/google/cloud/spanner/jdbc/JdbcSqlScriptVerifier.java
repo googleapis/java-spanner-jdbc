@@ -16,12 +16,12 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
-import com.google.cloud.spanner.jdbc.StatementResult.ResultType;
+import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
+import com.google.cloud.spanner.connection.StatementParser;
+import com.google.cloud.spanner.connection.StatementResult.ResultType;
 import com.google.rpc.Code;
 import java.sql.Array;
 import java.sql.Connection;
@@ -172,14 +172,13 @@ public class JdbcSqlScriptVerifier extends AbstractSqlScriptVerifier {
   @Override
   protected void verifyExpectedException(
       String statement, Exception e, String code, String messagePrefix) {
-    assertThat(e instanceof JdbcSqlException, is(true));
+    assertThat(e).isInstanceOf(JdbcSqlException.class);
     JdbcSqlException jdbcException = (JdbcSqlException) e;
-    assertThat(statement, jdbcException.getCode(), is(equalTo(Code.valueOf(code))));
+    assertWithMessage(statement).that(jdbcException.getCode()).isEqualTo(Code.valueOf(code));
     if (messagePrefix != null) {
-      assertThat(
-          statement,
-          e.getMessage(),
-          startsWith(messagePrefix.substring(1, messagePrefix.length() - 1)));
+      assertWithMessage(statement)
+          .that(e.getMessage())
+          .startsWith(messagePrefix.substring(1, messagePrefix.length() - 1));
     }
   }
 }

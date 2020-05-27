@@ -152,21 +152,45 @@ public interface CloudSpannerJdbcConnection extends Connection {
 
   /**
    * @see
-   *     com.google.cloud.spanner.jdbc.Connection#addTransactionRetryListener(TransactionRetryListener)
+   *     com.google.cloud.spanner.connection.Connection#addTransactionRetryListener(TransactionRetryListener)
    * @throws SQLException if the {@link Connection} is closed.
    */
-  void addTransactionRetryListener(TransactionRetryListener listener) throws SQLException;
+  void addTransactionRetryListener(
+      com.google.cloud.spanner.connection.TransactionRetryListener listener) throws SQLException;
+
+  /**
+   * Use {@link
+   * #addTransactionRetryListener(com.google.cloud.spanner.jdbc.TransactionRetryListener)}
+   */
+  @Deprecated
+  void addTransactionRetryListener(com.google.cloud.spanner.jdbc.TransactionRetryListener listener)
+      throws SQLException;
 
   /**
    * @see
-   *     com.google.cloud.spanner.jdbc.Connection#removeTransactionRetryListener(TransactionRetryListener)
+   *     com.google.cloud.spanner.connection.Connection#removeTransactionRetryListener(TransactionRetryListener)
    * @throws SQLException if the {@link Connection} is closed.
    */
-  boolean removeTransactionRetryListener(TransactionRetryListener listener) throws SQLException;
+  boolean removeTransactionRetryListener(
+      com.google.cloud.spanner.connection.TransactionRetryListener listener) throws SQLException;
 
   /**
-   * @see com.google.cloud.spanner.jdbc.Connection#getTransactionRetryListeners()
+   * Use {@link
+   * #removeTransactionRetryListener(com.google.cloud.spanner.jdbc.TransactionRetryListener)}
+   */
+  @Deprecated
+  boolean removeTransactionRetryListener(
+      com.google.cloud.spanner.jdbc.TransactionRetryListener listener) throws SQLException;
+
+  /** Use {@link #getTransactionRetryListenersFromConnection()} */
+  @Deprecated
+  Iterator<com.google.cloud.spanner.jdbc.TransactionRetryListener> getTransactionRetryListeners()
+      throws SQLException;
+
+  /**
+   * @see com.google.cloud.spanner.connection.Connection#getTransactionRetryListeners()
    * @throws SQLException if the {@link Connection} is closed.
    */
-  Iterator<TransactionRetryListener> getTransactionRetryListeners() throws SQLException;
+  Iterator<com.google.cloud.spanner.connection.TransactionRetryListener>
+      getTransactionRetryListenersFromConnection() throws SQLException;
 }

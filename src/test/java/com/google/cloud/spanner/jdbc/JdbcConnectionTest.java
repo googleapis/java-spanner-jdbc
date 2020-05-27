@@ -29,6 +29,9 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.connection.AbstractConnectionImplTest;
+import com.google.cloud.spanner.connection.ConnectionImplTest;
+import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.rpc.Code;
 import java.lang.reflect.InvocationTargetException;
@@ -57,7 +60,7 @@ public class JdbcConnectionTest {
           Arrays.asList(Struct.newBuilder().set("").to(1L).build()));
 
   private JdbcConnection createConnection(ConnectionOptions options) {
-    com.google.cloud.spanner.jdbc.Connection spannerConnection =
+    com.google.cloud.spanner.connection.Connection spannerConnection =
         ConnectionImplTest.createConnection(options);
     when(options.getConnection()).thenReturn(spannerConnection);
     return new JdbcConnection(
@@ -427,8 +430,8 @@ public class JdbcConnectionTest {
   public void testIsValid() throws SQLException {
     // Setup.
     ConnectionOptions options = mock(ConnectionOptions.class);
-    com.google.cloud.spanner.jdbc.Connection spannerConnection =
-        mock(com.google.cloud.spanner.jdbc.Connection.class);
+    com.google.cloud.spanner.connection.Connection spannerConnection =
+        mock(com.google.cloud.spanner.connection.Connection.class);
     when(options.getConnection()).thenReturn(spannerConnection);
     Statement statement = Statement.of(JdbcConnection.IS_VALID_QUERY);
 

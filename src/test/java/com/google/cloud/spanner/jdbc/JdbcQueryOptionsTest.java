@@ -21,6 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.Statement;
+import com.google.cloud.spanner.connection.AbstractMockServerTest;
 import com.google.common.base.MoreObjects;
 import com.google.spanner.v1.ExecuteSqlRequest;
 import java.sql.DriverManager;

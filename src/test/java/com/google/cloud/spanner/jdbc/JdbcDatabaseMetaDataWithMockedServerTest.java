@@ -19,6 +19,8 @@ package com.google.cloud.spanner.jdbc;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
 import com.google.cloud.spanner.Statement;
+import com.google.cloud.spanner.connection.SpannerPool;
+import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.jdbc.JdbcParameterStore.ParametersInfo;
 import com.google.protobuf.ListValue;
 import com.google.protobuf.Value;

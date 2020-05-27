@@ -16,24 +16,18 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.api.core.InternalApi;
 import com.google.cloud.Timestamp;
+import com.google.cloud.spanner.AbortedDueToConcurrentModificationException;
 import com.google.cloud.spanner.AbortedException;
 
-/**
- * Cloud Spanner can abort any read/write transaction because of potential deadlocks or other
- * internal reasons. When a transaction is aborted, the entire transaction should be retried. A
- * {@link Connection} can automatically retry a transaction internally and check whether the results
- * that are returned during a retry attempt are equal to the results during the original
- * transaction. This is done by keeping track of a SHA-256 checksum of all the results that are
- * returned by Spanner during both transactions.
- *
- * <p>This listener class for internal transaction retries allow client applications to do
- * additional testing or logging of transaction retries. Transaction retry listeners of a {@link
- * Connection} can be added using {@link
- * Connection#addTransactionRetryListener(TransactionRetryListener)}.
- */
+/** Use {@link com.google.cloud.spanner.connection.TransactionRetryListener} */
+@InternalApi
+@Deprecated
 public interface TransactionRetryListener {
-  /** The result of a retry. */
+  /** Use {@link com.google.cloud.spanner.connection.TransactionRetryListener.RetryResult} */
+  @InternalApi
+  @Deprecated
   public enum RetryResult {
     /** The retry executed successfully and the transaction will continue. */
     RETRY_SUCCESSFUL,

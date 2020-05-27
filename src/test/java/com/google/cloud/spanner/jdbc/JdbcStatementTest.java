@@ -25,8 +25,11 @@ import static org.mockito.Mockito.when;
 
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.SpannerExceptionFactory;
+import com.google.cloud.spanner.connection.Connection;
+import com.google.cloud.spanner.connection.StatementParser;
+import com.google.cloud.spanner.connection.StatementResult;
+import com.google.cloud.spanner.connection.StatementResult.ResultType;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
-import com.google.cloud.spanner.jdbc.StatementResult.ResultType;
 import com.google.rpc.Code;
 import java.sql.ResultSet;
 import java.sql.SQLException;

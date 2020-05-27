@@ -30,6 +30,7 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.connection.Connection;
 import com.google.rpc.Code;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;

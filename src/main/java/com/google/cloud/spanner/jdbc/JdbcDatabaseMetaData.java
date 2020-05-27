@@ -23,7 +23,7 @@ import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
-import com.google.cloud.spanner.jdbc.ConnectionImpl.InternalMetadataQuery;
+import com.google.cloud.spanner.connection.Connection.InternalMetadataQuery;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.BufferedReader;
 import java.io.InputStream;

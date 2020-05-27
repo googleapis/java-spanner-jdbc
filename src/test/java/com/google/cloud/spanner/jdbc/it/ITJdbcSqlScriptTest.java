@@ -22,10 +22,10 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
-import com.google.cloud.spanner.jdbc.SqlScriptVerifier;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
