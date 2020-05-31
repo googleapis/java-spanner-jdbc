@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.SpannerExceptionFactory;
+import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.connection.StatementResult;
@@ -57,6 +58,7 @@ public class JdbcStatementTest {
 
     com.google.cloud.spanner.ResultSet resultSet = mock(com.google.cloud.spanner.ResultSet.class);
     when(resultSet.next()).thenReturn(true, false);
+    when(resultSet.getColumnType(0)).thenReturn(Type.int64());
     when(resultSet.getLong(0)).thenReturn(1L);
 
     StatementResult selectResult = mock(StatementResult.class);

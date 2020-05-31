@@ -22,9 +22,11 @@ import com.google.common.base.Preconditions;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.sql.Wrapper;
+import java.util.Calendar;
 
 /** Base class for all Cloud Spanner JDBC classes that implement the {@link Wrapper} interface. */
 abstract class AbstractJdbcWrapper implements Wrapper {
@@ -145,6 +147,89 @@ abstract class AbstractJdbcWrapper implements Wrapper {
           String.format(OUT_OF_RANGE_MSG, "float", val), com.google.rpc.Code.OUT_OF_RANGE);
     }
     return (float) val;
+  }
+
+  /** Parses the given string value as a long. Throws {@link SQLException} if the string is not a valid long value. */
+  static long parseLong(String val) throws SQLException {
+    Preconditions.checkNotNull(val);
+    try {
+      return Long.valueOf(val);
+    } catch (NumberFormatException e) {
+      throw JdbcSqlExceptionFactory.of(String.format("%s is not a valid number", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
+    }
+  }
+
+  /** Parses the given string value as a double. Throws {@link SQLException} if the string is not a valid double value. */
+  static double parseDouble(String val) throws SQLException {
+    Preconditions.checkNotNull(val);
+    try {
+      return Double.valueOf(val);
+    } catch (NumberFormatException e) {
+      throw JdbcSqlExceptionFactory.of(String.format("%s is not a valid number", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
+    }
+  }
+
+  /** Parses the given string value as a {@link Date} value. Throws {@link SQLException} if the string is not a valid {@link Date} value. */
+  static Date parseDate(String val) throws SQLException {
+    Preconditions.checkNotNull(val);
+    try {
+      return JdbcTypeConverter.toSqlDate(com.google.cloud.Date.parseDate(val));
+    } catch (IllegalArgumentException e) {
+      throw JdbcSqlExceptionFactory.of(String.format("%s is not a valid date", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
+    }
+  }
+
+  /** Parses the given string value as a {@link Date} value. Throws {@link SQLException} if the string is not a valid {@link Date} value. */
+  static Date parseDate(String val, Calendar cal) throws SQLException {
+    Preconditions.checkNotNull(val);
+    Preconditions.checkNotNull(cal);
+    try {
+      return JdbcTypeConverter.toSqlDate(com.google.cloud.Date.parseDate(val), cal);
+    } catch (IllegalArgumentException e) {
+      throw JdbcSqlExceptionFactory.of(String.format("%s is not a valid date", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
+    }
+  }
+
+  /** Parses the given string value as a {@link Time} value. Throws {@link SQLException} if the string is not a valid {@link Time} value. */
+  static Time parseTime(String val) throws SQLException {
+    Preconditions.checkNotNull(val);
+    try {
+      return Time.valueOf(val);
+    } catch (IllegalArgumentException e) {
+      throw JdbcSqlExceptionFactory.of(String.format("%s is not a valid time", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
+    }
+  }
+
+  /** Parses the given string value as a {@link Time} value. Throws {@link SQLException} if the string is not a valid {@link Time} value. */
+  static Time parseTime(String val, Calendar cal) throws SQLException {
+    Preconditions.checkNotNull(val);
+    Preconditions.checkNotNull(cal);
+    try {
+      return JdbcTypeConverter.parseSqlTime(val, cal);
+    } catch (IllegalArgumentException e) {
+      throw JdbcSqlExceptionFactory.of(String.format("%s is not a valid time", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
+    }
+  }
+
+  /** Parses the given string value as a {@link Timestamp} value. Throws {@link SQLException} if the string is not a valid {@link Timestamp} value. */
+  static Timestamp parseTimestamp(String val) throws SQLException {
+    Preconditions.checkNotNull(val);
+    try {
+      return JdbcTypeConverter.toSqlTimestamp(com.google.cloud.Timestamp.parseTimestamp(val));
+    } catch (Exception e) {
+      throw JdbcSqlExceptionFactory.of(String.format("%s is not a valid timestamp", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
+    }
+  }
+
+  /** Parses the given string value as a {@link Timestamp} value. Throws {@link SQLException} if the string is not a valid {@link Timestamp} value. */
+  static Timestamp parseTimestamp(String val, Calendar cal) throws SQLException {
+    Preconditions.checkNotNull(val);
+    Preconditions.checkNotNull(cal);
+    try {
+      return JdbcTypeConverter.getAsSqlTimestamp(com.google.cloud.Timestamp.parseTimestamp(val), cal);
+    } catch (Exception e) {
+      throw JdbcSqlExceptionFactory.of(String.format("%s is not a valid timestamp", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
+    }
   }
 
   /** Should return true if this object has been closed */

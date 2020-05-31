@@ -115,61 +115,227 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     return wasNull;
   }
 
-  private boolean isNull(String columnName) {
-    wasNull = spanner.isNull(columnName);
-    return wasNull;
+  SQLException createInvalidToGetAs(String sqlType, Code type) {
+    return JdbcSqlExceptionFactory.of(String.format("Invalid column type to get as %s: %s", sqlType, type.name()), com.google.rpc.Code.INVALID_ARGUMENT);
   }
 
   @Override
   public String getString(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex) ? null : spanner.getString(columnIndex - 1);
+    if (isNull(columnIndex)) {
+      return null;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case BOOL:
+        return String.valueOf(spanner.getBoolean(spannerIndex));
+      case BYTES:
+        return spanner.getBytes(spannerIndex).toBase64();
+      case DATE:
+        return spanner.getDate(spannerIndex).toString();
+      case FLOAT64:
+        return Double.toString(spanner.getDouble(spannerIndex));
+      case INT64:
+        return Long.toString(spanner.getLong(spannerIndex));
+      case STRING:
+        return spanner.getString(spannerIndex);
+      case TIMESTAMP:
+        return spanner.getTimestamp(spannerIndex).toString();
+      case STRUCT:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("string", type);
+    }
   }
 
   @Override
   public boolean getBoolean(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex) ? false : spanner.getBoolean(columnIndex - 1);
+    if (isNull(columnIndex)) {
+      return false;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case BOOL:
+        return spanner.getBoolean(spannerIndex);
+      case FLOAT64:
+        return spanner.getDouble(spannerIndex) != 0D;
+      case INT64:
+        return spanner.getLong(spannerIndex) != 0L;
+      case STRING:
+        return Boolean.valueOf(spanner.getString(spannerIndex));
+      case BYTES:
+      case DATE:
+      case STRUCT:
+      case TIMESTAMP:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("byte", type);
+    }
   }
 
   @Override
   public byte getByte(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    long val = isNull(columnIndex) ? 0L : spanner.getLong(columnIndex - 1);
-    return checkedCastToByte(val);
+    if (isNull(columnIndex)) {
+      return 0;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case BOOL:
+        return spanner.getBoolean(spannerIndex) ? (byte) 1 : 0;
+      case FLOAT64:
+        return checkedCastToByte(Double.valueOf(spanner.getDouble(spannerIndex)).longValue());
+      case INT64:
+        return checkedCastToByte(spanner.getLong(spannerIndex));
+      case STRING:
+        return checkedCastToByte(parseLong(spanner.getString(spannerIndex)));
+      case BYTES:
+      case DATE:
+      case STRUCT:
+      case TIMESTAMP:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("byte", type);
+    }
   }
 
   @Override
   public short getShort(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    long val = isNull(columnIndex) ? 0L : spanner.getLong(columnIndex - 1);
-    return checkedCastToShort(val);
+    if (isNull(columnIndex)) {
+      return 0;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case BOOL:
+        return spanner.getBoolean(spannerIndex) ? (short) 1 : 0;
+      case FLOAT64:
+        return checkedCastToShort(Double.valueOf(spanner.getDouble(spannerIndex)).longValue());
+      case INT64:
+        return checkedCastToShort(spanner.getLong(spannerIndex));
+      case STRING:
+        return checkedCastToShort(parseLong(spanner.getString(spannerIndex)));
+      case BYTES:
+      case DATE:
+      case STRUCT:
+      case TIMESTAMP:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("short", type);
+    }
   }
 
   @Override
   public int getInt(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    long val = isNull(columnIndex) ? 0L : spanner.getLong(columnIndex - 1);
-    return checkedCastToInt(val);
+    if (isNull(columnIndex)) {
+      return 0;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case BOOL:
+        return spanner.getBoolean(spannerIndex) ? 1 : 0;
+      case FLOAT64:
+        return checkedCastToInt(Double.valueOf(spanner.getDouble(spannerIndex)).longValue());
+      case INT64:
+        return checkedCastToInt(spanner.getLong(spannerIndex));
+      case STRING:
+        return checkedCastToInt(parseLong(spanner.getString(spannerIndex)));
+      case BYTES:
+      case DATE:
+      case STRUCT:
+      case TIMESTAMP:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("int", type);
+    }
   }
 
   @Override
   public long getLong(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex) ? 0L : spanner.getLong(columnIndex - 1);
+    if (isNull(columnIndex)) {
+      return 0;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case BOOL:
+        return spanner.getBoolean(spannerIndex) ? 1L : 0L;
+      case FLOAT64:
+        return Double.valueOf(spanner.getDouble(spannerIndex)).longValue();
+      case INT64:
+        return spanner.getLong(spannerIndex);
+      case STRING:
+        return parseLong(spanner.getString(spannerIndex));
+      case BYTES:
+      case DATE:
+      case STRUCT:
+      case TIMESTAMP:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("long", type);
+    }
   }
 
   @Override
   public float getFloat(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    double val = isNull(columnIndex) ? 0D : spanner.getDouble(columnIndex - 1);
-    return checkedCastToFloat(val);
+    if (isNull(columnIndex)) {
+      return 0;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case BOOL:
+        return spanner.getBoolean(spannerIndex) ? (float) 1 : 0;
+      case FLOAT64:
+        return checkedCastToFloat(spanner.getDouble(spannerIndex));
+      case INT64:
+        return checkedCastToFloat(spanner.getLong(spannerIndex));
+      case STRING:
+        return checkedCastToFloat(parseDouble(spanner.getString(spannerIndex)));
+      case BYTES:
+      case DATE:
+      case STRUCT:
+      case TIMESTAMP:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("float", type);
+    }
   }
 
   @Override
   public double getDouble(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex) ? 0D : spanner.getDouble(columnIndex - 1);
+    if (isNull(columnIndex)) {
+      return 0;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case BOOL:
+        return spanner.getBoolean(spannerIndex) ? (double) 1 : 0;
+      case FLOAT64:
+        return spanner.getDouble(spannerIndex);
+      case INT64:
+        return spanner.getLong(spannerIndex);
+      case STRING:
+        return parseDouble(spanner.getString(spannerIndex));
+      case BYTES:
+      case DATE:
+      case STRUCT:
+      case TIMESTAMP:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("double", type);
+    }
   }
 
   @Override
@@ -181,25 +347,78 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   @Override
   public Date getDate(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex)
-        ? null
-        : JdbcTypeConverter.toSqlDate(spanner.getDate(columnIndex - 1));
+    if (isNull(columnIndex)) {
+      return null;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case DATE:
+        return JdbcTypeConverter.toSqlDate(spanner.getDate(spannerIndex));
+      case STRING:
+        return parseDate(spanner.getString(spannerIndex));
+      case TIMESTAMP:
+        return new Date(spanner.getTimestamp(spannerIndex).toSqlTimestamp().getTime());
+      case BOOL:
+      case FLOAT64:
+      case INT64:
+      case BYTES:
+      case STRUCT:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("date", type);
+    }
   }
 
   @Override
   public Time getTime(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex)
-        ? null
-        : JdbcTypeConverter.toSqlTime(spanner.getTimestamp(columnIndex - 1));
+    if (isNull(columnIndex)) {
+      return null;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case STRING:
+        return parseTime(spanner.getString(spannerIndex));
+      case TIMESTAMP:
+        return JdbcTypeConverter.toSqlTime(spanner.getTimestamp(spannerIndex));
+      case BOOL:
+      case DATE:
+      case FLOAT64:
+      case INT64:
+      case BYTES:
+      case STRUCT:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("time", type);
+    }
   }
 
   @Override
   public Timestamp getTimestamp(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex)
-        ? null
-        : JdbcTypeConverter.toSqlTimestamp(spanner.getTimestamp(columnIndex - 1));
+    if (isNull(columnIndex)) {
+      return null;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case DATE:
+        return JdbcTypeConverter.toSqlTimestamp(spanner.getDate(spannerIndex));
+      case STRING:
+        return parseTimestamp(spanner.getString(spannerIndex));
+      case TIMESTAMP:
+        return JdbcTypeConverter.toSqlTimestamp(spanner.getTimestamp(spannerIndex));
+      case BOOL:
+      case FLOAT64:
+      case INT64:
+      case BYTES:
+      case STRUCT:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("timestamp", type);
+    }
   }
 
   private InputStream getInputStream(String val, Charset charset) {
@@ -230,102 +449,92 @@ class JdbcResultSet extends AbstractJdbcResultSet {
 
   @Override
   public String getString(String columnLabel) throws SQLException {
-    checkClosedAndValidRow();
-    return isNull(columnLabel) ? null : spanner.getString(columnLabel);
+    return getString(findColumn(columnLabel));
   }
 
   @Override
   public boolean getBoolean(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnLabel) ? false : spanner.getBoolean(columnLabel);
+    return getBoolean(findColumn(columnLabel));
   }
 
   @Override
   public byte getByte(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    long val = isNull(columnLabel) ? 0L : spanner.getLong(columnLabel);
-    return checkedCastToByte(val);
+    return getByte(findColumn(columnLabel));
   }
 
   @Override
   public short getShort(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    long val = isNull(columnLabel) ? 0L : spanner.getLong(columnLabel);
-    return checkedCastToShort(val);
+    return getShort(findColumn(columnLabel));
   }
 
   @Override
   public int getInt(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    long val = isNull(columnLabel) ? 0L : spanner.getLong(columnLabel);
-    return checkedCastToInt(val);
+    return getInt(findColumn(columnLabel));
   }
 
   @Override
   public long getLong(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnLabel) ? 0L : spanner.getLong(columnLabel);
+    return getLong(findColumn(columnLabel));
   }
 
   @Override
   public float getFloat(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    double val = isNull(columnLabel) ? 0D : spanner.getDouble(columnLabel);
-    return checkedCastToFloat(val);
+    return getFloat(findColumn(columnLabel));
   }
 
   @Override
   public double getDouble(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnLabel) ? 0D : spanner.getDouble(columnLabel);
+    return getDouble(findColumn(columnLabel));
   }
 
   @Override
   public byte[] getBytes(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnLabel) ? null : spanner.getBytes(columnLabel).toByteArray();
+    return getBytes(findColumn(columnLabel));
   }
 
   @Override
   public Date getDate(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnLabel) ? null : JdbcTypeConverter.toSqlDate(spanner.getDate(columnLabel));
+    return getDate(findColumn(columnLabel));
   }
 
   @Override
   public Time getTime(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnLabel)
-        ? null
-        : JdbcTypeConverter.toSqlTime(spanner.getTimestamp(columnLabel));
+    return getTime(findColumn(columnLabel));
   }
 
   @Override
   public Timestamp getTimestamp(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnLabel)
-        ? null
-        : JdbcTypeConverter.toSqlTimestamp(spanner.getTimestamp(columnLabel));
+    return getTimestamp(findColumn(columnLabel));
   }
 
   @Override
   public InputStream getAsciiStream(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    return getInputStream(getString(columnLabel), StandardCharsets.US_ASCII);
+    return getAsciiStream(findColumn(columnLabel));
   }
 
   @Override
   @Deprecated
   public InputStream getUnicodeStream(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    return getInputStream(getString(columnLabel), StandardCharsets.UTF_16LE);
+    return getUnicodeStream(findColumn(columnLabel));
   }
 
   @Override
   public InputStream getBinaryStream(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    byte[] val = getBytes(columnLabel);
-    return val == null ? null : new ByteArrayInputStream(val);
+    return getBinaryStream(findColumn(columnLabel));
   }
 
   @Override
@@ -342,8 +551,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   @Override
   public Object getObject(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    Type type = spanner.getColumnType(columnLabel);
-    return isNull(columnLabel) ? null : getObject(type, columnLabel);
+    return getObject(findColumn(columnLabel));
   }
 
   @Override
@@ -351,10 +559,6 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     Type type = spanner.getColumnType(columnIndex - 1);
     return isNull(columnIndex) ? null : getObject(type, columnIndex);
-  }
-
-  private Object getObject(Type type, String columnLabel) throws SQLException {
-    return getObject(type, spanner.getColumnIndex(columnLabel) + 1);
   }
 
   private Object getObject(Type type, int columnIndex) throws SQLException {
@@ -390,9 +594,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
 
   @Override
   public Reader getCharacterStream(String columnLabel) throws SQLException {
-    checkClosedAndValidRow();
-    String val = getString(columnLabel);
-    return val == null ? null : new StringReader(val);
+    return getCharacterStream(findColumn(columnLabel));
   }
 
   @Override
@@ -404,7 +606,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   @Override
   public BigDecimal getBigDecimal(String columnLabel) throws SQLException {
     checkClosedAndValidRow();
-    return getBigDecimal(spanner.getColumnIndex(columnLabel) + 1, false, 0);
+    return getBigDecimal(findColumn(columnLabel), false, 0);
   }
 
   @Override
@@ -418,7 +620,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   @Deprecated
   public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
     checkClosedAndValidRow();
-    return getBigDecimal(spanner.getColumnIndex(columnLabel) + 1, true, scale);
+    return getBigDecimal(findColumn(columnLabel), true, scale);
   }
 
   private BigDecimal getBigDecimal(int columnIndex, boolean fixedScale, int scale)
@@ -441,6 +643,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         res = BigDecimal.valueOf(spanner.getLong(columnIndex - 1));
       } else if (type.getCode() == Code.FLOAT64) {
         res = BigDecimal.valueOf(spanner.getDouble(columnIndex - 1));
+      } else if (type.getCode() == Code.BOOL) {
+        res = spanner.getBoolean(columnIndex - 1) ? BigDecimal.ONE : BigDecimal.ZERO;
       } else {
         throw JdbcSqlExceptionFactory.of(
             "The column does not contain a valid BigDecimal", com.google.rpc.Code.INVALID_ARGUMENT);
@@ -506,56 +710,100 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   @Override
   public Date getDate(int columnIndex, Calendar cal) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex)
-        ? null
-        : JdbcTypeConverter.toSqlDate(spanner.getDate(columnIndex - 1), cal);
+    if (isNull(columnIndex)) {
+      return null;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case DATE:
+        return JdbcTypeConverter.toSqlDate(spanner.getDate(spannerIndex), cal);
+      case STRING:
+        return parseDate(spanner.getString(spannerIndex), cal);
+      case TIMESTAMP:
+        return new Date(JdbcTypeConverter.getAsSqlTimestamp(spanner.getTimestamp(spannerIndex), cal).getTime());
+      case BOOL:
+      case FLOAT64:
+      case INT64:
+      case BYTES:
+      case STRUCT:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("date", type);
+    }
   }
 
   @Override
   public Date getDate(String columnLabel, Calendar cal) throws SQLException {
-    checkClosedAndValidRow();
-    return isNull(columnLabel)
-        ? null
-        : JdbcTypeConverter.toSqlDate(spanner.getDate(columnLabel), cal);
+    return getDate(findColumn(columnLabel), cal);
   }
 
   @Override
   public Time getTime(int columnIndex, Calendar cal) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex)
-        ? null
-        : JdbcTypeConverter.toSqlTime(spanner.getTimestamp(columnIndex - 1), cal);
+    if (isNull(columnIndex)) {
+      return null;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case STRING:
+        return parseTime(spanner.getString(spannerIndex), cal);
+      case TIMESTAMP:
+        return JdbcTypeConverter.toSqlTime(spanner.getTimestamp(spannerIndex), cal);
+      case BOOL:
+      case DATE:
+      case FLOAT64:
+      case INT64:
+      case BYTES:
+      case STRUCT:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("time", type);
+    }
   }
 
   @Override
   public Time getTime(String columnLabel, Calendar cal) throws SQLException {
-    checkClosedAndValidRow();
-    return isNull(columnLabel)
-        ? null
-        : JdbcTypeConverter.toSqlTime(spanner.getTimestamp(columnLabel), cal);
+    return getTime(findColumn(columnLabel), cal);
   }
 
   @Override
   public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex)
-        ? null
-        : JdbcTypeConverter.getAsSqlTimestamp(spanner.getTimestamp(columnIndex - 1), cal);
+    if (isNull(columnIndex)) {
+      return null;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = spanner.getColumnType(spannerIndex).getCode();
+    switch (type) {
+      case DATE:
+        return JdbcTypeConverter.toSqlTimestamp(spanner.getDate(spannerIndex), cal);
+      case STRING:
+        return parseTimestamp(spanner.getString(spannerIndex), cal);
+      case TIMESTAMP:
+        return JdbcTypeConverter.getAsSqlTimestamp(spanner.getTimestamp(spannerIndex), cal);
+      case BOOL:
+      case FLOAT64:
+      case INT64:
+      case BYTES:
+      case STRUCT:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("timestamp", type);
+    }
   }
 
   @Override
   public Timestamp getTimestamp(String columnLabel, Calendar cal) throws SQLException {
-    checkClosedAndValidRow();
-    return isNull(columnLabel)
-        ? null
-        : JdbcTypeConverter.getAsSqlTimestamp(spanner.getTimestamp(columnLabel), cal);
+    return getTimestamp(findColumn(columnLabel), cal);
   }
 
   @Override
   public URL getURL(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
     try {
-      return isNull(columnIndex) ? null : new URL(spanner.getString(columnIndex - 1));
+      return isNull(columnIndex) ? null : new URL(getString(columnIndex));
     } catch (MalformedURLException e) {
       throw JdbcSqlExceptionFactory.of(
           "Invalid URL: " + spanner.getString(columnIndex - 1),
