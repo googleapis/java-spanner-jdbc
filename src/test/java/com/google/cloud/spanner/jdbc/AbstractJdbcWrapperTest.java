@@ -209,12 +209,58 @@ public class AbstractJdbcWrapperTest {
     }
   }
 
+  @Test
+  public void testParseDateWithCalendar() throws SQLException {
+    assertThat(
+            AbstractJdbcWrapper.parseDate(
+                "2020-06-01", Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles"))))
+        .isEqualTo(
+            new Date(
+                Timestamp.parseTimestamp("2020-06-01T00:00:00-07:00").toSqlTimestamp().getTime()));
+    assertThat(
+            AbstractJdbcWrapper.parseDate(
+                "2020-06-01", Calendar.getInstance(TimeZone.getTimeZone("Europe/Amsterdam"))))
+        .isEqualTo(
+            new Date(
+                Timestamp.parseTimestamp("2020-06-01T00:00:00+02:00").toSqlTimestamp().getTime()));
+    try {
+      AbstractJdbcWrapper.parseDate("01-06-2020", Calendar.getInstance());
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertThat((Exception) e).isInstanceOf(JdbcSqlException.class);
+      assertThat(((JdbcSqlException) e).getCode()).isEqualTo(Code.INVALID_ARGUMENT);
+    }
+  }
+
   @SuppressWarnings("deprecation")
   @Test
   public void testParseTime() throws SQLException {
     assertThat(AbstractJdbcWrapper.parseTime("10:31:05")).isEqualTo(new Time(10, 31, 5));
     try {
       AbstractJdbcWrapper.parseTime("10.31.05");
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertThat((Exception) e).isInstanceOf(JdbcSqlException.class);
+      assertThat(((JdbcSqlException) e).getCode()).isEqualTo(Code.INVALID_ARGUMENT);
+    }
+  }
+
+  @Test
+  public void testParseTimeWithCalendar() throws SQLException {
+    assertThat(
+            AbstractJdbcWrapper.parseTime(
+                "10:31:05", Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles"))))
+        .isEqualTo(
+            new Time(
+                Timestamp.parseTimestamp("1970-01-01T10:31:05-08:00").toSqlTimestamp().getTime()));
+    assertThat(
+            AbstractJdbcWrapper.parseTime(
+                "10:31:05", Calendar.getInstance(TimeZone.getTimeZone("Pacific/Auckland"))))
+        .isEqualTo(
+            new Time(
+                Timestamp.parseTimestamp("1970-01-01T10:31:05+12:00").toSqlTimestamp().getTime()));
+    try {
+      AbstractJdbcWrapper.parseTime("10.31.05", Calendar.getInstance());
       fail("missing expected SQLException");
     } catch (SQLException e) {
       assertThat((Exception) e).isInstanceOf(JdbcSqlException.class);

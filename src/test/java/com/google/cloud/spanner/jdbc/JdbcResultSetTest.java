@@ -118,6 +118,9 @@ public class JdbcResultSetTest {
   private static final String STRING_COL_DATE = "STRING_COL_DATE";
   private static final int STRING_COLINDEX_DATE = 22;
   private static final String STRING_DATE_VALUE = "2020-06-01";
+  private static final String STRING_COL_TIMESTAMP = "STRING_COL_TIMESTAMP";
+  private static final int STRING_COLINDEX_TIMESTAMP = 23;
+  private static final String STRING_TIMESTAMP_VALUE = "2020-06-01T10:31:15.123Z";
 
   private JdbcResultSet subject;
 
@@ -145,7 +148,8 @@ public class JdbcResultSetTest {
             StructField.of(URL_COL_NULL, Type.string()),
             StructField.of(URL_COL_NOT_NULL, Type.string()),
             StructField.of(STRING_COL_NUMBER, Type.string()),
-            StructField.of(STRING_COL_DATE, Type.string())),
+            StructField.of(STRING_COL_DATE, Type.string()),
+            StructField.of(STRING_COL_TIMESTAMP, Type.string())),
         Arrays.asList(
             Struct.newBuilder()
                 .set(STRING_COL_NULL)
@@ -192,6 +196,8 @@ public class JdbcResultSetTest {
                 .to(STRING_NUMBER_VALUE)
                 .set(STRING_COL_DATE)
                 .to(STRING_DATE_VALUE)
+                .set(STRING_COL_TIMESTAMP)
+                .to(STRING_TIMESTAMP_VALUE)
                 .build()));
   }
 
@@ -835,6 +841,33 @@ public class JdbcResultSetTest {
         TIMESTAMP_VALUE.toSqlTimestamp(), subject.getTimestamp(TIMESTAMP_COLINDEX_NOTNULL, cal));
     assertFalse(subject.wasNull());
     assertNull(subject.getTimestamp(TIMESTAMP_COLINDEX_NULL, cal));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetTimestampIndexCalendarFromString() throws SQLException {
+    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles"));
+
+    assertNotNull(subject.getTimestamp(STRING_COLINDEX_TIMESTAMP, cal));
+    assertEquals(
+        Timestamp.parseTimestamp(STRING_TIMESTAMP_VALUE.replace("Z", "-07:00")).toSqlTimestamp(),
+        subject.getTimestamp(STRING_COLINDEX_TIMESTAMP, cal));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getTimestamp(STRING_COLINDEX_NULL, cal));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetTimestampIndexCalendarFromDate() throws SQLException {
+    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles"));
+
+    assertNotNull(subject.getTimestamp(DATE_COLINDEX_NOTNULL, cal));
+    assertEquals(
+        Timestamp.parseTimestamp(String.format("%sT00:00:00-08:00", DATE_VALUE.toString()))
+            .toSqlTimestamp(),
+        subject.getTimestamp(DATE_COLINDEX_NOTNULL, cal));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getTimestamp(DATE_COLINDEX_NULL, cal));
     assertTrue(subject.wasNull());
   }
 
