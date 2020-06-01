@@ -121,6 +121,9 @@ public class JdbcResultSetTest {
   private static final String STRING_COL_TIMESTAMP = "STRING_COL_TIMESTAMP";
   private static final int STRING_COLINDEX_TIMESTAMP = 23;
   private static final String STRING_TIMESTAMP_VALUE = "2020-06-01T10:31:15.123Z";
+  private static final String STRING_COL_TIME = "STRING_COL_TIME";
+  private static final int STRING_COLINDEX_TIME = 24;
+  private static final String STRING_TIME_VALUE = "10:31:15";
 
   private JdbcResultSet subject;
 
@@ -149,7 +152,8 @@ public class JdbcResultSetTest {
             StructField.of(URL_COL_NOT_NULL, Type.string()),
             StructField.of(STRING_COL_NUMBER, Type.string()),
             StructField.of(STRING_COL_DATE, Type.string()),
-            StructField.of(STRING_COL_TIMESTAMP, Type.string())),
+            StructField.of(STRING_COL_TIMESTAMP, Type.string()),
+            StructField.of(STRING_COL_TIME, Type.string())),
         Arrays.asList(
             Struct.newBuilder()
                 .set(STRING_COL_NULL)
@@ -198,6 +202,8 @@ public class JdbcResultSetTest {
                 .to(STRING_DATE_VALUE)
                 .set(STRING_COL_TIMESTAMP)
                 .to(STRING_TIMESTAMP_VALUE)
+                .set(STRING_COL_TIME)
+                .to(STRING_TIME_VALUE)
                 .build()));
   }
 
@@ -424,6 +430,16 @@ public class JdbcResultSetTest {
   }
 
   @Test
+  public void testGetNullBooleanIndex() throws SQLException {
+    assertFalse(subject.getBoolean(LONG_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertFalse(subject.getBoolean(STRING_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertFalse(subject.getBoolean(DOUBLE_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
   public void testGetLongIndex() throws SQLException {
     assertNotNull(subject.getLong(LONG_COLINDEX_NOTNULL));
     assertEquals(LONG_VALUE, subject.getLong(LONG_COLINDEX_NOTNULL));
@@ -590,6 +606,17 @@ public class JdbcResultSetTest {
   }
 
   @Test
+  public void testGetDateIndexFromInt64() {
+    try {
+      subject.getDate(LONG_COLINDEX_NOTNULL);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+    }
+  }
+
+  @Test
   public void testGetTimeIndex() throws SQLException {
     assertNotNull(subject.getTime(TIME_COLINDEX_NOTNULL));
     assertEquals(
@@ -600,12 +627,51 @@ public class JdbcResultSetTest {
   }
 
   @Test
+  public void testGetTimeIndexFromString() throws SQLException {
+    assertNotNull(subject.getTime(STRING_COLINDEX_TIME));
+    assertEquals(Time.valueOf(STRING_TIME_VALUE), subject.getTime(STRING_COLINDEX_TIME));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getTime(STRING_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
   public void testGetTimestampIndex() throws SQLException {
     assertNotNull(subject.getTimestamp(TIMESTAMP_COLINDEX_NOTNULL));
     assertEquals(
         TIMESTAMP_VALUE.toSqlTimestamp(), subject.getTimestamp(TIMESTAMP_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertNull(subject.getTimestamp(TIMESTAMP_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetTimestampIndexFromString() throws SQLException {
+    assertNotNull(subject.getTimestamp(STRING_COLINDEX_TIMESTAMP));
+    assertEquals(
+        Timestamp.parseTimestamp(STRING_TIMESTAMP_VALUE).toSqlTimestamp(),
+        subject.getTimestamp(STRING_COLINDEX_TIMESTAMP));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getTimestamp(STRING_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testGetTimestampIndexFromDate() throws SQLException {
+    assertNotNull(subject.getTimestamp(DATE_COLINDEX_NOTNULL));
+    assertEquals(
+        new java.sql.Timestamp(
+            DATE_VALUE.getYear() - 1900,
+            DATE_VALUE.getMonth() - 1,
+            DATE_VALUE.getDayOfMonth(),
+            0,
+            0,
+            0,
+            0),
+        subject.getTimestamp(DATE_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getTimestamp(DATE_COLINDEX_NULL));
     assertTrue(subject.wasNull());
   }
 
@@ -924,7 +990,15 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetByteIndexFromTimestamp() throws SQLException {
+  public void testGetNullByteIndex() throws SQLException {
+    assertEquals(0, subject.getByte(BOOLEAN_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(0, subject.getByte(LONG_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(0, subject.getByte(DOUBLE_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(0, subject.getByte(STRING_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
     try {
       subject.getByte(TIMESTAMP_COL_NULL);
       fail("missing expected SQLException");
@@ -977,6 +1051,25 @@ public class JdbcResultSetTest {
   }
 
   @Test
+  public void testGetNullShortIndex() throws SQLException {
+    assertEquals(0, subject.getShort(BOOLEAN_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(0, subject.getShort(LONG_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(0, subject.getShort(DOUBLE_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(0, subject.getShort(STRING_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    try {
+      subject.getShort(TIMESTAMP_COL_NULL);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+    }
+  }
+
+  @Test
   public void testGetIntIndex() throws SQLException {
     assertNotNull(subject.getInt(LONG_COLINDEX_NOTNULL));
     int expected = (int) LONG_VALUE;
@@ -1010,6 +1103,25 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetIntIndexFromTimestamp() throws SQLException {
+    try {
+      subject.getInt(TIMESTAMP_COL_NULL);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+    }
+  }
+
+  @Test
+  public void testGetNullIntIndex() throws SQLException {
+    assertEquals(0, subject.getInt(BOOLEAN_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(0, subject.getInt(LONG_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(0, subject.getInt(DOUBLE_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(0, subject.getInt(STRING_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
     try {
       subject.getInt(TIMESTAMP_COL_NULL);
       fail("missing expected SQLException");
