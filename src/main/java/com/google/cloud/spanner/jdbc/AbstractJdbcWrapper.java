@@ -259,8 +259,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     Preconditions.checkNotNull(val);
     Preconditions.checkNotNull(cal);
     try {
-      return JdbcTypeConverter.getAsSqlTimestamp(
-          com.google.cloud.Timestamp.parseTimestamp(val), cal);
+      return JdbcTypeConverter.setTimestampInCalendar(
+          com.google.cloud.Timestamp.parseTimestamp(val).toSqlTimestamp(), cal);
     } catch (Exception e) {
       throw JdbcSqlExceptionFactory.of(
           String.format("%s is not a valid timestamp", val),

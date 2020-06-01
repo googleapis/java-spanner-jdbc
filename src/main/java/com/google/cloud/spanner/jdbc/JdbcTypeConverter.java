@@ -346,7 +346,7 @@ class JdbcTypeConverter {
   static java.sql.Time parseSqlTime(String val, Calendar cal) {
     if (val != null) {
       Time time = Time.valueOf(val);
-      cal.set(0, 0, 0, time.getHours(), time.getMinutes(), time.getSeconds());
+      cal.set(1970, 0, 1, time.getHours(), time.getMinutes(), time.getSeconds());
       cal.clear(Calendar.MILLISECOND);
       return new java.sql.Time(cal.getTimeInMillis());
     }
