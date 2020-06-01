@@ -17,7 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.common.base.Preconditions;
-import io.grpc.Status.Code;
+import com.google.rpc.Code;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
@@ -52,9 +52,9 @@ public final class SpannerJdbcExceptionMatcher<T extends JdbcSqlException> exten
     if (exceptionClass.isAssignableFrom(item.getClass())) {
       JdbcSqlException exception = (JdbcSqlException) item;
       if (message == null) {
-        return exception.getErrorCode() == errorCode.value();
+        return exception.getErrorCode() == errorCode.getNumber();
       }
-      return exception.getErrorCode() == errorCode.value()
+      return exception.getErrorCode() == errorCode.getNumber()
           && exception.getMessage().endsWith(": " + message);
     }
     return false;

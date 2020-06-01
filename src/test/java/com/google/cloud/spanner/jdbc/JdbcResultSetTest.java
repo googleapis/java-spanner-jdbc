@@ -35,7 +35,7 @@ import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
-import io.grpc.Status.Code;
+import com.google.rpc.Code;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -112,6 +112,10 @@ public class JdbcResultSetTest {
   private static final int URL_COLINDEX_NULL = 19;
   private static final int URL_COLINDEX_NOTNULL = 20;
 
+  private static final String STRING_COL_NUMBER = "STRING_COL_NUMBER";
+  private static final int STRING_COLINDEX_NUMBER = 21;
+  private static final String STRING_NUMBER_VALUE = "123";
+
   private JdbcResultSet subject;
 
   static ResultSet getMockResultSet() {
@@ -136,7 +140,8 @@ public class JdbcResultSetTest {
             StructField.of(ARRAY_COL_NULL, Type.array(Type.int64())),
             StructField.of(ARRAY_COL_NOT_NULL, Type.array(Type.int64())),
             StructField.of(URL_COL_NULL, Type.string()),
-            StructField.of(URL_COL_NOT_NULL, Type.string())),
+            StructField.of(URL_COL_NOT_NULL, Type.string()),
+            StructField.of(STRING_COL_NUMBER, Type.string())),
         Arrays.asList(
             Struct.newBuilder()
                 .set(STRING_COL_NULL)
@@ -179,6 +184,8 @@ public class JdbcResultSetTest {
                 .to((String) null)
                 .set(URL_COL_NOT_NULL)
                 .to(URL_VALUE)
+                .set(STRING_COL_NUMBER)
+                .to(STRING_NUMBER_VALUE)
                 .build()));
   }
 
@@ -243,6 +250,84 @@ public class JdbcResultSetTest {
   }
 
   @Test
+  public void testGetStringIndexForBool() throws SQLException {
+    assertNotNull(subject.getString(BOOLEAN_COLINDEX_NOTNULL));
+    assertEquals(String.valueOf(BOOLEAN_VALUE), subject.getString(BOOLEAN_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getString(BOOLEAN_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetStringIndexForInt64() throws SQLException {
+    assertNotNull(subject.getString(LONG_COLINDEX_NOTNULL));
+    assertEquals(String.valueOf(LONG_VALUE), subject.getString(LONG_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getString(LONG_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetStringIndexForFloat64() throws SQLException {
+    assertNotNull(subject.getString(DOUBLE_COLINDEX_NOTNULL));
+    assertEquals(String.valueOf(DOUBLE_VALUE), subject.getString(DOUBLE_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getString(DOUBLE_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetStringIndexForBytes() throws SQLException {
+    assertNotNull(subject.getString(BYTES_COLINDEX_NOTNULL));
+    assertEquals(BYTES_VALUE.toBase64(), subject.getString(BYTES_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getString(BYTES_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetStringIndexForDate() throws SQLException {
+    assertNotNull(subject.getString(DATE_COLINDEX_NOTNULL));
+    assertEquals(String.valueOf(DATE_VALUE), subject.getString(DATE_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getString(DATE_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetStringIndexForTimestamp() throws SQLException {
+    assertNotNull(subject.getString(TIMESTAMP_COLINDEX_NOTNULL));
+    assertEquals(String.valueOf(TIMESTAMP_VALUE), subject.getString(TIMESTAMP_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getString(TIMESTAMP_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetStringIndexForArray() throws SQLException {
+    try {
+      subject.getString(ARRAY_COLINDEX_NOTNULL);
+      fail("missing SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      JdbcSqlException jse = (JdbcSqlException) e;
+      assertEquals(jse.getCode(), Code.INVALID_ARGUMENT);
+    }
+  }
+
+  @Test
+  public void testGetStringIndexForNullArray() throws SQLException {
+    try {
+      subject.getString(ARRAY_COLINDEX_NULL);
+      fail("missing SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      JdbcSqlException jse = (JdbcSqlException) e;
+      assertEquals(jse.getCode(), Code.INVALID_ARGUMENT);
+    }
+  }
+
+  @Test
   public void testGetNStringIndex() throws SQLException {
     assertNotNull(subject.getNString(STRING_COLINDEX_NOTNULL));
     assertEquals(STRING_VALUE, subject.getNString(STRING_COLINDEX_NOTNULL));
@@ -285,11 +370,78 @@ public class JdbcResultSetTest {
   }
 
   @Test
+  public void testGetBooleanIndexForLong() throws SQLException {
+    assertNotNull(subject.getBoolean(LONG_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertFalse(subject.getBoolean(LONG_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetBooleanIndexForString() throws SQLException {
+    assertNotNull(subject.getBoolean(STRING_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertFalse(subject.getBoolean(STRING_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetBooleanIndexForDate() throws SQLException {
+    try {
+      subject.getBoolean(DATE_COLINDEX_NOTNULL);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+    }
+    try {
+      subject.getBoolean(DATE_COLINDEX_NULL);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+    }
+  }
+
+  @Test
   public void testGetLongIndex() throws SQLException {
     assertNotNull(subject.getLong(LONG_COLINDEX_NOTNULL));
     assertEquals(LONG_VALUE, subject.getLong(LONG_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
-    assertEquals(0l, subject.getLong(LONG_COLINDEX_NULL));
+    assertEquals(0L, subject.getLong(LONG_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetLongIndexForBool() throws SQLException {
+    assertNotNull(subject.getLong(BOOLEAN_COLINDEX_NOTNULL));
+    assertEquals(BOOLEAN_VALUE ? 1L : 0L, subject.getLong(BOOLEAN_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertEquals(0L, subject.getLong(BOOLEAN_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetLongIndexForString() throws SQLException {
+    try {
+      subject.getLong(STRING_COLINDEX_NOTNULL);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(((JdbcSqlException) e).getCode(), Code.INVALID_ARGUMENT);
+    }
+  }
+
+  @Test
+  public void testGetLongIndexForNumberString() throws SQLException {
+    assertEquals(
+        Long.valueOf(STRING_NUMBER_VALUE).longValue(), subject.getLong(STRING_COLINDEX_NUMBER));
+    assertFalse(subject.wasNull());
+  }
+
+  @Test
+  public void testGetLongIndexForNullString() throws SQLException {
+    assertEquals(0L, subject.getLong(STRING_COLINDEX_NULL));
     assertTrue(subject.wasNull());
   }
 
@@ -855,6 +1007,73 @@ public class JdbcResultSetTest {
     assertEquals(3, len);
     assertFalse(subject.wasNull());
     assertNull(subject.getAsciiStream(STRING_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetAsciiStreamIndexForBool() throws SQLException, IOException {
+    assertNotNull(subject.getAsciiStream(BOOLEAN_COLINDEX_NOTNULL));
+    InputStream actual = subject.getAsciiStream(BOOLEAN_COLINDEX_NOTNULL);
+    byte[] cbuf = new byte[10];
+    int len = actual.read(cbuf, 0, cbuf.length);
+    assertEquals(
+        String.valueOf(BOOLEAN_VALUE), new String(cbuf, 0, len, StandardCharsets.US_ASCII));
+    assertEquals(4, len);
+    assertFalse(subject.wasNull());
+    assertNull(subject.getAsciiStream(BOOLEAN_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetAsciiStreamIndexForInt64() throws SQLException, IOException {
+    assertNotNull(subject.getAsciiStream(LONG_COLINDEX_NOTNULL));
+    InputStream actual = subject.getAsciiStream(LONG_COLINDEX_NOTNULL);
+    byte[] cbuf = new byte[10];
+    int len = actual.read(cbuf, 0, cbuf.length);
+    assertEquals(String.valueOf(LONG_VALUE), new String(cbuf, 0, len, StandardCharsets.US_ASCII));
+    assertEquals(1, len);
+    assertFalse(subject.wasNull());
+    assertNull(subject.getAsciiStream(LONG_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetAsciiStreamIndexForFloat64() throws SQLException, IOException {
+    assertNotNull(subject.getAsciiStream(DOUBLE_COLINDEX_NOTNULL));
+    InputStream actual = subject.getAsciiStream(DOUBLE_COLINDEX_NOTNULL);
+    byte[] cbuf = new byte[20];
+    int len = actual.read(cbuf, 0, cbuf.length);
+    assertEquals(String.valueOf(DOUBLE_VALUE), new String(cbuf, 0, len, StandardCharsets.US_ASCII));
+    assertEquals(13, len);
+    assertFalse(subject.wasNull());
+    assertNull(subject.getAsciiStream(DOUBLE_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetAsciiStreamIndexForDate() throws SQLException, IOException {
+    assertNotNull(subject.getAsciiStream(DATE_COLINDEX_NOTNULL));
+    InputStream actual = subject.getAsciiStream(DATE_COLINDEX_NOTNULL);
+    byte[] cbuf = new byte[10];
+    int len = actual.read(cbuf, 0, cbuf.length);
+    assertEquals(String.valueOf(DATE_VALUE), new String(cbuf, 0, len, StandardCharsets.US_ASCII));
+    assertEquals(10, len);
+    assertFalse(subject.wasNull());
+    assertNull(subject.getAsciiStream(DATE_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetAsciiStreamIndexForTimestamp() throws SQLException, IOException {
+    assertNotNull(subject.getAsciiStream(TIMESTAMP_COLINDEX_NOTNULL));
+    InputStream actual = subject.getAsciiStream(TIMESTAMP_COLINDEX_NOTNULL);
+    byte[] cbuf = new byte[100];
+    int len = actual.read(cbuf, 0, cbuf.length);
+    assertEquals(
+        String.valueOf(TIMESTAMP_VALUE), new String(cbuf, 0, len, StandardCharsets.US_ASCII));
+    assertEquals(30, len);
+    assertFalse(subject.wasNull());
+    assertNull(subject.getAsciiStream(TIMESTAMP_COLINDEX_NULL));
     assertTrue(subject.wasNull());
   }
 
