@@ -192,8 +192,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   }
 
   /**
-   * Parses the given string value as a {@link Date} value. Throws {@link SQLException} if the
-   * string is not a valid {@link Date} value.
+   * Parses the given string value as a {@link Date} value in the timezone of the given {@link
+   * Calendar}. Throws {@link SQLException} if the string is not a valid {@link Date} value.
    */
   static Date parseDate(String val, Calendar cal) throws SQLException {
     Preconditions.checkNotNull(val);
@@ -221,8 +221,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   }
 
   /**
-   * Parses the given string value as a {@link Time} value. Throws {@link SQLException} if the
-   * string is not a valid {@link Time} value.
+   * Parses the given string value as a {@link Time} value in the timezone of the given {@link
+   * Calendar}. Throws {@link SQLException} if the string is not a valid {@link Time} value.
    */
   static Time parseTime(String val, Calendar cal) throws SQLException {
     Preconditions.checkNotNull(val);
@@ -252,8 +252,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   }
 
   /**
-   * Parses the given string value as a {@link Timestamp} value. Throws {@link SQLException} if the
-   * string is not a valid {@link Timestamp} value.
+   * Parses the given string value as a {@link Timestamp} value in the timezone of the given {@link
+   * Calendar}. Throws {@link SQLException} if the string is not a valid {@link Timestamp} value.
    */
   static Timestamp parseTimestamp(String val, Calendar cal) throws SQLException {
     Preconditions.checkNotNull(val);

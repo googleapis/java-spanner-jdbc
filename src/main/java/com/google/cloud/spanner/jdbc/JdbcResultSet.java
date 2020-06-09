@@ -182,7 +182,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     Code type = spanner.getColumnType(spannerIndex).getCode();
     switch (type) {
       case BOOL:
-        return isNull ? (byte) 0 : spanner.getBoolean(spannerIndex) ? (byte) 1 : 0;
+        return isNull ? (byte) 0 : (spanner.getBoolean(spannerIndex) ? (byte) 1 : 0);
       case FLOAT64:
         return isNull
             ? (byte) 0
@@ -209,7 +209,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     Code type = spanner.getColumnType(spannerIndex).getCode();
     switch (type) {
       case BOOL:
-        return isNull ? 0 : spanner.getBoolean(spannerIndex) ? (short) 1 : 0;
+        return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? (short) 1 : 0);
       case FLOAT64:
         return isNull
             ? 0
@@ -236,7 +236,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     Code type = spanner.getColumnType(spannerIndex).getCode();
     switch (type) {
       case BOOL:
-        return isNull ? 0 : spanner.getBoolean(spannerIndex) ? 1 : 0;
+        return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? 1 : 0);
       case FLOAT64:
         return isNull
             ? 0
@@ -263,7 +263,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     Code type = spanner.getColumnType(spannerIndex).getCode();
     switch (type) {
       case BOOL:
-        return isNull ? 0L : spanner.getBoolean(spannerIndex) ? 1L : 0L;
+        return isNull ? 0L : (spanner.getBoolean(spannerIndex) ? 1L : 0L);
       case FLOAT64:
         return isNull ? 0L : Double.valueOf(spanner.getDouble(spannerIndex)).longValue();
       case INT64:
@@ -288,7 +288,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     Code type = spanner.getColumnType(spannerIndex).getCode();
     switch (type) {
       case BOOL:
-        return isNull ? 0 : spanner.getBoolean(spannerIndex) ? (float) 1 : 0;
+        return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? (float) 1 : 0);
       case FLOAT64:
         return isNull ? 0 : checkedCastToFloat(spanner.getDouble(spannerIndex));
       case INT64:
@@ -313,7 +313,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     Code type = spanner.getColumnType(spannerIndex).getCode();
     switch (type) {
       case BOOL:
-        return isNull ? 0 : spanner.getBoolean(spannerIndex) ? (double) 1 : 0;
+        return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? (double) 1 : 0);
       case FLOAT64:
         return isNull ? 0 : spanner.getDouble(spannerIndex);
       case INT64:
@@ -620,7 +620,9 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     switch (type) {
       case BOOL:
         res =
-            isNull ? null : spanner.getBoolean(columnIndex - 1) ? BigDecimal.ONE : BigDecimal.ZERO;
+            isNull
+                ? null
+                : (spanner.getBoolean(columnIndex - 1) ? BigDecimal.ONE : BigDecimal.ZERO);
         break;
       case FLOAT64:
         res = isNull ? null : BigDecimal.valueOf(spanner.getDouble(spannerIndex));
