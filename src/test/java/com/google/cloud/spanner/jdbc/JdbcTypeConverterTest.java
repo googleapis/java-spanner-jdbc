@@ -760,4 +760,49 @@ public class JdbcTypeConverterTest {
     List<byte[]> output = toJavaByteArrays(input);
     assertThat(Arrays.deepEquals(expected.toArray(), output.toArray())).isTrue();
   }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testDateToSqlTimestamp() {
+    assertThat(JdbcTypeConverter.toSqlTimestamp(com.google.cloud.Date.fromYearMonthDay(2020, 6, 1)))
+        .isEqualTo(new Timestamp(2020 - 1900, 5, 1, 0, 0, 0, 0));
+  }
+
+  @Test
+  public void testDateToSqlTimestampWithCalendar() {
+    assertThat(
+            JdbcTypeConverter.toSqlTimestamp(
+                com.google.cloud.Date.fromYearMonthDay(2020, 6, 1),
+                Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles"))))
+        .isEqualTo(
+            com.google.cloud.Timestamp.parseTimestamp("2020-06-01T00:00:00-07:00")
+                .toSqlTimestamp());
+    assertThat(
+            JdbcTypeConverter.toSqlTimestamp(
+                com.google.cloud.Date.fromYearMonthDay(2020, 6, 1),
+                Calendar.getInstance(TimeZone.getTimeZone("Europe/Amsterdam"))))
+        .isEqualTo(
+            com.google.cloud.Timestamp.parseTimestamp("2020-06-01T00:00:00+02:00")
+                .toSqlTimestamp());
+  }
+
+  @Test
+  public void testParseSqlTimeWithCalendar() {
+    assertThat(
+            JdbcTypeConverter.parseSqlTime(
+                "10:31:15", Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles"))))
+        .isEqualTo(
+            new Time(
+                com.google.cloud.Timestamp.parseTimestamp("1970-01-01T10:31:15-08:00")
+                    .toSqlTimestamp()
+                    .getTime()));
+    assertThat(
+            JdbcTypeConverter.parseSqlTime(
+                "10:31:15", Calendar.getInstance(TimeZone.getTimeZone("Europe/Amsterdam"))))
+        .isEqualTo(
+            new Time(
+                com.google.cloud.Timestamp.parseTimestamp("1970-01-01T10:31:15+01:00")
+                    .toSqlTimestamp()
+                    .getTime()));
+  }
 }

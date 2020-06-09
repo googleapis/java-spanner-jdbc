@@ -224,6 +224,14 @@ class JdbcTypeConverter {
     return ts == null ? null : ts.toSqlTimestamp();
   }
 
+  static java.sql.Timestamp toSqlTimestamp(Date date) {
+    return date == null ? null : new java.sql.Timestamp(toSqlDate(date).getTime());
+  }
+
+  static java.sql.Timestamp toSqlTimestamp(Date date, Calendar cal) {
+    return date == null ? null : new java.sql.Timestamp(toSqlDate(date, cal).getTime());
+  }
+
   static java.sql.Timestamp getAsSqlTimestamp(Timestamp ts, Calendar cal) {
     return ts == null ? null : getTimestampInCalendar(ts.toSqlTimestamp(), cal);
   }
@@ -330,6 +338,17 @@ class JdbcTypeConverter {
       time.setTime(
           time.getTime() + TimeUnit.MILLISECONDS.convert(sqlTs.getNanos(), TimeUnit.NANOSECONDS));
       return time;
+    }
+    return null;
+  }
+
+  @SuppressWarnings("deprecation")
+  static java.sql.Time parseSqlTime(String val, Calendar cal) {
+    if (val != null) {
+      Time time = Time.valueOf(val);
+      cal.set(1970, 0, 1, time.getHours(), time.getMinutes(), time.getSeconds());
+      cal.clear(Calendar.MILLISECOND);
+      return new java.sql.Time(cal.getTimeInMillis());
     }
     return null;
   }
