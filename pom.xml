@@ -168,6 +168,7 @@
       <version>${spanner.test.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
+      <!-- TODO: remove when Spanner 1.55.2 is released -->
       <exclusions>
         <exclusion>
           <groupId>io.opencensus</groupId>
@@ -178,6 +179,19 @@
           <artifactId>opencensus-contrib-grpc-util</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <!-- TODO: remove when Spanner 1.55.2 is released -->
+    <dependency>
+      <groupId>io.opencensus</groupId>
+      <artifactId>opencensus-api</artifactId>
+      <version>0.24.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opencensus</groupId>
+      <artifactId>opencensus-contrib-grpc-util</artifactId>
+      <version>0.24.0</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.api.grpc</groupId>
