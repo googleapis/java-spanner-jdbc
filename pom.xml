@@ -171,6 +171,11 @@
       <exclusions>
         <exclusion>
           <groupId>io.opencensus</groupId>
+          <artifactId>opencensus-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.opencensus</groupId>
+          <artifactId>opencensus-contrib-grpc-util</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
