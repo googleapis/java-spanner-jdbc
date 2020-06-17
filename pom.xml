@@ -72,7 +72,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
-        <version>5.3.0</version>
+        <version>6.0.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -167,6 +167,30 @@
       <artifactId>google-cloud-spanner</artifactId>
       <version>${spanner.test.version}</version>
       <type>test-jar</type>
+      <scope>test</scope>
+      <!-- TODO: remove when Spanner 1.55.2 is released -->
+      <exclusions>
+        <exclusion>
+          <groupId>io.opencensus</groupId>
+          <artifactId>opencensus-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.opencensus</groupId>
+          <artifactId>opencensus-contrib-grpc-util</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- TODO: remove when Spanner 1.55.2 is released -->
+    <dependency>
+      <groupId>io.opencensus</groupId>
+      <artifactId>opencensus-api</artifactId>
+      <version>0.24.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opencensus</groupId>
+      <artifactId>opencensus-contrib-grpc-util</artifactId>
+      <version>0.24.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -322,6 +346,9 @@
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-instance-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-database-v1</ignoredDependency>
+              <!-- TODO: remove when Spanner 1.55.2 is released -->
+              <ignoredDependency>io.opencensus:opencensus-api</ignoredDependency>
+              <ignoredDependency>io.opencensus:opencensus-contrib-grpc-util</ignoredDependency>
             </ignoredUnusedDeclaredDependencies>
           </configuration>
         </plugin>
