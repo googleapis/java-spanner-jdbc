@@ -346,6 +346,9 @@
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-instance-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-database-v1</ignoredDependency>
+              <!-- TODO: remove when Spanner 1.55.2 is released -->
+              <ignoredDependency>io.opencensus:opencensus-api</ignoredDependency>
+              <ignoredDependency>io.opencensus:opencensus-contrib-grpc-util</ignoredDependency>
             </ignoredUnusedDeclaredDependencies>
           </configuration>
         </plugin>
