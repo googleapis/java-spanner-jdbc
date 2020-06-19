@@ -59,7 +59,7 @@
   <properties>
     <site.installationModule>google-cloud-spanner-jdbc</site.installationModule>
     <junit.version>4.13</junit.version>
-    <spanner.test.version>1.53.0</spanner.test.version>
+    <spanner.test.version>1.56.0</spanner.test.version>
     <findbugs.version>3.0.2</findbugs.version>
     <threeten.version>1.4.4</threeten.version>
     <truth.version>1.0.1</truth.version>
