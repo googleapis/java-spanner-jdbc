@@ -59,7 +59,6 @@
   <properties>
     <site.installationModule>google-cloud-spanner-jdbc</site.installationModule>
     <junit.version>4.13</junit.version>
-    <spanner.test.version>1.53.0</spanner.test.version>
     <findbugs.version>3.0.2</findbugs.version>
     <threeten.version>1.4.4</threeten.version>
     <truth.version>1.0.1</truth.version>
@@ -72,7 +71,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
-        <version>7.0.1</version>
+        <version>7.0.2</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -80,6 +79,14 @@
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-shared-dependencies</artifactId>
         <version>0.8.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <!-- TODO: Remove when Spanner 1.56.0 is available in the libraries-bom -->
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>google-cloud-spanner-bom</artifactId>
+        <version>1.56.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -101,17 +108,6 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>
-      <!-- Excluded to prevent version conflicts -->
-      <exclusions>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.cloud</groupId>
-          <artifactId>google-cloud-core-grpc</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
@@ -166,32 +162,7 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>
-      <version>${spanner.test.version}</version>
       <type>test-jar</type>
-      <scope>test</scope>
-      <!-- TODO: remove when Spanner 1.55.2 is released -->
-      <exclusions>
-        <exclusion>
-          <groupId>io.opencensus</groupId>
-          <artifactId>opencensus-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.opencensus</groupId>
-          <artifactId>opencensus-contrib-grpc-util</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <!-- TODO: remove when Spanner 1.55.2 is released -->
-    <dependency>
-      <groupId>io.opencensus</groupId>
-      <artifactId>opencensus-api</artifactId>
-      <version>0.24.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.opencensus</groupId>
-      <artifactId>opencensus-contrib-grpc-util</artifactId>
-      <version>0.24.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
