@@ -68,18 +68,10 @@
 
   <dependencyManagement>
     <dependencies>
-      <!-- TODO: Remove when Spanner 1.56.0 is available in the libraries-bom -->
-      <dependency>
-        <groupId>com.google.cloud</groupId>
-        <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>1.56.0</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
-        <version>7.0.2</version>
+        <version>8.0.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
