@@ -21,6 +21,7 @@ import com.google.cloud.spanner.GceTestEnvConfig;
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.IntegrationTestEnv;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
+import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ITAbstractSpannerTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
 import com.google.common.base.Preconditions;
@@ -34,6 +35,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.ExecutionException;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -57,7 +59,16 @@ public class ITAbstractJdbcTest {
     }
   }
 
-  @ClassRule public static IntegrationTestEnv env = new IntegrationTestEnv();
+  @ClassRule
+  public static IntegrationTestEnv env =
+      new IntegrationTestEnv() {
+        @Override
+        protected void after() {
+          super.after();
+          ConnectionOptions.closeSpanner();
+        }
+      };
+
   private static final String DEFAULT_KEY_FILE = null;
   private static Database database;
 
@@ -80,6 +91,11 @@ public class ITAbstractJdbcTest {
   @BeforeClass
   public static void setup() throws IOException, InterruptedException, ExecutionException {
     database = env.getTestHelper().createTestDatabase();
+  }
+
+  @AfterClass
+  public static void teardown() {
+    ConnectionOptions.closeSpanner();
   }
 
   /**

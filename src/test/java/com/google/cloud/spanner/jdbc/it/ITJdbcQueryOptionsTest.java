@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc.it;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.SpannerOptions;
@@ -95,6 +96,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
 
   @Test
   public void connectionUrlWithInvalidOptimizerVersion() throws SQLException {
+    assumeFalse("optimizer version is ignored on emulator", env.getTestHelper().isEmulator());
     this.connectionUriSuffix = ";optimizerVersion=9999999";
     try (Connection connection = createConnection()) {
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
@@ -137,6 +139,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
 
   @Test
   public void setInvalidOptimizerVersion() throws SQLException {
+    assumeFalse("optimizer version is ignored on emulator", env.getTestHelper().isEmulator());
     try (Connection connection = createConnection()) {
       connection.createStatement().execute("SET OPTIMIZER_VERSION='9999999'");
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
@@ -151,6 +154,9 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
 
   @Test
   public void optimizerVersionInQueryHint() throws SQLException {
+    assumeFalse(
+        "optimizer version in query hint is not supported on emulator",
+        env.getTestHelper().isEmulator());
     try (Connection connection = createConnection()) {
       verifyOptimizerVersion(connection, "");
       try (ResultSet rs =
@@ -170,6 +176,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
 
   @Test
   public void optimizerVersionInEnvironment() throws SQLException {
+    assumeFalse("optimizer version is ignored on emulator", env.getTestHelper().isEmulator());
     try {
       SpannerOptions.useEnvironment(
           new SpannerOptions.SpannerEnvironment() {

@@ -22,6 +22,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 
 import com.google.api.client.util.Base64;
 import com.google.cloud.spanner.IntegrationTest;
@@ -45,6 +46,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Scanner;
 import java.util.TimeZone;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -252,6 +254,11 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       res.add(Concert.of(concertValue));
     }
     return res;
+  }
+
+  @BeforeClass
+  public static void notOnEmulator() {
+    assumeFalse("foreign keys are not supported on the emulator", env.getTestHelper().isEmulator());
   }
 
   @Override
