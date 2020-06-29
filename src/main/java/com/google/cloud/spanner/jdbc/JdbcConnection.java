@@ -291,7 +291,7 @@ class JdbcConnection extends AbstractJdbcConnection {
   @Override
   public String getCatalog() throws SQLException {
     checkClosed();
-    return getConnectionOptions().getDatabaseName();
+    return "";
   }
 
   @Override
