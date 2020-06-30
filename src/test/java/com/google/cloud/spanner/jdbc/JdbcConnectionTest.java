@@ -634,7 +634,9 @@ public class JdbcConnectionTest {
     ConnectionOptions options = mock(ConnectionOptions.class);
     when(options.getDatabaseName()).thenReturn("test");
     try (JdbcConnection connection = createConnection(options)) {
-      assertThat(connection.getCatalog()).isEqualTo("test");
+      // The connection should always return the empty string as the current catalog, as no other
+      // catalogs exist in the INFORMATION_SCHEMA.
+      assertThat(connection.getCatalog()).isEqualTo("");
       // This should be allowed.
       connection.setCatalog("");
       try {
