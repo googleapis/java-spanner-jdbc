@@ -214,7 +214,8 @@ public class JdbcGrpcErrorTest {
 
   @Test
   public void autocommitPDMLExecuteSql() {
-    mockSpanner.setExecuteSqlExecutionTime(SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setExecuteStreamingSqlExecutionTime(
+        SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().execute("SET AUTOCOMMIT_DML_MODE='PARTITIONED_NON_ATOMIC'");
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
