@@ -3,7 +3,7 @@ on:
     branches:
     - master
   pull_request:
-name: integration-tests-against-emulator
+name: Integration tests agains emulator
 jobs:
   units:
     runs-on: ubuntu-latest
