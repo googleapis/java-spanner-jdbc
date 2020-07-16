@@ -26,6 +26,7 @@ import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcDataSource;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -53,8 +54,14 @@ import org.junit.runners.JUnit4;
 public class ITJdbcConnectTest extends ITAbstractJdbcTest {
 
   private String createBaseUrl() {
-    StringBuilder url =
-        new StringBuilder("jdbc:cloudspanner:/").append(getDatabase().getId().getName());
+    StringBuilder url = new StringBuilder("jdbc:cloudspanner:");
+    if (env.getTestHelper().isEmulator()) {
+      url.append("//").append(System.getenv("SPANNER_EMULATOR_HOST"));
+    }
+    url.append("/").append(getDatabase().getId().getName());
+    if (env.getTestHelper().isEmulator()) {
+      url.append(";usePlainText=true");
+    }
     return url.toString();
   }
 
@@ -99,7 +106,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   @Test
   public void testConnectWithURLWithNonDefaultValues() throws SQLException {
     String url = createBaseUrl();
-    url = url + "?autocommit=false;readonly=true;retryAbortsInternally=false";
+    url = url + ";autocommit=false;readonly=true;retryAbortsInternally=false";
     if (hasValidKeyFile()) {
       url = url + ";credentials=" + getKeyFile();
     }
@@ -138,7 +145,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   @Test
   public void testConnectWithPropertiesWithConflictingValues() throws SQLException {
     String url = createBaseUrl();
-    url = url + "?autocommit=false;readonly=true;retryAbortsInternally=false";
+    url = url + ";autocommit=false;readonly=true;retryAbortsInternally=false";
     if (hasValidKeyFile()) {
       url = url + ";credentials=" + getKeyFile();
     }
@@ -167,7 +174,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   public void testConnectWithDataSourceWithNonDefaultValues() throws SQLException {
     JdbcDataSource ds = new JdbcDataSource();
     ds.setUrl(createBaseUrl());
-    if (hasValidKeyFile()) {
+    if (hasValidKeyFile() && !env.getTestHelper().isEmulator()) {
       ds.setCredentials(getKeyFile());
     }
     ds.setAutocommit(false);
@@ -183,7 +190,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
     // Try with non-default values in URL and default values in data source. The values in the URL
     // should take precedent.
     String url = createBaseUrl();
-    url = url + "?autocommit=false;readonly=true;retryAbortsInternally=false";
+    url = url + ";autocommit=false;readonly=true;retryAbortsInternally=false";
     if (hasValidKeyFile()) {
       url = url + ";credentials=" + getKeyFile();
     }
@@ -203,14 +210,21 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
     if (hasValidKeyFile()) {
       credentials = GoogleCredentials.fromStream(new FileInputStream(getKeyFile()));
     } else {
-      credentials = GoogleCredentials.getApplicationDefault();
+      try {
+        credentials = GoogleCredentials.getApplicationDefault();
+      } catch (IOException e) {
+        credentials = null;
+      }
     }
-    credentials = credentials.createScoped(SpannerOptions.getDefaultInstance().getScopes());
-    AccessToken token = credentials.refreshAccessToken();
-    String urlWithOAuth = createBaseUrl() + "?OAuthToken=" + token.getTokenValue();
-    try (Connection connectionWithOAuth = DriverManager.getConnection(urlWithOAuth)) {
-      // Try to do a query using the connection created with an OAuth token.
-      testDefaultConnection(connectionWithOAuth);
+    // Skip this test if there are no credentials set for the test case or environment.
+    if (credentials != null) {
+      credentials = credentials.createScoped(SpannerOptions.getDefaultInstance().getScopes());
+      AccessToken token = credentials.refreshAccessToken();
+      String urlWithOAuth = createBaseUrl() + ";OAuthToken=" + token.getTokenValue();
+      try (Connection connectionWithOAuth = DriverManager.getConnection(urlWithOAuth)) {
+        // Try to do a query using the connection created with an OAuth token.
+        testDefaultConnection(connectionWithOAuth);
+      }
     }
   }
 }

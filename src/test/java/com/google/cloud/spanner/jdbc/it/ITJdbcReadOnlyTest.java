@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc.it;
 
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.Mutation;
+import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
@@ -28,6 +29,7 @@ import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -80,6 +82,11 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
         connection.commit();
       }
     }
+  }
+
+  @After
+  public void closeSpanner() {
+    ConnectionOptions.closeSpanner();
   }
 
   @Test

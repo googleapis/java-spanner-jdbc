@@ -21,6 +21,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
@@ -28,6 +29,7 @@ import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -85,6 +87,12 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
           JdbcGenericConnection.of(connection),
           INSERT_AND_VERIFY_TEST_DATA,
           SqlScriptVerifier.class);
+    } catch (SQLException e) {
+      if (env.getTestHelper().isEmulator()
+          && e.getErrorCode() == ErrorCode.ALREADY_EXISTS.getGrpcStatusCode().value()) {
+        // Ignore, this is expected as errors during a read/write transaction are sticky on the
+        // emulator.
+      }
     }
   }
 
@@ -101,6 +109,11 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection), TEST_GET_COMMIT_TIMESTAMP, SqlScriptVerifier.class);
+    } catch (SQLException e) {
+      if (env.getTestHelper().isEmulator()
+          && e.getErrorCode() == ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value()) {
+        // Ignore as errors during read/write transactions are sticky on the emulator.
+      }
     }
   }
 

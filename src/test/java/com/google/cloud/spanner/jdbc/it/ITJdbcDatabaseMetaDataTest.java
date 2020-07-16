@@ -21,6 +21,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
@@ -31,6 +32,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -48,6 +50,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
   private static final String CONCERTS_TABLE = "Concerts";
   private static final String TABLE_WITH_ALL_COLS = "TableWithAllColumnTypes";
   private static final String TABLE_WITH_REF = "TableWithRef";
+
+  @BeforeClass
+  public static void skipOnEmulator() {
+    assumeFalse("foreign keys are not supported on the emulator", env.getTestHelper().isEmulator());
+  }
 
   @Override
   protected boolean doCreateMusicTables() {
