@@ -26,6 +26,7 @@ import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcDataSource;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -209,14 +210,21 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
     if (hasValidKeyFile()) {
       credentials = GoogleCredentials.fromStream(new FileInputStream(getKeyFile()));
     } else {
-      credentials = GoogleCredentials.getApplicationDefault();
+      try {
+        credentials = GoogleCredentials.getApplicationDefault();
+      } catch (IOException e) {
+        credentials = null;
+      }
     }
-    credentials = credentials.createScoped(SpannerOptions.getDefaultInstance().getScopes());
-    AccessToken token = credentials.refreshAccessToken();
-    String urlWithOAuth = createBaseUrl() + ";OAuthToken=" + token.getTokenValue();
-    try (Connection connectionWithOAuth = DriverManager.getConnection(urlWithOAuth)) {
-      // Try to do a query using the connection created with an OAuth token.
-      testDefaultConnection(connectionWithOAuth);
+    // Skip this test if there are no credentials set for the test case or environment.
+    if (credentials != null) {
+      credentials = credentials.createScoped(SpannerOptions.getDefaultInstance().getScopes());
+      AccessToken token = credentials.refreshAccessToken();
+      String urlWithOAuth = createBaseUrl() + ";OAuthToken=" + token.getTokenValue();
+      try (Connection connectionWithOAuth = DriverManager.getConnection(urlWithOAuth)) {
+        // Try to do a query using the connection created with an OAuth token.
+        testDefaultConnection(connectionWithOAuth);
+      }
     }
   }
 }
