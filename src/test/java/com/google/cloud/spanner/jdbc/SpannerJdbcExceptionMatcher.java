@@ -55,7 +55,7 @@ public final class SpannerJdbcExceptionMatcher<T extends JdbcSqlException> exten
         return exception.getErrorCode() == errorCode.getNumber();
       }
       return exception.getErrorCode() == errorCode.getNumber()
-          && exception.getMessage().endsWith(": " + message);
+          && exception.getMessage().contains(": " + message);
     }
     return false;
   }

@@ -120,16 +120,8 @@ public class JdbcParameterStoreTest {
         is(true));
     verifyParameter(params, Value.string("test"));
 
-    // test unsupported types
-    boolean expectedException = false;
-    try {
-      params.setParameter(1, BigDecimal.ONE, Types.DECIMAL);
-    } catch (SQLException e) {
-      if (e instanceof JdbcSqlException) {
-        expectedException = ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT;
-      }
-    }
-    assertThat(expectedException, is(true));
+    params.setParameter(1, BigDecimal.ONE, Types.DECIMAL);
+    verifyParameter(params, Value.numeric(BigDecimal.ONE));
 
     // types that should lead to int64
     for (int type : new int[] {Types.TINYINT, Types.SMALLINT, Types.INTEGER, Types.BIGINT}) {
@@ -281,6 +273,32 @@ public class JdbcParameterStoreTest {
       assertThat((BigDecimal) params.getParameter(1), is(equalTo(BigDecimal.ZERO)));
       verifyParameter(params, Value.bool(false));
     }
+
+    // types that should lead to numeric
+    for (int type : new int[] {Types.DECIMAL, Types.NUMERIC}) {
+      params.setParameter(1, BigDecimal.ONE, type);
+      assertThat((BigDecimal) params.getParameter(1), is(equalTo(BigDecimal.ONE)));
+      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+
+      params.setParameter(1, (byte) 1, type);
+      assertThat((Byte) params.getParameter(1), is(equalTo((byte) 1)));
+      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+      params.setParameter(1, (short) 1, type);
+      assertThat((Short) params.getParameter(1), is(equalTo((short) 1)));
+      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+      params.setParameter(1, 1, type);
+      assertThat((Integer) params.getParameter(1), is(equalTo(1)));
+      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+      params.setParameter(1, 1L, type);
+      assertThat((Long) params.getParameter(1), is(equalTo(1L)));
+      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+      params.setParameter(1, (float) 1, type);
+      assertThat((Float) params.getParameter(1), is(equalTo((float) 1)));
+      verifyParameter(params, Value.numeric(BigDecimal.valueOf(1.0)));
+      params.setParameter(1, (double) 1, type);
+      assertThat((Double) params.getParameter(1), is(equalTo((double) 1)));
+      verifyParameter(params, Value.numeric(BigDecimal.valueOf(1.0)));
+    }
   }
 
   @Test
@@ -352,9 +370,6 @@ public class JdbcParameterStoreTest {
       assertInvalidParameter(params, "true", type);
       assertInvalidParameter(params, new Object(), type);
     }
-
-    assertInvalidParameter(params, BigDecimal.ONE, Types.DECIMAL);
-    assertInvalidParameter(params, BigDecimal.ZERO, Types.NUMERIC);
 
     // test setting closed readers and streams.
     for (int type :

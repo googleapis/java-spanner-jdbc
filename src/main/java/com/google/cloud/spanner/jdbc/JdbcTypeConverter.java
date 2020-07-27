@@ -80,43 +80,58 @@ class JdbcTypeConverter {
         if (type.getCode() == Code.BOOL) return value;
         if (type.getCode() == Code.INT64) return Boolean.valueOf((Long) value != 0);
         if (type.getCode() == Code.FLOAT64) return Boolean.valueOf((Double) value != 0d);
+        if (type.getCode() == Code.NUMERIC)
+          return Boolean.valueOf(!((BigDecimal) value).equals(BigDecimal.ZERO));
       }
       if (targetType.equals(BigDecimal.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? BigDecimal.ONE : BigDecimal.ZERO;
         if (type.getCode() == Code.INT64) return BigDecimal.valueOf((Long) value);
+        if (type.getCode() == Code.NUMERIC) return value;
       }
       if (targetType.equals(Long.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1L : 0L;
         if (type.getCode() == Code.INT64) return value;
+        if (type.getCode() == Code.NUMERIC)
+          return AbstractJdbcWrapper.checkedCastToLong((BigDecimal) value);
       }
       if (targetType.equals(Integer.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1 : 0;
         if (type.getCode() == Code.INT64) return AbstractJdbcWrapper.checkedCastToInt((Long) value);
+        if (type.getCode() == Code.NUMERIC)
+          return AbstractJdbcWrapper.checkedCastToInt((BigDecimal) value);
       }
       if (targetType.equals(Short.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1 : 0;
         if (type.getCode() == Code.INT64)
           return AbstractJdbcWrapper.checkedCastToShort((Long) value);
+        if (type.getCode() == Code.NUMERIC)
+          return AbstractJdbcWrapper.checkedCastToShort((BigDecimal) value);
       }
       if (targetType.equals(Byte.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1 : 0;
         if (type.getCode() == Code.INT64)
           return AbstractJdbcWrapper.checkedCastToByte((Long) value);
+        if (type.getCode() == Code.NUMERIC)
+          return AbstractJdbcWrapper.checkedCastToByte((BigDecimal) value);
       }
       if (targetType.equals(BigInteger.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? BigInteger.ONE : BigInteger.ZERO;
         if (type.getCode() == Code.INT64) return BigInteger.valueOf((Long) value);
+        if (type.getCode() == Code.NUMERIC)
+          return AbstractJdbcWrapper.checkedCastToBigInteger((BigDecimal) value);
       }
       if (targetType.equals(Float.class)) {
         if (type.getCode() == Code.BOOL)
           return (Boolean) value ? Float.valueOf(1f) : Float.valueOf(0f);
         if (type.getCode() == Code.FLOAT64)
           return AbstractJdbcWrapper.checkedCastToFloat((Double) value);
+        if (type.getCode() == Code.NUMERIC) return ((BigDecimal) value).floatValue();
       }
       if (targetType.equals(Double.class)) {
         if (type.getCode() == Code.BOOL)
           return (Boolean) value ? Double.valueOf(1d) : Double.valueOf(0d);
         if (type.getCode() == Code.FLOAT64) return value;
+        if (type.getCode() == Code.NUMERIC) return ((BigDecimal) value).doubleValue();
       }
       if (targetType.equals(java.sql.Date.class)) {
         if (type.getCode() == Code.DATE) return value;
@@ -175,6 +190,10 @@ class JdbcTypeConverter {
         (type.getCode() == Code.TIMESTAMP && value.getClass().equals(java.sql.Timestamp.class))
             || type.getCode() != Code.TIMESTAMP,
         "input type is timestamp, but input value is not an instance of java.sql.Timestamp");
+    JdbcPreconditions.checkArgument(
+        (type.getCode() == Code.NUMERIC && value.getClass().equals(BigDecimal.class))
+            || type.getCode() != Code.NUMERIC,
+        "input type is numeric, but input value is not an instance of BigDecimal");
   }
 
   @SuppressWarnings("deprecation")

@@ -211,11 +211,9 @@ class JdbcParameterStore {
       case Types.BLOB:
       case Types.CLOB:
       case Types.NCLOB:
-        return true;
       case Types.NUMERIC:
       case Types.DECIMAL:
-        // currently not supported as Cloud Spanner does not have any decimal data type.
-        return false;
+        return true;
     }
     return false;
   }
@@ -235,11 +233,9 @@ class JdbcParameterStore {
       case Types.FLOAT:
       case Types.REAL:
       case Types.DOUBLE:
-        return value instanceof Number;
       case Types.NUMERIC:
       case Types.DECIMAL:
-        // currently not supported as Cloud Spanner does not have any decimal data type.
-        return false;
+        return value instanceof Number;
       case Types.CHAR:
       case Types.VARCHAR:
       case Types.LONGVARCHAR:
@@ -473,9 +469,18 @@ class JdbcParameterStore {
         throw JdbcSqlExceptionFactory.of(value + " is not a valid double", Code.INVALID_ARGUMENT);
       case Types.NUMERIC:
       case Types.DECIMAL:
-        // currently not supported as Cloud Spanner does not have any decimal data type.
+        if (value instanceof Number) {
+          if (value instanceof BigDecimal) {
+            return binder.to((BigDecimal) value);
+          }
+          try {
+            return binder.to(new BigDecimal(value.toString()));
+          } catch (NumberFormatException e) {
+            // ignore and fall through to the exception.
+          }
+        }
         throw JdbcSqlExceptionFactory.of(
-            "DECIMAL/NUMERIC values are not supported", Code.INVALID_ARGUMENT);
+            value + " is not a valid BigDecimal", Code.INVALID_ARGUMENT);
       case Types.CHAR:
       case Types.VARCHAR:
       case Types.LONGVARCHAR:
@@ -604,8 +609,7 @@ class JdbcParameterStore {
     } else if (Double.class.isAssignableFrom(value.getClass())) {
       return binder.to(((Double) value).doubleValue());
     } else if (BigDecimal.class.isAssignableFrom(value.getClass())) {
-      // currently not supported
-      return null;
+      return binder.to((BigDecimal) value);
     } else if (Date.class.isAssignableFrom(value.getClass())) {
       Date dateValue = (Date) value;
       return binder.to(JdbcTypeConverter.toGoogleDate(dateValue));
@@ -693,8 +697,7 @@ class JdbcParameterStore {
           return binder.toFloat64Array((double[]) null);
         case Types.NUMERIC:
         case Types.DECIMAL:
-          throw JdbcSqlExceptionFactory.of(
-              "DECIMAL/NUMERIC values are not supported", Code.INVALID_ARGUMENT);
+          return binder.toNumericArray(null);
         case Types.CHAR:
         case Types.VARCHAR:
         case Types.LONGVARCHAR:
@@ -755,8 +758,7 @@ class JdbcParameterStore {
     } else if (Double[].class.isAssignableFrom(value.getClass())) {
       return binder.toFloat64Array(toDoubleList((Double[]) value));
     } else if (BigDecimal[].class.isAssignableFrom(value.getClass())) {
-      // currently not supported
-      return null;
+      return binder.toNumericArray(Arrays.asList((BigDecimal[]) value));
     } else if (Date[].class.isAssignableFrom(value.getClass())) {
       return binder.toDateArray(JdbcTypeConverter.toGoogleDates((Date[]) value));
     } else if (Timestamp[].class.isAssignableFrom(value.getClass())) {
@@ -810,9 +812,7 @@ class JdbcParameterStore {
         return binder.to((com.google.cloud.Date) null);
       case Types.NUMERIC:
       case Types.DECIMAL:
-        // currently not supported
-        throw JdbcSqlExceptionFactory.of(
-            "DECIMAL/NUMERIC values are not supported", Code.INVALID_ARGUMENT);
+        return binder.to((BigDecimal) null);
       case Types.DOUBLE:
         return binder.to((Double) null);
       case Types.FLOAT:

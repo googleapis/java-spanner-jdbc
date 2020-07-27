@@ -138,6 +138,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? null : Double.toString(spanner.getDouble(spannerIndex));
       case INT64:
         return isNull ? null : Long.toString(spanner.getLong(spannerIndex));
+      case NUMERIC:
+        return isNull ? null : spanner.getBigDecimal(spannerIndex).toString();
       case STRING:
         return isNull ? null : spanner.getString(spannerIndex);
       case TIMESTAMP:
@@ -162,6 +164,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? false : spanner.getDouble(spannerIndex) != 0D;
       case INT64:
         return isNull ? false : spanner.getLong(spannerIndex) != 0L;
+      case NUMERIC:
+        return isNull ? false : !spanner.getBigDecimal(spannerIndex).equals(BigDecimal.ZERO);
       case STRING:
         return isNull ? false : Boolean.valueOf(spanner.getString(spannerIndex));
       case BYTES:
@@ -189,6 +193,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
             : checkedCastToByte(Double.valueOf(spanner.getDouble(spannerIndex)).longValue());
       case INT64:
         return isNull ? (byte) 0 : checkedCastToByte(spanner.getLong(spannerIndex));
+      case NUMERIC:
+        return isNull ? (byte) 0 : checkedCastToByte(spanner.getBigDecimal(spannerIndex));
       case STRING:
         return isNull ? (byte) 0 : checkedCastToByte(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
@@ -216,6 +222,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
             : checkedCastToShort(Double.valueOf(spanner.getDouble(spannerIndex)).longValue());
       case INT64:
         return isNull ? 0 : checkedCastToShort(spanner.getLong(spannerIndex));
+      case NUMERIC:
+        return isNull ? 0 : checkedCastToShort(spanner.getBigDecimal(spannerIndex));
       case STRING:
         return isNull ? 0 : checkedCastToShort(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
@@ -243,6 +251,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
             : checkedCastToInt(Double.valueOf(spanner.getDouble(spannerIndex)).longValue());
       case INT64:
         return isNull ? 0 : checkedCastToInt(spanner.getLong(spannerIndex));
+      case NUMERIC:
+        return isNull ? 0 : checkedCastToInt(spanner.getBigDecimal(spannerIndex));
       case STRING:
         return isNull ? 0 : checkedCastToInt(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
@@ -268,6 +278,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0L : Double.valueOf(spanner.getDouble(spannerIndex)).longValue();
       case INT64:
         return isNull ? 0L : spanner.getLong(spannerIndex);
+      case NUMERIC:
+        return isNull ? 0L : checkedCastToLong(spanner.getBigDecimal(spannerIndex));
       case STRING:
         return isNull ? 0L : parseLong(spanner.getString(spannerIndex));
       case BYTES:
@@ -293,6 +305,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0 : checkedCastToFloat(spanner.getDouble(spannerIndex));
       case INT64:
         return isNull ? 0 : checkedCastToFloat(spanner.getLong(spannerIndex));
+      case NUMERIC:
+        return isNull ? 0 : spanner.getBigDecimal(spannerIndex).floatValue();
       case STRING:
         return isNull ? 0 : checkedCastToFloat(parseDouble(spanner.getString(spannerIndex)));
       case BYTES:
@@ -318,6 +332,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0 : spanner.getDouble(spannerIndex);
       case INT64:
         return isNull ? 0 : spanner.getLong(spannerIndex);
+      case NUMERIC:
+        return isNull ? 0 : spanner.getBigDecimal(spannerIndex).doubleValue();
       case STRING:
         return isNull ? 0 : parseDouble(spanner.getString(spannerIndex));
       case BYTES:
@@ -354,6 +370,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case BOOL:
       case FLOAT64:
       case INT64:
+      case NUMERIC:
       case BYTES:
       case STRUCT:
       case ARRAY:
@@ -377,6 +394,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case DATE:
       case FLOAT64:
       case INT64:
+      case NUMERIC:
       case BYTES:
       case STRUCT:
       case ARRAY:
@@ -401,6 +419,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case BOOL:
       case FLOAT64:
       case INT64:
+      case NUMERIC:
       case BYTES:
       case STRUCT:
       case ARRAY:
@@ -555,6 +574,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     if (type == Type.date()) return getDate(columnIndex);
     if (type == Type.float64()) return getDouble(columnIndex);
     if (type == Type.int64()) return getLong(columnIndex);
+    if (type == Type.numeric()) return getBigDecimal(columnIndex);
     if (type == Type.string()) return getString(columnIndex);
     if (type == Type.timestamp()) return getTimestamp(columnIndex);
     if (type.getCode() == Code.ARRAY) return getArray(columnIndex);
@@ -629,6 +649,9 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         break;
       case INT64:
         res = isNull ? null : BigDecimal.valueOf(spanner.getLong(spannerIndex));
+        break;
+      case NUMERIC:
+        res = isNull ? null : spanner.getBigDecimal(spannerIndex);
         break;
       case STRING:
         try {
@@ -724,6 +747,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case BOOL:
       case FLOAT64:
       case INT64:
+      case NUMERIC:
       case BYTES:
       case STRUCT:
       case ARRAY:
@@ -752,6 +776,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case DATE:
       case FLOAT64:
       case INT64:
+      case NUMERIC:
       case BYTES:
       case STRUCT:
       case ARRAY:
@@ -783,6 +808,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case BOOL:
       case FLOAT64:
       case INT64:
+      case NUMERIC:
       case BYTES:
       case STRUCT:
       case ARRAY:

@@ -71,7 +71,8 @@ public class JdbcTypeConverterTest {
           Type.float64(),
           Type.int64(),
           Type.string(),
-          Type.timestamp()
+          Type.timestamp(),
+          Type.numeric()
         }) {
       assertConvertThrows(testValue, Type.array(t), Boolean.class, Code.INVALID_ARGUMENT);
       assertConvertThrows(testValue, Type.array(t), Byte.class, Code.INVALID_ARGUMENT);
@@ -289,6 +290,43 @@ public class JdbcTypeConverterTest {
       assertConvertThrows(d, Type.float64(), Byte.class, Code.INVALID_ARGUMENT);
       assertConvertThrows(d, Type.float64(), BigInteger.class, Code.INVALID_ARGUMENT);
       assertConvertThrows(d, Type.float64(), BigDecimal.class, Code.INVALID_ARGUMENT);
+    }
+  }
+
+  @Test
+  public void testConvertNumeric() throws SQLException {
+    BigDecimal[] testValues =
+        new BigDecimal[] {
+          BigDecimal.ZERO,
+          BigDecimal.ONE.negate(),
+          BigDecimal.ONE,
+          BigDecimal.valueOf(Double.MIN_VALUE),
+          BigDecimal.valueOf(Double.MAX_VALUE),
+          BigDecimal.valueOf(Float.MIN_VALUE),
+          BigDecimal.valueOf(Float.MAX_VALUE),
+          BigDecimal.valueOf(Float.MAX_VALUE + 1D)
+        };
+    for (BigDecimal d : testValues) {
+      assertThat(convert(d, Type.numeric(), BigDecimal.class)).isEqualTo(d);
+      assertThat(convert(d, Type.numeric(), Double.class)).isEqualTo(d.doubleValue());
+      assertThat(convert(d, Type.numeric(), Float.class)).isEqualTo(d.floatValue());
+      assertThat(convert(d, Type.numeric(), String.class)).isEqualTo(String.valueOf(d));
+      assertThat(convert(d, Type.numeric(), Boolean.class))
+          .isEqualTo(Boolean.valueOf(!d.equals(BigDecimal.ZERO)));
+      if (d.compareTo(BigDecimal.valueOf(Long.MAX_VALUE)) > 0
+          || d.compareTo(BigDecimal.valueOf(Long.MIN_VALUE)) < 0
+          || d.scale() > 0) {
+        assertConvertThrows(d, Type.numeric(), Long.class, Code.OUT_OF_RANGE);
+      } else {
+        assertThat(convert(d, Type.numeric(), Long.class)).isEqualTo(d.longValue());
+      }
+      if (d.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) > 0
+          || d.compareTo(BigDecimal.valueOf(Integer.MIN_VALUE)) < 0
+          || d.scale() > 0) {
+        assertConvertThrows(d, Type.numeric(), Integer.class, Code.OUT_OF_RANGE);
+      } else {
+        assertThat(convert(d, Type.numeric(), Integer.class)).isEqualTo(d.intValue());
+      }
     }
   }
 

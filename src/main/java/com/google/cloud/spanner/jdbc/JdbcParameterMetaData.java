@@ -98,7 +98,7 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
     } else if (Double.class.isAssignableFrom(value.getClass())) {
       return Types.DOUBLE;
     } else if (BigDecimal.class.isAssignableFrom(value.getClass())) {
-      return Types.DECIMAL;
+      return Types.NUMERIC;
     } else if (Date.class.isAssignableFrom(value.getClass())) {
       return Types.DATE;
     } else if (Timestamp.class.isAssignableFrom(value.getClass())) {

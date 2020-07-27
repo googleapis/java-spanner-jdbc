@@ -79,7 +79,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   @Override
   public boolean isSigned(int column) throws SQLException {
     int type = getColumnType(column);
-    return type == Types.DOUBLE || type == Types.BIGINT;
+    return type == Types.DOUBLE || type == Types.BIGINT || type == Types.NUMERIC;
   }
 
   @Override
@@ -99,6 +99,8 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
         return 14;
       case Types.BIGINT:
         return 10;
+      case Types.NUMERIC:
+        return 14;
       case Types.NVARCHAR:
         int length = getPrecision(column);
         return length == 0 ? DEFAULT_COL_DISPLAY_SIZE_FOR_VARIABLE_LENGTH_COLS : length;
@@ -136,6 +138,8 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
         return 14;
       case Types.BIGINT:
         return 10;
+      case Types.NUMERIC:
+        return 14;
       case Types.TIMESTAMP:
         return 24;
       default:
@@ -150,7 +154,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   @Override
   public int getScale(int column) throws SQLException {
     int colType = getColumnType(column);
-    if (colType == Types.DOUBLE) return 15;
+    if (colType == Types.DOUBLE || colType == Types.NUMERIC) return 15;
     return 0;
   }
 
