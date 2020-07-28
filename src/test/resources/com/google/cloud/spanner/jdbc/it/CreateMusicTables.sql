@@ -16,6 +16,52 @@
 
 START BATCH DDL;
 
+CREATE TABLE Singers (
+  SingerId   INT64 NOT NULL,
+  FirstName  STRING(1024),
+  LastName   STRING(1024),
+  SingerInfo BYTES(MAX),
+  BirthDate  DATE
+) PRIMARY KEY(SingerId);
+
+CREATE INDEX SingersByFirstLastName ON Singers(FirstName, LastName);
+
+CREATE TABLE Albums (
+  SingerId        INT64 NOT NULL,
+  AlbumId         INT64 NOT NULL,
+  AlbumTitle      STRING(MAX),
+  MarketingBudget INT64
+) PRIMARY KEY(SingerId, AlbumId),
+  INTERLEAVE IN PARENT Singers ON DELETE CASCADE;
+
+CREATE INDEX AlbumsByAlbumTitle ON Albums(AlbumTitle);
+
+CREATE INDEX AlbumsByAlbumTitle2 ON Albums(AlbumTitle) STORING (MarketingBudget);
+
+CREATE TABLE Songs (
+  SingerId  INT64 NOT NULL,
+  AlbumId   INT64 NOT NULL,
+  TrackId   INT64 NOT NULL,
+  SongName  STRING(MAX),
+  Duration  INT64,
+  SongGenre STRING(25)
+) PRIMARY KEY(SingerId, AlbumId, TrackId),
+  INTERLEAVE IN PARENT Albums ON DELETE CASCADE;
+
+CREATE UNIQUE INDEX SongsBySingerAlbumSongNameDesc ON Songs(SingerId, AlbumId, SongName DESC), INTERLEAVE IN Albums;
+
+CREATE INDEX SongsBySongName ON Songs(SongName);
+
+CREATE TABLE Concerts (
+  VenueId      INT64 NOT NULL,
+  SingerId     INT64 NOT NULL,
+  ConcertDate  DATE NOT NULL,
+  BeginTime    TIMESTAMP,
+  EndTime      TIMESTAMP,
+  TicketPrices ARRAY<INT64>,
+  CONSTRAINT Fk_Concerts_Singer FOREIGN KEY (SingerId) REFERENCES Singers (SingerId)
+) PRIMARY KEY(VenueId, SingerId, ConcertDate);
+
 CREATE TABLE TableWithAllColumnTypes (
   ColInt64		INT64		NOT NULL,
   ColFloat64	FLOAT64		NOT NULL,
@@ -40,6 +86,17 @@ CREATE TABLE TableWithAllColumnTypes (
   ColTimestampArray	ARRAY<TIMESTAMP>,
   ColNumericArray	ARRAY<NUMERIC>
 ) PRIMARY KEY (ColInt64)
+;
+
+CREATE TABLE TableWithRef (
+  Id          INT64       NOT NULL,
+  RefFloat    FLOAT64     NOT NULL,
+  RefString   STRING(100) NOT NULL,
+  RefDate     DATE        NOT NULL,
+  CONSTRAINT Fk_TableWithRef_TableWithAllColumnTypes
+    FOREIGN KEY (RefFloat, RefString, RefDate)
+    REFERENCES TableWithAllColumnTypes (ColFloat64, ColString, ColDate)
+) PRIMARY KEY (Id)
 ;
 
 RUN BATCH;
