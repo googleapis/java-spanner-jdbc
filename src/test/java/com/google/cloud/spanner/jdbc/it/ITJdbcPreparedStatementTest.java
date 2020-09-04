@@ -31,6 +31,7 @@ import com.google.common.base.Strings;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.Date;
@@ -745,6 +746,94 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         fail();
       } catch (BatchUpdateException e) {
         assertThat(e.getUpdateCounts(), is(notNullValue()));
+      }
+    }
+  }
+
+  @Test
+  public void test08_InsertAllColumnTypes() throws SQLException {
+    try (Connection con = createConnection()) {
+      try (PreparedStatement ps =
+          con.prepareStatement(
+              "INSERT INTO TableWithAllColumnTypes ("
+                  + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, "
+                  + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray"
+                  + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        ps.setLong(1, 1L);
+        ps.setDouble(2, 2D);
+        ps.setBoolean(3, true);
+        ps.setString(4, "test");
+        ps.setString(5, "testtest");
+        ps.setBytes(6, "test".getBytes());
+        ps.setBytes(7, "testtest".getBytes());
+        ps.setDate(8, new Date(System.currentTimeMillis()));
+        ps.setTimestamp(9, new Timestamp(System.currentTimeMillis()));
+        ps.setBigDecimal(10, BigDecimal.TEN);
+        ps.setArray(11, con.createArrayOf("INT64", new Long[] {1L, 2L, 3L}));
+        ps.setArray(12, con.createArrayOf("FLOAT64", new Double[] {1.1D, 2.2D, 3.3D}));
+        ps.setArray(
+            13, con.createArrayOf("BOOL", new Boolean[] {Boolean.TRUE, null, Boolean.FALSE}));
+        ps.setArray(14, con.createArrayOf("STRING", new String[] {"1", "2", "3"}));
+        ps.setArray(15, con.createArrayOf("STRING", new String[] {"3", "2", "1"}));
+        ps.setArray(
+            16,
+            con.createArrayOf(
+                "BYTES", new byte[][] {"1".getBytes(), "2".getBytes(), "3".getBytes()}));
+        ps.setArray(
+            17,
+            con.createArrayOf(
+                "BYTES", new byte[][] {"333".getBytes(), "222".getBytes(), "111".getBytes()}));
+        ps.setArray(
+            18,
+            con.createArrayOf(
+                "DATE", new Date[] {new Date(System.currentTimeMillis()), null, new Date(0)}));
+        ps.setArray(
+            19,
+            con.createArrayOf(
+                "TIMESTAMP",
+                new Timestamp[] {
+                  new Timestamp(System.currentTimeMillis()), null, new Timestamp(0)
+                }));
+        ps.setArray(
+            20,
+            con.createArrayOf("NUMERIC", new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN}));
+        assertThat(ps.executeUpdate(), is(equalTo(1)));
+      }
+      try (ResultSet rs =
+          con.createStatement().executeQuery("SELECT * FROM TableWithAllColumnTypes")) {
+        assertThat(rs.next(), is(true));
+        assertThat(rs.getLong(1), is(equalTo(1L)));
+        assertThat(rs.getDouble(2), is(equalTo(2D)));
+        assertThat(rs.getBoolean(3), is(true));
+        assertThat(rs.getString(4), is(equalTo("test")));
+        assertThat(rs.getString(5), is(equalTo("testtest")));
+        assertThat(rs.getBytes(6), is(equalTo("test".getBytes())));
+        assertThat(rs.getBytes(7), is(equalTo("testtest".getBytes())));
+        assertThat(rs.getDate(8), is(notNullValue()));
+        assertThat(rs.getTimestamp(9), is(notNullValue()));
+        assertThat(rs.getTime(10), is(notNullValue())); // Commit timestamp
+        assertThat(rs.getBigDecimal(11), is(equalTo(BigDecimal.TEN)));
+        assertThat((Long[]) rs.getArray(12).getArray(), is(equalTo(new Long[] {1L, 2L, 3L})));
+        assertThat(
+            (Double[]) rs.getArray(13).getArray(), is(equalTo(new Double[] {1.1D, 2.2D, 3.3D})));
+        assertThat(
+            (Boolean[]) rs.getArray(14).getArray(), is(equalTo(new Boolean[] {true, null, false})));
+        assertThat(
+            (String[]) rs.getArray(15).getArray(), is(equalTo(new String[] {"1", "2", "3"})));
+        assertThat(
+            (String[]) rs.getArray(16).getArray(), is(equalTo(new String[] {"3", "2", "1"})));
+        assertThat(
+            (byte[][]) rs.getArray(17).getArray(),
+            is(equalTo(new byte[][] {"1".getBytes(), "2".getBytes(), "3".getBytes()})));
+        assertThat(
+            (byte[][]) rs.getArray(18).getArray(),
+            is(equalTo(new byte[][] {"333".getBytes(), "222".getBytes(), "111".getBytes()})));
+        assertThat(((Date[]) rs.getArray(19).getArray()).length, is(equalTo(3)));
+        assertThat(((Timestamp[]) rs.getArray(20).getArray()).length, is(equalTo(3)));
+        assertThat(
+            (BigDecimal[]) rs.getArray(21).getArray(),
+            is(equalTo(new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN})));
+        assertThat(rs.next(), is(false));
       }
     }
   }

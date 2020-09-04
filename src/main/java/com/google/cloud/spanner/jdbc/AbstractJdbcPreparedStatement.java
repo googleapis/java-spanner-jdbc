@@ -128,7 +128,7 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   @Override
   public void setBigDecimal(int parameterIndex, BigDecimal value) throws SQLException {
     checkClosed();
-    parameters.setParameter(parameterIndex, value, Types.DECIMAL);
+    parameters.setParameter(parameterIndex, value, Types.NUMERIC);
   }
 
   @Override

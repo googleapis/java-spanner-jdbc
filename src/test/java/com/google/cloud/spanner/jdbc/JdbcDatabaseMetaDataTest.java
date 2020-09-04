@@ -461,6 +461,8 @@ public class JdbcDatabaseMetaDataTest {
       assertThat(rs.getString("TYPE_NAME"), is(equalTo("DATE")));
       assertThat(rs.next(), is(true));
       assertThat(rs.getString("TYPE_NAME"), is(equalTo("TIMESTAMP")));
+      assertThat(rs.next(), is(true));
+      assertThat(rs.getString("TYPE_NAME"), is(equalTo("NUMERIC")));
       assertThat(rs.next(), is(false));
       ResultSetMetaData rsmd = rs.getMetaData();
       assertThat(rsmd.getColumnCount(), is(equalTo(18)));

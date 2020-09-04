@@ -104,6 +104,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new Column("ColDate", Types.DATE, "DATE", 10, null, null, false, null),
           new Column("ColTimestamp", Types.TIMESTAMP, "TIMESTAMP", 35, null, null, false, null),
           new Column("ColCommitTS", Types.TIMESTAMP, "TIMESTAMP", 35, null, null, false, null),
+          new Column("ColNumeric", Types.NUMERIC, "NUMERIC", 15, null, 10, false, null),
           new Column("ColInt64Array", Types.ARRAY, "ARRAY<INT64>", 19, null, 10, true, null),
           new Column("ColFloat64Array", Types.ARRAY, "ARRAY<FLOAT64>", 15, 16, 2, true, null),
           new Column("ColBoolArray", Types.ARRAY, "ARRAY<BOOL>", null, null, null, true, null),
@@ -131,7 +132,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
               null),
           new Column("ColDateArray", Types.ARRAY, "ARRAY<DATE>", 10, null, null, true, null),
           new Column(
-              "ColTimestampArray", Types.ARRAY, "ARRAY<TIMESTAMP>", 35, null, null, true, null));
+              "ColTimestampArray", Types.ARRAY, "ARRAY<TIMESTAMP>", 35, null, null, true, null),
+          new Column("ColNumericArray", Types.ARRAY, "ARRAY<NUMERIC>", 15, null, 10, true, null));
 
   @Test
   public void testGetColumns() throws SQLException {

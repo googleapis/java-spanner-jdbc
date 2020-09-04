@@ -328,8 +328,10 @@ public class JdbcGrpcErrorTest {
     mockSpanner.setExecuteStreamingSqlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
-      connection.createStatement().executeQuery(SELECT1.getSql());
-      fail("missing expected exception");
+      try (java.sql.ResultSet rs = connection.createStatement().executeQuery(SELECT1.getSql())) {
+        rs.next();
+        fail("missing expected exception");
+      }
     } catch (SQLException e) {
       assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
@@ -341,8 +343,10 @@ public class JdbcGrpcErrorTest {
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
-      connection.createStatement().executeQuery(SELECT1.getSql());
-      fail("missing expected exception");
+      try (java.sql.ResultSet rs = connection.createStatement().executeQuery(SELECT1.getSql())) {
+        rs.next();
+        fail("missing expected exception");
+      }
     } catch (SQLException e) {
       assertThat(testExceptionMatcher.matches(e)).isTrue();
     }
@@ -355,8 +359,10 @@ public class JdbcGrpcErrorTest {
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
-      connection.createStatement().executeQuery(SELECT1.getSql());
-      fail("missing expected exception");
+      try (java.sql.ResultSet rs = connection.createStatement().executeQuery(SELECT1.getSql())) {
+        rs.next();
+        fail("missing expected exception");
+      }
     } catch (SQLException e) {
       assertThat(testExceptionMatcher.matches(e)).isTrue();
     }

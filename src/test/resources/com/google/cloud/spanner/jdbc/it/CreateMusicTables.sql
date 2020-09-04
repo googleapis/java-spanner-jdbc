@@ -73,6 +73,7 @@ CREATE TABLE TableWithAllColumnTypes (
   ColDate		DATE		NOT NULL,
   ColTimestamp	TIMESTAMP	NOT NULL,
   ColCommitTS	TIMESTAMP	NOT NULL OPTIONS (allow_commit_timestamp=true),
+  ColNumeric	NUMERIC		NOT NULL,
   
   ColInt64Array		ARRAY<INT64>,
   ColFloat64Array	ARRAY<FLOAT64>,
@@ -82,7 +83,8 @@ CREATE TABLE TableWithAllColumnTypes (
   ColBytesArray		ARRAY<BYTES(100)>,
   ColBytesMaxArray	ARRAY<BYTES(MAX)>,
   ColDateArray		ARRAY<DATE>,
-  ColTimestampArray	ARRAY<TIMESTAMP>
+  ColTimestampArray	ARRAY<TIMESTAMP>,
+  ColNumericArray	ARRAY<NUMERIC>
 ) PRIMARY KEY (ColInt64)
 ;
 

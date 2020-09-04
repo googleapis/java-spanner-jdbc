@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc;
 
 import static org.junit.Assert.assertEquals;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -53,6 +54,13 @@ public class JdbcArrayTest {
     array = JdbcArray.createArray("INT64", new Long[] {1L, 2L, 3L});
     assertEquals(array.getBaseType(), Types.BIGINT);
     assertEquals(((Long[]) array.getArray(1, 1))[0], Long.valueOf(1L));
+
+    array =
+        JdbcArray.createArray("NUMERIC", new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN});
+    assertEquals(array.getBaseType(), Types.NUMERIC);
+    assertEquals(((BigDecimal[]) array.getArray(1, 1))[0], BigDecimal.ONE);
+    assertEquals(((BigDecimal[]) array.getArray(2, 1))[0], null);
+    assertEquals(((BigDecimal[]) array.getArray(3, 1))[0], BigDecimal.TEN);
 
     array = JdbcArray.createArray("STRING", new String[] {"foo", "bar", "baz"});
     assertEquals(array.getBaseType(), Types.NVARCHAR);

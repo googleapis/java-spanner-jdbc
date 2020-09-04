@@ -34,7 +34,6 @@ import com.google.cloud.spanner.connection.Connection;
 import com.google.rpc.Code;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
-import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Date;
@@ -211,15 +210,6 @@ public class JdbcPreparedStatementTest {
   private void testSetUnsupportedTypes(PreparedStatement ps) {
     // TODO: Rewrite these tests using functional interfaces when Java8 is available.
     boolean expectedException = false;
-    try {
-      ps.setBigDecimal(5, BigDecimal.valueOf(1l));
-    } catch (SQLException e) {
-      if (e instanceof JdbcSqlException) {
-        expectedException = ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT;
-      }
-    }
-    assertThat(expectedException, is(true));
-    expectedException = false;
     try {
       ps.setRef(38, (Ref) null);
     } catch (SQLException e) {
