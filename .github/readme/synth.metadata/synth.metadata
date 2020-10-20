@@ -1,0 +1,18 @@
+{
+  "sources": [
+    {
+      "git": {
+        "name": ".",
+        "remote": "https://github.com/googleapis/java-spanner-jdbc.git",
+        "sha": "03f85578270816cdbcafa480bbf69e2fa9775dc5"
+      }
+    },
+    {
+      "git": {
+        "name": "synthtool",
+        "remote": "https://github.com/googleapis/synthtool.git",
+        "sha": "6abb59097be84599a1d6091fe534a49e5c5cf948"
+      }
+    }
+  ]
+}
