@@ -7,5 +7,6 @@
   "language": "java",
   "repo": "googleapis/java-spanner-jdbc",
   "repo_short": "java-spanner-jdbc",
-  "distribution_name": "com.google.cloud:google-cloud-spanner-jdbc"
+  "distribution_name": "com.google.cloud:google-cloud-spanner-jdbc",
+  "codeowner_team": "@googleapis/api-spanner-java"
 }
