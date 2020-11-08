@@ -58,30 +58,8 @@ See the [Google Cloud Spanner JDBC client library docs][javadocs] to learn how t
 use this Google Cloud Spanner JDBC Client Library.
 
 
-### Creating a JDBC Connection
 
-The following example shows how to create a JDBC connection to Cloud Spanner and execute a simple query.
 
-```java
-String projectId = "my-project";
-String instanceId = "my-instance";
-String databaseId = "my-database";
-
-try (Connection connection =
-    DriverManager.getConnection(
-        String.format(
-            "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
-            projectId, instanceId, databaseId))) {
-  try (Statement statement = connection.createStatement()) {
-    try (ResultSet rs = statement.executeQuery("SELECT CURRENT_TIMESTAMP()")) {
-      while (rs.next()) {
-        System.out.printf(
-            "Connected to Cloud Spanner at [%s]%n", rs.getTimestamp(1).toString());
-      }
-    }
-  }
-}
-```
 
 
 ## Troubleshooting
@@ -123,7 +101,7 @@ Java 8 OSX | [![Kokoro CI][kokoro-badge-image-3]][kokoro-badge-link-3]
 Java 8 Windows | [![Kokoro CI][kokoro-badge-image-4]][kokoro-badge-link-4]
 Java 11 | [![Kokoro CI][kokoro-badge-image-5]][kokoro-badge-link-5]
 
-[product-docs]: https://cloud.google.com/spanner/docs/use-oss-jdbc
+[product-docs]: https://cloud.google.com/pubsub/docs/
 [javadocs]: https://googleapis.dev/java/google-cloud-spanner-jdbc/latest/index.html
 [kokoro-badge-image-1]: http://storage.googleapis.com/cloud-devrel-public/java/badges/java-spanner-jdbc/java7.svg
 [kokoro-badge-link-1]: http://storage.googleapis.com/cloud-devrel-public/java/badges/java-spanner-jdbc/java7.html
