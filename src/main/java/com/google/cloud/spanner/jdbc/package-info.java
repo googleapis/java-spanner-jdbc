@@ -46,5 +46,3 @@
  * @see <a href="https://cloud.google.com/spanner/docs/use-oss-jdbc">Cloud Spanner JDBC Driver</a>
  */
 package com.google.cloud.spanner.jdbc;
-
-
