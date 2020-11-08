@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.api.client.util.Preconditions;
+import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.ConnectionOptions;
@@ -316,6 +317,27 @@ class JdbcConnection extends AbstractJdbcConnection {
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
+  }
+
+  @Override
+  public CommitResponse getCommitResponse() throws SQLException {
+    checkClosed();
+    try {
+      return getSpannerConnection().getCommitResponse();
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public void setReturnCommitStats(boolean returnCommitStats) throws SQLException {
+    checkClosed();
+    getSpannerConnection().setReturnCommitStats(returnCommitStats);
+  }
+
+  public boolean isReturnCommitStats() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().isReturnCommitStats();
   }
 
   @Override
