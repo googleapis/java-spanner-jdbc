@@ -35,6 +35,39 @@ import java.util.Iterator;
 public interface CloudSpannerJdbcConnection extends Connection {
 
   /**
+   * Sets the transaction tag to use for the current transaction. This method may only be called
+   * when in a transaction, and before the transaction is actually started, i.e. before any
+   * statements have been executed in the transaction.
+   *
+   * <p>The tag will be set as the transaction tag of all statements during the transaction, and as
+   * the transaction tag of the commit.
+   *
+   * <p>The transaction tag will automatically be cleared after the transaction has ended.
+   *
+   * @param tag The tag to use.
+   */
+  void setTransactionTag(String tag) throws SQLException;
+
+  /** @return The transaction tag of the current transaction. */
+  String getTransactionTag() throws SQLException;
+
+  /**
+   * Sets the statement tag to use for the next statement that will be executed. The tag is
+   * automatically cleared after the statement is executed. Statement tags can be used both with
+   * autocommit=true and autocommit=false, and can be used for partitioned DML.
+   *
+   * @param tag The statement tag to use with the next statement that will be executed on this
+   *     connection.
+   */
+  void setStatementTag(String tag) throws SQLException;
+
+  /**
+   * @return The statement tag that will be used with the next statement that is executed on this
+   *     connection.
+   */
+  String getStatementTag() throws SQLException;
+
+  /**
    * @return the commit {@link Timestamp} of the last read/write transaction. If the last
    *     transaction was not a read/write transaction, or a read/write transaction that did not
    *     return a commit timestamp because the transaction was not committed, the method will throw

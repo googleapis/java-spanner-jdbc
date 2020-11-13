@@ -75,6 +75,38 @@ class JdbcConnection extends AbstractJdbcConnection {
   }
 
   @Override
+  public String getStatementTag() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().getStatementTag();
+  }
+
+  @Override
+  public void setStatementTag(String tag) throws SQLException {
+    checkClosed();
+    try {
+      getSpannerConnection().setStatementTag(tag);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public String getTransactionTag() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().getTransactionTag();
+  }
+
+  @Override
+  public void setTransactionTag(String tag) throws SQLException {
+    checkClosed();
+    try {
+      getSpannerConnection().setTransactionTag(tag);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
   public void setAutoCommit(boolean autoCommit) throws SQLException {
     checkClosed();
     try {
