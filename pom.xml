@@ -86,6 +86,10 @@
   </dependencyManagement>
   <dependencies>
     <dependency>
+      <groupId>com.google.http-client</groupId>
+      <artifactId>google-http-client</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-api</artifactId>
     </dependency>
@@ -124,10 +128,6 @@
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.http-client</groupId>
-      <artifactId>google-http-client</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.auth</groupId>
