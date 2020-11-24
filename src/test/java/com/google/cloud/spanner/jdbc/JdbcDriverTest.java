@@ -174,7 +174,6 @@ public class JdbcDriverTest {
       assertThat((Throwable) connection.getWarnings()).isNotNull();
       assertThat(connection.getWarnings().getMessage()).contains("foo");
     }
-    
     // Without lenient the driver should throw an exception for unknown properties.
     try (Connection connection =
         DriverManager.getConnection(
