@@ -28,6 +28,7 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLWarning;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -172,7 +173,11 @@ public class JdbcDriver implements Driver {
           // Connection API
           String connectionUri = appendPropertiesToUrl(url.substring(5), info);
           ConnectionOptions options = ConnectionOptions.newBuilder().setUri(connectionUri).build();
-          return new JdbcConnection(url, options);
+          JdbcConnection connection = new JdbcConnection(url, options);
+          if (options.getWarnings() != null) {
+            connection.pushWarning(new SQLWarning(options.getWarnings()));
+          }
+          return connection;
         }
       } catch (SpannerException e) {
         throw JdbcSqlExceptionFactory.of(e);
