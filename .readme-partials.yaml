@@ -1,0 +1,25 @@
+custom_content: |
+   ### Creating a JDBC Connection
+   
+   The following example shows how to create a JDBC connection to Cloud Spanner and execute a simple query.
+   
+   ```java
+   String projectId = "my-project";
+   String instanceId = "my-instance";
+   String databaseId = "my-database";
+   
+   try (Connection connection =
+       DriverManager.getConnection(
+           String.format(
+               "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+               projectId, instanceId, databaseId))) {
+     try (Statement statement = connection.createStatement()) {
+       try (ResultSet rs = statement.executeQuery("SELECT CURRENT_TIMESTAMP()")) {
+         while (rs.next()) {
+           System.out.printf(
+               "Connected to Cloud Spanner at [%s]%n", rs.getTimestamp(1).toString());
+         }
+       }
+     }
+   }
+   ```
