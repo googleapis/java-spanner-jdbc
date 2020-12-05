@@ -1,5 +1,19 @@
 # Changelog
 
+### [1.17.3](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.17.2...v1.17.3) (2020-11-17)
+
+
+### Documentation
+
+* add package-info to jdbc ([#264](https://www.github.com/googleapis/java-spanner-jdbc/issues/264)) ([a2d26a1](https://www.github.com/googleapis/java-spanner-jdbc/commit/a2d26a1a9d1595c5a4d766419d3f46619d8d6c71))
+* add simple connection sample to readme ([#263](https://www.github.com/googleapis/java-spanner-jdbc/issues/263)) ([3a305ba](https://www.github.com/googleapis/java-spanner-jdbc/commit/3a305ba00b9739ceb17c879f82319b0a6b2a3f9f))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v0.15.0 ([#237](https://www.github.com/googleapis/java-spanner-jdbc/issues/237)) ([6487a24](https://www.github.com/googleapis/java-spanner-jdbc/commit/6487a24def74e630ee43ec058a267f8d0889c336))
+* use google-cloud-spanner-bom ([#258](https://www.github.com/googleapis/java-spanner-jdbc/issues/258)) ([c9906c9](https://www.github.com/googleapis/java-spanner-jdbc/commit/c9906c9440d1574ae74d735aad8b3c255704d59d))
+
 ### [1.17.2](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.17.1...v1.17.2) (2020-10-29)
 
 
