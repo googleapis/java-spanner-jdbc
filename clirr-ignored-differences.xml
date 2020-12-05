@@ -42,4 +42,56 @@
     <differenceType>8001</differenceType>
     <className>com/google/cloud/spanner/jdbc/UnitOfWork$UnitOfWorkState</className>
   </difference>
+  
+  <!-- Expose more methods from Connection API in CloudSpannerJdbcConnection -->
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>com.google.cloud.spanner.connection.AutocommitDmlMode getAutocommitDmlMode()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>java.lang.String getOptimizerVersion()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>com.google.cloud.spanner.TimestampBound getReadOnlyStaleness()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>com.google.cloud.spanner.connection.TransactionMode getTransactionMode()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>boolean isInTransaction()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>boolean isTransactionStarted()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>void setAutocommitDmlMode(com.google.cloud.spanner.connection.AutocommitDmlMode)</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>void setOptimizerVersion(java.lang.String)</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>void setReadOnlyStaleness(com.google.cloud.spanner.TimestampBound)</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>void setTransactionMode(com.google.cloud.spanner.connection.TransactionMode)</method>
+  </difference>
 </differences>
