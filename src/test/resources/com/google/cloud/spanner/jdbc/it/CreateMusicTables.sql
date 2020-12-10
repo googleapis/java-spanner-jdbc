@@ -84,7 +84,9 @@ CREATE TABLE TableWithAllColumnTypes (
   ColBytesMaxArray	ARRAY<BYTES(MAX)>,
   ColDateArray		ARRAY<DATE>,
   ColTimestampArray	ARRAY<TIMESTAMP>,
-  ColNumericArray	ARRAY<NUMERIC>
+  ColNumericArray	ARRAY<NUMERIC>,
+  
+  ColComputed STRING(MAX) AS (CONCAT(COALESCE(ColString, ''), ' ', COALESCE(ColStringMax, ''))) STORED,
 ) PRIMARY KEY (ColInt64)
 ;
 
