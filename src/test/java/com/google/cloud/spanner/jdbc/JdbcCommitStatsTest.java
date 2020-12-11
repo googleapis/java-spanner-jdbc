@@ -87,7 +87,6 @@ public class JdbcCommitStatsTest extends AbstractMockServerTest {
       assertThat(response).isNotNull();
       assertThat(response.getCommitStats()).isNotNull();
       assertThat(response.getCommitStats().getMutationCount()).isAtLeast(1L);
-      assertThat(response.getCommitStats().getOverloadDelay()).isNotNull();
     }
   }
 
@@ -106,7 +105,6 @@ public class JdbcCommitStatsTest extends AbstractMockServerTest {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getTimestamp("COMMIT_TIMESTAMP")).isNotNull();
         assertThat(rs.getLong("MUTATION_COUNT")).isAtLeast(1L);
-        assertThat(rs.getString("OVERLOAD_DELAY")).isNotNull();
         assertThat(rs.next()).isFalse();
       }
     }
