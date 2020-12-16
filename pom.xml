@@ -71,7 +71,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>3.0.5</version>
+        <version>3.1.2</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -104,6 +104,11 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>
+    </dependency>
+    <!-- TODO: Remove grpc-alts from here once it has been removed as a runtime dependency from java-spanner -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-alts</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
@@ -140,10 +145,6 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.api.grpc</groupId>
-      <artifactId>proto-google-cloud-spanner-v1</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.api.grpc</groupId>
@@ -295,6 +296,8 @@
           <artifactId>maven-dependency-plugin</artifactId>
           <configuration>
             <ignoredUnusedDeclaredDependencies>
+              <!-- TODO: Remove grpc-alts from ignored list once it has been removed from java-spanner -->
+              <ignoredDependency>io.grpc:grpc-alts</ignoredDependency>
               <ignoredDependency>com.google.api:gax-grpc</ignoredDependency>
               <ignoredDependency>com.google.cloud:google-cloud-core-grpc</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredDependency>
