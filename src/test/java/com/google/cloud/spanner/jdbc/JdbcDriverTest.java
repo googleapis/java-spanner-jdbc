@@ -161,4 +161,32 @@ public class JdbcDriverTest {
             });
     assertThat(driverPropertyNames).containsExactlyElementsIn(validConnectionPropertyNames);
   }
+
+  @Test
+  public void testLenient() throws SQLException {
+    // With lenient=true the driver should accept unknown properties and only generate a warning.
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner://localhost:%d/projects/p/instances/i/databases/d?usePlainText=true;credentials=%s;lenient=true;foo=bar",
+                server.getPort(), TEST_KEY_PATH))) {
+      assertThat(connection.isClosed()).isFalse();
+      assertThat((Throwable) connection.getWarnings()).isNotNull();
+      assertThat(connection.getWarnings().getMessage()).contains("foo");
+    }
+
+    // Without lenient the driver should throw an exception for unknown properties.
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner://localhost:%d/projects/p/instances/i/databases/d?usePlainText=true;credentials=%s;foo=bar",
+                server.getPort(), TEST_KEY_PATH))) {
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat((Throwable) e).isInstanceOf(JdbcSqlException.class);
+      JdbcSqlException jdbc = (JdbcSqlException) e;
+      assertThat(jdbc.getMessage()).contains("foo");
+      assertThat(jdbc.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
+    }
+  }
 }
