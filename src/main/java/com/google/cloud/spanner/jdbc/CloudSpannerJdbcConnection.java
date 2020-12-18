@@ -19,6 +19,9 @@ package com.google.cloud.spanner.jdbc;
 import com.google.cloud.spanner.AbortedException;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.ResultSet;
+import com.google.cloud.spanner.TimestampBound;
+import com.google.cloud.spanner.connection.AutocommitDmlMode;
+import com.google.cloud.spanner.connection.TransactionMode;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -33,6 +36,113 @@ import java.util.Iterator;
  * CloudSpannerJdbcConnection} instance.
  */
 public interface CloudSpannerJdbcConnection extends Connection {
+
+  /**
+   * Sets the transaction mode to use for current transaction. This method may only be called when
+   * in a transaction, and before the transaction is actually started, i.e. before any statements
+   * have been executed in the transaction.
+   *
+   * @param transactionMode The transaction mode to use for the current transaction.
+   *     <ul>
+   *       <li>{@link TransactionMode#READ_ONLY_TRANSACTION} will create a read-only transaction and
+   *           prevent any changes to written to the database through this transaction. The read
+   *           timestamp to be used will be determined based on the current readOnlyStaleness
+   *           setting of this connection. It is recommended to use {@link
+   *           TransactionMode#READ_ONLY_TRANSACTION} instead of {@link
+   *           TransactionMode#READ_WRITE_TRANSACTION} when possible, as read-only transactions do
+   *           not acquire locks on Cloud Spanner, and read-only transactions never abort.
+   *       <li>{@link TransactionMode#READ_WRITE_TRANSACTION} this value is only allowed when the
+   *           connection is not in read-only mode and will create a read-write transaction. If
+   *           {@link Connection#isRetryAbortsInternally()} is <code>true</code>, each read/write
+   *           transaction will keep track of a running SHA256 checksum for each {@link ResultSet}
+   *           that is returned in order to be able to retry the transaction in case the transaction
+   *           is aborted by Spanner.
+   *     </ul>
+   */
+  void setTransactionMode(TransactionMode transactionMode) throws SQLException;
+
+  /**
+   * @return the transaction mode of the current transaction. This method may only be called when
+   *     the connection is in a transaction.
+   */
+  TransactionMode getTransactionMode() throws SQLException;
+
+  /**
+   * Sets the mode for executing DML statements in autocommit mode for this connection. This setting
+   * is only used when the connection is in autocommit mode, and may only be set while the
+   * transaction is in autocommit mode and not in a temporary transaction. The autocommit
+   * transaction mode is reset to its default value of {@link AutocommitDmlMode#TRANSACTIONAL} when
+   * autocommit mode is changed on the connection.
+   *
+   * @param mode The DML autocommit mode to use
+   *     <ul>
+   *       <li>{@link AutocommitDmlMode#TRANSACTIONAL} DML statements are executed as single
+   *           read-write transaction. After successful execution, the DML statement is guaranteed
+   *           to have been applied exactly once to the database
+   *       <li>{@link AutocommitDmlMode#PARTITIONED_NON_ATOMIC} DML statements are executed as
+   *           partitioned DML transactions. If an error occurs during the execution of the DML
+   *           statement, it is possible that the statement has been applied to some but not all of
+   *           the rows specified in the statement.
+   *     </ul>
+   */
+  void setAutocommitDmlMode(AutocommitDmlMode mode) throws SQLException;
+
+  /**
+   * @return the current {@link AutocommitDmlMode} setting for this connection. This method may only
+   *     be called on a connection that is in autocommit mode and not while in a temporary
+   *     transaction.
+   */
+  AutocommitDmlMode getAutocommitDmlMode() throws SQLException;
+
+  /**
+   * Sets the staleness to use for the current read-only transaction. This method may only be called
+   * when the transaction mode of the current transaction is {@link
+   * TransactionMode#READ_ONLY_TRANSACTION} and there is no transaction that has started, or when
+   * the connection is in read-only and autocommit mode.
+   *
+   * @param staleness The staleness to use for the current but not yet started read-only transaction
+   */
+  void setReadOnlyStaleness(TimestampBound staleness) throws SQLException;
+
+  /**
+   * @return the read-only staleness setting for the current read-only transaction. This method may
+   *     only be called when the current transaction is a read-only transaction, or when the
+   *     connection is in read-only and autocommit mode.
+   */
+  TimestampBound getReadOnlyStaleness() throws SQLException;
+
+  /**
+   * Sets the query optimizer version to use for this connection.
+   *
+   * @param optimizerVersion The query optimizer version to use. Must be a valid optimizer version
+   *     number, the string <code>LATEST</code> or an empty string. The empty string will instruct
+   *     the connection to use the optimizer version that is defined in the environment variable
+   *     <code>SPANNER_OPTIMIZER_VERSION</code>. If no value is specified in the environment
+   *     variable, the default query optimizer of Cloud Spanner is used.
+   */
+  void setOptimizerVersion(String optimizerVersion) throws SQLException;
+
+  /**
+   * Gets the current query optimizer version of this connection.
+   *
+   * @return The query optimizer version that is currently used by this connection.
+   */
+  String getOptimizerVersion() throws SQLException;
+
+  /**
+   * @return <code>true</code> if this connection has a transaction (that has not necessarily
+   *     started). This method will only return false when the {@link Connection} is in autocommit
+   *     mode and no explicit transaction has been started by calling {@link
+   *     Connection#beginTransaction()}. If the {@link Connection} is not in autocommit mode, there
+   *     will always be a transaction.
+   */
+  boolean isInTransaction() throws SQLException;
+
+  /**
+   * @return <code>true</code> if this connection has a transaction that has started. A transaction
+   *     is automatically started by the first statement that is executed in the transaction.
+   */
+  boolean isTransactionStarted() throws SQLException;
 
   /**
    * @return the commit {@link Timestamp} of the last read/write transaction. If the last

@@ -17,17 +17,17 @@ If you are using Maven, add this to your pom.xml file:
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>1.17.3</version>
+  <version>1.18.2</version>
 </dependency>
 ```
 
 If you are using Gradle, add this to your dependencies
 ```Groovy
-compile 'com.google.cloud:google-cloud-spanner-jdbc:1.17.3'
+compile 'com.google.cloud:google-cloud-spanner-jdbc:1.18.2'
 ```
 If you are using SBT, add this to your dependencies
 ```Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "1.17.3"
+libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "1.18.2"
 ```
 
 ## Authentication
@@ -57,6 +57,31 @@ to add `google-cloud-spanner-jdbc` as a dependency in your code.
 See the [Google Cloud Spanner JDBC client library docs][javadocs] to learn how to
 use this Google Cloud Spanner JDBC Client Library.
 
+
+### Creating a JDBC Connection
+
+The following example shows how to create a JDBC connection to Cloud Spanner and execute a simple query.
+
+```java
+String projectId = "my-project";
+String instanceId = "my-instance";
+String databaseId = "my-database";
+
+try (Connection connection =
+    DriverManager.getConnection(
+        String.format(
+            "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+            projectId, instanceId, databaseId))) {
+  try (Statement statement = connection.createStatement()) {
+    try (ResultSet rs = statement.executeQuery("SELECT CURRENT_TIMESTAMP()")) {
+      while (rs.next()) {
+        System.out.printf(
+            "Connected to Cloud Spanner at [%s]%n", rs.getTimestamp(1).toString());
+      }
+    }
+  }
+}
+```
 
 
 
@@ -101,7 +126,9 @@ Java 8 OSX | [![Kokoro CI][kokoro-badge-image-3]][kokoro-badge-link-3]
 Java 8 Windows | [![Kokoro CI][kokoro-badge-image-4]][kokoro-badge-link-4]
 Java 11 | [![Kokoro CI][kokoro-badge-image-5]][kokoro-badge-link-5]
 
-[product-docs]: https://cloud.google.com/pubsub/docs/
+Java is a registered trademark of Oracle and/or its affiliates.
+
+[product-docs]: https://cloud.google.com/spanner/docs/use-oss-jdbc
 [javadocs]: https://googleapis.dev/java/google-cloud-spanner-jdbc/latest/index.html
 [kokoro-badge-image-1]: http://storage.googleapis.com/cloud-devrel-public/java/badges/java-spanner-jdbc/java7.svg
 [kokoro-badge-link-1]: http://storage.googleapis.com/cloud-devrel-public/java/badges/java-spanner-jdbc/java7.html
