@@ -547,7 +547,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   @Override
   public JdbcResultSetMetaData getMetaData() throws SQLException {
     checkClosed();
-    if (isBeforeFirst()) {
+    if (isBeforeFirst() && !nextCalledForMetaData) {
       // do a call to next() on the underlying resultset to initialize metadata
       nextCalledForMetaData = true;
       nextCalledForMetaDataResult = spanner.next();
