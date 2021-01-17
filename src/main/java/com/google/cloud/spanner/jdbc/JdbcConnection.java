@@ -53,7 +53,7 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   private Map<String, Class<?>> typeMap = new HashMap<>();
 
-  JdbcConnection(String connectionUrl, ConnectionOptions options) {
+  JdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     super(connectionUrl, options);
   }
 

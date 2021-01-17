@@ -45,19 +45,21 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
   private static final String ABORT_UNSUPPORTED = "Abort is not supported";
   private static final String NETWORK_TIMEOUT_UNSUPPORTED = "Network timeout is not supported";
   static final String CLIENT_INFO_NOT_SUPPORTED =
-      "Cloud Spanner does not support any ClientInfo properties";
+      "Cloud Spanner does not support ClientInfo property %s";
 
   private final String connectionUrl;
   private final ConnectionOptions options;
   private final com.google.cloud.spanner.connection.Connection spanner;
+  private final Properties clientInfo;
 
   private SQLWarning firstWarning = null;
   private SQLWarning lastWarning = null;
 
-  AbstractJdbcConnection(String connectionUrl, ConnectionOptions options) {
+  AbstractJdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     this.connectionUrl = connectionUrl;
     this.options = options;
     this.spanner = options.getConnection();
+    this.clientInfo = new Properties(JdbcDatabaseMetaData.getDefaultClientInfoProperties());
   }
 
   /** Return the corresponding {@link com.google.cloud.spanner.connection.Connection} */
@@ -168,8 +170,10 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
 
   @Override
   public void setClientInfo(String name, String value) throws SQLClientInfoException {
+    Properties supported = null;
     try {
       checkClosed();
+      supported = JdbcDatabaseMetaData.getDefaultClientInfoProperties();
     } catch (SQLException e) {
       if (e instanceof JdbcSqlException) {
         throw JdbcSqlExceptionFactory.clientInfoException(
@@ -178,7 +182,23 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
         throw JdbcSqlExceptionFactory.clientInfoException(e.getMessage(), Code.UNKNOWN);
       }
     }
-    pushWarning(new SQLWarning(CLIENT_INFO_NOT_SUPPORTED));
+    if (value == null) {
+      throw JdbcSqlExceptionFactory.clientInfoException(
+          "Null-value is not allowed for client info.", Code.INVALID_ARGUMENT);
+    }
+    if (value.length() > JdbcDatabaseMetaData.MAX_CLIENT_INFO_VALUE_LENGTH) {
+      throw JdbcSqlExceptionFactory.clientInfoException(
+          String.format(
+              "Max length of value is %d characters.",
+              JdbcDatabaseMetaData.MAX_CLIENT_INFO_VALUE_LENGTH),
+          Code.INVALID_ARGUMENT);
+    }
+    name = name.toUpperCase();
+    if (supported.containsKey(name)) {
+      clientInfo.setProperty(name, value);
+    } else {
+      pushWarning(new SQLWarning(String.format(CLIENT_INFO_NOT_SUPPORTED, name)));
+    }
   }
 
   @Override
@@ -193,19 +213,22 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
         throw JdbcSqlExceptionFactory.clientInfoException(e.getMessage(), Code.UNKNOWN);
       }
     }
-    pushWarning(new SQLWarning(CLIENT_INFO_NOT_SUPPORTED));
+    clientInfo.clear();
+    for (String property : properties.stringPropertyNames()) {
+      setClientInfo(property, properties.getProperty(property));
+    }
   }
 
   @Override
   public String getClientInfo(String name) throws SQLException {
     checkClosed();
-    return null;
+    return clientInfo.getProperty(name.toUpperCase());
   }
 
   @Override
   public Properties getClientInfo() throws SQLException {
     checkClosed();
-    return null;
+    return (Properties) clientInfo.clone();
   }
 
   @Override
