@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.cloud.ByteArray;
 import com.google.cloud.Date;
@@ -800,6 +801,32 @@ public class JdbcResultSetTest {
   public void testGetMetaData() throws SQLException {
     JdbcResultSetMetaData metadata = subject.getMetaData();
     assertNotNull(metadata);
+  }
+
+  @Test
+  public void testGetMetaDataBeforeNext() throws SQLException {
+    ResultSet spannerResultSet = mock(ResultSet.class);
+    when(spannerResultSet.next()).thenReturn(true, false);
+
+    JdbcResultSet resultSet = JdbcResultSet.of(spannerResultSet);
+    assertNotNull(resultSet.getMetaData());
+    assertTrue(resultSet.next());
+    assertFalse(resultSet.next());
+  }
+
+  @Test
+  public void testGetMetaDataTwiceBeforeNext() throws SQLException {
+    ResultSet spannerResultSet = mock(ResultSet.class);
+    when(spannerResultSet.next()).thenReturn(true, false);
+
+    JdbcResultSet resultSet = JdbcResultSet.of(spannerResultSet);
+    assertNotNull(resultSet.getMetaData());
+    assertNotNull(resultSet.getMetaData());
+
+    // This would have returned false before the fix in
+    // https://github.com/googleapis/java-spanner-jdbc/pull/323
+    assertTrue(resultSet.next());
+    assertFalse(resultSet.next());
   }
 
   @Test
