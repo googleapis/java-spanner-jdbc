@@ -36,6 +36,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Properties;
 import java.util.Scanner;
 
 /** {@link DatabaseMetaData} implementation for Cloud Spanner */
@@ -1495,16 +1496,68 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
     return false;
   }
 
-  @Override
-  public ResultSet getClientInfoProperties() throws SQLException {
+  /**
+   * The max length for client info values is 63 to make them fit in Cloud Spanner session labels.
+   */
+  static final int MAX_CLIENT_INFO_VALUE_LENGTH = 63;
+
+  static Properties getDefaultClientInfoProperties() throws SQLException {
+    Properties info = new Properties();
+    try (ResultSet rs = getDefaultClientInfo()) {
+      while (rs.next()) {
+        info.put(rs.getString("NAME"), rs.getString("DEFAULT_VALUE"));
+      }
+    }
+    return info;
+  }
+
+  private static ResultSet getDefaultClientInfo() throws SQLException {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
                 StructField.of("NAME", Type.string()),
-                StructField.of("MAX_LEN", Type.string()),
+                StructField.of("MAX_LEN", Type.int64()),
                 StructField.of("DEFAULT_VALUE", Type.string()),
                 StructField.of("DESCRIPTION", Type.string())),
-            Collections.<Struct>emptyList()));
+            Arrays.asList(
+                Struct.newBuilder()
+                    .set("NAME")
+                    .to("APPLICATIONNAME")
+                    .set("MAX_LEN")
+                    .to(MAX_CLIENT_INFO_VALUE_LENGTH)
+                    .set("DEFAULT_VALUE")
+                    .to("")
+                    .set("DESCRIPTION")
+                    .to("The name of the application currently utilizing the connection.")
+                    .build(),
+                Struct.newBuilder()
+                    .set("NAME")
+                    .to("CLIENTHOSTNAME")
+                    .set("MAX_LEN")
+                    .to(MAX_CLIENT_INFO_VALUE_LENGTH)
+                    .set("DEFAULT_VALUE")
+                    .to("")
+                    .set("DESCRIPTION")
+                    .to(
+                        "The hostname of the computer the application using the connection is running on.")
+                    .build(),
+                Struct.newBuilder()
+                    .set("NAME")
+                    .to("CLIENTUSER")
+                    .set("MAX_LEN")
+                    .to(MAX_CLIENT_INFO_VALUE_LENGTH)
+                    .set("DEFAULT_VALUE")
+                    .to("")
+                    .set("DESCRIPTION")
+                    .to(
+                        "The name of the user that the application using the connection is performing work for. "
+                            + "This may not be the same as the user name that was used in establishing the connection.")
+                    .build())));
+  }
+
+  @Override
+  public ResultSet getClientInfoProperties() throws SQLException {
+    return getDefaultClientInfo();
   }
 
   @Override
