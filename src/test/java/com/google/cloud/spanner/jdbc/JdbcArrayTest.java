@@ -16,10 +16,16 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlDate;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
+import com.google.cloud.spanner.ErrorCode;
+import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -35,42 +41,182 @@ public class JdbcArrayTest {
     // Note that JDBC array indices start at 1.
     JdbcArray array;
     array = JdbcArray.createArray("BOOL", new Boolean[] {true, false, true});
-    assertEquals(array.getBaseType(), Types.BOOLEAN);
-    assertEquals(((Boolean[]) array.getArray(1, 1))[0], Boolean.TRUE);
+    assertThat(array.getBaseType()).isEqualTo(Types.BOOLEAN);
+    assertThat(((Boolean[]) array.getArray(1, 1))[0]).isEqualTo(Boolean.TRUE);
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getBoolean(2)).isEqualTo(true);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getBoolean(2)).isEqualTo(false);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getBoolean(2)).isEqualTo(true);
+      assertThat(rs.next()).isFalse();
+    }
 
     array = JdbcArray.createArray("BYTES", new byte[][] {new byte[] {1, 2}, new byte[] {3, 4}});
-    assertEquals(array.getBaseType(), Types.BINARY);
-    assertEquals(((byte[][]) array.getArray(1, 1))[0][1], (byte) 2);
+    assertThat(array.getBaseType()).isEqualTo(Types.BINARY);
+    assertThat(((byte[][]) array.getArray(1, 1))[0][1]).isEqualTo((byte) 2);
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getBytes(2)).isEqualTo(new byte[] {1, 2});
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getBytes(2)).isEqualTo(new byte[] {3, 4});
+      assertThat(rs.next()).isFalse();
+    }
 
     array =
-        JdbcArray.createArray("DATE", new Date[] {new Date(1L), new Date(100L), new Date(1000L)});
-    assertEquals(array.getBaseType(), Types.DATE);
-    assertEquals(((Date[]) array.getArray(1, 1))[0], new Date(1L));
+        JdbcArray.createArray(
+            "DATE",
+            new Date[] {
+              toSqlDate(com.google.cloud.Date.fromYearMonthDay(2021, 1, 18)),
+              toSqlDate(com.google.cloud.Date.fromYearMonthDay(2000, 2, 29)),
+              toSqlDate(com.google.cloud.Date.fromYearMonthDay(2019, 8, 31))
+            });
+    assertThat(array.getBaseType()).isEqualTo(Types.DATE);
+    assertThat(((Date[]) array.getArray(1, 1))[0])
+        .isEqualTo(toSqlDate(com.google.cloud.Date.fromYearMonthDay(2021, 1, 18)));
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getDate(2))
+          .isEqualTo(toSqlDate(com.google.cloud.Date.fromYearMonthDay(2021, 1, 18)));
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getDate(2))
+          .isEqualTo(toSqlDate(com.google.cloud.Date.fromYearMonthDay(2000, 2, 29)));
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getDate(2))
+          .isEqualTo(toSqlDate(com.google.cloud.Date.fromYearMonthDay(2019, 8, 31)));
+      assertThat(rs.next()).isFalse();
+    }
 
     array = JdbcArray.createArray("FLOAT64", new Double[] {1.1D, 2.2D, Math.PI});
-    assertEquals(array.getBaseType(), Types.DOUBLE);
-    assertEquals(((Double[]) array.getArray(1, 3))[2], Double.valueOf(Math.PI));
+    assertThat(array.getBaseType()).isEqualTo(Types.DOUBLE);
+    assertThat(((Double[]) array.getArray(1, 3))[2]).isEqualTo(Double.valueOf(Math.PI));
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getDouble(2)).isEqualTo(1.1D);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getDouble(2)).isEqualTo(2.2D);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getDouble(2)).isEqualTo(Math.PI);
+      assertThat(rs.next()).isFalse();
+    }
 
     array = JdbcArray.createArray("INT64", new Long[] {1L, 2L, 3L});
-    assertEquals(array.getBaseType(), Types.BIGINT);
-    assertEquals(((Long[]) array.getArray(1, 1))[0], Long.valueOf(1L));
+    assertThat(array.getBaseType()).isEqualTo(Types.BIGINT);
+    assertThat(((Long[]) array.getArray(1, 1))[0]).isEqualTo(Long.valueOf(1L));
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(1L);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(2L);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(3L);
+      assertThat(rs.next()).isFalse();
+    }
 
     array =
         JdbcArray.createArray("NUMERIC", new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN});
-    assertEquals(array.getBaseType(), Types.NUMERIC);
-    assertEquals(((BigDecimal[]) array.getArray(1, 1))[0], BigDecimal.ONE);
-    assertEquals(((BigDecimal[]) array.getArray(2, 1))[0], null);
-    assertEquals(((BigDecimal[]) array.getArray(3, 1))[0], BigDecimal.TEN);
+    assertThat(array.getBaseType()).isEqualTo(Types.NUMERIC);
+    assertThat(((BigDecimal[]) array.getArray(1, 1))[0]).isEqualTo(BigDecimal.ONE);
+    assertThat(((BigDecimal[]) array.getArray(2, 1))[0]).isNull();
+    assertThat(((BigDecimal[]) array.getArray(3, 1))[0]).isEqualTo(BigDecimal.TEN);
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getBigDecimal(2)).isEqualTo(BigDecimal.ONE);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getBigDecimal(2)).isNull();
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getBigDecimal(2)).isEqualTo(BigDecimal.TEN);
+      assertThat(rs.next()).isFalse();
+    }
 
     array = JdbcArray.createArray("STRING", new String[] {"foo", "bar", "baz"});
-    assertEquals(array.getBaseType(), Types.NVARCHAR);
-    assertEquals(((String[]) array.getArray(1, 1))[0], "foo");
+    assertThat(array.getBaseType()).isEqualTo(Types.NVARCHAR);
+    assertThat(((String[]) array.getArray(1, 1))[0]).isEqualTo("foo");
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getString(2)).isEqualTo("foo");
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getString(2)).isEqualTo("bar");
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getString(2)).isEqualTo("baz");
+      assertThat(rs.next()).isFalse();
+    }
 
     array =
         JdbcArray.createArray(
             "TIMESTAMP",
             new Timestamp[] {new Timestamp(1L), new Timestamp(100L), new Timestamp(1000L)});
-    assertEquals(array.getBaseType(), Types.TIMESTAMP);
-    assertEquals(((Timestamp[]) array.getArray(1, 1))[0], new Timestamp(1L));
+    assertThat(array.getBaseType()).isEqualTo(Types.TIMESTAMP);
+    assertThat(((Timestamp[]) array.getArray(1, 1))[0]).isEqualTo(new Timestamp(1L));
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getTimestamp(2)).isEqualTo(new Timestamp(1L));
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getTimestamp(2)).isEqualTo(new Timestamp(100L));
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getTimestamp(2)).isEqualTo(new Timestamp(1000L));
+      assertThat(rs.next()).isFalse();
+    }
+  }
+
+  @Test
+  public void testGetResultSetMetadata() throws SQLException {
+    JdbcArray array = JdbcArray.createArray("STRING", new String[] {"foo", "bar", "baz"});
+    try (ResultSet rs = array.getResultSet()) {
+      ResultSetMetaData metadata = rs.getMetaData();
+      assertThat(metadata.getColumnCount()).isEqualTo(2);
+      assertThat(metadata.getColumnType(1)).isEqualTo(Types.BIGINT);
+      assertThat(metadata.getColumnType(2)).isEqualTo(Types.NVARCHAR);
+      assertThat(metadata.getColumnName(1)).isEqualTo("INDEX");
+      assertThat(metadata.getColumnName(2)).isEqualTo("VALUE");
+    }
+  }
+
+  @Test
+  public void testGetResultSetWithIndex() throws SQLException {
+    JdbcArray array = JdbcArray.createArray("STRING", new String[] {"foo", "bar", "baz"});
+    try (ResultSet rs = array.getResultSet(2L, 1)) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong("INDEX")).isEqualTo(2L);
+      assertThat(rs.getString("VALUE")).isEqualTo("bar");
+      assertThat(rs.next()).isFalse();
+    }
+
+    try (ResultSet rs = array.getResultSet(1L, 5)) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getString(2)).isEqualTo("foo");
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getString(2)).isEqualTo("bar");
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getString(2)).isEqualTo("baz");
+      assertThat(rs.next()).isFalse();
+    }
+
+    try (ResultSet rs = array.getResultSet(1L, 0)) {
+      assertThat(rs.next()).isFalse();
+    }
+  }
+
+  @Test
+  public void testGetResultSetWithInvalidIndex() throws SQLException {
+    JdbcArray array = JdbcArray.createArray("STRING", new String[] {"foo", "bar", "baz"});
+    try (ResultSet rs = array.getResultSet(0L, 1)) {
+      fail("missing expected exception");
+    } catch (JdbcSqlExceptionImpl e) {
+      assertThat(e.getErrorCode())
+          .isEqualTo(ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value());
+    }
+  }
+
+  @Test
+  public void testGetResultSetWithInvalidCount() throws SQLException {
+    JdbcArray array = JdbcArray.createArray("STRING", new String[] {"foo", "bar", "baz"});
+    try (ResultSet rs = array.getResultSet(1L, -1)) {
+      fail("missing expected exception");
+    } catch (JdbcSqlExceptionImpl e) {
+      assertThat(e.getErrorCode())
+          .isEqualTo(ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value());
+    }
   }
 }

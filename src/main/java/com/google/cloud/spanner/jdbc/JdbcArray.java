@@ -16,11 +16,21 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.ByteArray;
+import com.google.cloud.spanner.ResultSets;
+import com.google.cloud.spanner.Struct;
+import com.google.cloud.spanner.Type;
+import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.ValueBinder;
+import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
+import java.math.BigDecimal;
 import java.sql.Array;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -137,28 +147,89 @@ class JdbcArray implements Array {
     return null;
   }
 
-  private static final String RESULTSET_NOT_SUPPORTED =
-      "Getting a ResultSet from an array is not supported";
+  private static final String RESULTSET_WITH_TYPE_MAPPING_NOT_SUPPORTED =
+      "Getting a ResultSet with a custom type mapping from an array is not supported";
 
   @Override
   public ResultSet getResultSet() throws SQLException {
-    throw new SQLFeatureNotSupportedException(RESULTSET_NOT_SUPPORTED);
+    return getResultSet(1L, Integer.MAX_VALUE);
   }
 
   @Override
   public ResultSet getResultSet(Map<String, Class<?>> map) throws SQLException {
-    throw new SQLFeatureNotSupportedException(RESULTSET_NOT_SUPPORTED);
+    throw new SQLFeatureNotSupportedException(RESULTSET_WITH_TYPE_MAPPING_NOT_SUPPORTED);
   }
 
   @Override
-  public ResultSet getResultSet(long index, int count) throws SQLException {
-    throw new SQLFeatureNotSupportedException(RESULTSET_NOT_SUPPORTED);
+  public ResultSet getResultSet(long startIndex, int count) throws SQLException {
+    JdbcPreconditions.checkArgument(
+        startIndex + count - 1L <= Integer.MAX_VALUE,
+        String.format("End index cannot exceed %d", Integer.MAX_VALUE));
+    JdbcPreconditions.checkArgument(startIndex >= 1L, "Start index must be >= 1");
+    JdbcPreconditions.checkArgument(count >= 0, "Count must be >= 0");
+    checkFree();
+    ImmutableList.Builder<Struct> rows = ImmutableList.builder();
+    int added = 0;
+    if (data != null) {
+      // Note that array index in JDBC is base-one.
+      for (int index = (int) startIndex;
+          added < count && index <= ((Object[]) data).length;
+          index++) {
+        Object value = ((Object[]) data)[index - 1];
+        ValueBinder<Struct.Builder> binder =
+            Struct.newBuilder().set("INDEX").to(index).set("VALUE");
+        Struct.Builder builder = null;
+        switch (type.getCode()) {
+          case BOOL:
+            builder = binder.to((Boolean) value);
+            break;
+          case BYTES:
+            builder = binder.to(ByteArray.copyFrom((byte[]) value));
+            break;
+          case DATE:
+            builder = binder.to(JdbcTypeConverter.toGoogleDate((Date) value));
+            break;
+          case FLOAT64:
+            builder = binder.to((Double) value);
+            break;
+          case INT64:
+            builder = binder.to((Long) value);
+            break;
+          case NUMERIC:
+            builder = binder.to((BigDecimal) value);
+            break;
+          case STRING:
+            builder = binder.to((String) value);
+            break;
+          case TIMESTAMP:
+            builder = binder.to(JdbcTypeConverter.toGoogleTimestamp((Timestamp) value));
+            break;
+          case ARRAY:
+          case STRUCT:
+          default:
+            throw new SQLFeatureNotSupportedException(
+                String.format(
+                    "Array of type %s cannot be converted to a ResultSet", type.getCode().name()));
+        }
+        rows.add(builder.build());
+        added++;
+        if (added == count) {
+          break;
+        }
+      }
+    }
+    return JdbcResultSet.of(
+        ResultSets.forRows(
+            Type.struct(
+                StructField.of("INDEX", Type.int64()),
+                StructField.of("VALUE", type.getSpannerType())),
+            rows.build()));
   }
 
   @Override
   public ResultSet getResultSet(long index, int count, Map<String, Class<?>> map)
       throws SQLException {
-    throw new SQLFeatureNotSupportedException(RESULTSET_NOT_SUPPORTED);
+    throw new SQLFeatureNotSupportedException(RESULTSET_WITH_TYPE_MAPPING_NOT_SUPPORTED);
   }
 
   @Override
