@@ -88,6 +88,8 @@ import java.util.regex.Pattern;
  *       connection. Default is true. @see {@link
  *       com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection#setRetryAbortsInternally(boolean)}
  *       for more information.
+ *   <li>minSessions (int): Sets the minimum number of sessions in the backing session pool. Defaults to 100.
+ *   <li>maxSessions (int): Sets the maximum number of sessions in the backing session pool. Defaults to 400.
  *   <li>numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
  *   <li>usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted connection to the server. This option can only be used when connecting to a local emulator that does not require an encrypted connection, and that does not require authentication.
  *   <li>optimizerVersion (string): The query optimizer version to use for the connection. The value must be either a valid version number or <code>LATEST</code>. If no value is specified, the query optimizer version specified in the environment variable <code>SPANNER_OPTIMIZER_VERSION<code> will be used. If no query optimizer version is specified in the connection URL or in the environment variable, the default query optimizer version of Cloud Spanner will be used.
