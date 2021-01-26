@@ -322,6 +322,18 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getClientInfoProperties()) {
+      assertThat(rs.next(), is(true));
+      assertThat(rs.getString("NAME"), is(equalTo("APPLICATIONNAME")));
+      assertThat(rs.getString("DEFAULT_VALUE"), is(equalTo("")));
+
+      assertThat(rs.next(), is(true));
+      assertThat(rs.getString("NAME"), is(equalTo("CLIENTHOSTNAME")));
+      assertThat(rs.getString("DEFAULT_VALUE"), is(equalTo("")));
+
+      assertThat(rs.next(), is(true));
+      assertThat(rs.getString("NAME"), is(equalTo("CLIENTUSER")));
+      assertThat(rs.getString("DEFAULT_VALUE"), is(equalTo("")));
+
       assertThat(rs.next(), is(false));
       ResultSetMetaData rsmd = rs.getMetaData();
       assertThat(rsmd.getColumnCount(), is(equalTo(4)));

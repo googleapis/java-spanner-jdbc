@@ -59,7 +59,7 @@ public class JdbcConnectionTest {
           Type.struct(StructField.of("", Type.int64())),
           Arrays.asList(Struct.newBuilder().set("").to(1L).build()));
 
-  private JdbcConnection createConnection(ConnectionOptions options) {
+  private JdbcConnection createConnection(ConnectionOptions options) throws SQLException {
     com.google.cloud.spanner.connection.Connection spannerConnection =
         ConnectionImplTest.createConnection(options);
     when(options.getConnection()).thenReturn(spannerConnection);
@@ -405,14 +405,24 @@ public class JdbcConnectionTest {
   }
 
   @Test
-  public void testSetClientInfo() throws SQLException {
+  public void getDefaultClientInfo() throws SQLException {
+    ConnectionOptions options = mock(ConnectionOptions.class);
+    try (JdbcConnection connection = createConnection(options)) {
+      Properties defaultProperties = connection.getClientInfo();
+      assertThat(defaultProperties.stringPropertyNames())
+          .containsExactly("APPLICATIONNAME", "CLIENTHOSTNAME", "CLIENTUSER");
+    }
+  }
+
+  @Test
+  public void testSetInvalidClientInfo() throws SQLException {
     ConnectionOptions options = mock(ConnectionOptions.class);
     try (JdbcConnection connection = createConnection(options)) {
       assertThat((Object) connection.getWarnings()).isNull();
       connection.setClientInfo("test", "foo");
       assertThat((Object) connection.getWarnings()).isNotNull();
       assertThat(connection.getWarnings().getMessage())
-          .isEqualTo(AbstractJdbcConnection.CLIENT_INFO_NOT_SUPPORTED);
+          .isEqualTo(String.format(AbstractJdbcConnection.CLIENT_INFO_NOT_SUPPORTED, "TEST"));
 
       connection.clearWarnings();
       assertThat((Object) connection.getWarnings()).isNull();
@@ -422,7 +432,38 @@ public class JdbcConnectionTest {
       connection.setClientInfo(props);
       assertThat((Object) connection.getWarnings()).isNotNull();
       assertThat(connection.getWarnings().getMessage())
-          .isEqualTo(AbstractJdbcConnection.CLIENT_INFO_NOT_SUPPORTED);
+          .isEqualTo(String.format(AbstractJdbcConnection.CLIENT_INFO_NOT_SUPPORTED, "TEST"));
+    }
+  }
+
+  @Test
+  public void testSetClientInfo() throws SQLException {
+    ConnectionOptions options = mock(ConnectionOptions.class);
+    try (JdbcConnection connection = createConnection(options)) {
+      try (ResultSet validProperties = connection.getMetaData().getClientInfoProperties()) {
+        while (validProperties.next()) {
+          assertThat((Object) connection.getWarnings()).isNull();
+          String name = validProperties.getString("NAME");
+
+          connection.setClientInfo(name, "new-client-info-value");
+          assertThat((Object) connection.getWarnings()).isNull();
+          assertThat(connection.getClientInfo(name)).isEqualTo("new-client-info-value");
+
+          Properties props = new Properties();
+          props.setProperty(name.toLowerCase(), "some-other-value");
+          connection.setClientInfo(props);
+          assertThat((Object) connection.getWarnings()).isNull();
+          assertThat(connection.getClientInfo(name)).isEqualTo("some-other-value");
+          assertThat(connection.getClientInfo().keySet()).hasSize(1);
+          for (String key : connection.getClientInfo().stringPropertyNames()) {
+            if (key.equals(name)) {
+              assertThat(connection.getClientInfo().getProperty(key)).isEqualTo("some-other-value");
+            } else {
+              assertThat(connection.getClientInfo().getProperty(key)).isEqualTo("");
+            }
+          }
+        }
+      }
     }
   }
 

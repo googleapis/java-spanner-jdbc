@@ -1,5 +1,26 @@
 # Changelog
 
+### [1.18.3](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.18.2...v1.18.3) (2020-12-16)
+
+
+### Dependencies
+
+* update spanner to 3.1.2 ([#306](https://www.github.com/googleapis/java-spanner-jdbc/issues/306)) ([596e8ed](https://www.github.com/googleapis/java-spanner-jdbc/commit/596e8ed01dc8ffc01c37b233f688d163b8693f85))
+
+### [1.18.2](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.18.1...v1.18.2) (2020-12-16)
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v0.17.0 ([#302](https://www.github.com/googleapis/java-spanner-jdbc/issues/302)) ([9a2efa1](https://www.github.com/googleapis/java-spanner-jdbc/commit/9a2efa14ad402130ca542d5b8b9f9bbb58587404))
+
+### [1.18.1](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.18.0...v1.18.1) (2020-12-14)
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v0.16.1 ([5d5e5fc](https://www.github.com/googleapis/java-spanner-jdbc/commit/5d5e5fccef229e4edd9d34a93553a85a1e97b14f))
+
 ## [1.18.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.17.3...v1.18.0) (2020-12-10)
 
 
