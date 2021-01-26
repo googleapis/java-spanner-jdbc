@@ -309,6 +309,50 @@
       </plugins>
     </pluginManagement>
   </build>
+  
+  <profiles>
+    <profile>
+      <id>shade</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <configuration>
+              <relocations>
+                <relocation>
+                  <pattern>com</pattern>
+                  <shadedPattern>com.google.cloud.spanner.jdbc.shaded.com</shadedPattern>
+                  <excludes>
+                    <exclude>com.google.cloud.spanner.**</exclude>
+                  </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>android</pattern>
+                  <shadedPattern>com.google.cloud.spanner.jdbc.shaded.android</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io</pattern>
+                  <shadedPattern>com.google.cloud.spanner.jdbc.shaded.io</shadedPattern>
+                  <excludes>
+                    <exclude>io.grpc.netty.shaded.**</exclude>
+                  </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>org</pattern>
+                  <shadedPattern>com.google.cloud.spanner.jdbc.shaded.org</shadedPattern>
+                  <excludes>
+                    <exclude>org.conscrypt.**</exclude>
+                  </excludes>
+                </relocation>
+              </relocations>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
   <reporting>
     <plugins>
       <plugin>
