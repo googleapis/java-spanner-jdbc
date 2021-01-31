@@ -84,6 +84,16 @@ try (Connection connection =
 }
 ```
 
+### Creating a Shaded Jar
+
+A jar with all dependencies included is automatically generated when you execute `mvn package`.
+The dependencies in this jar are not shaded. To create a jar with shaded dependencies you must
+activate the `shade` profile like this:
+
+ ```
+ mvn package -Pshade
+ ```
+
 
 
 
