@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.19.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.18.3...v1.19.0) (2021-01-31)
+
+
+### Features
+
+* allow unknown properties in connection url with lenient mode ([#284](https://www.github.com/googleapis/java-spanner-jdbc/issues/284)) ([0e557ef](https://www.github.com/googleapis/java-spanner-jdbc/commit/0e557ef7657cae04d263daa6717ee34290338b7a))
+* support creating shaded jars ([#333](https://www.github.com/googleapis/java-spanner-jdbc/issues/333)) ([8b4e50d](https://www.github.com/googleapis/java-spanner-jdbc/commit/8b4e50d10a9121334be3d8b5ed0d8fc9ff63c182)), closes [#316](https://www.github.com/googleapis/java-spanner-jdbc/issues/316)
+* support default ClientInfo properties ([#324](https://www.github.com/googleapis/java-spanner-jdbc/issues/324)) ([250c4c1](https://www.github.com/googleapis/java-spanner-jdbc/commit/250c4c127f75cc4979e511e2459813f22fec67de))
+
+
+### Bug Fixes
+
+* getting resultset metadata twice could skip row ([#323](https://www.github.com/googleapis/java-spanner-jdbc/issues/323)) ([f8149af](https://www.github.com/googleapis/java-spanner-jdbc/commit/f8149afb63b9a66e89119290c594b50e599f351a))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v0.18.0 ([#320](https://www.github.com/googleapis/java-spanner-jdbc/issues/320)) ([e1cd90d](https://www.github.com/googleapis/java-spanner-jdbc/commit/e1cd90d8afbfa725a92186b85bd446413c8ed4bc))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v3.3.1 ([#319](https://www.github.com/googleapis/java-spanner-jdbc/issues/319)) ([7cd990b](https://www.github.com/googleapis/java-spanner-jdbc/commit/7cd990b5ba49f05fba4b1a1ce49f8de133b04868))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v3.3.2 ([#325](https://www.github.com/googleapis/java-spanner-jdbc/issues/325)) ([9d65dab](https://www.github.com/googleapis/java-spanner-jdbc/commit/9d65dab248efb5c8e8c5ad56775731891e225b3e))
+
 ### [1.18.3](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.18.2...v1.18.3) (2020-12-16)
 
 
