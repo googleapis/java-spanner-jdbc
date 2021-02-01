@@ -161,6 +161,32 @@ public class JdbcArrayTest {
   }
 
   @Test
+  public void testCreateArrayOfArray() {
+    try {
+      JdbcArray.createArray("ARRAY<STRING>", new String[][] {{}});
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat((Exception) e).isInstanceOf(JdbcSqlException.class);
+      JdbcSqlException jse = (JdbcSqlException) e;
+      assertThat(jse.getErrorCode())
+          .isEqualTo(ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value());
+    }
+  }
+
+  @Test
+  public void testCreateArrayOfStruct() {
+    try {
+      JdbcArray.createArray("STRUCT", new Object[] {});
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat((Exception) e).isInstanceOf(JdbcSqlException.class);
+      JdbcSqlException jse = (JdbcSqlException) e;
+      assertThat(jse.getErrorCode())
+          .isEqualTo(ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value());
+    }
+  }
+
+  @Test
   public void testGetResultSetMetadata() throws SQLException {
     JdbcArray array = JdbcArray.createArray("STRING", new String[] {"foo", "bar", "baz"});
     try (ResultSet rs = array.getResultSet()) {
