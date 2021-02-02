@@ -4,7 +4,7 @@
       "git": {
         "name": ".",
         "remote": "https://github.com/googleapis/java-spanner-jdbc.git",
-        "sha": "7e5a13374ec6f343b2b2ea2320e8c12f895f3e87"
+        "sha": "acf76ee06c49cc2c47825b8654a9a81b7407d24a"
       }
     },
     {
