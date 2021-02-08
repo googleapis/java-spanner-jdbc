@@ -68,6 +68,10 @@ public final class JdbcSqlExceptionFactory {
       implements JdbcSqlException {
     private static final long serialVersionUID = 2363793358642102814L;
 
+    private JdbcSqlTimeoutException(SpannerException cause) {
+      super(cause);
+    }
+
     private JdbcSqlTimeoutException(String message) {
       super(message, "Timed out", Code.DEADLINE_EXCEEDED_VALUE);
     }
@@ -188,7 +192,7 @@ public final class JdbcSqlExceptionFactory {
           return new JdbcAbortedException((AbortedException) e);
         }
       case DEADLINE_EXCEEDED:
-        return new JdbcSqlTimeoutException(e.getMessage());
+        return new JdbcSqlTimeoutException(e);
       case ALREADY_EXISTS:
       case CANCELLED:
       case DATA_LOSS:
