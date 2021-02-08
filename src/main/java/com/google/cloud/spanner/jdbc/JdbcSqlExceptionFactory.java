@@ -68,8 +68,8 @@ public final class JdbcSqlExceptionFactory {
       implements JdbcSqlException {
     private static final long serialVersionUID = 2363793358642102814L;
 
-    private JdbcSqlTimeoutException(SpannerException cause) {
-      super(cause);
+    private JdbcSqlTimeoutException(SpannerException e) {
+      super(e.getMessage(), "Timed out", Code.DEADLINE_EXCEEDED_VALUE, e);
     }
 
     private JdbcSqlTimeoutException(String message) {
