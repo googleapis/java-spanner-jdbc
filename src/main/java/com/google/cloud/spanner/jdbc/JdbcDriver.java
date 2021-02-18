@@ -88,6 +88,10 @@ import java.util.regex.Pattern;
  *       connection. Default is true. @see {@link
  *       com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection#setRetryAbortsInternally(boolean)}
  *       for more information.
+ *   <li>minSessions (int): Sets the minimum number of sessions in the backing session pool.
+ *       Defaults to 100.
+ *   <li>maxSessions (int): Sets the maximum number of sessions in the backing session pool.
+ *       Defaults to 400.
  *   <li>numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
  *   <li>usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted
  *       connection to the server. This option can only be used when connecting to a local emulator
