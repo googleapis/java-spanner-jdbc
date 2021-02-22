@@ -45,6 +45,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /** This class handles the parameters of a {@link PreparedStatement}. */
 class JdbcParameterStore {
@@ -507,6 +508,8 @@ class JdbcParameterStore {
           }
         } else if (value instanceof URL) {
           return binder.to(((URL) value).toString());
+        } else if (value instanceof UUID) {
+          return binder.to(((UUID) value).toString());
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid string", Code.INVALID_ARGUMENT);
       case Types.DATE:
@@ -649,6 +652,8 @@ class JdbcParameterStore {
       return binder.to(String.valueOf((char[]) value));
     } else if (URL.class.isAssignableFrom(value.getClass())) {
       return binder.to(((URL) value).toString());
+    } else if (UUID.class.isAssignableFrom(value.getClass())) {
+      return binder.to(((UUID) value).toString());
     } else if (byte[].class.isAssignableFrom(value.getClass())) {
       return binder.to(ByteArray.copyFrom((byte[]) value));
     } else if (InputStream.class.isAssignableFrom(value.getClass())) {
