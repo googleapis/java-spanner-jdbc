@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.20.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.19.0...v1.20.0) (2021-02-23)
+
+
+### Features
+
+* allow setting min/max sessions ([#335](https://www.github.com/googleapis/java-spanner-jdbc/issues/335)) ([a5862a5](https://www.github.com/googleapis/java-spanner-jdbc/commit/a5862a5572721fc898cf9b5f4ab8b99631848110))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v0.19.0 ([fa3721b](https://www.github.com/googleapis/java-spanner-jdbc/commit/fa3721b5d42e0f71247937366f1fa9e3a454beef))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v4 ([#359](https://www.github.com/googleapis/java-spanner-jdbc/issues/359)) ([49aa337](https://www.github.com/googleapis/java-spanner-jdbc/commit/49aa337dae08c4c39a7c32c14f92a7c858ad3dc8))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v4.0.1 ([#366](https://www.github.com/googleapis/java-spanner-jdbc/issues/366)) ([fa3721b](https://www.github.com/googleapis/java-spanner-jdbc/commit/fa3721b5d42e0f71247937366f1fa9e3a454beef))
+
 ## [1.19.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.18.3...v1.19.0) (2021-02-15)
 
 
