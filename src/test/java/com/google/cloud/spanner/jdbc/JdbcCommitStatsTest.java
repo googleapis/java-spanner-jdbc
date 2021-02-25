@@ -21,15 +21,23 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
+import com.google.cloud.spanner.connection.SpannerPool;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class JdbcCommitStatsTest extends AbstractMockServerTest {
+
+  @After
+  public void closeSpannerPool() {
+    SpannerPool.closeSpannerPool();
+  }
+
   @Test
   public void testDefaultReturnCommitStats() throws SQLException {
     try (java.sql.Connection connection = createJdbcConnection()) {
