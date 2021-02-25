@@ -46,7 +46,6 @@ import java.sql.SQLException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -133,7 +132,7 @@ public class JdbcGrpcErrorTest {
 
   private String createUrl() {
     return String.format(
-        "jdbc:cloudspanner://localhost:%d/projects/%s/instances/%s/databases/%s?usePlainText=true",
+        "jdbc:cloudspanner://localhost:%d/projects/%s/instances/%s/databases/%s?usePlainText=true;minSessions=0",
         server.getPort(), "proj", "inst", "db");
   }
 
@@ -141,13 +140,13 @@ public class JdbcGrpcErrorTest {
     return DriverManager.getConnection(createUrl());
   }
 
-  @Ignore(
-      "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
   public void autocommitBeginTransaction() {
     mockSpanner.setBeginTransactionExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
+      // This triggers a retry with an explicit BeginTransaction RPC.
+      mockSpanner.abortNextStatement();
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
       fail("missing expected exception");
     } catch (SQLException e) {
@@ -155,8 +154,6 @@ public class JdbcGrpcErrorTest {
     }
   }
 
-  @Ignore(
-      "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
   public void autocommitBeginPDMLTransaction() {
     mockSpanner.setBeginTransactionExecutionTime(
@@ -170,14 +167,14 @@ public class JdbcGrpcErrorTest {
     }
   }
 
-  @Ignore(
-      "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
   public void transactionalBeginTransaction() {
     mockSpanner.setBeginTransactionExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
+      // This triggers a retry with an explicit BeginTransaction RPC.
+      mockSpanner.abortNextStatement();
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
       fail("missing expected exception");
     } catch (SQLException e) {
@@ -185,8 +182,6 @@ public class JdbcGrpcErrorTest {
     }
   }
 
-  @Ignore(
-      "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
   public void readOnlyBeginTransaction() {
     mockSpanner.setBeginTransactionExecutionTime(
@@ -368,8 +363,6 @@ public class JdbcGrpcErrorTest {
     }
   }
 
-  @Ignore(
-      "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
   public void autocommitCreateSession() {
     mockSpanner.setBatchCreateSessionsExecutionTime(
@@ -382,8 +375,6 @@ public class JdbcGrpcErrorTest {
     }
   }
 
-  @Ignore(
-      "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
   public void transactionalCreateSession() {
     mockSpanner.setBatchCreateSessionsExecutionTime(
@@ -397,8 +388,6 @@ public class JdbcGrpcErrorTest {
     }
   }
 
-  @Ignore(
-      "This can only be guaranteed with MinSessions=0. Re-enable when MinSessions is configurable for JDBC.")
   @Test
   public void readOnlyCreateSession() {
     mockSpanner.setBatchCreateSessionsExecutionTime(

@@ -17,18 +17,18 @@ If you are using Maven, add this to your pom.xml file:
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>1.18.3</version>
+  <version>1.20.0</version>
 </dependency>
 ```
 
 If you are using Gradle without BOM, add this to your dependencies
 ```Groovy
-compile 'com.google.cloud:google-cloud-spanner-jdbc:1.18.3'
+compile 'com.google.cloud:google-cloud-spanner-jdbc:1.20.0'
 ```
 
 If you are using SBT, add this to your dependencies
 ```Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "1.18.3"
+libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "1.20.0"
 ```
 
 ## Authentication

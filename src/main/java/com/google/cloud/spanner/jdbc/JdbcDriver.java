@@ -67,7 +67,7 @@ import java.util.regex.Pattern;
  * The property-value strings should be url-encoded.
  *
  * <p>The project-id part of the URI may be filled with the placeholder DEFAULT_PROJECT_ID. This
- * placeholder will be replaced by the default project id of the environment that is requesting a
+ * placeholder is replaced by the default project id of the environment that is requesting a
  * connection.
  *
  * <p>The supported properties are:
@@ -75,7 +75,7 @@ import java.util.regex.Pattern;
  * <ul>
  *   <li>credentials (String): URL for the credentials file to use for the connection. If you do not
  *       specify any credentials at all, the default credentials of the environment as returned by
- *       {@link GoogleCredentials#getApplicationDefault()} will be used.
+ *       {@link GoogleCredentials#getApplicationDefault()} is used.
  *   <li>oauthtoken (String): A valid OAuth2 token to use for the JDBC connection. The token must
  *       have been obtained with one or both of the scopes
  *       'https://www.googleapis.com/auth/spanner.admin' and/or
@@ -88,9 +88,20 @@ import java.util.regex.Pattern;
  *       connection. Default is true. @see {@link
  *       com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection#setRetryAbortsInternally(boolean)}
  *       for more information.
+ *   <li>minSessions (int): Sets the minimum number of sessions in the backing session pool.
+ *       Defaults to 100.
+ *   <li>maxSessions (int): Sets the maximum number of sessions in the backing session pool.
+ *       Defaults to 400.
  *   <li>numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
- *   <li>usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted connection to the server. This option can only be used when connecting to a local emulator that does not require an encrypted connection, and that does not require authentication.
- *   <li>optimizerVersion (string): The query optimizer version to use for the connection. The value must be either a valid version number or <code>LATEST</code>. If no value is specified, the query optimizer version specified in the environment variable <code>SPANNER_OPTIMIZER_VERSION<code> will be used. If no query optimizer version is specified in the connection URL or in the environment variable, the default query optimizer version of Cloud Spanner will be used.
+ *   <li>usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted
+ *       connection to the server. This option can only be used when connecting to a local emulator
+ *       that does not require an encrypted connection, and that does not require authentication.
+ *   <li>optimizerVersion (string): The query optimizer version to use for the connection. The value
+ *       must be either a valid version number or <code>LATEST</code>. If no value is specified, the
+ *       query optimizer version specified in the environment variable <code>
+ *       SPANNER_OPTIMIZER_VERSION</code> is used. If no query optimizer version is specified in the
+ *       connection URL or in the environment variable, the default query optimizer version of Cloud
+ *       Spanner is used.
  * </ul>
  */
 public class JdbcDriver implements Driver {
