@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.Mutation;
@@ -43,9 +46,9 @@ public class JdbcCommitStatsTest extends AbstractMockServerTest {
     try (java.sql.Connection connection = createJdbcConnection()) {
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery("SHOW VARIABLE RETURN_COMMIT_STATS")) {
-        assertThat(rs.next()).isTrue();
-        assertThat(rs.getBoolean("RETURN_COMMIT_STATS")).isFalse();
-        assertThat(rs.next()).isFalse();
+        assertTrue(rs.next());
+        assertFalse(rs.getBoolean("RETURN_COMMIT_STATS"));
+        assertFalse(rs.next());
       }
     }
   }
@@ -57,9 +60,9 @@ public class JdbcCommitStatsTest extends AbstractMockServerTest {
             String.format("jdbc:%s;returnCommitStats=true", getBaseUrl()))) {
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery("SHOW VARIABLE RETURN_COMMIT_STATS")) {
-        assertThat(rs.next()).isTrue();
-        assertThat(rs.getBoolean("RETURN_COMMIT_STATS")).isTrue();
-        assertThat(rs.next()).isFalse();
+        assertTrue(rs.next());
+        assertTrue(rs.getBoolean("RETURN_COMMIT_STATS"));
+        assertFalse(rs.next());
       }
     }
   }
@@ -70,16 +73,16 @@ public class JdbcCommitStatsTest extends AbstractMockServerTest {
       connection.createStatement().execute("SET RETURN_COMMIT_STATS=true");
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery("SHOW VARIABLE RETURN_COMMIT_STATS")) {
-        assertThat(rs.next()).isTrue();
-        assertThat(rs.getBoolean("RETURN_COMMIT_STATS")).isTrue();
-        assertThat(rs.next()).isFalse();
+        assertTrue(rs.next());
+        assertTrue(rs.getBoolean("RETURN_COMMIT_STATS"));
+        assertFalse(rs.next());
       }
       connection.createStatement().execute("SET RETURN_COMMIT_STATS=false");
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery("SHOW VARIABLE RETURN_COMMIT_STATS")) {
-        assertThat(rs.next()).isTrue();
-        assertThat(rs.getBoolean("RETURN_COMMIT_STATS")).isFalse();
-        assertThat(rs.next()).isFalse();
+        assertTrue(rs.next());
+        assertFalse(rs.getBoolean("RETURN_COMMIT_STATS"));
+        assertFalse(rs.next());
       }
     }
   }
@@ -92,9 +95,9 @@ public class JdbcCommitStatsTest extends AbstractMockServerTest {
       connection.bufferedWrite(Mutation.newInsertBuilder("FOO").set("ID").to(1L).build());
       connection.commit();
       CommitResponse response = connection.getCommitResponse();
-      assertThat(response).isNotNull();
-      assertThat(response.getCommitStats()).isNotNull();
-      assertThat(response.getCommitStats().getMutationCount()).isAtLeast(1L);
+      assertNotNull(response);
+      assertNotNull(response.getCommitStats());
+      assertThat(response.getCommitStats().getMutationCount()).isAtLeast(1);
     }
   }
 
@@ -110,10 +113,10 @@ public class JdbcCommitStatsTest extends AbstractMockServerTest {
       connection.commit();
       try (ResultSet rs =
           connection.createStatement().executeQuery("SHOW VARIABLE COMMIT_RESPONSE")) {
-        assertThat(rs.next()).isTrue();
-        assertThat(rs.getTimestamp("COMMIT_TIMESTAMP")).isNotNull();
+        assertTrue(rs.next());
+        assertNotNull(rs.getTimestamp("COMMIT_TIMESTAMP"));
         assertThat(rs.getLong("MUTATION_COUNT")).isAtLeast(1L);
-        assertThat(rs.next()).isFalse();
+        assertFalse(rs.next());
       }
     }
   }

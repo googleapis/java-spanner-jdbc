@@ -159,13 +159,13 @@ public interface CloudSpannerJdbcConnection extends Connection {
    *     was not a read/write transaction, or a read/write transaction that did not return a {@link
    *     CommitResponse} because the transaction was not committed, the method will throw a {@link
    *     SQLException}. The {@link CommitResponse} will include {@link CommitStats} if {@link
-   *     #isReturnCommitStats()} is true.
+   *     #isReturnCommitStats()} returns true.
    */
   CommitResponse getCommitResponse() throws SQLException;
 
   /**
    * Sets whether this connection should request commit statistics from Cloud Spanner for read/write
-   * transactions and DML statements in autocommit mode.
+   * transactions and for DML statements in autocommit mode.
    */
   void setReturnCommitStats(boolean returnCommitStats) throws SQLException;
 
