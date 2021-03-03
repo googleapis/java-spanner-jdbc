@@ -94,4 +94,21 @@
     <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
     <method>void setTransactionMode(com.google.cloud.spanner.connection.TransactionMode)</method>
   </difference>
+  
+  <!-- Commit stats -->
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>com.google.cloud.spanner.CommitResponse getCommitResponse()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>boolean isReturnCommitStats()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>void setReturnCommitStats(boolean)</method>
+  </difference>
 </differences>
