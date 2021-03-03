@@ -395,12 +395,21 @@ class JdbcConnection extends AbstractJdbcConnection {
   @Override
   public void setReturnCommitStats(boolean returnCommitStats) throws SQLException {
     checkClosed();
-    getSpannerConnection().setReturnCommitStats(returnCommitStats);
+    try {
+      getSpannerConnection().setReturnCommitStats(returnCommitStats);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
   }
 
+  @Override
   public boolean isReturnCommitStats() throws SQLException {
     checkClosed();
-    return getSpannerConnection().isReturnCommitStats();
+    try {
+      return getSpannerConnection().isReturnCommitStats();
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
   }
 
   @Override
