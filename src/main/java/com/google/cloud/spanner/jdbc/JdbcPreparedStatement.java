@@ -99,8 +99,10 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
     if (StatementParser.INSTANCE.isUpdateStatement(sql)) {
       // Return metadata for an empty result set as DML statements do not return any results (as a
       // result set).
-      return new JdbcResultSetMetaData(
-          JdbcResultSet.of(ResultSets.forRows(Type.struct(), ImmutableList.<Struct>of())), this);
+      com.google.cloud.spanner.ResultSet resultSet =
+          ResultSets.forRows(Type.struct(), ImmutableList.<Struct>of());
+      resultSet.next();
+      return new JdbcResultSetMetaData(JdbcResultSet.of(resultSet), this);
     }
     try (ResultSet rs = analyzeQuery(createStatement(), QueryAnalyzeMode.PLAN)) {
       return rs.getMetaData();

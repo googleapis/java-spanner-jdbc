@@ -307,4 +307,15 @@ public class JdbcPreparedStatementTest {
       assertEquals(Types.DOUBLE, metadata.getColumnType(3));
     }
   }
+
+  @Test
+  public void testGetResultSetMetaDataForDml() throws SQLException {
+    Connection connection = mock(Connection.class);
+    try (JdbcPreparedStatement ps =
+        new JdbcPreparedStatement(
+            createMockConnection(connection), "UPDATE FOO SET BAR=1 WHERE TRUE")) {
+      ResultSetMetaData metadata = ps.getMetaData();
+      assertEquals(0, metadata.getColumnCount());
+    }
+  }
 }
