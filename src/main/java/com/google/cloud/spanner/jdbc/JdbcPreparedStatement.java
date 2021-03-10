@@ -17,11 +17,13 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.Options.QueryOption;
+import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.jdbc.JdbcParameterStore.ParametersInfo;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 /** Implementation of {@link PreparedStatement} for Cloud Spanner. */
@@ -85,5 +87,13 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
   public JdbcParameterMetaData getParameterMetaData() throws SQLException {
     checkClosed();
     return new JdbcParameterMetaData(this);
+  }
+
+  @Override
+  public ResultSetMetaData getMetaData() throws SQLException {
+    checkClosed();
+    try (ResultSet rs = analyzeQuery(createStatement(), QueryAnalyzeMode.PLAN)) {
+      return rs.getMetaData();
+    }
   }
 }

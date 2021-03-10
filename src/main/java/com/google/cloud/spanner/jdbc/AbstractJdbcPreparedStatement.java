@@ -29,7 +29,6 @@ import java.sql.NClob;
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.SQLXML;
@@ -230,14 +229,6 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   public void setArray(int parameterIndex, Array value) throws SQLException {
     checkClosed();
     parameters.setParameter(parameterIndex, value, Types.ARRAY);
-  }
-
-  @Override
-  public ResultSetMetaData getMetaData() throws SQLException {
-    checkClosed();
-    try (ResultSet rs = executeQuery()) {
-      return rs.getMetaData();
-    }
   }
 
   @Override

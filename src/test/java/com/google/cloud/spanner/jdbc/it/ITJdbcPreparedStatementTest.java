@@ -38,6 +38,7 @@ import java.sql.Date;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -821,6 +822,40 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
             new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN},
             (BigDecimal[]) rs.getArray(21).getArray());
         assertFalse(rs.next());
+      }
+    }
+  }
+
+  @Test
+  public void test09_MetaData() throws SQLException {
+    try (Connection con = createConnection()) {
+      try (PreparedStatement ps =
+          con.prepareStatement("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=?")) {
+        ResultSetMetaData metadata = ps.getMetaData();
+        assertEquals(22, metadata.getColumnCount());
+        int index = 0;
+        assertEquals("ColInt64", metadata.getColumnLabel(++index));
+        assertEquals("ColFloat64", metadata.getColumnLabel(++index));
+        assertEquals("ColBool", metadata.getColumnLabel(++index));
+        assertEquals("ColString", metadata.getColumnLabel(++index));
+        assertEquals("ColStringMax", metadata.getColumnLabel(++index));
+        assertEquals("ColBytes", metadata.getColumnLabel(++index));
+        assertEquals("ColBytesMax", metadata.getColumnLabel(++index));
+        assertEquals("ColDate", metadata.getColumnLabel(++index));
+        assertEquals("ColTimestamp", metadata.getColumnLabel(++index));
+        assertEquals("ColCommitTS", metadata.getColumnLabel(++index));
+        assertEquals("ColNumeric", metadata.getColumnLabel(++index));
+        assertEquals("ColInt64Array", metadata.getColumnLabel(++index));
+        assertEquals("ColFloat64Array", metadata.getColumnLabel(++index));
+        assertEquals("ColBoolArray", metadata.getColumnLabel(++index));
+        assertEquals("ColStringArray", metadata.getColumnLabel(++index));
+        assertEquals("ColStringMaxArray", metadata.getColumnLabel(++index));
+        assertEquals("ColBytesArray", metadata.getColumnLabel(++index));
+        assertEquals("ColBytesMaxArray", metadata.getColumnLabel(++index));
+        assertEquals("ColDateArray", metadata.getColumnLabel(++index));
+        assertEquals("ColTimestampArray", metadata.getColumnLabel(++index));
+        assertEquals("ColNumericArray", metadata.getColumnLabel(++index));
+        assertEquals("ColComputed", metadata.getColumnLabel(++index));
       }
     }
   }
