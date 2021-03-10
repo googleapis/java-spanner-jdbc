@@ -18,7 +18,11 @@ package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -51,6 +55,7 @@ import java.util.concurrent.Executor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public class JdbcConnectionTest {
@@ -277,6 +282,14 @@ public class JdbcConnectionTest {
         "releaseSavepoint",
         new Class<?>[] {Savepoint.class},
         new Object[] {null});
+
+    testClosed(CloudSpannerJdbcConnection.class, "isReturnCommitStats");
+    testClosed(
+        CloudSpannerJdbcConnection.class,
+        "setReturnCommitStats",
+        new Class<?>[] {boolean.class},
+        new Object[] {true});
+    testClosed(CloudSpannerJdbcConnection.class, "getCommitResponse");
   }
 
   private void testClosed(Class<? extends Connection> clazz, String name)
@@ -703,6 +716,83 @@ public class JdbcConnectionTest {
       } catch (JdbcSqlExceptionImpl e) {
         assertThat(e.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
       }
+    }
+  }
+
+  @Test
+  public void testIsReturnCommitStats() throws SQLException {
+    try (JdbcConnection connection = createConnection(mock(ConnectionOptions.class))) {
+      assertFalse(connection.isReturnCommitStats());
+      connection.setReturnCommitStats(true);
+      assertTrue(connection.isReturnCommitStats());
+    }
+  }
+
+  @Test
+  public void testIsReturnCommitStats_throwsSqlException() throws SQLException {
+    ConnectionOptions options = mock(ConnectionOptions.class);
+    com.google.cloud.spanner.connection.Connection spannerConnection =
+        mock(com.google.cloud.spanner.connection.Connection.class);
+    when(options.getConnection()).thenReturn(spannerConnection);
+    when(spannerConnection.isReturnCommitStats())
+        .thenThrow(
+            SpannerExceptionFactory.newSpannerException(
+                ErrorCode.FAILED_PRECONDITION, "test exception"));
+    try (JdbcConnection connection =
+        new JdbcConnection(
+            "jdbc:cloudspanner://localhost/projects/project/instances/instance/databases/database;credentialsUrl=url",
+            options)) {
+      connection.isReturnCommitStats();
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.FAILED_PRECONDITION, ((JdbcSqlException) e).getCode());
+    }
+  }
+
+  @Test
+  public void testSetReturnCommitStats_throwsSqlException() throws SQLException {
+    ConnectionOptions options = mock(ConnectionOptions.class);
+    com.google.cloud.spanner.connection.Connection spannerConnection =
+        mock(com.google.cloud.spanner.connection.Connection.class);
+    when(options.getConnection()).thenReturn(spannerConnection);
+    Mockito.doThrow(
+            SpannerExceptionFactory.newSpannerException(
+                ErrorCode.FAILED_PRECONDITION, "test exception"))
+        .when(spannerConnection)
+        .setReturnCommitStats(any(boolean.class));
+    try (JdbcConnection connection =
+        new JdbcConnection(
+            "jdbc:cloudspanner://localhost/projects/project/instances/instance/databases/database;credentialsUrl=url",
+            options)) {
+      connection.setReturnCommitStats(true);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.FAILED_PRECONDITION, ((JdbcSqlException) e).getCode());
+    }
+  }
+
+  @Test
+  public void testGetCommitResponse_throwsSqlException() throws SQLException {
+    ConnectionOptions options = mock(ConnectionOptions.class);
+    com.google.cloud.spanner.connection.Connection spannerConnection =
+        mock(com.google.cloud.spanner.connection.Connection.class);
+    when(options.getConnection()).thenReturn(spannerConnection);
+    Mockito.doThrow(
+            SpannerExceptionFactory.newSpannerException(
+                ErrorCode.FAILED_PRECONDITION, "test exception"))
+        .when(spannerConnection)
+        .setReturnCommitStats(any(boolean.class));
+    try (JdbcConnection connection =
+        new JdbcConnection(
+            "jdbc:cloudspanner://localhost/projects/project/instances/instance/databases/database;credentialsUrl=url",
+            options)) {
+      connection.setReturnCommitStats(true);
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.FAILED_PRECONDITION, ((JdbcSqlException) e).getCode());
     }
   }
 }

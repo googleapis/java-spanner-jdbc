@@ -17,6 +17,8 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.AbortedException;
+import com.google.cloud.spanner.CommitResponse;
+import com.google.cloud.spanner.CommitStats;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.TimestampBound;
@@ -151,6 +153,24 @@ public interface CloudSpannerJdbcConnection extends Connection {
    *     a {@link SQLException}.
    */
   Timestamp getCommitTimestamp() throws SQLException;
+
+  /**
+   * @return the {@link CommitResponse} of the last read/write transaction. If the last transaction
+   *     was not a read/write transaction, or a read/write transaction that did not return a {@link
+   *     CommitResponse} because the transaction was not committed, the method will throw a {@link
+   *     SQLException}. The {@link CommitResponse} will include {@link CommitStats} if {@link
+   *     #isReturnCommitStats()} returns true.
+   */
+  CommitResponse getCommitResponse() throws SQLException;
+
+  /**
+   * Sets whether this connection should request commit statistics from Cloud Spanner for read/write
+   * transactions and for DML statements in autocommit mode.
+   */
+  void setReturnCommitStats(boolean returnCommitStats) throws SQLException;
+
+  /** @return true if this connection requests commit statistics from Cloud Spanner. */
+  boolean isReturnCommitStats() throws SQLException;
 
   /**
    * @return the read {@link Timestamp} of the last read-only transaction. If the last transaction
