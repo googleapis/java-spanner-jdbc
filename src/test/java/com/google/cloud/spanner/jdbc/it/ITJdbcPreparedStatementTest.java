@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
+import static com.google.cloud.spanner.testing.EmulatorSpannerHelper.isUsingEmulator;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,11 +24,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 
-import com.google.api.client.util.Base64;
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.common.base.Strings;
+import com.google.common.io.BaseEncoding;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.StringReader;
@@ -223,7 +225,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private static byte[] parseBytes(String value) {
-    return Base64.decodeBase64(value);
+    return BaseEncoding.base64().decode(value);
   }
 
   private List<Singer> createSingers() {
@@ -828,6 +830,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
 
   @Test
   public void test09_MetaData_FromQuery() throws SQLException {
+    assumeFalse("The emulator does not support PLAN mode", isUsingEmulator());
     try (Connection con = createConnection()) {
       try (PreparedStatement ps =
           con.prepareStatement("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=?")) {
