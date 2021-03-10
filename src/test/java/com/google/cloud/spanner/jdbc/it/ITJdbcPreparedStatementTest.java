@@ -827,7 +827,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   @Test
-  public void test09_MetaData() throws SQLException {
+  public void test09_MetaData_FromQuery() throws SQLException {
     try (Connection con = createConnection()) {
       try (PreparedStatement ps =
           con.prepareStatement("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=?")) {
@@ -856,6 +856,18 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertEquals("ColTimestampArray", metadata.getColumnLabel(++index));
         assertEquals("ColNumericArray", metadata.getColumnLabel(++index));
         assertEquals("ColComputed", metadata.getColumnLabel(++index));
+      }
+    }
+  }
+
+  @Test
+  public void test10_MetaData_FromDML() throws SQLException {
+    try (Connection con = createConnection()) {
+      try (PreparedStatement ps =
+          con.prepareStatement(
+              "UPDATE TableWithAllColumnTypes SET ColBool=FALSE WHERE ColInt64=?")) {
+        ResultSetMetaData metadata = ps.getMetaData();
+        assertEquals(0, metadata.getColumnCount());
       }
     }
   }

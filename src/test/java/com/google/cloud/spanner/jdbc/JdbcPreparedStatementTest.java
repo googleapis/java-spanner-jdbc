@@ -25,6 +25,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.Statement;
@@ -293,7 +294,7 @@ public class JdbcPreparedStatementTest {
                     .set("AMOUNT")
                     .to(Math.PI)
                     .build()));
-    when(connection.executeQuery(Statement.of(sql))).thenReturn(rs);
+    when(connection.analyzeQuery(Statement.of(sql), QueryAnalyzeMode.PLAN)).thenReturn(rs);
     try (JdbcPreparedStatement ps =
         new JdbcPreparedStatement(createMockConnection(connection), sql)) {
       ResultSetMetaData metadata = ps.getMetaData();
