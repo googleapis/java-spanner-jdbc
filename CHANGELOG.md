@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.21.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.20.1...v1.21.0) (2021-03-10)
+
+
+### Features
+
+* add support for CommitStats ([#261](https://www.github.com/googleapis/java-spanner-jdbc/issues/261)) ([b32e7ae](https://www.github.com/googleapis/java-spanner-jdbc/commit/b32e7aebd4c8d24d052e4616b5dd7735878e01c3))
+* allow using UUID in PreparedStatement ([#365](https://www.github.com/googleapis/java-spanner-jdbc/issues/365)) ([4cbee6d](https://www.github.com/googleapis/java-spanner-jdbc/commit/4cbee6dcc2dfea2515437b55b0ecfc956205d739)), closes [#364](https://www.github.com/googleapis/java-spanner-jdbc/issues/364)
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v0.20.1 ([#384](https://www.github.com/googleapis/java-spanner-jdbc/issues/384)) ([f0cdf11](https://www.github.com/googleapis/java-spanner-jdbc/commit/f0cdf117e20325601f1d1c13641267add5b39955))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v5 ([#386](https://www.github.com/googleapis/java-spanner-jdbc/issues/386)) ([910c50c](https://www.github.com/googleapis/java-spanner-jdbc/commit/910c50c611cb30b96a2d5d0472afd2d8e3687013))
+
 ### [1.20.1](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.20.0...v1.20.1) (2021-02-26)
 
 
