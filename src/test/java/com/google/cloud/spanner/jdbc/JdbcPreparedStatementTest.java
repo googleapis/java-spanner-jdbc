@@ -39,6 +39,7 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Date;
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSetMetaData;
@@ -101,7 +102,7 @@ public class JdbcPreparedStatementTest {
   @SuppressWarnings("deprecation")
   @Test
   public void testParameters() throws SQLException, MalformedURLException {
-    final int numberOfParams = 48;
+    final int numberOfParams = 51;
     String sql = generateSqlWithParameters(numberOfParams);
 
     JdbcConnection connection = createMockConnection();
@@ -151,6 +152,8 @@ public class JdbcPreparedStatementTest {
       ps.setUnicodeStream(47, new ByteArrayInputStream("TEST".getBytes()), 4);
       ps.setURL(48, new URL("https://spanner.google.com"));
       ps.setObject(49, UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"));
+      ps.setObject(50, "TEST", JDBCType.NVARCHAR);
+      ps.setObject(51, "TEST", JDBCType.NVARCHAR, 20);
 
       testSetUnsupportedTypes(ps);
 
@@ -204,6 +207,8 @@ public class JdbcPreparedStatementTest {
       assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(47));
       assertEquals(URL.class.getName(), pmd.getParameterClassName(48));
       assertEquals(UUID.class.getName(), pmd.getParameterClassName(49));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(50));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(51));
 
       ps.clearParameters();
       pmd = ps.getParameterMetaData();

@@ -106,7 +106,8 @@ import java.util.regex.Pattern;
  */
 public class JdbcDriver implements Driver {
   private static final String JDBC_API_CLIENT_LIB_TOKEN = "sp-jdbc";
-  static final int MAJOR_VERSION = 1;
+  // Updated to version 2 when upgraded to Java 8 (JDBC 4.2)
+  static final int MAJOR_VERSION = 2;
   static final int MINOR_VERSION = 0;
   private static final String JDBC_URL_FORMAT =
       "jdbc:" + ConnectionOptions.Builder.SPANNER_URI_FORMAT;
@@ -245,13 +246,12 @@ public class JdbcDriver implements Driver {
 
   @Override
   public int getMajorVersion() {
-    // Updated to version 2 when upgraded to Java 8 (JDBC 4.2)
-    return 2;
+    return MAJOR_VERSION;
   }
 
   @Override
   public int getMinorVersion() {
-    return 0;
+    return MINOR_VERSION;
   }
 
   @Override

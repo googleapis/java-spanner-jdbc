@@ -192,7 +192,10 @@ public class JdbcParameterStoreTest {
     }
 
     // types that should lead to timestamp
-    for (int type : new int[] {Types.TIME, Types.TIMESTAMP}) {
+    for (int type :
+        new int[] {
+          Types.TIME, Types.TIME_WITH_TIMEZONE, Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE
+        }) {
       params.setParameter(1, new Date(0L), type);
       assertEquals(new Date(0L), params.getParameter(1));
       verifyParameter(

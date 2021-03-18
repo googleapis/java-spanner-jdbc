@@ -272,10 +272,62 @@ public class JdbcStatementTest {
   }
 
   @Test
+  public void testInternalExecuteUpdate() throws SQLException {
+    JdbcConnection connection = mock(JdbcConnection.class);
+    Connection spannerConnection = mock(Connection.class);
+    when(connection.getSpannerConnection()).thenReturn(spannerConnection);
+    com.google.cloud.spanner.Statement updateStatement =
+        com.google.cloud.spanner.Statement.of(UPDATE);
+    com.google.cloud.spanner.Statement largeUpdateStatement =
+        com.google.cloud.spanner.Statement.of(LARGE_UPDATE);
+    when(spannerConnection.executeUpdate(updateStatement)).thenReturn(1L);
+    when(spannerConnection.executeUpdate(largeUpdateStatement)).thenReturn(Integer.MAX_VALUE + 1L);
+    try (JdbcStatement statement = new JdbcStatement(connection)) {
+      assertThat(statement.executeUpdate(updateStatement)).isEqualTo(1);
+      try {
+        statement.executeUpdate(largeUpdateStatement);
+        fail("missing expected exception");
+      } catch (JdbcSqlExceptionImpl e) {
+        assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
+      }
+    }
+  }
+
+  @Test
+  public void testInternalExecuteLargeUpdate() throws SQLException {
+    JdbcConnection connection = mock(JdbcConnection.class);
+    Connection spannerConnection = mock(Connection.class);
+    when(connection.getSpannerConnection()).thenReturn(spannerConnection);
+    com.google.cloud.spanner.Statement updateStatement =
+        com.google.cloud.spanner.Statement.of(UPDATE);
+    com.google.cloud.spanner.Statement largeUpdateStatement =
+        com.google.cloud.spanner.Statement.of(LARGE_UPDATE);
+    when(spannerConnection.executeUpdate(updateStatement)).thenReturn(1L);
+    when(spannerConnection.executeUpdate(largeUpdateStatement)).thenReturn(Integer.MAX_VALUE + 1L);
+    try (JdbcStatement statement = new JdbcStatement(connection)) {
+      assertThat(statement.executeLargeUpdate(updateStatement)).isEqualTo(1);
+      assertThat(statement.executeLargeUpdate(largeUpdateStatement))
+          .isEqualTo(Integer.MAX_VALUE + 1L);
+    }
+  }
+
+  @Test
   public void testExecuteLargeUpdate() throws SQLException {
     Statement statement = createStatement();
     assertThat(statement.executeLargeUpdate(UPDATE)).isEqualTo(1L);
     assertThat(statement.executeLargeUpdate(LARGE_UPDATE)).isEqualTo(Integer.MAX_VALUE + 1L);
+
+    assertThat(statement.executeLargeUpdate(UPDATE, Statement.NO_GENERATED_KEYS)).isEqualTo(1L);
+    assertThat(statement.executeLargeUpdate(LARGE_UPDATE, Statement.NO_GENERATED_KEYS))
+        .isEqualTo(Integer.MAX_VALUE + 1L);
+
+    assertThat(statement.executeLargeUpdate(UPDATE, new int[0])).isEqualTo(1L);
+    assertThat(statement.executeLargeUpdate(LARGE_UPDATE, new int[0]))
+        .isEqualTo(Integer.MAX_VALUE + 1L);
+
+    assertThat(statement.executeLargeUpdate(UPDATE, new String[0])).isEqualTo(1L);
+    assertThat(statement.executeLargeUpdate(LARGE_UPDATE, new String[0]))
+        .isEqualTo(Integer.MAX_VALUE + 1L);
   }
 
   @Test
@@ -368,6 +420,19 @@ public class JdbcStatementTest {
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (2, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (3, 'TEST')");
         assertThat(statement.executeBatch()).asList().containsExactly(1, 1, 1);
+      }
+    }
+  }
+
+  @Test
+  public void testLargeDmlBatch() throws SQLException {
+    try (Statement statement = createStatement()) {
+      // Verify that multiple batches can be executed on the same statement.
+      for (int i = 0; i < 2; i++) {
+        statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (1, 'TEST')");
+        statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (2, 'TEST')");
+        statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (3, 'TEST')");
+        assertThat(statement.executeLargeBatch()).asList().containsExactly(1L, 1L, 1L);
       }
     }
   }

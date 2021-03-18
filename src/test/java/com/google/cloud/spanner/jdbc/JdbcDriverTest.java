@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.MockSpannerServiceImpl;
@@ -80,6 +81,12 @@ public class JdbcDriverTest {
   @Test
   public void testClientLibToken() {
     assertThat(JdbcDriver.getClientLibToken()).isEqualTo("sp-jdbc");
+  }
+
+  @Test
+  public void testVersion() throws SQLException {
+    assertEquals(JdbcDriver.MAJOR_VERSION, JdbcDriver.getRegisteredDriver().getMajorVersion());
+    assertEquals(JdbcDriver.MINOR_VERSION, JdbcDriver.getRegisteredDriver().getMinorVersion());
   }
 
   @Test
