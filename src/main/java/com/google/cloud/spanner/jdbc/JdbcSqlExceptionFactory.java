@@ -127,6 +127,16 @@ public final class JdbcSqlExceptionFactory {
       this.code = Code.forNumber(cause.getCode());
     }
 
+    private JdbcSqlBatchUpdateException(long[] updateCounts, SpannerBatchUpdateException cause) {
+      super(
+          cause.getMessage(),
+          cause.getErrorCode().toString(),
+          cause.getCode(),
+          updateCounts,
+          cause);
+      this.code = Code.forNumber(cause.getCode());
+    }
+
     @Override
     public Code getCode() {
       return code;
@@ -313,6 +323,12 @@ public final class JdbcSqlExceptionFactory {
   /** Creates a {@link JdbcSqlException} for batch update exceptions. */
   static BatchUpdateException batchException(
       int[] updateCounts, SpannerBatchUpdateException cause) {
+    return new JdbcSqlBatchUpdateException(updateCounts, cause);
+  }
+
+  /** Creates a {@link JdbcSqlException} for large batch update exceptions. */
+  static BatchUpdateException batchException(
+      long[] updateCounts, SpannerBatchUpdateException cause) {
     return new JdbcSqlBatchUpdateException(updateCounts, cause);
   }
 }

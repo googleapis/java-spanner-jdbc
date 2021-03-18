@@ -237,41 +237,46 @@ public class JdbcPreparedStatementTest {
 
   @Test
   public void testSetNullValues() throws SQLException {
-    String sql = generateSqlWithParameters(27);
+    final int numberOfParameters = 27;
+    String sql = generateSqlWithParameters(numberOfParameters);
     try (JdbcPreparedStatement ps = new JdbcPreparedStatement(createMockConnection(), sql)) {
-      ps.setNull(1, Types.BLOB);
-      ps.setNull(2, Types.NVARCHAR);
-      ps.setNull(4, Types.BINARY);
-      ps.setNull(5, Types.BOOLEAN);
-      ps.setNull(6, Types.TINYINT);
-      ps.setNull(7, Types.DATE);
-      ps.setNull(8, Types.DOUBLE);
-      ps.setNull(9, Types.FLOAT);
-      ps.setNull(10, Types.INTEGER);
-      ps.setNull(11, Types.BIGINT);
-      ps.setNull(12, Types.SMALLINT);
-      ps.setNull(13, Types.TIME);
-      ps.setNull(14, Types.TIMESTAMP);
-      ps.setNull(15, Types.CHAR);
-      ps.setNull(16, Types.CLOB);
-      ps.setNull(17, Types.LONGNVARCHAR);
-      ps.setNull(18, Types.LONGVARBINARY);
-      ps.setNull(19, Types.LONGVARCHAR);
-      ps.setNull(20, Types.NCHAR);
-      ps.setNull(21, Types.NCLOB);
-      ps.setNull(23, Types.NVARCHAR);
-      ps.setNull(24, Types.REAL);
-      ps.setNull(25, Types.BIT);
-      ps.setNull(26, Types.VARBINARY);
-      ps.setNull(27, Types.VARCHAR);
+      int index = 0;
+      ps.setNull(++index, Types.BLOB);
+      ps.setNull(++index, Types.NVARCHAR);
+      ps.setNull(++index, Types.BINARY);
+      ps.setNull(++index, Types.BOOLEAN);
+      ps.setNull(++index, Types.TINYINT);
+      ps.setNull(++index, Types.DATE);
+      ps.setNull(++index, Types.DOUBLE);
+      ps.setNull(++index, Types.FLOAT);
+      ps.setNull(++index, Types.INTEGER);
+      ps.setNull(++index, Types.BIGINT);
+      ps.setNull(++index, Types.SMALLINT);
+      ps.setNull(++index, Types.TIME);
+      ps.setNull(++index, Types.TIME_WITH_TIMEZONE);
+      ps.setNull(++index, Types.TIMESTAMP);
+      ps.setNull(++index, Types.TIMESTAMP_WITH_TIMEZONE);
+      ps.setNull(++index, Types.CHAR);
+      ps.setNull(++index, Types.CLOB);
+      ps.setNull(++index, Types.LONGNVARCHAR);
+      ps.setNull(++index, Types.LONGVARBINARY);
+      ps.setNull(++index, Types.LONGVARCHAR);
+      ps.setNull(++index, Types.NCHAR);
+      ps.setNull(++index, Types.NCLOB);
+      ps.setNull(++index, Types.NVARCHAR);
+      ps.setNull(++index, Types.REAL);
+      ps.setNull(++index, Types.BIT);
+      ps.setNull(++index, Types.VARBINARY);
+      ps.setNull(++index, Types.VARCHAR);
+      assertEquals(numberOfParameters, index);
 
       JdbcParameterMetaData pmd = ps.getParameterMetaData();
-      assertEquals(27, pmd.getParameterCount());
-      assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(14));
+      assertEquals(numberOfParameters, pmd.getParameterCount());
+      assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(15));
 
       ps.clearParameters();
       pmd = ps.getParameterMetaData();
-      assertEquals(27, pmd.getParameterCount());
+      assertEquals(numberOfParameters, pmd.getParameterCount());
     }
   }
 

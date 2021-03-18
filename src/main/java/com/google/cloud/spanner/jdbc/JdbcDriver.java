@@ -245,7 +245,8 @@ public class JdbcDriver implements Driver {
 
   @Override
   public int getMajorVersion() {
-    return 1;
+    // Updated to version 2 when upgraded to Java 8 (JDBC 4.2)
+    return 2;
   }
 
   @Override

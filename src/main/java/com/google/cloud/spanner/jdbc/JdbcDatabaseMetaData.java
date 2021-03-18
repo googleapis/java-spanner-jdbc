@@ -1630,4 +1630,15 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   public boolean generatedKeyAlwaysReturned() throws SQLException {
     return false;
   }
+
+  @Override
+  public long getMaxLogicalLobSize() throws SQLException {
+    // BYTES(MAX)
+    return 10485760L;
+  }
+
+  @Override
+  public boolean supportsRefCursors() throws SQLException {
+    return false;
+  }
 }

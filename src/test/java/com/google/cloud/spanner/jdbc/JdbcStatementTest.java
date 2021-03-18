@@ -187,14 +187,15 @@ public class JdbcStatementTest {
     assertThat(res).isFalse();
     assertThat(statement.getResultSet()).isNull();
     assertThat(statement.getUpdateCount()).isEqualTo(1);
+    assertThat(statement.execute(LARGE_UPDATE)).isFalse();
+    assertThat(statement.getResultSet()).isNull();
     try {
-      assertThat(statement.execute(LARGE_UPDATE)).isFalse();
-      assertThat(statement.getResultSet()).isNull();
       statement.getUpdateCount();
       fail("missing expected exception");
     } catch (JdbcSqlExceptionImpl e) {
       assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
     }
+    assertThat(statement.getLargeUpdateCount()).isEqualTo(Integer.MAX_VALUE + 1L);
   }
 
   @Test
@@ -268,6 +269,13 @@ public class JdbcStatementTest {
     } catch (JdbcSqlExceptionImpl e) {
       assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
     }
+  }
+
+  @Test
+  public void testExecuteLargeUpdate() throws SQLException {
+    Statement statement = createStatement();
+    assertThat(statement.executeLargeUpdate(UPDATE)).isEqualTo(1L);
+    assertThat(statement.executeLargeUpdate(LARGE_UPDATE)).isEqualTo(Integer.MAX_VALUE + 1L);
   }
 
   @Test
@@ -382,30 +390,39 @@ public class JdbcStatementTest {
   @Test
   public void testConvertUpdateCountsToSuccessNoInfo() throws SQLException {
     try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
-      int[] updateCounts = new int[3];
+      long[] updateCounts = new long[3];
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 2L, 3L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Statement.SUCCESS_NO_INFO, Statement.SUCCESS_NO_INFO, Statement.SUCCESS_NO_INFO);
+              Long.valueOf(Statement.SUCCESS_NO_INFO),
+              Long.valueOf(Statement.SUCCESS_NO_INFO),
+              Long.valueOf(Statement.SUCCESS_NO_INFO));
 
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {0L, 0L, 0L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Statement.EXECUTE_FAILED, Statement.EXECUTE_FAILED, Statement.EXECUTE_FAILED);
+              Long.valueOf(Statement.EXECUTE_FAILED),
+              Long.valueOf(Statement.EXECUTE_FAILED),
+              Long.valueOf(Statement.EXECUTE_FAILED));
 
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 0L, 2L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Statement.SUCCESS_NO_INFO, Statement.EXECUTE_FAILED, Statement.SUCCESS_NO_INFO);
+              Long.valueOf(Statement.SUCCESS_NO_INFO),
+              Long.valueOf(Statement.EXECUTE_FAILED),
+              Long.valueOf(Statement.SUCCESS_NO_INFO));
 
       statement.convertUpdateCountsToSuccessNoInfo(
-          new long[] {1L, Integer.MAX_VALUE + 1L}, updateCounts);
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(JdbcExceptionMatcher.matchCode(Code.OUT_OF_RANGE).matches(e)).isTrue();
+          new long[] {1L, Integer.MAX_VALUE + 1L, 2L}, updateCounts);
+      assertThat(updateCounts)
+          .asList()
+          .containsExactly(
+              Long.valueOf(Statement.SUCCESS_NO_INFO),
+              Long.valueOf(Statement.SUCCESS_NO_INFO),
+              Long.valueOf(Statement.SUCCESS_NO_INFO));
     }
   }
 }
