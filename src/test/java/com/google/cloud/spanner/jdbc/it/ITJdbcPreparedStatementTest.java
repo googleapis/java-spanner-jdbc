@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
+import static com.google.cloud.spanner.testing.EmulatorSpannerHelper.isUsingEmulator;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,11 +24,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 
-import com.google.api.client.util.Base64;
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.common.base.Strings;
+import com.google.common.io.BaseEncoding;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.StringReader;
@@ -38,6 +40,7 @@ import java.sql.Date;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -222,7 +225,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private static byte[] parseBytes(String value) {
-    return Base64.decodeBase64(value);
+    return BaseEncoding.base64().decode(value);
   }
 
   private List<Singer> createSingers() {
@@ -821,6 +824,53 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
             new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN},
             (BigDecimal[]) rs.getArray(21).getArray());
         assertFalse(rs.next());
+      }
+    }
+  }
+
+  @Test
+  public void test09_MetaData_FromQuery() throws SQLException {
+    assumeFalse("The emulator does not support PLAN mode", isUsingEmulator());
+    try (Connection con = createConnection()) {
+      try (PreparedStatement ps =
+          con.prepareStatement("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=?")) {
+        ResultSetMetaData metadata = ps.getMetaData();
+        assertEquals(22, metadata.getColumnCount());
+        int index = 0;
+        assertEquals("ColInt64", metadata.getColumnLabel(++index));
+        assertEquals("ColFloat64", metadata.getColumnLabel(++index));
+        assertEquals("ColBool", metadata.getColumnLabel(++index));
+        assertEquals("ColString", metadata.getColumnLabel(++index));
+        assertEquals("ColStringMax", metadata.getColumnLabel(++index));
+        assertEquals("ColBytes", metadata.getColumnLabel(++index));
+        assertEquals("ColBytesMax", metadata.getColumnLabel(++index));
+        assertEquals("ColDate", metadata.getColumnLabel(++index));
+        assertEquals("ColTimestamp", metadata.getColumnLabel(++index));
+        assertEquals("ColCommitTS", metadata.getColumnLabel(++index));
+        assertEquals("ColNumeric", metadata.getColumnLabel(++index));
+        assertEquals("ColInt64Array", metadata.getColumnLabel(++index));
+        assertEquals("ColFloat64Array", metadata.getColumnLabel(++index));
+        assertEquals("ColBoolArray", metadata.getColumnLabel(++index));
+        assertEquals("ColStringArray", metadata.getColumnLabel(++index));
+        assertEquals("ColStringMaxArray", metadata.getColumnLabel(++index));
+        assertEquals("ColBytesArray", metadata.getColumnLabel(++index));
+        assertEquals("ColBytesMaxArray", metadata.getColumnLabel(++index));
+        assertEquals("ColDateArray", metadata.getColumnLabel(++index));
+        assertEquals("ColTimestampArray", metadata.getColumnLabel(++index));
+        assertEquals("ColNumericArray", metadata.getColumnLabel(++index));
+        assertEquals("ColComputed", metadata.getColumnLabel(++index));
+      }
+    }
+  }
+
+  @Test
+  public void test10_MetaData_FromDML() throws SQLException {
+    try (Connection con = createConnection()) {
+      try (PreparedStatement ps =
+          con.prepareStatement(
+              "UPDATE TableWithAllColumnTypes SET ColBool=FALSE WHERE ColInt64=?")) {
+        ResultSetMetaData metadata = ps.getMetaData();
+        assertEquals(0, metadata.getColumnCount());
       }
     }
   }

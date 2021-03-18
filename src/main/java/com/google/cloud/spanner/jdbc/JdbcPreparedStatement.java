@@ -17,11 +17,17 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.Options.QueryOption;
+import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
+import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.Statement;
+import com.google.cloud.spanner.Struct;
+import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.jdbc.JdbcParameterStore.ParametersInfo;
+import com.google.common.collect.ImmutableList;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 /** Implementation of {@link PreparedStatement} for Cloud Spanner. */
@@ -85,5 +91,21 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
   public JdbcParameterMetaData getParameterMetaData() throws SQLException {
     checkClosed();
     return new JdbcParameterMetaData(this);
+  }
+
+  @Override
+  public ResultSetMetaData getMetaData() throws SQLException {
+    checkClosed();
+    if (StatementParser.INSTANCE.isUpdateStatement(sql)) {
+      // Return metadata for an empty result set as DML statements do not return any results (as a
+      // result set).
+      com.google.cloud.spanner.ResultSet resultSet =
+          ResultSets.forRows(Type.struct(), ImmutableList.<Struct>of());
+      resultSet.next();
+      return new JdbcResultSetMetaData(JdbcResultSet.of(resultSet), this);
+    }
+    try (ResultSet rs = analyzeQuery(createStatement(), QueryAnalyzeMode.PLAN)) {
+      return rs.getMetaData();
+    }
   }
 }

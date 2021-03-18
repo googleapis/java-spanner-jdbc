@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.Options;
 import com.google.cloud.spanner.Options.QueryOption;
+import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.cloud.spanner.connection.StatementResult.ClientSideStatementType;
@@ -148,6 +149,20 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   /**
+   * Executes a SQL statement on the connection of this {@link Statement} as a query using the given
+   * {@link QueryAnalyzeMode}.
+   *
+   * @param statement the SQL statement to executed
+   * @param analyzeMode the {@link QueryAnalyzeMode} to use
+   * @return the result of the SQL statement as a {@link ResultSet}
+   * @throws SQLException if a database error occurs.
+   */
+  ResultSet analyzeQuery(com.google.cloud.spanner.Statement statement, QueryAnalyzeMode analyzeMode)
+      throws SQLException {
+    return executeQuery(statement, analyzeMode);
+  }
+
+  /**
    * Executes a SQL statement on the connection of this {@link Statement} as a query.
    *
    * @param statement The SQL statement to executed.
@@ -157,11 +172,24 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    */
   ResultSet executeQuery(com.google.cloud.spanner.Statement statement, QueryOption... options)
       throws SQLException {
+    return executeQuery(statement, null, options);
+  }
+
+  private ResultSet executeQuery(
+      com.google.cloud.spanner.Statement statement,
+      QueryAnalyzeMode analyzeMode,
+      QueryOption... options)
+      throws SQLException {
     StatementTimeout originalTimeout = setTemporaryStatementTimeout();
     try {
-      return JdbcResultSet.of(
-          this,
-          connection.getSpannerConnection().executeQuery(statement, getQueryOptions(options)));
+      com.google.cloud.spanner.ResultSet resultSet;
+      if (analyzeMode == null) {
+        resultSet =
+            connection.getSpannerConnection().executeQuery(statement, getQueryOptions(options));
+      } else {
+        resultSet = connection.getSpannerConnection().analyzeQuery(statement, analyzeMode);
+      }
+      return JdbcResultSet.of(this, resultSet);
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     } finally {

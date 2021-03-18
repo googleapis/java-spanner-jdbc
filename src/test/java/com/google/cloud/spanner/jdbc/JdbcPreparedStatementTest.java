@@ -25,6 +25,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.Statement;
@@ -293,7 +294,7 @@ public class JdbcPreparedStatementTest {
                     .set("AMOUNT")
                     .to(Math.PI)
                     .build()));
-    when(connection.executeQuery(Statement.of(sql))).thenReturn(rs);
+    when(connection.analyzeQuery(Statement.of(sql), QueryAnalyzeMode.PLAN)).thenReturn(rs);
     try (JdbcPreparedStatement ps =
         new JdbcPreparedStatement(createMockConnection(connection), sql)) {
       ResultSetMetaData metadata = ps.getMetaData();
@@ -304,6 +305,17 @@ public class JdbcPreparedStatementTest {
       assertEquals(Types.BIGINT, metadata.getColumnType(1));
       assertEquals(Types.NVARCHAR, metadata.getColumnType(2));
       assertEquals(Types.DOUBLE, metadata.getColumnType(3));
+    }
+  }
+
+  @Test
+  public void testGetResultSetMetaDataForDml() throws SQLException {
+    Connection connection = mock(Connection.class);
+    try (JdbcPreparedStatement ps =
+        new JdbcPreparedStatement(
+            createMockConnection(connection), "UPDATE FOO SET BAR=1 WHERE TRUE")) {
+      ResultSetMetaData metadata = ps.getMetaData();
+      assertEquals(0, metadata.getColumnCount());
     }
   }
 }
