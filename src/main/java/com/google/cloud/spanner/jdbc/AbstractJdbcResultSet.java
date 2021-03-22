@@ -29,6 +29,7 @@ import java.sql.ResultSet;
 import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLType;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Time;
@@ -234,7 +235,18 @@ abstract class AbstractJdbcResultSet extends AbstractJdbcWrapper implements Resu
   }
 
   @Override
+  public void updateObject(int columnIndex, Object x, SQLType type, int scaleOrLength)
+      throws SQLException {
+    throw new SQLFeatureNotSupportedException();
+  }
+
+  @Override
   public void updateObject(int columnIndex, Object x) throws SQLException {
+    throw new SQLFeatureNotSupportedException();
+  }
+
+  @Override
+  public void updateObject(int columnIndex, Object x, SQLType type) throws SQLException {
     throw new SQLFeatureNotSupportedException();
   }
 
@@ -332,6 +344,17 @@ abstract class AbstractJdbcResultSet extends AbstractJdbcWrapper implements Resu
 
   @Override
   public void updateObject(String columnLabel, Object x) throws SQLException {
+    throw new SQLFeatureNotSupportedException();
+  }
+
+  @Override
+  public void updateObject(String columnLabel, Object x, SQLType type) throws SQLException {
+    throw new SQLFeatureNotSupportedException();
+  }
+
+  @Override
+  public void updateObject(String columnLabel, Object x, SQLType type, int scaleOrLength)
+      throws SQLException {
     throw new SQLFeatureNotSupportedException();
   }
 

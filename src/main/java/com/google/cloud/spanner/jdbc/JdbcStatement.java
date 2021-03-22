@@ -68,6 +68,21 @@ class JdbcStatement extends AbstractJdbcStatement {
    */
   @Override
   public int executeUpdate(String sql) throws SQLException {
+    long result = executeLargeUpdate(sql);
+    if (result > Integer.MAX_VALUE) {
+      throw JdbcSqlExceptionFactory.of("update count too large: " + result, Code.OUT_OF_RANGE);
+    }
+    return (int) result;
+  }
+
+  /**
+   * @see java.sql.Statement#executeLargeUpdate(String)
+   *     <p>This method allows both DML and DDL statements to be executed. It assumes that the user
+   *     knows what kind of statement is being executed, and the method will therefore return 0 for
+   *     both DML statements that changed 0 rows as well as for all DDL statements.
+   */
+  @Override
+  public long executeLargeUpdate(String sql) throws SQLException {
     checkClosed();
     Statement statement = Statement.of(sql);
     StatementResult result = execute(statement);
@@ -76,13 +91,9 @@ class JdbcStatement extends AbstractJdbcStatement {
         throw JdbcSqlExceptionFactory.of(
             "The statement is not an update or DDL statement", Code.INVALID_ARGUMENT);
       case UPDATE_COUNT:
-        if (result.getUpdateCount() > Integer.MAX_VALUE) {
-          throw JdbcSqlExceptionFactory.of(
-              "update count too large: " + result.getUpdateCount(), Code.OUT_OF_RANGE);
-        }
-        return result.getUpdateCount().intValue();
+        return result.getUpdateCount();
       case NO_RESULT:
-        return 0;
+        return 0L;
       default:
         throw JdbcSqlExceptionFactory.of(
             "unknown result: " + result.getResultType(), Code.FAILED_PRECONDITION);
@@ -136,6 +147,18 @@ class JdbcStatement extends AbstractJdbcStatement {
           "update count too large: " + currentUpdateCount, Code.OUT_OF_RANGE);
     }
     return (int) currentUpdateCount;
+  }
+
+  /**
+   * Returns the update count of the last update statement as a {@link Long}. Will return {@link
+   * JdbcConstants#STATEMENT_RESULT_SET} if the last statement returned a {@link ResultSet} and will
+   * return {@link JdbcConstants#STATEMENT_NO_RESULT} if the last statement did not have any return
+   * value, such as for example DDL statements.
+   */
+  @Override
+  public long getLargeUpdateCount() throws SQLException {
+    checkClosed();
+    return currentUpdateCount;
   }
 
   @Override
@@ -234,19 +257,28 @@ class JdbcStatement extends AbstractJdbcStatement {
 
   @Override
   public int[] executeBatch() throws SQLException {
+    return convertUpdateCounts(executeBatch(false));
+  }
+
+  public long[] executeLargeBatch() throws SQLException {
+    return executeBatch(true);
+  }
+
+  private long[] executeBatch(boolean large) throws SQLException {
     checkClosed();
     checkConnectionHasNoActiveBatch();
     try {
       switch (this.currentBatchType) {
         case DML:
           try {
-            long[] updateCounts =
-                getConnection().getSpannerConnection().executeBatchUpdate(batchedStatements);
-            int[] res = convertUpdateCounts(updateCounts);
-            return res;
+            return getConnection().getSpannerConnection().executeBatchUpdate(batchedStatements);
           } catch (SpannerBatchUpdateException e) {
-            int[] updateCounts = convertUpdateCounts(e.getUpdateCounts());
-            throw JdbcSqlExceptionFactory.batchException(updateCounts, e);
+            if (large) {
+              throw JdbcSqlExceptionFactory.batchException(e.getUpdateCounts(), e);
+            } else {
+              throw JdbcSqlExceptionFactory.batchException(
+                  convertUpdateCounts(e.getUpdateCounts()), e);
+            }
           } catch (SpannerException e) {
             throw JdbcSqlExceptionFactory.of(e);
           }
@@ -257,20 +289,24 @@ class JdbcStatement extends AbstractJdbcStatement {
               execute(statement);
             }
             getConnection().getSpannerConnection().runBatch();
-            int[] res = new int[batchedStatements.size()];
+            long[] res = new long[batchedStatements.size()];
             Arrays.fill(res, java.sql.Statement.SUCCESS_NO_INFO);
             return res;
           } catch (SpannerBatchUpdateException e) {
-            int[] res = new int[batchedStatements.size()];
+            long[] res = new long[batchedStatements.size()];
             Arrays.fill(res, java.sql.Statement.EXECUTE_FAILED);
             convertUpdateCountsToSuccessNoInfo(e.getUpdateCounts(), res);
-            throw JdbcSqlExceptionFactory.batchException(res, e);
+            if (large) {
+              throw JdbcSqlExceptionFactory.batchException(res, e);
+            } else {
+              throw JdbcSqlExceptionFactory.batchException(convertUpdateCounts(res), e);
+            }
           } catch (SpannerException e) {
             throw JdbcSqlExceptionFactory.of(e);
           }
         case NONE:
           // There is no batch on this statement, this is a no-op.
-          return new int[0];
+          return new long[0];
         default:
           throw JdbcSqlExceptionFactory.unsupported(
               String.format("Unknown batch type: %s", this.currentBatchType.name()));
@@ -296,16 +332,11 @@ class JdbcStatement extends AbstractJdbcStatement {
   }
 
   @VisibleForTesting
-  void convertUpdateCountsToSuccessNoInfo(long[] updateCounts, int[] res) throws SQLException {
+  void convertUpdateCountsToSuccessNoInfo(long[] updateCounts, long[] res) throws SQLException {
     Preconditions.checkNotNull(updateCounts);
     Preconditions.checkNotNull(res);
     Preconditions.checkArgument(res.length >= updateCounts.length);
     for (int index = 0; index < updateCounts.length; index++) {
-      if (updateCounts[index] > Integer.MAX_VALUE) {
-        throw JdbcSqlExceptionFactory.of(
-            String.format("Update count too large for int: %d", updateCounts[index]),
-            Code.OUT_OF_RANGE);
-      }
       if (updateCounts[index] > 0L) {
         res[index] = java.sql.Statement.SUCCESS_NO_INFO;
       } else {
@@ -347,6 +378,27 @@ class JdbcStatement extends AbstractJdbcStatement {
   public int executeUpdate(String sql, String[] columnNames) throws SQLException {
     checkClosed();
     return executeUpdate(sql);
+  }
+
+  @Override
+  public long executeLargeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
+    checkClosed();
+    JdbcPreconditions.checkSqlFeatureSupported(
+        autoGeneratedKeys == java.sql.Statement.NO_GENERATED_KEYS,
+        JdbcConnection.ONLY_NO_GENERATED_KEYS);
+    return executeLargeUpdate(sql);
+  }
+
+  @Override
+  public long executeLargeUpdate(String sql, int[] columnIndexes) throws SQLException {
+    checkClosed();
+    return executeLargeUpdate(sql);
+  }
+
+  @Override
+  public long executeLargeUpdate(String sql, String[] columnNames) throws SQLException {
+    checkClosed();
+    return executeLargeUpdate(sql);
   }
 
   @Override

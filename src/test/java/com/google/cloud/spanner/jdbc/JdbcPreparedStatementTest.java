@@ -39,6 +39,7 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Date;
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSetMetaData;
@@ -101,7 +102,7 @@ public class JdbcPreparedStatementTest {
   @SuppressWarnings("deprecation")
   @Test
   public void testParameters() throws SQLException, MalformedURLException {
-    final int numberOfParams = 48;
+    final int numberOfParams = 51;
     String sql = generateSqlWithParameters(numberOfParams);
 
     JdbcConnection connection = createMockConnection();
@@ -151,6 +152,8 @@ public class JdbcPreparedStatementTest {
       ps.setUnicodeStream(47, new ByteArrayInputStream("TEST".getBytes()), 4);
       ps.setURL(48, new URL("https://spanner.google.com"));
       ps.setObject(49, UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"));
+      ps.setObject(50, "TEST", JDBCType.NVARCHAR);
+      ps.setObject(51, "TEST", JDBCType.NVARCHAR, 20);
 
       testSetUnsupportedTypes(ps);
 
@@ -204,6 +207,8 @@ public class JdbcPreparedStatementTest {
       assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(47));
       assertEquals(URL.class.getName(), pmd.getParameterClassName(48));
       assertEquals(UUID.class.getName(), pmd.getParameterClassName(49));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(50));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(51));
 
       ps.clearParameters();
       pmd = ps.getParameterMetaData();
@@ -237,41 +242,46 @@ public class JdbcPreparedStatementTest {
 
   @Test
   public void testSetNullValues() throws SQLException {
-    String sql = generateSqlWithParameters(27);
+    final int numberOfParameters = 27;
+    String sql = generateSqlWithParameters(numberOfParameters);
     try (JdbcPreparedStatement ps = new JdbcPreparedStatement(createMockConnection(), sql)) {
-      ps.setNull(1, Types.BLOB);
-      ps.setNull(2, Types.NVARCHAR);
-      ps.setNull(4, Types.BINARY);
-      ps.setNull(5, Types.BOOLEAN);
-      ps.setNull(6, Types.TINYINT);
-      ps.setNull(7, Types.DATE);
-      ps.setNull(8, Types.DOUBLE);
-      ps.setNull(9, Types.FLOAT);
-      ps.setNull(10, Types.INTEGER);
-      ps.setNull(11, Types.BIGINT);
-      ps.setNull(12, Types.SMALLINT);
-      ps.setNull(13, Types.TIME);
-      ps.setNull(14, Types.TIMESTAMP);
-      ps.setNull(15, Types.CHAR);
-      ps.setNull(16, Types.CLOB);
-      ps.setNull(17, Types.LONGNVARCHAR);
-      ps.setNull(18, Types.LONGVARBINARY);
-      ps.setNull(19, Types.LONGVARCHAR);
-      ps.setNull(20, Types.NCHAR);
-      ps.setNull(21, Types.NCLOB);
-      ps.setNull(23, Types.NVARCHAR);
-      ps.setNull(24, Types.REAL);
-      ps.setNull(25, Types.BIT);
-      ps.setNull(26, Types.VARBINARY);
-      ps.setNull(27, Types.VARCHAR);
+      int index = 0;
+      ps.setNull(++index, Types.BLOB);
+      ps.setNull(++index, Types.NVARCHAR);
+      ps.setNull(++index, Types.BINARY);
+      ps.setNull(++index, Types.BOOLEAN);
+      ps.setNull(++index, Types.TINYINT);
+      ps.setNull(++index, Types.DATE);
+      ps.setNull(++index, Types.DOUBLE);
+      ps.setNull(++index, Types.FLOAT);
+      ps.setNull(++index, Types.INTEGER);
+      ps.setNull(++index, Types.BIGINT);
+      ps.setNull(++index, Types.SMALLINT);
+      ps.setNull(++index, Types.TIME);
+      ps.setNull(++index, Types.TIME_WITH_TIMEZONE);
+      ps.setNull(++index, Types.TIMESTAMP);
+      ps.setNull(++index, Types.TIMESTAMP_WITH_TIMEZONE);
+      ps.setNull(++index, Types.CHAR);
+      ps.setNull(++index, Types.CLOB);
+      ps.setNull(++index, Types.LONGNVARCHAR);
+      ps.setNull(++index, Types.LONGVARBINARY);
+      ps.setNull(++index, Types.LONGVARCHAR);
+      ps.setNull(++index, Types.NCHAR);
+      ps.setNull(++index, Types.NCLOB);
+      ps.setNull(++index, Types.NVARCHAR);
+      ps.setNull(++index, Types.REAL);
+      ps.setNull(++index, Types.BIT);
+      ps.setNull(++index, Types.VARBINARY);
+      ps.setNull(++index, Types.VARCHAR);
+      assertEquals(numberOfParameters, index);
 
       JdbcParameterMetaData pmd = ps.getParameterMetaData();
-      assertEquals(27, pmd.getParameterCount());
-      assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(14));
+      assertEquals(numberOfParameters, pmd.getParameterCount());
+      assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(15));
 
       ps.clearParameters();
       pmd = ps.getParameterMetaData();
-      assertEquals(27, pmd.getParameterCount());
+      assertEquals(numberOfParameters, pmd.getParameterCount());
     }
   }
 

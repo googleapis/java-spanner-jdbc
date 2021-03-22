@@ -187,14 +187,15 @@ public class JdbcStatementTest {
     assertThat(res).isFalse();
     assertThat(statement.getResultSet()).isNull();
     assertThat(statement.getUpdateCount()).isEqualTo(1);
+    assertThat(statement.execute(LARGE_UPDATE)).isFalse();
+    assertThat(statement.getResultSet()).isNull();
     try {
-      assertThat(statement.execute(LARGE_UPDATE)).isFalse();
-      assertThat(statement.getResultSet()).isNull();
       statement.getUpdateCount();
       fail("missing expected exception");
     } catch (JdbcSqlExceptionImpl e) {
       assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
     }
+    assertThat(statement.getLargeUpdateCount()).isEqualTo(Integer.MAX_VALUE + 1L);
   }
 
   @Test
@@ -268,6 +269,65 @@ public class JdbcStatementTest {
     } catch (JdbcSqlExceptionImpl e) {
       assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
     }
+  }
+
+  @Test
+  public void testInternalExecuteUpdate() throws SQLException {
+    JdbcConnection connection = mock(JdbcConnection.class);
+    Connection spannerConnection = mock(Connection.class);
+    when(connection.getSpannerConnection()).thenReturn(spannerConnection);
+    com.google.cloud.spanner.Statement updateStatement =
+        com.google.cloud.spanner.Statement.of(UPDATE);
+    com.google.cloud.spanner.Statement largeUpdateStatement =
+        com.google.cloud.spanner.Statement.of(LARGE_UPDATE);
+    when(spannerConnection.executeUpdate(updateStatement)).thenReturn(1L);
+    when(spannerConnection.executeUpdate(largeUpdateStatement)).thenReturn(Integer.MAX_VALUE + 1L);
+    try (JdbcStatement statement = new JdbcStatement(connection)) {
+      assertThat(statement.executeUpdate(updateStatement)).isEqualTo(1);
+      try {
+        statement.executeUpdate(largeUpdateStatement);
+        fail("missing expected exception");
+      } catch (JdbcSqlExceptionImpl e) {
+        assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
+      }
+    }
+  }
+
+  @Test
+  public void testInternalExecuteLargeUpdate() throws SQLException {
+    JdbcConnection connection = mock(JdbcConnection.class);
+    Connection spannerConnection = mock(Connection.class);
+    when(connection.getSpannerConnection()).thenReturn(spannerConnection);
+    com.google.cloud.spanner.Statement updateStatement =
+        com.google.cloud.spanner.Statement.of(UPDATE);
+    com.google.cloud.spanner.Statement largeUpdateStatement =
+        com.google.cloud.spanner.Statement.of(LARGE_UPDATE);
+    when(spannerConnection.executeUpdate(updateStatement)).thenReturn(1L);
+    when(spannerConnection.executeUpdate(largeUpdateStatement)).thenReturn(Integer.MAX_VALUE + 1L);
+    try (JdbcStatement statement = new JdbcStatement(connection)) {
+      assertThat(statement.executeLargeUpdate(updateStatement)).isEqualTo(1);
+      assertThat(statement.executeLargeUpdate(largeUpdateStatement))
+          .isEqualTo(Integer.MAX_VALUE + 1L);
+    }
+  }
+
+  @Test
+  public void testExecuteLargeUpdate() throws SQLException {
+    Statement statement = createStatement();
+    assertThat(statement.executeLargeUpdate(UPDATE)).isEqualTo(1L);
+    assertThat(statement.executeLargeUpdate(LARGE_UPDATE)).isEqualTo(Integer.MAX_VALUE + 1L);
+
+    assertThat(statement.executeLargeUpdate(UPDATE, Statement.NO_GENERATED_KEYS)).isEqualTo(1L);
+    assertThat(statement.executeLargeUpdate(LARGE_UPDATE, Statement.NO_GENERATED_KEYS))
+        .isEqualTo(Integer.MAX_VALUE + 1L);
+
+    assertThat(statement.executeLargeUpdate(UPDATE, new int[0])).isEqualTo(1L);
+    assertThat(statement.executeLargeUpdate(LARGE_UPDATE, new int[0]))
+        .isEqualTo(Integer.MAX_VALUE + 1L);
+
+    assertThat(statement.executeLargeUpdate(UPDATE, new String[0])).isEqualTo(1L);
+    assertThat(statement.executeLargeUpdate(LARGE_UPDATE, new String[0]))
+        .isEqualTo(Integer.MAX_VALUE + 1L);
   }
 
   @Test
@@ -365,6 +425,19 @@ public class JdbcStatementTest {
   }
 
   @Test
+  public void testLargeDmlBatch() throws SQLException {
+    try (Statement statement = createStatement()) {
+      // Verify that multiple batches can be executed on the same statement.
+      for (int i = 0; i < 2; i++) {
+        statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (1, 'TEST')");
+        statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (2, 'TEST')");
+        statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (3, 'TEST')");
+        assertThat(statement.executeLargeBatch()).asList().containsExactly(1L, 1L, 1L);
+      }
+    }
+  }
+
+  @Test
   public void testConvertUpdateCounts() throws SQLException {
     try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
       int[] updateCounts = statement.convertUpdateCounts(new long[] {1L, 2L, 3L});
@@ -382,30 +455,39 @@ public class JdbcStatementTest {
   @Test
   public void testConvertUpdateCountsToSuccessNoInfo() throws SQLException {
     try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
-      int[] updateCounts = new int[3];
+      long[] updateCounts = new long[3];
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 2L, 3L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Statement.SUCCESS_NO_INFO, Statement.SUCCESS_NO_INFO, Statement.SUCCESS_NO_INFO);
+              Long.valueOf(Statement.SUCCESS_NO_INFO),
+              Long.valueOf(Statement.SUCCESS_NO_INFO),
+              Long.valueOf(Statement.SUCCESS_NO_INFO));
 
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {0L, 0L, 0L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Statement.EXECUTE_FAILED, Statement.EXECUTE_FAILED, Statement.EXECUTE_FAILED);
+              Long.valueOf(Statement.EXECUTE_FAILED),
+              Long.valueOf(Statement.EXECUTE_FAILED),
+              Long.valueOf(Statement.EXECUTE_FAILED));
 
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 0L, 2L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Statement.SUCCESS_NO_INFO, Statement.EXECUTE_FAILED, Statement.SUCCESS_NO_INFO);
+              Long.valueOf(Statement.SUCCESS_NO_INFO),
+              Long.valueOf(Statement.EXECUTE_FAILED),
+              Long.valueOf(Statement.SUCCESS_NO_INFO));
 
       statement.convertUpdateCountsToSuccessNoInfo(
-          new long[] {1L, Integer.MAX_VALUE + 1L}, updateCounts);
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(JdbcExceptionMatcher.matchCode(Code.OUT_OF_RANGE).matches(e)).isTrue();
+          new long[] {1L, Integer.MAX_VALUE + 1L, 2L}, updateCounts);
+      assertThat(updateCounts)
+          .asList()
+          .containsExactly(
+              Long.valueOf(Statement.SUCCESS_NO_INFO),
+              Long.valueOf(Statement.SUCCESS_NO_INFO),
+              Long.valueOf(Statement.SUCCESS_NO_INFO));
     }
   }
 }

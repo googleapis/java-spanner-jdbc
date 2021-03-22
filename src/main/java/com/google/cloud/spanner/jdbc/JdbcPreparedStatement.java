@@ -74,6 +74,11 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
     return executeUpdate(createStatement());
   }
 
+  public long executeLargeUpdate() throws SQLException {
+    checkClosed();
+    return executeLargeUpdate(createStatement());
+  }
+
   @Override
   public boolean execute() throws SQLException {
     checkClosed();

@@ -204,7 +204,9 @@ class JdbcParameterStore {
       case Types.LONGNVARCHAR:
       case Types.DATE:
       case Types.TIME:
+      case Types.TIME_WITH_TIMEZONE:
       case Types.TIMESTAMP:
+      case Types.TIMESTAMP_WITH_TIMEZONE:
       case Types.BINARY:
       case Types.VARBINARY:
       case Types.LONGVARBINARY:
@@ -249,7 +251,9 @@ class JdbcParameterStore {
             || value instanceof URL;
       case Types.DATE:
       case Types.TIME:
+      case Types.TIME_WITH_TIMEZONE:
       case Types.TIMESTAMP:
+      case Types.TIMESTAMP_WITH_TIMEZONE:
         return value instanceof Date || value instanceof Time || value instanceof Timestamp;
       case Types.BINARY:
       case Types.VARBINARY:
@@ -522,7 +526,9 @@ class JdbcParameterStore {
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid date", Code.INVALID_ARGUMENT);
       case Types.TIME:
+      case Types.TIME_WITH_TIMEZONE:
       case Types.TIMESTAMP:
+      case Types.TIMESTAMP_WITH_TIMEZONE:
         if (value instanceof Date) {
           return binder.to(JdbcTypeConverter.toGoogleTimestamp((Date) value));
         } else if (value instanceof Time) {
@@ -715,7 +721,9 @@ class JdbcParameterStore {
         case Types.DATE:
           return binder.toDateArray((Iterable<com.google.cloud.Date>) null);
         case Types.TIME:
+        case Types.TIME_WITH_TIMEZONE:
         case Types.TIMESTAMP:
+        case Types.TIMESTAMP_WITH_TIMEZONE:
           return binder.toTimestampArray((Iterable<com.google.cloud.Timestamp>) null);
         case Types.BINARY:
         case Types.VARBINARY:
@@ -843,8 +851,9 @@ class JdbcParameterStore {
       case Types.SQLXML:
         return binder.to((String) null);
       case Types.TIME:
-        return binder.to((com.google.cloud.Timestamp) null);
+      case Types.TIME_WITH_TIMEZONE:
       case Types.TIMESTAMP:
+      case Types.TIMESTAMP_WITH_TIMEZONE:
         return binder.to((com.google.cloud.Timestamp) null);
       case Types.TINYINT:
         return binder.to((Long) null);

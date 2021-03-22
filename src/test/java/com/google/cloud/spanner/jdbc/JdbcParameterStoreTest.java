@@ -86,7 +86,15 @@ public class JdbcParameterStoreTest {
     assertEquals(new Time(0L), params.getParameter(1));
     verifyParameter(
         params, Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(0L, 0)));
+    params.setParameter(1, new Time(0L), Types.TIME_WITH_TIMEZONE);
+    assertEquals(new Time(0L), params.getParameter(1));
+    verifyParameter(
+        params, Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(0L, 0)));
     params.setParameter(1, new Timestamp(0L), Types.TIMESTAMP);
+    assertEquals(new Timestamp(0L), params.getParameter(1));
+    verifyParameter(
+        params, Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(0L, 0)));
+    params.setParameter(1, new Timestamp(0L), Types.TIMESTAMP_WITH_TIMEZONE);
     assertEquals(new Timestamp(0L), params.getParameter(1));
     verifyParameter(
         params, Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(0L, 0)));
@@ -184,7 +192,10 @@ public class JdbcParameterStoreTest {
     }
 
     // types that should lead to timestamp
-    for (int type : new int[] {Types.TIME, Types.TIMESTAMP}) {
+    for (int type :
+        new int[] {
+          Types.TIME, Types.TIME_WITH_TIMEZONE, Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE
+        }) {
       params.setParameter(1, new Date(0L), type);
       assertEquals(new Date(0L), params.getParameter(1));
       verifyParameter(
@@ -321,7 +332,10 @@ public class JdbcParameterStoreTest {
     }
 
     // types that should lead to timestamp
-    for (int type : new int[] {Types.TIME, Types.TIMESTAMP}) {
+    for (int type :
+        new int[] {
+          Types.TIME, Types.TIME_WITH_TIMEZONE, Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE
+        }) {
       assertInvalidParameter(params, "1", type);
       assertInvalidParameter(params, new Object(), type);
       assertInvalidParameter(params, Boolean.TRUE, type);

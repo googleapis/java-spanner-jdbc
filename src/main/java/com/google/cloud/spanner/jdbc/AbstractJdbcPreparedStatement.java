@@ -31,6 +31,7 @@ import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.RowId;
 import java.sql.SQLException;
+import java.sql.SQLType;
 import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -319,6 +320,21 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
       throws SQLException {
     checkClosed();
     parameters.setParameter(parameterIndex, value, targetSqlType, scaleOrLength);
+  }
+
+  @Override
+  public void setObject(int parameterIndex, Object value, SQLType targetSqlType)
+      throws SQLException {
+    checkClosed();
+    parameters.setParameter(parameterIndex, value, targetSqlType.getVendorTypeNumber());
+  }
+
+  @Override
+  public void setObject(int parameterIndex, Object value, SQLType targetSqlType, int scaleOrLength)
+      throws SQLException {
+    checkClosed();
+    parameters.setParameter(
+        parameterIndex, value, targetSqlType.getVendorTypeNumber(), scaleOrLength);
   }
 
   @Override

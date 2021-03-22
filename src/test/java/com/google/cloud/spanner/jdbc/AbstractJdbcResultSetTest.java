@@ -40,6 +40,7 @@ import java.sql.ResultSet;
 import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLType;
 import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
@@ -508,13 +509,6 @@ public class AbstractJdbcResultSetTest {
         new SqlRunnable() {
           @Override
           public void run() throws SQLException {
-            rs.updateObject("test", new Object());
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
             rs.updateObject(1, new Object(), 1);
           }
         });
@@ -522,7 +516,42 @@ public class AbstractJdbcResultSetTest {
         new SqlRunnable() {
           @Override
           public void run() throws SQLException {
+            rs.updateObject(1, new Object(), mock(SQLType.class));
+          }
+        });
+    assertUnsupported(
+        new SqlRunnable() {
+          @Override
+          public void run() throws SQLException {
+            rs.updateObject(1, new Object(), mock(SQLType.class), 0);
+          }
+        });
+    assertUnsupported(
+        new SqlRunnable() {
+          @Override
+          public void run() throws SQLException {
+            rs.updateObject("test", new Object());
+          }
+        });
+    assertUnsupported(
+        new SqlRunnable() {
+          @Override
+          public void run() throws SQLException {
             rs.updateObject("test", new Object(), 1);
+          }
+        });
+    assertUnsupported(
+        new SqlRunnable() {
+          @Override
+          public void run() throws SQLException {
+            rs.updateObject("test", new Object(), mock(SQLType.class));
+          }
+        });
+    assertUnsupported(
+        new SqlRunnable() {
+          @Override
+          public void run() throws SQLException {
+            rs.updateObject("test", new Object(), mock(SQLType.class), 1);
           }
         });
     assertUnsupported(

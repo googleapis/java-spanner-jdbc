@@ -201,20 +201,32 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    * Executes a SQL statement on the connection of this {@link Statement} as an update (DML)
    * statement.
    *
-   * @param statement The SQL statement to execute.
-   * @return the number of rows that was inserted/updated/deleted.
+   * @param statement The SQL statement to execute
+   * @return the number of rows that was inserted/updated/deleted
    * @throws SQLException if a database error occurs, or if the number of rows affected is larger
-   *     than {@link Integer#MAX_VALUE}.
+   *     than {@link Integer#MAX_VALUE}
    */
   int executeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
+    long count = executeLargeUpdate(statement);
+    if (count > Integer.MAX_VALUE) {
+      throw JdbcSqlExceptionFactory.of(
+          "update count too large for executeUpdate: " + count, Code.OUT_OF_RANGE);
+    }
+    return (int) count;
+  }
+
+  /**
+   * Executes a SQL statement on the connection of this {@link Statement} as an update (DML)
+   * statement.
+   *
+   * @param statement The SQL statement to execute
+   * @return the number of rows that was inserted/updated/deleted
+   * @throws SQLException if a database error occurs
+   */
+  long executeLargeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
     StatementTimeout originalTimeout = setTemporaryStatementTimeout();
     try {
-      long count = connection.getSpannerConnection().executeUpdate(statement);
-      if (count > Integer.MAX_VALUE) {
-        throw JdbcSqlExceptionFactory.of(
-            "update count too large for executeUpdate: " + count, Code.OUT_OF_RANGE);
-      }
-      return (int) count;
+      return connection.getSpannerConnection().executeUpdate(statement);
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     } finally {
@@ -358,7 +370,18 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   @Override
+  public long getLargeMaxRows() throws SQLException {
+    checkClosed();
+    return 0L;
+  }
+
+  @Override
   public void setMaxRows(int max) throws SQLException {
+    checkClosed();
+  }
+
+  @Override
+  public void setLargeMaxRows(long max) throws SQLException {
     checkClosed();
   }
 
