@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.0.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.21.0...v2.0.0) (2021-03-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to Java 8 and JDBC 4.2 (#397)
+
+### Features
+
+* upgrade to Java 8 and JDBC 4.2 ([#397](https://www.github.com/googleapis/java-spanner-jdbc/issues/397)) ([7eedfbc](https://www.github.com/googleapis/java-spanner-jdbc/commit/7eedfbc78dad15e598d4b678027094ce1467e7f1))
+
+
+### Performance Improvements
+
+* use PLAN mode to get result metadata ([#388](https://www.github.com/googleapis/java-spanner-jdbc/issues/388)) ([8c7b665](https://www.github.com/googleapis/java-spanner-jdbc/commit/8c7b665c0c16dbec65da5040da038a320efa0a4a))
+
+
+### Documentation
+
+* add reference to jar-with-dependencies in readme ([#404](https://www.github.com/googleapis/java-spanner-jdbc/issues/404)) ([12c3235](https://www.github.com/googleapis/java-spanner-jdbc/commit/12c3235f4799cd2e74d523d1149c55573437c7ad)), closes [#399](https://www.github.com/googleapis/java-spanner-jdbc/issues/399)
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-spanner-bom to v5.1.0 ([#393](https://www.github.com/googleapis/java-spanner-jdbc/issues/393)) ([9b36a54](https://www.github.com/googleapis/java-spanner-jdbc/commit/9b36a546963b044fc9eaf60667ab013afca6bc54))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v5.2.0 ([#398](https://www.github.com/googleapis/java-spanner-jdbc/issues/398)) ([8482652](https://www.github.com/googleapis/java-spanner-jdbc/commit/8482652e6d8933903ab8ccaece8bbe3224d080b5))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v6 ([#403](https://www.github.com/googleapis/java-spanner-jdbc/issues/403)) ([3e0fbd1](https://www.github.com/googleapis/java-spanner-jdbc/commit/3e0fbd1706fc269cd7bfcd2258181487cc40cece))
+
 ## [1.21.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v1.20.1...v1.21.0) (2021-03-10)
 
 
