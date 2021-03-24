@@ -24,6 +24,10 @@ custom_content: |
    }
    ```
    
+   ### Jar with Dependencies
+   A single jar with all dependencies can be downloaded from https://repo1.maven.org/maven2/com/google/cloud/google-cloud-spanner-jdbc/latest
+   or be built with the command `mvn package` (select the jar that is named `google-cloud-spanner-jdbc-<version>-single-jar-with-dependencies.jar`).
+   
    ### Creating a Shaded Jar
    
    A jar with all dependencies included is automatically generated when you execute `mvn package`.
