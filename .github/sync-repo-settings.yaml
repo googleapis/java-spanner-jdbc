@@ -39,8 +39,6 @@ branchProtectionRules:
     - "Kokoro - Test: Integration"
     - "cla/google"
 
-# Rules for master branch protection
-branchProtectionRules:
 # Identifies the protection rule pattern. Name of the branch to be protected.
 # Defaults to `master`
 - pattern: 1.21.x
