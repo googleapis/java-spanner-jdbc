@@ -20,7 +20,8 @@ AUTOSYNTH_MULTIPLE_COMMITS = True
 
 java.common_templates(excludes=[
     'README.md',
-    
+
     '.github/release-please.yml',
     '.github/sync-repo-settings.yaml',
+    '.github/blunderbuss.yml',
 ])
