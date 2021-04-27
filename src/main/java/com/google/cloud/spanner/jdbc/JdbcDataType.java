@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.ResultSet;
+import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import java.math.BigDecimal;
@@ -252,6 +253,32 @@ enum JdbcDataType {
     @Override
     public Type getSpannerType() {
       return Type.timestamp();
+    }
+  },
+  STRUCT {
+    @Override
+    public int getSqlType() {
+      return Types.STRUCT;
+    }
+
+    @Override
+    public Class<Struct> getJavaClass() {
+      return Struct.class;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.STRUCT;
+    }
+
+    @Override
+    public List<Struct> getArrayElements(ResultSet rs, int columnIndex) {
+      return rs.getStructList(columnIndex);
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.struct();
     }
   };
 
