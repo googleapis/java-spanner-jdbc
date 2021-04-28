@@ -17,14 +17,22 @@
 package com.google.cloud.spanner.jdbc.it;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.Struct;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -147,6 +155,40 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
       assertThat(e.getMessage())
           .contains(
               "Calling addBatch() is not allowed when a DML or DDL batch has been started on the connection.");
+    }
+  }
+
+  @Test
+  public void testSelectArrayOfStructs() throws SQLException {
+    String sql =
+        "WITH points AS\n"
+            + "  (SELECT [1, 5] as point\n"
+            + "   UNION ALL SELECT [2, 8] as point\n"
+            + "   UNION ALL SELECT [3, 7] as point\n"
+            + "   UNION ALL SELECT [4, 1] as point\n"
+            + "   UNION ALL SELECT [5, 7] as point)\n"
+            + "SELECT ARRAY(\n"
+            + "  SELECT STRUCT(point)\n"
+            + "  FROM points)\n"
+            + "  AS coordinates";
+    try (Connection connection = createConnection()) {
+      try (ResultSet resultSet = connection.createStatement().executeQuery(sql)) {
+        assertTrue(resultSet.next());
+        assertEquals(resultSet.getMetaData().getColumnCount(), 1);
+        Array array = resultSet.getArray(1);
+        assertThat((Struct[]) array.getArray())
+            .asList()
+            .containsExactly(
+                Struct.newBuilder().set("point").to(Value.int64Array(new long[] {1L, 5L})).build(),
+                Struct.newBuilder().set("point").to(Value.int64Array(new long[] {2L, 8L})).build(),
+                Struct.newBuilder().set("point").to(Value.int64Array(new long[] {3L, 7L})).build(),
+                Struct.newBuilder().set("point").to(Value.int64Array(new long[] {4L, 1L})).build(),
+                Struct.newBuilder().set("point").to(Value.int64Array(new long[] {5L, 7L})).build());
+        // Getting a result set from an array of structs is not supported, as structs are not
+        // supported as a valid column type in a result set.
+        assertThrows(SQLFeatureNotSupportedException.class, () -> array.getResultSet());
+        assertFalse(resultSet.next());
+      }
     }
   }
 }

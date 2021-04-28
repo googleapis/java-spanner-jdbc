@@ -18,15 +18,22 @@ package com.google.cloud.spanner.jdbc;
 
 import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlDate;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.ErrorCode;
+import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import org.junit.Test;
@@ -145,6 +152,25 @@ public class JdbcArrayTest {
 
     array =
         JdbcArray.createArray(
+            "JSON",
+            new String[] {"{}", "[]", null, "{\"name\":\"John\", \"age\":30, \"car\":null}"});
+    assertThat(array.getBaseType()).isEqualTo(JsonType.VENDOR_TYPE_NUMBER);
+    assertThat(((String[]) array.getArray(1, 1))[0]).isEqualTo("{}");
+    try (ResultSet rs = array.getResultSet()) {
+      assertTrue(rs.next());
+      assertEquals("{}", rs.getString(2));
+      assertTrue(rs.next());
+      assertEquals("[]", rs.getString(2));
+      assertTrue(rs.next());
+      assertNull(rs.getString(2));
+      assertTrue(rs.wasNull());
+      assertTrue(rs.next());
+      assertEquals("{\"name\":\"John\", \"age\":30, \"car\":null}", rs.getString(2));
+      assertFalse(rs.next());
+    }
+
+    array =
+        JdbcArray.createArray(
             "TIMESTAMP",
             new Timestamp[] {new Timestamp(1L), new Timestamp(100L), new Timestamp(1000L)});
     assertThat(array.getBaseType()).isEqualTo(Types.TIMESTAMP);
@@ -174,16 +200,17 @@ public class JdbcArrayTest {
   }
 
   @Test
-  public void testCreateArrayOfStruct() {
-    try {
-      JdbcArray.createArray("STRUCT", new Object[] {});
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat((Exception) e).isInstanceOf(JdbcSqlException.class);
-      JdbcSqlException jse = (JdbcSqlException) e;
-      assertThat(jse.getErrorCode())
-          .isEqualTo(ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value());
-    }
+  public void testCreateArrayOfStruct() throws SQLException {
+    JdbcArray array =
+        JdbcArray.createArray(
+            "STRUCT",
+            new Struct[] {Struct.newBuilder().set("f1").to("v1").set("f2").to(1L).build(), null});
+    assertEquals(Types.STRUCT, array.getBaseType());
+    assertThat((Struct[]) array.getArray())
+        .asList()
+        .containsExactly(Struct.newBuilder().set("f1").to("v1").set("f2").to(1L).build(), null)
+        .inOrder();
+    assertThrows(SQLFeatureNotSupportedException.class, () -> array.getResultSet());
   }
 
   @Test

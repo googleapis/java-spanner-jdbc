@@ -8,32 +8,40 @@ Java idiomatic client for [Google Cloud Spanner JDBC][product-docs].
 - [Product Documentation][product-docs]
 - [Client Library Documentation][javadocs]
 
+
 ## Quickstart
 
 
 If you are using Maven, add this to your pom.xml file:
 
+
 ```xml
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>2.0.1</version>
+  <version>2.3.3</version>
 </dependency>
 ```
 
 If you are using Gradle without BOM, add this to your dependencies
+
 ```Groovy
-compile 'com.google.cloud:google-cloud-spanner-jdbc:2.0.1'
+compile 'com.google.cloud:google-cloud-spanner-jdbc:2.3.3'
 ```
 
 If you are using SBT, add this to your dependencies
+
 ```Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.0.1"
+libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.3.3"
 ```
 
 ## Authentication
 
 See the [Authentication][authentication] section in the base directory's README.
+
+## Authorization
+
+The client application making API calls must be granted [authorization scopes][auth-scopes] required for the desired Google Cloud Spanner JDBC APIs, and the authenticated principal must have the [IAM role(s)][predefined-iam-roles] required to access GCP resources using the Google Cloud Spanner JDBC API calls.
 
 ## Getting Started
 
@@ -84,6 +92,28 @@ try (Connection connection =
 }
 ```
 
+### Connection URL Properties
+
+The Cloud Spanner JDBC driver supports the following connection URL properties. Note that all of
+these can also be supplied in a Properties instance that is passed to the
+`DriverManager#getConnection(String url, Properties properties)` method.
+
+#### Commonly Used Properties
+- credentials (String): URL for the credentials file to use for the connection. If you do not specify any credentials at all, the default credentials of the environment as returned by `GoogleCredentials#getApplicationDefault()` is used. Example: `jdbc:cloudspanner:/projects/my-project/instances/my-instance/databases/my-db;credentials=/path/to/credentials.json`
+- autocommit (boolean): Sets the initial autocommit mode for the connection. Default is true.
+- readonly (boolean): Sets the initial readonly mode for the connection. Default is false.
+- autoConfigEmulator (boolean): Automatically configure the connection to try to connect to the Cloud Spanner emulator. You do not need to specify any host or port in the connection string as long as the emulator is running on the default host/port (localhost:9010). The instance and database in the connection string will automatically be created if these do not yet exist on the emulator. This means that you do not need to execute any `gcloud` commands on the emulator to create the instance and database before you can connect to it. Example: `jdbc:cloudspanner:/projects/test-project/instances/test-instance/databases/test-db;autoConfigEmulator=true`
+- usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted connection to a (local) server. This option can only be used when connecting to a local emulator that does not require an encrypted connection, and that does not require authentication. Example: `jdbc:cloudspanner://localhost:9010/projects/test-project/instances/test-instance/databases/test-db;usePlainText=true`
+- optimizerVersion (String): Sets the default query optimizer version to use for this connection. See also https://cloud.google.com/spanner/docs/query-optimizer/query-optimizer-versions.
+
+#### Advanced Properties
+- minSessions (int): Sets the minimum number of sessions in the backing session pool. Defaults to 100.
+- maxSessions (int): Sets the maximum number of sessions in the backing session pool. Defaults to 400.
+- numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
+- retryAbortsInternally (boolean): The JDBC driver will by default automatically retry aborted transactions internally. This is done by keeping track of all statements and the results of these during a transaction, and if the transaction is aborted by Cloud Spanner, it will replay the statements on a new transaction and compare the results with the initial attempt. Disable this option if you want to handle aborted transactions in your own application.
+- oauthToken (string): A valid pre-existing OAuth token to use for authentication for this connection. Setting this property will take precedence over any value set for a credentials file.
+- lenient (boolean): Enable this to force the JDBC driver to ignore unknown properties in the connection URL. Some applications automatically add additional properties to the URL that are not recognized by the JDBC driver. Normally, the JDBC driver will reject this, unless `lenient` mode is enabled.
+
 ### Jar with Dependencies
 A single jar with all dependencies can be downloaded from https://repo1.maven.org/maven2/com/google/cloud/google-cloud-spanner-jdbc/latest
 or be built with the command `mvn package` (select the jar that is named `google-cloud-spanner-jdbc-<version>-single-jar-with-dependencies.jar`).
@@ -106,14 +136,55 @@ activate the `shade` profile like this:
 
 To get help, follow the instructions in the [shared Troubleshooting document][troubleshooting].
 
-## Java Versions
+## Supported Java Versions
 
 Java 8 or above is required for using this client.
+
+Google's Java client libraries,
+[Google Cloud Client Libraries][cloudlibs]
+and
+[Google Cloud API Libraries][apilibs],
+follow the
+[Oracle Java SE support roadmap][oracle]
+(see the Oracle Java SE Product Releases section).
+
+### For new development
+
+In general, new feature development occurs with support for the lowest Java
+LTS version covered by  Oracle's Premier Support (which typically lasts 5 years
+from initial General Availability). If the minimum required JVM for a given
+library is changed, it is accompanied by a [semver][semver] major release.
+
+Java 11 and (in September 2021) Java 17 are the best choices for new
+development.
+
+### Keeping production systems current
+
+Google tests its client libraries with all current LTS versions covered by
+Oracle's Extended Support (which typically lasts 8 years from initial
+General Availability).
+
+#### Legacy support
+
+Google's client libraries support legacy versions of Java runtimes with long
+term stable libraries that don't receive feature updates on a best efforts basis
+as it may not be possible to backport all patches.
+
+Google provides updates on a best efforts basis to apps that continue to use
+Java 7, though apps might need to upgrade to current versions of the library
+that supports their JVM.
+
+#### Where to find specific information
+
+The latest versions and the supported Java versions are identified on
+the individual GitHub repository `github.com/GoogleAPIs/java-SERVICENAME`
+and on [google-cloud-java][g-c-j].
 
 ## Versioning
 
 
 This library follows [Semantic Versioning](http://semver.org/).
+
 
 
 ## Contributing
@@ -126,6 +197,7 @@ See [CONTRIBUTING][contributing] for more information how to get started.
 Please note that this project is released with a Contributor Code of Conduct. By participating in
 this project you agree to abide by its terms. See [Code of Conduct][code-of-conduct] for more
 information.
+
 
 ## License
 
@@ -158,6 +230,9 @@ Java is a registered trademark of Oracle and/or its affiliates.
 [maven-version-image]: https://img.shields.io/maven-central/v/com.google.cloud/google-cloud-spanner-jdbc.svg
 [maven-version-link]: https://search.maven.org/search?q=g:com.google.cloud%20AND%20a:google-cloud-spanner-jdbc&core=gav
 [authentication]: https://github.com/googleapis/google-cloud-java#authentication
+[auth-scopes]: https://developers.google.com/identity/protocols/oauth2/scopes
+[predefined-iam-roles]: https://cloud.google.com/iam/docs/understanding-roles#predefined_roles
+[iam-policy]: https://cloud.google.com/iam/docs/overview#cloud-iam-policy
 [developer-console]: https://console.developers.google.com/
 [create-project]: https://cloud.google.com/resource-manager/docs/creating-managing-projects
 [cloud-sdk]: https://cloud.google.com/sdk/
@@ -169,3 +244,9 @@ Java is a registered trademark of Oracle and/or its affiliates.
 
 [libraries-bom]: https://github.com/GoogleCloudPlatform/cloud-opensource-java/wiki/The-Google-Cloud-Platform-Libraries-BOM
 [shell_img]: https://gstatic.com/cloudssh/images/open-btn.png
+
+[semver]: https://semver.org/
+[cloudlibs]: https://cloud.google.com/apis/docs/client-libraries-explained
+[apilibs]: https://cloud.google.com/apis/docs/client-libraries-explained#google_api_client_libraries
+[oracle]: https://www.oracle.com/java/technologies/java-se-support-roadmap.html
+[g-c-j]: http://github.com/googleapis/google-cloud-java

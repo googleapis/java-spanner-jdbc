@@ -111,4 +111,26 @@
     <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
     <method>void setReturnCommitStats(boolean)</method>
   </difference>
+
+  <!-- Tagging - These are not really breaking changes, as we provide default implementations. -->
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>java.lang.String getTransactionTag()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>void setTransactionTag(java.lang.String)</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>java.lang.String getStatementTag()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>void setStatementTag(java.lang.String)</method>
+  </difference>
 </differences>

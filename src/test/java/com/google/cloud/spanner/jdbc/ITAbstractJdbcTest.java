@@ -24,6 +24,7 @@ import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ITAbstractSpannerTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
+import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import java.io.IOException;
@@ -167,9 +168,14 @@ public class ITAbstractJdbcTest {
       try (Connection connection = createConnection()) {
         connection.setAutoCommit(true);
         if (!tableExists(connection, "Singers")) {
+          String scriptFile;
+          if (EmulatorSpannerHelper.isUsingEmulator()) {
+            scriptFile = "CreateMusicTables_Emulator.sql";
+          } else {
+            scriptFile = "CreateMusicTables.sql";
+          }
           for (String statement :
-              AbstractSqlScriptVerifier.readStatementsFromFile(
-                  "CreateMusicTables.sql", getClass())) {
+              AbstractSqlScriptVerifier.readStatementsFromFile(scriptFile, getClass())) {
             connection.createStatement().execute(statement);
           }
         }

@@ -17,6 +17,9 @@
 package com.google.cloud.spanner.jdbc.it;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
@@ -25,6 +28,7 @@ import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlException;
+import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.rpc.Code;
 import com.google.spanner.v1.ExecuteSqlRequest.QueryOptions;
 import java.sql.Connection;
@@ -96,7 +100,8 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
 
   @Test
   public void connectionUrlWithInvalidOptimizerVersion() throws SQLException {
-    assumeFalse("optimizer version is ignored on emulator", env.getTestHelper().isEmulator());
+    assumeFalse(
+        "optimizer version is ignored on emulator", EmulatorSpannerHelper.isUsingEmulator());
     this.connectionUriSuffix = ";optimizerVersion=9999999";
     try (Connection connection = createConnection()) {
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
@@ -139,7 +144,8 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
 
   @Test
   public void setInvalidOptimizerVersion() throws SQLException {
-    assumeFalse("optimizer version is ignored on emulator", env.getTestHelper().isEmulator());
+    assumeFalse(
+        "optimizer version is ignored on emulator", EmulatorSpannerHelper.isUsingEmulator());
     try (Connection connection = createConnection()) {
       connection.createStatement().execute("SET OPTIMIZER_VERSION='9999999'");
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
@@ -156,7 +162,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
   public void optimizerVersionInQueryHint() throws SQLException {
     assumeFalse(
         "optimizer version in query hint is not supported on emulator",
-        env.getTestHelper().isEmulator());
+        EmulatorSpannerHelper.isUsingEmulator());
     try (Connection connection = createConnection()) {
       verifyOptimizerVersion(connection, "");
       try (ResultSet rs =
@@ -175,14 +181,20 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
   }
 
   @Test
-  public void optimizerVersionInEnvironment() throws SQLException {
-    assumeFalse("optimizer version is ignored on emulator", env.getTestHelper().isEmulator());
+  public void testOptionsInEnvironment() throws SQLException {
+    assumeFalse(
+        "optimizer version is ignored on emulator", EmulatorSpannerHelper.isUsingEmulator());
     try {
       SpannerOptions.useEnvironment(
           new SpannerOptions.SpannerEnvironment() {
             @Override
             public String getOptimizerVersion() {
               return "1";
+            }
+
+            @Override
+            public String getOptimizerStatisticsPackage() {
+              return "latest";
             }
           });
       try (Connection connection = createConnection()) {
@@ -204,15 +216,19 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
             public String getOptimizerVersion() {
               return "9999999";
             }
+
+            @Override
+            public String getOptimizerStatisticsPackage() {
+              return "latest";
+            }
           });
       try (Connection connection = createConnection()) {
-        try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
-          fail("missing expected exception");
-        } catch (SQLException e) {
-          assertThat((Throwable) e).isInstanceOf(JdbcSqlException.class);
-          JdbcSqlException je = (JdbcSqlException) e;
-          assertThat(je.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
-        }
+        SQLException e =
+            assertThrows(
+                SQLException.class, () -> connection.createStatement().executeQuery("SELECT 1"));
+        assertTrue(e instanceof JdbcSqlException);
+        JdbcSqlException je = (JdbcSqlException) e;
+        assertEquals(Code.INVALID_ARGUMENT, je.getCode());
       }
     } finally {
       SpannerOptions.useDefaultEnvironment();
