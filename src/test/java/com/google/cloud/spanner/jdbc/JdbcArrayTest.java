@@ -19,7 +19,10 @@ package com.google.cloud.spanner.jdbc;
 import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlDate;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.ErrorCode;
@@ -145,6 +148,25 @@ public class JdbcArrayTest {
       assertThat(rs.next()).isTrue();
       assertThat(rs.getString(2)).isEqualTo("baz");
       assertThat(rs.next()).isFalse();
+    }
+
+    array =
+        JdbcArray.createArray(
+            "JSON",
+            new String[] {"{}", "[]", null, "{\"name\":\"John\", \"age\":30, \"car\":null}"});
+    assertThat(array.getBaseType()).isEqualTo(JsonType.VENDOR_TYPE_NUMBER);
+    assertThat(((String[]) array.getArray(1, 1))[0]).isEqualTo("{}");
+    try (ResultSet rs = array.getResultSet()) {
+      assertTrue(rs.next());
+      assertEquals("{}", rs.getString(2));
+      assertTrue(rs.next());
+      assertEquals("[]", rs.getString(2));
+      assertTrue(rs.next());
+      assertNull(rs.getString(2));
+      assertTrue(rs.wasNull());
+      assertTrue(rs.next());
+      assertEquals("{\"name\":\"John\", \"age\":30, \"car\":null}", rs.getString(2));
+      assertFalse(rs.next());
     }
 
     array =

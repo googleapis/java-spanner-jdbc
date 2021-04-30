@@ -198,7 +198,7 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   @Override
   public void setObject(int parameterIndex, Object value) throws SQLException {
     checkClosed();
-    parameters.setParameter(parameterIndex, value, null);
+    parameters.setParameter(parameterIndex, value);
   }
 
   @Override
@@ -326,15 +326,14 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   public void setObject(int parameterIndex, Object value, SQLType targetSqlType)
       throws SQLException {
     checkClosed();
-    parameters.setParameter(parameterIndex, value, targetSqlType.getVendorTypeNumber());
+    parameters.setParameter(parameterIndex, value, targetSqlType);
   }
 
   @Override
   public void setObject(int parameterIndex, Object value, SQLType targetSqlType, int scaleOrLength)
       throws SQLException {
     checkClosed();
-    parameters.setParameter(
-        parameterIndex, value, targetSqlType.getVendorTypeNumber(), scaleOrLength);
+    parameters.setParameter(parameterIndex, value, targetSqlType, scaleOrLength);
   }
 
   @Override

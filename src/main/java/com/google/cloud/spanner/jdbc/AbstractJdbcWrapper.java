@@ -48,6 +48,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     if (type.equals(Type.int64())) return Types.BIGINT;
     if (type.equals(Type.numeric())) return Types.NUMERIC;
     if (type.equals(Type.string())) return Types.NVARCHAR;
+    if (type.equals(Type.json())) return Types.NVARCHAR;
     if (type.equals(Type.timestamp())) return Types.TIMESTAMP;
     if (type.getCode() == Code.ARRAY) return Types.ARRAY;
     return Types.OTHER;
@@ -106,6 +107,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     if (type == Type.int64()) return Long.class.getName();
     if (type == Type.numeric()) return BigDecimal.class.getName();
     if (type == Type.string()) return String.class.getName();
+    if (type == Type.json()) return String.class.getName();
     if (type == Type.timestamp()) return Timestamp.class.getName();
     if (type.getCode() == Code.ARRAY) {
       if (type.getArrayElementType() == Type.bool()) return Boolean[].class.getName();
@@ -115,6 +117,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
       if (type.getArrayElementType() == Type.int64()) return Long[].class.getName();
       if (type.getArrayElementType() == Type.numeric()) return BigDecimal[].class.getName();
       if (type.getArrayElementType() == Type.string()) return String[].class.getName();
+      if (type.getArrayElementType() == Type.json()) return String[].class.getName();
       if (type.getArrayElementType() == Type.timestamp()) return Timestamp[].class.getName();
     }
     return null;

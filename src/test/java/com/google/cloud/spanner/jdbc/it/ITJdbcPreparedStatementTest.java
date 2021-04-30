@@ -28,6 +28,7 @@ import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
+import com.google.cloud.spanner.jdbc.JsonType;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
 import java.io.File;
@@ -749,80 +750,92 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       try (PreparedStatement ps =
           con.prepareStatement(
               "INSERT INTO TableWithAllColumnTypes ("
-                  + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, "
-                  + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray"
-                  + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-        ps.setLong(1, 1L);
-        ps.setDouble(2, 2D);
-        ps.setBoolean(3, true);
-        ps.setString(4, "test");
-        ps.setObject(5, UUID.fromString("2d37f522-e0a5-4f22-8e09-4d77d299c967"));
-        ps.setBytes(6, "test".getBytes());
-        ps.setBytes(7, "testtest".getBytes());
-        ps.setDate(8, new Date(System.currentTimeMillis()));
-        ps.setTimestamp(9, new Timestamp(System.currentTimeMillis()));
-        ps.setBigDecimal(10, BigDecimal.TEN);
-        ps.setArray(11, con.createArrayOf("INT64", new Long[] {1L, 2L, 3L}));
-        ps.setArray(12, con.createArrayOf("FLOAT64", new Double[] {1.1D, 2.2D, 3.3D}));
+                  + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
+                  + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
+                  + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        int index = 0;
+        ps.setLong(++index, 1L);
+        ps.setDouble(++index, 2D);
+        ps.setBoolean(++index, true);
+        ps.setString(++index, "test");
+        ps.setObject(++index, UUID.fromString("2d37f522-e0a5-4f22-8e09-4d77d299c967"));
+        ps.setBytes(++index, "test".getBytes());
+        ps.setBytes(++index, "testtest".getBytes());
+        ps.setDate(++index, new Date(System.currentTimeMillis()));
+        ps.setTimestamp(++index, new Timestamp(System.currentTimeMillis()));
+        ps.setBigDecimal(++index, BigDecimal.TEN);
+        ps.setObject(++index, "{\"test_value\": \"foo\"}", JsonType.INSTANCE);
+        ps.setArray(++index, con.createArrayOf("INT64", new Long[] {1L, 2L, 3L}));
+        ps.setArray(++index, con.createArrayOf("FLOAT64", new Double[] {1.1D, 2.2D, 3.3D}));
         ps.setArray(
-            13, con.createArrayOf("BOOL", new Boolean[] {Boolean.TRUE, null, Boolean.FALSE}));
-        ps.setArray(14, con.createArrayOf("STRING", new String[] {"1", "2", "3"}));
-        ps.setArray(15, con.createArrayOf("STRING", new String[] {"3", "2", "1"}));
+            ++index, con.createArrayOf("BOOL", new Boolean[] {Boolean.TRUE, null, Boolean.FALSE}));
+        ps.setArray(++index, con.createArrayOf("STRING", new String[] {"1", "2", "3"}));
+        ps.setArray(++index, con.createArrayOf("STRING", new String[] {"3", "2", "1"}));
         ps.setArray(
-            16,
+            ++index,
             con.createArrayOf(
                 "BYTES", new byte[][] {"1".getBytes(), "2".getBytes(), "3".getBytes()}));
         ps.setArray(
-            17,
+            ++index,
             con.createArrayOf(
                 "BYTES", new byte[][] {"333".getBytes(), "222".getBytes(), "111".getBytes()}));
         ps.setArray(
-            18,
+            ++index,
             con.createArrayOf(
                 "DATE", new Date[] {new Date(System.currentTimeMillis()), null, new Date(0)}));
         ps.setArray(
-            19,
+            ++index,
             con.createArrayOf(
                 "TIMESTAMP",
                 new Timestamp[] {
                   new Timestamp(System.currentTimeMillis()), null, new Timestamp(0)
                 }));
         ps.setArray(
-            20,
+            ++index,
             con.createArrayOf("NUMERIC", new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN}));
+        ps.setArray(
+            ++index,
+            con.createArrayOf(
+                "JSON", new String[] {"{\"test_value\": \"foo\"}", "{}", "[]", null}));
         assertEquals(1, ps.executeUpdate());
       }
       try (ResultSet rs =
           con.createStatement().executeQuery("SELECT * FROM TableWithAllColumnTypes")) {
+        int index = 0;
         assertTrue(rs.next());
-        assertEquals(1L, rs.getLong(1));
-        assertEquals(2d, rs.getDouble(2), 0.0d);
-        assertTrue(rs.getBoolean(3));
-        assertEquals("test", rs.getString(4));
-        assertEquals("2d37f522-e0a5-4f22-8e09-4d77d299c967", rs.getString(5));
-        assertArrayEquals("test".getBytes(), rs.getBytes(6));
-        assertArrayEquals("testtest".getBytes(), rs.getBytes(7));
-        assertNotNull(rs.getDate(8));
-        assertNotNull(rs.getTimestamp(9));
-        assertNotNull(rs.getTime(10)); // Commit timestamp
-        assertEquals(BigDecimal.TEN, rs.getBigDecimal(11));
-        assertArrayEquals(new Long[] {1L, 2L, 3L}, (Long[]) rs.getArray(12).getArray());
-        assertArrayEquals(new Double[] {1.1D, 2.2D, 3.3D}, (Double[]) rs.getArray(13).getArray());
+        assertEquals(1L, rs.getLong(++index));
+        assertEquals(2d, rs.getDouble(++index), 0.0d);
+        assertTrue(rs.getBoolean(++index));
+        assertEquals("test", rs.getString(++index));
+        assertEquals("2d37f522-e0a5-4f22-8e09-4d77d299c967", rs.getString(++index));
+        assertArrayEquals("test".getBytes(), rs.getBytes(++index));
+        assertArrayEquals("testtest".getBytes(), rs.getBytes(++index));
+        assertNotNull(rs.getDate(++index));
+        assertNotNull(rs.getTimestamp(++index));
+        assertNotNull(rs.getTime(++index)); // Commit timestamp
+        assertEquals(BigDecimal.TEN, rs.getBigDecimal(++index));
+        assertEquals("{\"test_value\": \"foo\"}", rs.getString(++index));
+        assertArrayEquals(new Long[] {1L, 2L, 3L}, (Long[]) rs.getArray(++index).getArray());
         assertArrayEquals(
-            new Boolean[] {true, null, false}, (Boolean[]) rs.getArray(14).getArray());
-        assertArrayEquals(new String[] {"1", "2", "3"}, (String[]) rs.getArray(15).getArray());
-        assertArrayEquals(new String[] {"3", "2", "1"}, (String[]) rs.getArray(16).getArray());
+            new Double[] {1.1D, 2.2D, 3.3D}, (Double[]) rs.getArray(++index).getArray());
+        assertArrayEquals(
+            new Boolean[] {true, null, false}, (Boolean[]) rs.getArray(++index).getArray());
+        assertArrayEquals(new String[] {"1", "2", "3"}, (String[]) rs.getArray(++index).getArray());
+        assertArrayEquals(new String[] {"3", "2", "1"}, (String[]) rs.getArray(++index).getArray());
         assertArrayEquals(
             new byte[][] {"1".getBytes(), "2".getBytes(), "3".getBytes()},
-            (byte[][]) rs.getArray(17).getArray());
+            (byte[][]) rs.getArray(++index).getArray());
         assertArrayEquals(
             new byte[][] {"333".getBytes(), "222".getBytes(), "111".getBytes()},
-            (byte[][]) rs.getArray(18).getArray());
-        assertEquals(3, ((Date[]) rs.getArray(19).getArray()).length);
-        assertEquals(3, ((Timestamp[]) rs.getArray(20).getArray()).length);
+            (byte[][]) rs.getArray(++index).getArray());
+        assertEquals(3, ((Date[]) rs.getArray(++index).getArray()).length);
+        assertEquals(3, ((Timestamp[]) rs.getArray(++index).getArray()).length);
         assertArrayEquals(
             new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN},
-            (BigDecimal[]) rs.getArray(21).getArray());
+            (BigDecimal[]) rs.getArray(++index).getArray());
+        assertArrayEquals(
+            new String[] {"{\"test_value\": \"foo\"}", "{}", "[]", null},
+            (String[]) rs.getArray(++index).getArray());
         assertFalse(rs.next());
       }
     }
@@ -835,7 +848,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       try (PreparedStatement ps =
           con.prepareStatement("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=?")) {
         ResultSetMetaData metadata = ps.getMetaData();
-        assertEquals(22, metadata.getColumnCount());
+        assertEquals(24, metadata.getColumnCount());
         int index = 0;
         assertEquals("ColInt64", metadata.getColumnLabel(++index));
         assertEquals("ColFloat64", metadata.getColumnLabel(++index));
@@ -848,6 +861,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertEquals("ColTimestamp", metadata.getColumnLabel(++index));
         assertEquals("ColCommitTS", metadata.getColumnLabel(++index));
         assertEquals("ColNumeric", metadata.getColumnLabel(++index));
+        assertEquals("ColJson", metadata.getColumnLabel(++index));
         assertEquals("ColInt64Array", metadata.getColumnLabel(++index));
         assertEquals("ColFloat64Array", metadata.getColumnLabel(++index));
         assertEquals("ColBoolArray", metadata.getColumnLabel(++index));
@@ -858,6 +872,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertEquals("ColDateArray", metadata.getColumnLabel(++index));
         assertEquals("ColTimestampArray", metadata.getColumnLabel(++index));
         assertEquals("ColNumericArray", metadata.getColumnLabel(++index));
+        assertEquals("ColJsonArray", metadata.getColumnLabel(++index));
         assertEquals("ColComputed", metadata.getColumnLabel(++index));
       }
     }

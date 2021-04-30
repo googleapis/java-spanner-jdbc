@@ -229,6 +229,32 @@ enum JdbcDataType {
       return Type.string();
     }
   },
+  JSON {
+    @Override
+    public int getSqlType() {
+      return JsonType.VENDOR_TYPE_NUMBER;
+    }
+
+    @Override
+    public Class<String> getJavaClass() {
+      return String.class;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.JSON;
+    }
+
+    @Override
+    public List<String> getArrayElements(ResultSet rs, int columnIndex) {
+      return rs.getJsonList(columnIndex);
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.json();
+    }
+  },
   TIMESTAMP {
     @Override
     public int getSqlType() {

@@ -70,6 +70,7 @@ public class JdbcTypeConverterTest {
           Type.float64(),
           Type.int64(),
           Type.string(),
+          Type.json(),
           Type.timestamp(),
           Type.numeric()
         }) {
@@ -124,6 +125,23 @@ public class JdbcTypeConverterTest {
 
     assertThat(convert(testValues, Type.bytes(), byte[].class)).isEqualTo(testValues);
     assertThat(convert(testValues, Type.bytes(), String.class)).isEqualTo("test");
+  }
+
+  @Test
+  public void testConvertJson() throws SQLException {
+    String testValue = "{\"test\": foo}";
+    assertConvertThrows(testValue, Type.json(), Boolean.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValue, Type.json(), Byte.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValue, Type.json(), Short.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValue, Type.json(), Integer.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValue, Type.json(), Long.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValue, Type.json(), Float.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValue, Type.json(), Double.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValue, Type.json(), BigInteger.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValue, Type.json(), BigDecimal.class, Code.INVALID_ARGUMENT);
+
+    assertThat(convert(testValue, Type.json(), byte[].class)).isEqualTo(testValue.getBytes(UTF8));
+    assertThat(convert(testValue, Type.json(), String.class)).isEqualTo(testValue);
   }
 
   private TimeZone[] getTestTimeZones() {

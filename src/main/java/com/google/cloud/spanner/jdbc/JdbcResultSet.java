@@ -142,6 +142,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? null : spanner.getBigDecimal(spannerIndex).toString();
       case STRING:
         return isNull ? null : spanner.getString(spannerIndex);
+      case JSON:
+        return isNull ? null : spanner.getJson(spannerIndex);
       case TIMESTAMP:
         return isNull ? null : spanner.getTimestamp(spannerIndex).toString();
       case STRUCT:
@@ -169,6 +171,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case STRING:
         return isNull ? false : Boolean.valueOf(spanner.getString(spannerIndex));
       case BYTES:
+      case JSON:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -198,6 +201,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case STRING:
         return isNull ? (byte) 0 : checkedCastToByte(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
+      case JSON:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -227,6 +231,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case STRING:
         return isNull ? 0 : checkedCastToShort(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
+      case JSON:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -256,6 +261,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case STRING:
         return isNull ? 0 : checkedCastToInt(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
+      case JSON:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -283,6 +289,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case STRING:
         return isNull ? 0L : parseLong(spanner.getString(spannerIndex));
       case BYTES:
+      case JSON:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -310,6 +317,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case STRING:
         return isNull ? 0 : checkedCastToFloat(parseDouble(spanner.getString(spannerIndex)));
       case BYTES:
+      case JSON:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -337,6 +345,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case STRING:
         return isNull ? 0 : parseDouble(spanner.getString(spannerIndex));
       case BYTES:
+      case JSON:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -372,6 +381,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case INT64:
       case NUMERIC:
       case BYTES:
+      case JSON:
       case STRUCT:
       case ARRAY:
       default:
@@ -396,6 +406,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case INT64:
       case NUMERIC:
       case BYTES:
+      case JSON:
       case STRUCT:
       case ARRAY:
       default:
@@ -421,6 +432,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case INT64:
       case NUMERIC:
       case BYTES:
+      case JSON:
       case STRUCT:
       case ARRAY:
       default:
@@ -576,6 +588,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     if (type == Type.int64()) return getLong(columnIndex);
     if (type == Type.numeric()) return getBigDecimal(columnIndex);
     if (type == Type.string()) return getString(columnIndex);
+    if (type == Type.json()) return getString(columnIndex);
     if (type == Type.timestamp()) return getTimestamp(columnIndex);
     if (type.getCode() == Code.ARRAY) return getArray(columnIndex);
     throw JdbcSqlExceptionFactory.of(
@@ -664,6 +677,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
               e);
         }
       case BYTES:
+      case JSON:
       case DATE:
       case TIMESTAMP:
       case STRUCT:
@@ -749,6 +763,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case INT64:
       case NUMERIC:
       case BYTES:
+      case JSON:
       case STRUCT:
       case ARRAY:
       default:
@@ -778,6 +793,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case INT64:
       case NUMERIC:
       case BYTES:
+      case JSON:
       case STRUCT:
       case ARRAY:
       default:
@@ -810,6 +826,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case INT64:
       case NUMERIC:
       case BYTES:
+      case JSON:
       case STRUCT:
       case ARRAY:
       default:

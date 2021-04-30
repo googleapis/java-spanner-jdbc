@@ -21,6 +21,7 @@ import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.ValueBinder;
 import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
@@ -200,6 +201,9 @@ class JdbcArray implements Array {
             break;
           case STRING:
             builder = binder.to((String) value);
+            break;
+          case JSON:
+            builder = binder.to(Value.json((String) value));
             break;
           case TIMESTAMP:
             builder = binder.to(JdbcTypeConverter.toGoogleTimestamp((Timestamp) value));

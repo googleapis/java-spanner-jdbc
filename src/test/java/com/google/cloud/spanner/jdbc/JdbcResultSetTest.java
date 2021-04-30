@@ -35,6 +35,7 @@ import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.rpc.Code;
 import java.io.IOException;
@@ -125,6 +126,11 @@ public class JdbcResultSetTest {
   private static final String STRING_COL_TIME = "STRING_COL_TIME";
   private static final int STRING_COLINDEX_TIME = 24;
   private static final String STRING_TIME_VALUE = "10:31:15";
+  private static final String JSON_COL_NULL = "JSON_COL_NULL";
+  private static final String JSON_COL_NOT_NULL = "JSON_COL_NOT_NULL";
+  private static final int JSON_COLINDEX_NULL = 25;
+  private static final int JSON_COLINDEX_NOT_NULL = 26;
+  private static final String JSON_VALUE = "{\"name\":\"John\", \"age\":30, \"car\":null}";
 
   private JdbcResultSet subject;
 
@@ -154,7 +160,9 @@ public class JdbcResultSetTest {
             StructField.of(STRING_COL_NUMBER, Type.string()),
             StructField.of(STRING_COL_DATE, Type.string()),
             StructField.of(STRING_COL_TIMESTAMP, Type.string()),
-            StructField.of(STRING_COL_TIME, Type.string())),
+            StructField.of(STRING_COL_TIME, Type.string()),
+            StructField.of(JSON_COL_NULL, Type.json()),
+            StructField.of(JSON_COL_NOT_NULL, Type.json())),
         Arrays.asList(
             Struct.newBuilder()
                 .set(STRING_COL_NULL)
@@ -205,6 +213,10 @@ public class JdbcResultSetTest {
                 .to(STRING_TIMESTAMP_VALUE)
                 .set(STRING_COL_TIME)
                 .to(STRING_TIME_VALUE)
+                .set(JSON_COL_NULL)
+                .to(Value.json(null))
+                .set(JSON_COL_NOT_NULL)
+                .to(Value.json(JSON_VALUE))
                 .build()));
   }
 
@@ -265,6 +277,15 @@ public class JdbcResultSetTest {
     assertEquals(STRING_VALUE, subject.getString(STRING_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertNull(subject.getString(STRING_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetJsonIndex() throws SQLException {
+    assertNotNull(subject.getString(JSON_COLINDEX_NOT_NULL));
+    assertEquals(JSON_VALUE, subject.getString(JSON_COLINDEX_NOT_NULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getString(JSON_COLINDEX_NULL));
     assertTrue(subject.wasNull());
   }
 
@@ -1269,6 +1290,15 @@ public class JdbcResultSetTest {
         subject.getObject(DATE_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertNull(subject.getObject(DATE_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetJsonAsObjectIndex() throws SQLException {
+    assertNotNull(subject.getObject(JSON_COLINDEX_NOT_NULL));
+    assertEquals(JSON_VALUE, subject.getObject(JSON_COLINDEX_NOT_NULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getObject(JSON_COLINDEX_NULL));
     assertTrue(subject.wasNull());
   }
 

@@ -74,7 +74,8 @@ class JdbcTypeConverter {
       }
       if (targetType.equals(byte[].class)) {
         if (type.getCode() == Code.BYTES) return value;
-        if (type.getCode() == Code.STRING) return ((String) value).getBytes(UTF8);
+        if (type.getCode() == Code.STRING || type.getCode() == Code.JSON)
+          return ((String) value).getBytes(UTF8);
       }
       if (targetType.equals(Boolean.class)) {
         if (type.getCode() == Code.BOOL) return value;

@@ -125,6 +125,15 @@ public class JdbcParameterStoreTest {
     assertTrue(stringReadersEqual((StringReader) params.getParameter(1), new StringReader("test")));
     verifyParameter(params, Value.string("test"));
 
+    String jsonString = "{\"test\": \"value\"}";
+    params.setParameter(1, jsonString, JsonType.VENDOR_TYPE_NUMBER);
+    assertEquals(jsonString, params.getParameter(1));
+    verifyParameter(params, Value.json(jsonString));
+
+    params.setParameter(1, jsonString, JsonType.INSTANCE);
+    assertEquals(jsonString, params.getParameter(1));
+    verifyParameter(params, Value.json(jsonString));
+
     params.setParameter(1, BigDecimal.ONE, Types.DECIMAL);
     verifyParameter(params, Value.numeric(BigDecimal.ONE));
 
@@ -360,7 +369,8 @@ public class JdbcParameterStoreTest {
           Types.LONGVARCHAR,
           Types.NCHAR,
           Types.NVARCHAR,
-          Types.LONGNVARCHAR
+          Types.LONGNVARCHAR,
+          JsonType.VENDOR_TYPE_NUMBER
         }) {
       assertInvalidParameter(params, new Object(), type);
       assertInvalidParameter(params, Boolean.TRUE, type);
@@ -385,7 +395,8 @@ public class JdbcParameterStoreTest {
           Types.LONGVARCHAR,
           Types.NCHAR,
           Types.NVARCHAR,
-          Types.LONGNVARCHAR
+          Types.LONGNVARCHAR,
+          JsonType.VENDOR_TYPE_NUMBER
         }) {
       Reader reader = new StringReader("test");
       reader.close();
@@ -422,57 +433,62 @@ public class JdbcParameterStoreTest {
   @Test
   public void testSetParameterWithoutType() throws SQLException {
     JdbcParameterStore params = new JdbcParameterStore();
-    params.setParameter(1, (byte) 1, null);
+    params.setParameter(1, (byte) 1, (Integer) null);
     assertEquals(1, ((Byte) params.getParameter(1)).byteValue());
     verifyParameter(params, Value.int64(1));
-    params.setParameter(1, (short) 1, null);
+    params.setParameter(1, (short) 1, (Integer) null);
     assertEquals(1, ((Short) params.getParameter(1)).shortValue());
     verifyParameter(params, Value.int64(1));
-    params.setParameter(1, 1, null);
+    params.setParameter(1, 1, (Integer) null);
     assertEquals(1, ((Integer) params.getParameter(1)).intValue());
     verifyParameter(params, Value.int64(1));
-    params.setParameter(1, 1L, null);
+    params.setParameter(1, 1L, (Integer) null);
     assertEquals(1, ((Long) params.getParameter(1)).longValue());
     verifyParameter(params, Value.int64(1));
-    params.setParameter(1, (float) 1, null);
+    params.setParameter(1, (float) 1, (Integer) null);
     assertEquals(1.0f, ((Float) params.getParameter(1)).floatValue(), 0.0f);
     verifyParameter(params, Value.float64(1));
-    params.setParameter(1, (double) 1, null);
+    params.setParameter(1, (double) 1, (Integer) null);
     assertEquals(1.0d, ((Double) params.getParameter(1)).doubleValue(), 0.0d);
     verifyParameter(params, Value.float64(1));
-    params.setParameter(1, new Date(1970 - 1900, 0, 1), null);
+    params.setParameter(1, new Date(1970 - 1900, 0, 1), (Integer) null);
     assertEquals(new Date(1970 - 1900, 0, 1), params.getParameter(1));
     verifyParameter(params, Value.date(com.google.cloud.Date.fromYearMonthDay(1970, 1, 1)));
-    params.setParameter(1, new Time(0L), null);
+    params.setParameter(1, new Time(0L), (Integer) null);
     assertEquals(new Time(0L), params.getParameter(1));
     verifyParameter(
         params, Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(0L, 0)));
-    params.setParameter(1, new Timestamp(0L), null);
+    params.setParameter(1, new Timestamp(0L), (Integer) null);
     assertEquals(new Timestamp(0L), params.getParameter(1));
     verifyParameter(
         params, Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(0L, 0)));
-    params.setParameter(1, new byte[] {1, 2, 3}, null);
+    params.setParameter(1, new byte[] {1, 2, 3}, (Integer) null);
     assertArrayEquals(new byte[] {1, 2, 3}, (byte[]) params.getParameter(1));
     verifyParameter(params, Value.bytes(ByteArray.copyFrom(new byte[] {1, 2, 3})));
 
-    params.setParameter(1, new JdbcBlob(new byte[] {1, 2, 3}), null);
+    params.setParameter(1, new JdbcBlob(new byte[] {1, 2, 3}), (Integer) null);
     assertEquals(new JdbcBlob(new byte[] {1, 2, 3}), params.getParameter(1));
     verifyParameter(params, Value.bytes(ByteArray.copyFrom(new byte[] {1, 2, 3})));
-    params.setParameter(1, new JdbcClob("test"), null);
+    params.setParameter(1, new JdbcClob("test"), (Integer) null);
     assertEquals(new JdbcClob("test"), params.getParameter(1));
     verifyParameter(params, Value.string("test"));
-    params.setParameter(1, true, null);
+    params.setParameter(1, true, (Integer) null);
     assertTrue((Boolean) params.getParameter(1));
     verifyParameter(params, Value.bool(true));
-    params.setParameter(1, "test", null);
+    params.setParameter(1, "test", (Integer) null);
     assertEquals("test", params.getParameter(1));
     verifyParameter(params, Value.string("test"));
-    params.setParameter(1, new JdbcClob("test"), null);
+    params.setParameter(1, new JdbcClob("test"), (Integer) null);
     assertEquals(new JdbcClob("test"), params.getParameter(1));
     verifyParameter(params, Value.string("test"));
-    params.setParameter(1, UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"), null);
+    params.setParameter(1, UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"), (Integer) null);
     assertEquals(UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"), params.getParameter(1));
     verifyParameter(params, Value.string("83b988cf-1f4e-428a-be3d-cc712621942e"));
+
+    String jsonString = "{\"test\": \"value\"}";
+    params.setParameter(1, Value.json(jsonString), (Integer) null);
+    assertEquals(Value.json(jsonString), params.getParameter(1));
+    verifyParameter(params, Value.json(jsonString));
   }
 
   private boolean stringReadersEqual(StringReader r1, StringReader r2) throws IOException {
@@ -627,6 +643,26 @@ public class JdbcParameterStoreTest {
     params.setParameter(1, JdbcArray.createArray("STRING", null), Types.ARRAY);
     assertEquals(JdbcArray.createArray("STRING", null), params.getParameter(1));
     verifyParameter(params, Value.stringArray(null));
+
+    String jsonString1 = "{\"test\": \"value1\"}";
+    String jsonString2 = "{\"test\": \"value2\"}";
+    params.setParameter(
+        1,
+        JdbcArray.createArray("JSON", new String[] {jsonString1, jsonString2, null}),
+        Types.ARRAY);
+    assertEquals(
+        JdbcArray.createArray("JSON", new String[] {jsonString1, jsonString2, null}),
+        params.getParameter(1));
+    verifyParameter(params, Value.jsonArray(Arrays.asList(jsonString1, jsonString2, null)));
+
+    params.setParameter(1, JdbcArray.createArray("JSON", null), Types.ARRAY);
+    assertEquals(JdbcArray.createArray("JSON", null), params.getParameter(1));
+    verifyParameter(params, Value.jsonArray(null));
+
+    params.setParameter(1, Value.jsonArray(Arrays.asList(jsonString1, jsonString2, null)));
+    assertEquals(
+        Value.jsonArray(Arrays.asList(jsonString1, jsonString2, null)), params.getParameter(1));
+    verifyParameter(params, Value.jsonArray(Arrays.asList(jsonString1, jsonString2, null)));
   }
 
   private void verifyParameter(JdbcParameterStore params, Value value) throws SQLException {
