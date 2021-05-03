@@ -24,6 +24,7 @@ import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.jdbc.JdbcParameterStore.ParametersInfo;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -48,7 +49,8 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
     return parameters;
   }
 
-  private Statement createStatement() throws SQLException {
+  @VisibleForTesting
+  Statement createStatement() throws SQLException {
     ParametersInfo paramInfo = getParametersInfo();
     Statement.Builder builder = Statement.newBuilder(paramInfo.sqlWithNamedParameters);
     for (int index = 1; index <= getParameters().getHighestIndex(); index++) {

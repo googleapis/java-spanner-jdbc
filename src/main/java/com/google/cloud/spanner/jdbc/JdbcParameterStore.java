@@ -19,6 +19,7 @@ package com.google.cloud.spanner.jdbc;
 import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Statement.Builder;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.ValueBinder;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.common.io.CharStreams;
@@ -39,6 +40,7 @@ import java.sql.NClob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLType;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -129,7 +131,8 @@ class JdbcParameterStore {
         getParameter(parameterIndex),
         getType(parameterIndex),
         getScaleOrLength(parameterIndex),
-        column);
+        column,
+        null);
   }
 
   void setType(int parameterIndex, Integer type) throws SQLException {
@@ -138,26 +141,78 @@ class JdbcParameterStore {
         getParameter(parameterIndex),
         type,
         getScaleOrLength(parameterIndex),
-        getColumn(parameterIndex));
+        getColumn(parameterIndex),
+        null);
   }
 
+  /** Sets a parameter value. The type will be determined based on the type of the value. */
+  void setParameter(int parameterIndex, Object value) throws SQLException {
+    setParameter(parameterIndex, value, null, null, null, null);
+  }
+
+  /**
+   * Sets a parameter value as the specified vendor-specific {@link SQLType}. Only {@link JsonType}
+   * is currently supported.
+   */
+  void setParameter(int parameterIndex, Object value, SQLType sqlType) throws SQLException {
+    setParameter(parameterIndex, value, null, null, null, sqlType);
+  }
+
+  /**
+   * Sets a parameter value as the specified vendor-specific {@link SQLType} with the specified
+   * scale or length. Only {@link JsonType} is currently supported, which does not have a variable
+   * scale or length. This method is only here to support the {@link
+   * PreparedStatement#setObject(int, Object, SQLType, int)} method.
+   */
+  void setParameter(int parameterIndex, Object value, SQLType sqlType, Integer scaleOrLength)
+      throws SQLException {
+    setParameter(parameterIndex, value, null, scaleOrLength, null, sqlType);
+  }
+
+  /**
+   * Sets a parameter value as the specified sql type. The type can be one of the constants in
+   * {@link Types} or a vendor specific type code supplied by a vendor specific {@link SQLType}.
+   * Currently only {@link JsonType#VENDOR_TYPE_NUMBER} is supported for the latter.
+   */
   void setParameter(int parameterIndex, Object value, Integer sqlType) throws SQLException {
     setParameter(parameterIndex, value, sqlType, null);
   }
 
+  /**
+   * Sets a parameter value as the specified sql type with the specified scale or length. The type
+   * can be one of the constants in {@link Types} or a vendor specific type code supplied by a
+   * vendor specific {@link SQLType}. Currently only {@link JsonType#VENDOR_TYPE_NUMBER} is
+   * supported for the latter.
+   */
   void setParameter(int parameterIndex, Object value, Integer sqlType, Integer scaleOrLength)
       throws SQLException {
-    setParameter(parameterIndex, value, sqlType, scaleOrLength, null);
+    setParameter(parameterIndex, value, sqlType, scaleOrLength, null, null);
   }
 
+  /**
+   * Sets a parameter value as the specified sql type with the specified scale or length. Any {@link
+   * SQLType} instance will take precedence over sqlType. The type can be one of the constants in
+   * {@link Types} or a vendor specific type code supplied by a vendor specific {@link SQLType}.
+   * Currently only {@link JsonType#VENDOR_TYPE_NUMBER} is supported for the latter.
+   */
   void setParameter(
-      int parameterIndex, Object value, Integer sqlType, Integer scaleOrLength, String column)
+      int parameterIndex,
+      Object value,
+      Integer sqlType,
+      Integer scaleOrLength,
+      String column,
+      SQLType sqlTypeObject)
       throws SQLException {
-    // check that only valid type/value combinations are entered
-    if (sqlType != null) {
-      checkTypeAndValueSupported(value, sqlType);
-    }
-    // set the parameter
+    // Ignore the sql type if the application has created a Spanner Value object.
+    if (!(value instanceof Value)) {
+      // check that only valid type/value combinations are entered
+      if (sqlTypeObject != null && sqlType == null) {
+        sqlType = sqlTypeObject.getVendorTypeNumber();
+      }
+      if (sqlType != null) {
+        checkTypeAndValueSupported(value, sqlType);
+      }
+    } // set the parameter
     highestIndex = Math.max(parameterIndex, highestIndex);
     int arrayIndex = parameterIndex - 1;
     if (arrayIndex >= parametersList.size() || parametersList.get(arrayIndex) == null) {
@@ -416,7 +471,11 @@ class JdbcParameterStore {
   /** Set a value from a JDBC parameter on a Spanner {@link Statement}. */
   Builder setValue(ValueBinder<Builder> binder, Object value, Integer sqlType) throws SQLException {
     Builder res;
-    if (sqlType != null && sqlType == Types.ARRAY) {
+    if (value instanceof Value) {
+      // If a Value has been constructed, then that should override any sqlType that might have been
+      // supplied.
+      res = binder.to((Value) value);
+    } else if (sqlType != null && sqlType == Types.ARRAY) {
       if (value instanceof Array) {
         Array array = (Array) value;
         value = array.getArray();

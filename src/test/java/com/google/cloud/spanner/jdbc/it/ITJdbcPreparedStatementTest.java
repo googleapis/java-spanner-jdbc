@@ -26,7 +26,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
+import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
@@ -46,6 +48,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Scanner;
@@ -871,6 +874,111 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               "UPDATE TableWithAllColumnTypes SET ColBool=FALSE WHERE ColInt64=?")) {
         ResultSetMetaData metadata = ps.getMetaData();
         assertEquals(0, metadata.getColumnCount());
+      }
+    }
+  }
+
+  @Test
+  public void test11_InsertDataUsingSpannerValue() throws SQLException {
+    try (Connection con = createConnection()) {
+      try (PreparedStatement ps =
+          con.prepareStatement(
+              "INSERT INTO TableWithAllColumnTypes ("
+                  + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, "
+                  + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray"
+                  + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        ps.setObject(1, Value.int64(2L));
+        ps.setObject(2, Value.float64(2D));
+        ps.setObject(3, Value.bool(true));
+        ps.setObject(4, Value.string("testvalues"));
+        ps.setObject(5, Value.string("2d37f522-e0a5-4f22-8e09-4d77d299c967"));
+        ps.setObject(6, Value.bytes(ByteArray.copyFrom("test".getBytes())));
+        ps.setObject(7, Value.bytes(ByteArray.copyFrom("testtest".getBytes())));
+        ps.setObject(8, Value.date(com.google.cloud.Date.fromYearMonthDay(2021, 5, 3)));
+        ps.setObject(
+            9, Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(99999L, 99)));
+        ps.setObject(10, Value.numeric(BigDecimal.TEN));
+        ps.setObject(11, Value.int64Array(new long[] {1L, 2L, 3L}));
+        ps.setObject(12, Value.float64Array(new double[] {1.1D, 2.2D, 3.3D}));
+        ps.setObject(13, Value.boolArray(Arrays.asList(Boolean.TRUE, null, Boolean.FALSE)));
+        ps.setObject(14, Value.stringArray(Arrays.asList("1", "2", "3")));
+        ps.setObject(15, Value.stringArray(Arrays.asList("3", "2", "1")));
+        ps.setObject(
+            16,
+            Value.bytesArray(
+                Arrays.asList(
+                    ByteArray.copyFrom("1"), ByteArray.copyFrom("2"), ByteArray.copyFrom("3"))));
+        ps.setObject(
+            17,
+            Value.bytesArray(
+                Arrays.asList(
+                    ByteArray.copyFrom("333"),
+                    ByteArray.copyFrom("222"),
+                    ByteArray.copyFrom("111"))));
+        ps.setObject(
+            18,
+            Value.dateArray(
+                Arrays.asList(com.google.cloud.Date.fromYearMonthDay(2021, 5, 3), null)));
+        ps.setObject(
+            19,
+            Value.timestampArray(
+                Arrays.asList(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(99999L, 99), null)));
+        ps.setObject(20, Value.numericArray(Arrays.asList(BigDecimal.ONE, null, BigDecimal.TEN)));
+        assertEquals(1, ps.executeUpdate());
+      }
+      try (ResultSet rs =
+          con.createStatement()
+              .executeQuery("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=2")) {
+        assertTrue(rs.next());
+        assertEquals(Value.int64(2L), rs.getObject(1, Value.class));
+        assertEquals(Value.float64(2d), rs.getObject(2, Value.class));
+        assertEquals(Value.bool(true), rs.getObject(3, Value.class));
+        assertEquals(Value.string("testvalues"), rs.getObject(4, Value.class));
+        assertEquals(
+            Value.string("2d37f522-e0a5-4f22-8e09-4d77d299c967"), rs.getObject(5, Value.class));
+        assertEquals(Value.bytes(ByteArray.copyFrom("test")), rs.getObject(6, Value.class));
+        assertEquals(Value.bytes(ByteArray.copyFrom("testtest")), rs.getObject(7, Value.class));
+        assertEquals(
+            Value.date(com.google.cloud.Date.fromYearMonthDay(2021, 5, 3)),
+            rs.getObject(8, Value.class));
+        assertEquals(
+            Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(99999L, 99)),
+            rs.getObject(9, Value.class));
+        assertNotNull(rs.getObject(10, Value.class)); // Commit timestamp
+        assertEquals(Value.numeric(BigDecimal.TEN), rs.getObject(11, Value.class));
+        assertEquals(Value.int64Array(new long[] {1L, 2L, 3L}), rs.getObject(12, Value.class));
+        assertEquals(
+            Value.float64Array(new double[] {1.1D, 2.2D, 3.3D}), rs.getObject(13, Value.class));
+        assertEquals(
+            Value.boolArray(Arrays.asList(true, null, false)), rs.getObject(14, Value.class));
+        assertEquals(
+            Value.stringArray(Arrays.asList("1", "2", "3")), rs.getObject(15, Value.class));
+        assertEquals(
+            Value.stringArray(Arrays.asList("3", "2", "1")), rs.getObject(16, Value.class));
+        assertEquals(
+            Value.bytesArray(
+                Arrays.asList(
+                    ByteArray.copyFrom("1"), ByteArray.copyFrom("2"), ByteArray.copyFrom("3"))),
+            rs.getObject(17, Value.class));
+        assertEquals(
+            Value.bytesArray(
+                Arrays.asList(
+                    ByteArray.copyFrom("333"),
+                    ByteArray.copyFrom("222"),
+                    ByteArray.copyFrom("111"))),
+            rs.getObject(18, Value.class));
+        assertEquals(
+            Value.dateArray(
+                Arrays.asList(com.google.cloud.Date.fromYearMonthDay(2021, 5, 3), null)),
+            rs.getObject(19, Value.class));
+        assertEquals(
+            Value.timestampArray(
+                Arrays.asList(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(99999L, 99), null)),
+            rs.getObject(20, Value.class));
+        assertEquals(
+            Value.numericArray(Arrays.asList(BigDecimal.ONE, null, BigDecimal.TEN)),
+            rs.getObject(21, Value.class));
+        assertFalse(rs.next());
       }
     }
   }

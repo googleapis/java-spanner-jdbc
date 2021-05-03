@@ -25,6 +25,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.ResultSets;
@@ -32,10 +33,12 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.rpc.Code;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Date;
@@ -51,6 +54,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.TimeZone;
 import java.util.UUID;
 import org.junit.Test;
@@ -97,6 +101,41 @@ public class JdbcPreparedStatementTest {
     when(connection.createArrayOf(anyString(), any(Object[].class))).thenCallRealMethod();
 
     return connection;
+  }
+
+  @Test
+  public void testValueAsParameter() throws SQLException {
+    String sql = generateSqlWithParameters(1);
+    JdbcConnection connection = createMockConnection();
+    for (Value value :
+        new Value[] {
+          Value.bool(true),
+          Value.bool(false),
+          Value.bytes(ByteArray.copyFrom("foo")),
+          Value.date(com.google.cloud.Date.fromYearMonthDay(2021, 5, 17)),
+          Value.float64(6.626d),
+          Value.int64(13L),
+          Value.numeric(new BigDecimal("3.14")),
+          Value.string("bar"),
+          Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(999L, 99)),
+          Value.boolArray(Collections.singleton(true)),
+          Value.bytesArray(Collections.singleton(ByteArray.copyFrom("foo"))),
+          Value.dateArray(
+              Collections.singleton(com.google.cloud.Date.fromYearMonthDay(2021, 5, 17))),
+          Value.float64Array(Collections.singleton(6.626d)),
+          Value.int64Array(Collections.singleton(13L)),
+          Value.numericArray(Collections.singleton(new BigDecimal("3.14"))),
+          Value.stringArray(Collections.singleton("bar")),
+          Value.timestampArray(
+              Collections.singleton(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(999L, 99))),
+        }) {
+
+      try (JdbcPreparedStatement ps = new JdbcPreparedStatement(connection, sql)) {
+        ps.setObject(1, value);
+        Statement statement = ps.createStatement();
+        assertEquals(statement.getParameters().get("p1"), value);
+      }
+    }
   }
 
   @SuppressWarnings("deprecation")
