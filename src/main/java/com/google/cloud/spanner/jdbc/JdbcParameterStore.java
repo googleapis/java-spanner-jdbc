@@ -150,17 +150,13 @@ class JdbcParameterStore {
     setParameter(parameterIndex, value, null, null, null, null);
   }
 
-  /**
-   * Sets a parameter value as the specified vendor-specific {@link SQLType}. Only {@link JsonType}
-   * is currently supported.
-   */
+  /** Sets a parameter value as the specified vendor-specific {@link SQLType}. */
   void setParameter(int parameterIndex, Object value, SQLType sqlType) throws SQLException {
     setParameter(parameterIndex, value, null, null, null, sqlType);
   }
 
   /**
    * Sets a parameter value as the specified vendor-specific {@link SQLType} with the specified
-   * scale or length. Only {@link JsonType} is currently supported, which does not have a variable
    * scale or length. This method is only here to support the {@link
    * PreparedStatement#setObject(int, Object, SQLType, int)} method.
    */
@@ -172,7 +168,6 @@ class JdbcParameterStore {
   /**
    * Sets a parameter value as the specified sql type. The type can be one of the constants in
    * {@link Types} or a vendor specific type code supplied by a vendor specific {@link SQLType}.
-   * Currently only {@link JsonType#VENDOR_TYPE_NUMBER} is supported for the latter.
    */
   void setParameter(int parameterIndex, Object value, Integer sqlType) throws SQLException {
     setParameter(parameterIndex, value, sqlType, null);
@@ -181,8 +176,7 @@ class JdbcParameterStore {
   /**
    * Sets a parameter value as the specified sql type with the specified scale or length. The type
    * can be one of the constants in {@link Types} or a vendor specific type code supplied by a
-   * vendor specific {@link SQLType}. Currently only {@link JsonType#VENDOR_TYPE_NUMBER} is
-   * supported for the latter.
+   * vendor specific {@link SQLType}.
    */
   void setParameter(int parameterIndex, Object value, Integer sqlType, Integer scaleOrLength)
       throws SQLException {
@@ -193,7 +187,6 @@ class JdbcParameterStore {
    * Sets a parameter value as the specified sql type with the specified scale or length. Any {@link
    * SQLType} instance will take precedence over sqlType. The type can be one of the constants in
    * {@link Types} or a vendor specific type code supplied by a vendor specific {@link SQLType}.
-   * Currently only {@link JsonType#VENDOR_TYPE_NUMBER} is supported for the latter.
    */
   void setParameter(
       int parameterIndex,
