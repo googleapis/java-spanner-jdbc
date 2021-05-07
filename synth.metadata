@@ -4,14 +4,14 @@
       "git": {
         "name": ".",
         "remote": "https://github.com/googleapis/java-spanner-jdbc.git",
-        "sha": "212d9d05c4f28ade71ab5484792188b11a5bcd8b"
+        "sha": "a657035b74e24e9fdfa12f91e5edf3c3e9b215ff"
       }
     },
     {
       "git": {
         "name": "synthtool",
         "remote": "https://github.com/googleapis/synthtool.git",
-        "sha": "8285c2b4cdbc3771d031ad91e1c4ec9e55fff45d"
+        "sha": "046994f491c02806aea60118e214a9edd67f5ab7"
       }
     }
   ],
@@ -21,12 +21,9 @@
     ".github/ISSUE_TEMPLATE/feature_request.md",
     ".github/ISSUE_TEMPLATE/support_request.md",
     ".github/PULL_REQUEST_TEMPLATE.md",
-    ".github/blunderbuss.yml",
     ".github/generated-files-bot.yml",
     ".github/readme/synth.py",
-    ".github/release-please.yml",
     ".github/snippet-bot.yml",
-    ".github/sync-repo-settings.yaml",
     ".github/trusted-contribution.yml",
     ".github/workflows/approve-readme.yaml",
     ".github/workflows/auto-release.yaml",
