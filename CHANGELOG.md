@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.1.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.0.2...v2.1.0) (2021-05-18)
+
+
+### Features
+
+* allow get/set Spanner Value instances ([#454](https://www.github.com/googleapis/java-spanner-jdbc/issues/454)) ([d6935b8](https://www.github.com/googleapis/java-spanner-jdbc/commit/d6935b863349c58cfdd44d6ce20dba6f5dbc1472)), closes [#452](https://www.github.com/googleapis/java-spanner-jdbc/issues/452)
+
+
+### Bug Fixes
+
+* NPE was thrown when getting an array of structs from a ResultSet ([#445](https://www.github.com/googleapis/java-spanner-jdbc/issues/445)) ([1dfb37b](https://www.github.com/googleapis/java-spanner-jdbc/commit/1dfb37b27ee661718fe80be0bf260c40f4b15582)), closes [#444](https://www.github.com/googleapis/java-spanner-jdbc/issues/444)
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v1.1.0 ([#463](https://www.github.com/googleapis/java-spanner-jdbc/issues/463)) ([f148c71](https://www.github.com/googleapis/java-spanner-jdbc/commit/f148c71bef2b762d7b4475ba7f28443c7938c394))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v6.4.0 ([#453](https://www.github.com/googleapis/java-spanner-jdbc/issues/453)) ([7dac8b3](https://www.github.com/googleapis/java-spanner-jdbc/commit/7dac8b3e43625aa28be214bd735fc3386770de04))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v6.4.4 ([#464](https://www.github.com/googleapis/java-spanner-jdbc/issues/464)) ([eeb31c0](https://www.github.com/googleapis/java-spanner-jdbc/commit/eeb31c050fda116203d9da5c4a80c7f1c6a6cac4))
+
 ### [2.0.2](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.0.1...v2.0.2) (2021-04-26)
 
 
