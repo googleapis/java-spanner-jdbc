@@ -26,12 +26,19 @@ import com.google.common.base.MoreObjects;
 import com.google.spanner.v1.ExecuteSqlRequest;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class JdbcQueryOptionsTest extends AbstractMockServerTest {
+  @Before
+  public void setup() throws Exception {
+    stopServer();
+    startStaticServer();
+  }
+
   @Test
   public void testDefaultOptimizerVersion() throws SQLException {
     try (java.sql.Connection connection = createJdbcConnection()) {
@@ -151,13 +158,7 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
   @Test
   public void testUseOptimizerVersionFromEnvironment() throws SQLException {
     try {
-      SpannerOptions.useEnvironment(
-          new SpannerOptions.SpannerEnvironment() {
-            @Override
-            public String getOptimizerVersion() {
-              return "20";
-            }
-          });
+      SpannerOptions.useEnvironment(() -> "20");
       try (java.sql.Connection connection =
           DriverManager.getConnection(String.format("jdbc:%s", getBaseUrl()))) {
         // Do a query and verify that the version from the environment is used.
