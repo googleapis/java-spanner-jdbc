@@ -24,6 +24,28 @@ custom_content: |
    }
    ```
    
+   ### Connection URL Properties
+   
+   The Cloud Spanner JDBC driver supports the following connection URL properties. Note that all of
+   these can also be supplied in a Properties instance that is passed to the
+   `DriverManager#getConnection(String url, Properties properties)` method.
+
+   #### Commonly Used Properties
+   - credentials (String): URL for the credentials file to use for the connection. If you do not specify any credentials at all, the default credentials of the environment as returned by `GoogleCredentials#getApplicationDefault()` is used. Example: `jdbc:cloudspanner:/projects/my-project/instances/my-instance/databases/my-db;credentials=/path/to/credentials.json`
+   - autocommit (boolean): Sets the initial autocommit mode for the connection. Default is true.
+   - readonly (boolean): Sets the initial readonly mode for the connection. Default is false.
+   - autoConfigEmulator (boolean): Automatically configure the connection to try to connect to the Cloud Spanner emulator. You do not need to specify any host or port in the connection string as long as the emulator is running on the default host/port (localhost:9010). The instance and database in the connection string will automatically be created if these do not yet exist on the emulator. This means that you do not need to execute any `gcloud` commands on the emulator to create the instance and database before you can connect to it. Example: `jdbc:cloudspanner:/projects/test-project/instances/test-instance/databases/test-db;autoConfigEmulator=true`
+   - usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted connection to a (local) server. This option can only be used when connecting to a local emulator that does not require an encrypted connection, and that does not require authentication. Example: `jdbc:cloudspanner://localhost:9010/projects/test-project/instances/test-instance/databases/test-db;usePlainText=true`
+   - optimizerVersion (String): Sets the default query optimizer version to use for this connection. See also https://cloud.google.com/spanner/docs/query-optimizer/query-optimizer-versions.
+   
+   #### Advanced Properties
+   - minSessions (int): Sets the minimum number of sessions in the backing session pool. Defaults to 100.
+   - maxSessions (int): Sets the maximum number of sessions in the backing session pool. Defaults to 400.
+   - numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
+   - retryAbortsInternally (boolean): The JDBC driver will by default automatically retry aborted transactions internally. This is done by keeping track of all statements and the results of these during a transaction, and if the transaction is aborted by Cloud Spanner, it will replay the statements on a new transaction and compare the results with the initial attempt. Disable this option if you want to handle aborted transactions in your own application.
+   - oauthToken (string): A valid pre-existing OAuth token to use for authentication for this connection. Setting this property will take precedence over any value set for a credentials file.
+   - lenient (boolean): Enable this to force the JDBC driver to ignore unknown properties in the connection URL. Some applications automatically add additional properties to the URL that are not recognized by the JDBC driver. Normally, the JDBC driver will reject this, unless `lenient` mode is enabled.
+   
    ### Jar with Dependencies
    A single jar with all dependencies can be downloaded from https://repo1.maven.org/maven2/com/google/cloud/google-cloud-spanner-jdbc/latest
    or be built with the command `mvn package` (select the jar that is named `google-cloud-spanner-jdbc-<version>-single-jar-with-dependencies.jar`).
