@@ -76,23 +76,14 @@ import java.util.regex.Pattern;
  *   <li>credentials (String): URL for the credentials file to use for the connection. If you do not
  *       specify any credentials at all, the default credentials of the environment as returned by
  *       {@link GoogleCredentials#getApplicationDefault()} is used.
- *   <li>oauthtoken (String): A valid OAuth2 token to use for the JDBC connection. The token must
- *       have been obtained with one or both of the scopes
- *       'https://www.googleapis.com/auth/spanner.admin' and/or
- *       'https://www.googleapis.com/auth/spanner.data'. If you specify both a credentials file and
- *       an OAuth token, the JDBC driver will throw an exception when you try to obtain a
- *       connection.
  *   <li>autocommit (boolean): Sets the initial autocommit mode for the connection. Default is true.
  *   <li>readonly (boolean): Sets the initial readonly mode for the connection. Default is false.
- *   <li>retryAbortsInternally (boolean): Sets the initial retryAbortsInternally mode for the
- *       connection. Default is true. @see {@link
- *       com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection#setRetryAbortsInternally(boolean)}
- *       for more information.
- *   <li>minSessions (int): Sets the minimum number of sessions in the backing session pool.
- *       Defaults to 100.
- *   <li>maxSessions (int): Sets the maximum number of sessions in the backing session pool.
- *       Defaults to 400.
- *   <li>numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
+ *   <li>autoConfigEmulator (boolean): Automatically configure the connection to try to connect to
+ *       the Cloud Spanner emulator. You do not need to specify any host or port in the connection
+ *       string as long as the emulator is running on the default host/port (localhost:9010). The
+ *       instance and database in the connection string will automatically be created if these do
+ *       not yet exist on the emulator. This means that you do not need to execute any `gcloud`
+ *       commands on the emulator to create the instance and database before you can connect to it.
  *   <li>usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted
  *       connection to the server. This option can only be used when connecting to a local emulator
  *       that does not require an encrypted connection, and that does not require authentication.
@@ -102,6 +93,21 @@ import java.util.regex.Pattern;
  *       SPANNER_OPTIMIZER_VERSION</code> is used. If no query optimizer version is specified in the
  *       connection URL or in the environment variable, the default query optimizer version of Cloud
  *       Spanner is used.
+ *   <li>oauthtoken (String): A valid OAuth2 token to use for the JDBC connection. The token must
+ *       have been obtained with one or both of the scopes
+ *       'https://www.googleapis.com/auth/spanner.admin' and/or
+ *       'https://www.googleapis.com/auth/spanner.data'. If you specify both a credentials file and
+ *       an OAuth token, the JDBC driver will throw an exception when you try to obtain a
+ *       connection.
+ *   <li>retryAbortsInternally (boolean): Sets the initial retryAbortsInternally mode for the
+ *       connection. Default is true. @see {@link
+ *       com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection#setRetryAbortsInternally(boolean)}
+ *       for more information.
+ *   <li>minSessions (int): Sets the minimum number of sessions in the backing session pool.
+ *       Defaults to 100.
+ *   <li>maxSessions (int): Sets the maximum number of sessions in the backing session pool.
+ *       Defaults to 400.
+ *   <li>numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
  * </ul>
  */
 public class JdbcDriver implements Driver {
