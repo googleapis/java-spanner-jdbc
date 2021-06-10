@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
 import com.google.cloud.spanner.SpannerOptions;
+import com.google.cloud.spanner.SpannerOptions.SpannerEnvironment;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
 import com.google.common.base.MoreObjects;
@@ -40,7 +41,7 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
   }
 
   @Test
-  public void testDefaultOptimizerVersion() throws SQLException {
+  public void testDefaultOptions() throws SQLException {
     try (java.sql.Connection connection = createJdbcConnection()) {
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_VERSION")) {
@@ -48,25 +49,39 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
         assertThat(rs.getString("OPTIMIZER_VERSION")).isEqualTo("");
         assertThat(rs.next()).isFalse();
       }
-    }
-  }
-
-  @Test
-  public void testOptimizerVersionInConnectionUrl() throws SQLException {
-    try (java.sql.Connection connection =
-        DriverManager.getConnection(
-            String.format("jdbc:%s;optimizerVersion=%s", getBaseUrl(), "100"))) {
       try (java.sql.ResultSet rs =
-          connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_VERSION")) {
+          connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_STATISTICS_PACKAGE")) {
         assertThat(rs.next()).isTrue();
-        assertThat(rs.getString("OPTIMIZER_VERSION")).isEqualTo("100");
+        assertThat(rs.getString("OPTIMIZER_STATISTICS_PACKAGE")).isEqualTo("");
         assertThat(rs.next()).isFalse();
       }
     }
   }
 
   @Test
-  public void testSetOptimizerVersion() throws SQLException {
+  public void testOptionsInConnectionUrl() throws SQLException {
+    try (java.sql.Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:%s;optimizerVersion=%s;optimizerStatisticsPackage=%s",
+                getBaseUrl(), "100", "url_package"))) {
+      try (java.sql.ResultSet rs =
+          connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_VERSION")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getString("OPTIMIZER_VERSION")).isEqualTo("100");
+        assertThat(rs.next()).isFalse();
+      }
+      try (java.sql.ResultSet rs =
+          connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_STATISTICS_PACKAGE")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getString("OPTIMIZER_STATISTICS_PACKAGE")).isEqualTo("url_package");
+        assertThat(rs.next()).isFalse();
+      }
+    }
+  }
+
+  @Test
+  public void testSetOptions() throws SQLException {
     try (java.sql.Connection connection = createJdbcConnection()) {
       connection.createStatement().execute("SET OPTIMIZER_VERSION='20'");
       try (java.sql.ResultSet rs =
@@ -89,41 +104,64 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
         assertThat(rs.getString("OPTIMIZER_VERSION")).isEqualTo("");
         assertThat(rs.next()).isFalse();
       }
+
+      connection.createStatement().execute("SET OPTIMIZER_STATISTICS_PACKAGE='20210609'");
+      try (java.sql.ResultSet rs =
+          connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_STATISTICS_PACKAGE")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getString("OPTIMIZER_STATISTICS_PACKAGE")).isEqualTo("20210609");
+        assertThat(rs.next()).isFalse();
+      }
+      connection.createStatement().execute("SET OPTIMIZER_STATISTICS_PACKAGE='latest'");
+      try (java.sql.ResultSet rs =
+          connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_STATISTICS_PACKAGE")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getString("OPTIMIZER_STATISTICS_PACKAGE")).isEqualTo("latest");
+        assertThat(rs.next()).isFalse();
+      }
+      connection.createStatement().execute("SET OPTIMIZER_STATISTICS_PACKAGE=''");
+      try (java.sql.ResultSet rs =
+          connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_STATISTICS_PACKAGE")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getString("OPTIMIZER_STATISTICS_PACKAGE")).isEqualTo("");
+        assertThat(rs.next()).isFalse();
+      }
     }
   }
 
   @Test
-  public void testSetAndUseOptimizerVersion() throws SQLException {
+  public void testSetAndUseOptions() throws SQLException {
     try (java.sql.Connection connection = createJdbcConnection()) {
       connection.createStatement().execute("SET OPTIMIZER_VERSION='20'");
+      connection.createStatement().execute("SET OPTIMIZER_STATISTICS_PACKAGE='20210609'");
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery(SELECT_COUNT_STATEMENT.getSql())) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getLong(1)).isEqualTo(COUNT_BEFORE_INSERT);
         assertThat(rs.next()).isFalse();
-        // Verify that the last ExecuteSqlRequest that the server received specified optimizer
-        // version 20.
+        // Verify that the last ExecuteSqlRequest that the server received used the options that
+        // were set.
         ExecuteSqlRequest request = getLastExecuteSqlRequest();
         assertThat(request.getQueryOptions().getOptimizerVersion()).isEqualTo("20");
+        assertThat(request.getQueryOptions().getOptimizerStatisticsPackage()).isEqualTo("20210609");
       }
 
-      // Do another query, but now with optimizer version 'latest'.
       connection.createStatement().execute("SET OPTIMIZER_VERSION='latest'");
+      connection.createStatement().execute("SET OPTIMIZER_STATISTICS_PACKAGE='latest'");
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery(SELECT_COUNT_STATEMENT.getSql())) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getLong(1)).isEqualTo(COUNT_BEFORE_INSERT);
         assertThat(rs.next()).isFalse();
-        // Verify that the last ExecuteSqlRequest that the server received specified optimizer
-        // version 'latest'.
         ExecuteSqlRequest request = getLastExecuteSqlRequest();
         assertThat(request.getQueryOptions().getOptimizerVersion()).isEqualTo("latest");
+        assertThat(request.getQueryOptions().getOptimizerStatisticsPackage()).isEqualTo("latest");
       }
 
-      // Set the optimizer version to ''. This will do a fallback to the default, meaning that it
-      // will be read from the environment variable SPANNER_OPTIMIZER_VERSION as we have nothing set
-      // on the connection URL.
+      // Set the options to ''. This will do a fallback to the default, meaning that it will be read
+      // from the environment variables as we have nothing set on the connection URL.
       connection.createStatement().execute("SET OPTIMIZER_VERSION=''");
+      connection.createStatement().execute("SET OPTIMIZER_STATISTICS_PACKAGE=''");
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery(SELECT_COUNT_STATEMENT.getSql())) {
         assertThat(rs.next()).isTrue();
@@ -134,31 +172,49 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
         ExecuteSqlRequest request = getLastExecuteSqlRequest();
         assertThat(request.getQueryOptions().getOptimizerVersion())
             .isEqualTo(MoreObjects.firstNonNull(System.getenv("SPANNER_OPTIMIZER_VERSION"), ""));
+        assertThat(request.getQueryOptions().getOptimizerStatisticsPackage())
+            .isEqualTo(MoreObjects.firstNonNull(System.getenv("OPTIMIZER_STATISTICS_PACKAGE"), ""));
       }
     }
   }
 
   @Test
-  public void testUseOptimizerVersionFromConnectionUrl() throws SQLException {
+  public void testUseOptionsFromConnectionUrl() throws SQLException {
     try (java.sql.Connection connection =
-        DriverManager.getConnection(String.format("jdbc:%s;optimizerVersion=10", getBaseUrl()))) {
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:%s;optimizerVersion=10;optimizerStatisticsPackage=20210609_10_00_00",
+                getBaseUrl()))) {
       // Do a query and verify that the version from the connection URL is used.
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery(SELECT_COUNT_STATEMENT.getSql())) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getLong(1)).isEqualTo(COUNT_BEFORE_INSERT);
         assertThat(rs.next()).isFalse();
-        // The optimizer version used should be '10' from the connection URL.
+        // The options should come from the connection URL.
         ExecuteSqlRequest request = getLastExecuteSqlRequest();
         assertThat(request.getQueryOptions().getOptimizerVersion()).isEqualTo("10");
+        assertThat(request.getQueryOptions().getOptimizerStatisticsPackage())
+            .isEqualTo("20210609_10_00_00");
       }
     }
   }
 
   @Test
-  public void testUseOptimizerVersionFromEnvironment() throws SQLException {
+  public void testUseOptionsFromEnvironment() throws SQLException {
     try {
-      SpannerOptions.useEnvironment(() -> "20");
+      SpannerOptions.useEnvironment(
+          new SpannerEnvironment() {
+            @Override
+            public String getOptimizerVersion() {
+              return "20";
+            }
+
+            @Override
+            public String getOptimizerStatisticsPackage() {
+              return "env_package";
+            }
+          });
       try (java.sql.Connection connection =
           DriverManager.getConnection(String.format("jdbc:%s", getBaseUrl()))) {
         // Do a query and verify that the version from the environment is used.
@@ -170,6 +226,8 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
           // Verify query options from the environment.
           ExecuteSqlRequest request = getLastExecuteSqlRequest();
           assertThat(request.getQueryOptions().getOptimizerVersion()).isEqualTo("20");
+          assertThat(request.getQueryOptions().getOptimizerStatisticsPackage())
+              .isEqualTo("env_package");
         }
         // Now set one of the query options on the connection. That option should be used in
         // combination with the other option from the environment.
@@ -183,6 +241,9 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
           ExecuteSqlRequest request = getLastExecuteSqlRequest();
           // Optimizer version should come from the connection.
           assertThat(request.getQueryOptions().getOptimizerVersion()).isEqualTo("30");
+          // Optimizer statistics package should come from the environment.
+          assertThat(request.getQueryOptions().getOptimizerStatisticsPackage())
+              .isEqualTo("env_package");
         }
       }
     } finally {
@@ -195,7 +256,9 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
     mockSpanner.putStatementResult(
         StatementResult.query(
             Statement.of(
-                String.format("@{optimizer_version=1} %s", SELECT_COUNT_STATEMENT.getSql())),
+                String.format(
+                    "@{optimizer_version=1, optimizer_statistics_package=hint_package} %s",
+                    SELECT_COUNT_STATEMENT.getSql())),
             SELECT_COUNT_RESULTSET_BEFORE_INSERT));
     try (java.sql.Connection connection =
         DriverManager.getConnection(String.format("jdbc:%s", getBaseUrl()))) {
@@ -203,14 +266,17 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
           connection
               .createStatement()
               .executeQuery(
-                  String.format("@{optimizer_version=1} %s", SELECT_COUNT_STATEMENT.getSql()))) {
+                  String.format(
+                      "@{optimizer_version=1, optimizer_statistics_package=hint_package} %s",
+                      SELECT_COUNT_STATEMENT.getSql()))) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getLong(1)).isEqualTo(COUNT_BEFORE_INSERT);
         assertThat(rs.next()).isFalse();
-        // The optimizer version used in the ExecuteSqlRequest should be empty as the query hint is
-        // parsed by the backend.
+        // The options used in the ExecuteSqlRequest should be empty as the query hint is parsed by
+        // the backend.
         ExecuteSqlRequest request = getLastExecuteSqlRequest();
         assertThat(request.getQueryOptions().getOptimizerVersion()).isEqualTo("");
+        assertThat(request.getQueryOptions().getOptimizerStatisticsPackage()).isEqualTo("");
       }
     }
   }
