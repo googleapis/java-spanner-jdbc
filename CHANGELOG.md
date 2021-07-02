@@ -1,5 +1,21 @@
 # Changelog
 
+### [2.2.4](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.2.3...v2.2.4) (2021-07-02)
+
+
+### Bug Fixes
+
+* Add `shopt -s nullglob` to dependencies script ([#514](https://www.github.com/googleapis/java-spanner-jdbc/issues/514)) ([ae51b24](https://www.github.com/googleapis/java-spanner-jdbc/commit/ae51b241148606ffddeb0a703b853de67710e48b))
+* prevent relocating urls that start with com like /computeMetadata/ ([#511](https://www.github.com/googleapis/java-spanner-jdbc/issues/511)) ([1178a1d](https://www.github.com/googleapis/java-spanner-jdbc/commit/1178a1d35b4b0032acf71b3dbf862d4f9fb9399c))
+* Update dependencies.sh to not break on mac ([#506](https://www.github.com/googleapis/java-spanner-jdbc/issues/506)) ([e205c0c](https://www.github.com/googleapis/java-spanner-jdbc/commit/e205c0c8eba6ac23d747c433b42d8e2365528bd8))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v1.4.0 ([#518](https://www.github.com/googleapis/java-spanner-jdbc/issues/518)) ([045b858](https://www.github.com/googleapis/java-spanner-jdbc/commit/045b8586a7ca7b0e2bd341b27ca3e8a3530c992a))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v6.7.0 ([#513](https://www.github.com/googleapis/java-spanner-jdbc/issues/513)) ([e1affe3](https://www.github.com/googleapis/java-spanner-jdbc/commit/e1affe358a812a45b9d2c0c9ccd0b00e3aa3791e))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v6.8.0 ([#517](https://www.github.com/googleapis/java-spanner-jdbc/issues/517)) ([c9013ff](https://www.github.com/googleapis/java-spanner-jdbc/commit/c9013ff48269b158121e4c65c545be30752c31fb))
+
 ### [2.2.3](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.2.2...v2.2.3) (2021-06-15)
 
 
