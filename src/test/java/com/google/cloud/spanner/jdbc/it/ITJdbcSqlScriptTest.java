@@ -23,6 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
@@ -93,6 +94,11 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
         // Ignore, this is expected as errors during a read/write transaction are sticky on the
         // emulator.
       }
+    } catch (SpannerException e) {
+      if (env.getTestHelper().isEmulator() && e.getErrorCode() == ErrorCode.ALREADY_EXISTS) {
+        // Ignore, this is expected as errors during a read/write transaction are sticky on the
+        // emulator.
+      }
     }
   }
 
@@ -113,6 +119,11 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
       if (env.getTestHelper().isEmulator()
           && e.getErrorCode() == ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value()) {
         // Ignore as errors during read/write transactions are sticky on the emulator.
+      }
+    } catch (SpannerException e) {
+      if (env.getTestHelper().isEmulator() && e.getErrorCode() == ErrorCode.ALREADY_EXISTS) {
+        // Ignore, this is expected as errors during a read/write transaction are sticky on the
+        // emulator.
       }
     }
   }

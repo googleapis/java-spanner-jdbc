@@ -4,7 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>1.17.3</version><!-- {x-version-update:google-cloud-spanner-jdbc:current} -->
+  <version>2.2.7-SNAPSHOT</version><!-- {x-version-update:google-cloud-spanner-jdbc:current} -->
   <packaging>jar</packaging>
   <name>Google Cloud Spanner JDBC</name>
   <url>https://github.com/googleapis/java-spanner-jdbc</url>
@@ -14,7 +14,7 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>google-cloud-shared-config</artifactId>
-    <version>0.9.4</version>
+    <version>0.12.0</version>
   </parent>
   <developers>
     <developer>
@@ -40,16 +40,7 @@
     <url>https://github.com/googleapis/java-spanner-jdbc/issues</url>
     <system>GitHub Issues</system>
   </issueManagement>
-  <distributionManagement>
-    <snapshotRepository>
-      <id>sonatype-nexus-snapshots</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-    <repository>
-      <id>sonatype-nexus-staging</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
+
   <licenses>
     <license>
       <name>Apache-2.0</name>
@@ -58,10 +49,10 @@
   </licenses>
   <properties>
     <site.installationModule>google-cloud-spanner-jdbc</site.installationModule>
-    <junit.version>4.13.1</junit.version>
+    <junit.version>4.13.2</junit.version>
     <findbugs.version>3.0.2</findbugs.version>
     <threeten.version>1.4.4</threeten.version>
-    <truth.version>1.1</truth.version>
+    <truth.version>1.1.3</truth.version>
     <mockito.version>1.10.19</mockito.version>
     <hamcrest.version>2.2</hamcrest.version>
   </properties>
@@ -71,14 +62,14 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>3.0.5</version>
+        <version>6.9.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-shared-dependencies</artifactId>
-        <version>0.16.0</version>
+        <version>1.4.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -104,6 +95,11 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>
+    </dependency>
+    <!-- TODO: Remove grpc-alts from here once it has been removed as a runtime dependency from java-spanner -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-alts</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
@@ -140,10 +136,6 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.api.grpc</groupId>
-      <artifactId>proto-google-cloud-spanner-v1</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.api.grpc</groupId>
@@ -196,6 +188,18 @@
   </dependencies>
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <encoding>UTF-8</encoding>
+          <compilerArgument>-Xlint:unchecked</compilerArgument>
+          <compilerArgument>-Xlint:deprecation</compilerArgument>
+          <showDeprecation>true</showDeprecation>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -295,6 +299,8 @@
           <artifactId>maven-dependency-plugin</artifactId>
           <configuration>
             <ignoredUnusedDeclaredDependencies>
+              <!-- TODO: Remove grpc-alts from ignored list once it has been removed from java-spanner -->
+              <ignoredDependency>io.grpc:grpc-alts</ignoredDependency>
               <ignoredDependency>com.google.api:gax-grpc</ignoredDependency>
               <ignoredDependency>com.google.cloud:google-cloud-core-grpc</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredDependency>
@@ -306,12 +312,56 @@
       </plugins>
     </pluginManagement>
   </build>
+  
+  <profiles>
+    <profile>
+      <id>shade</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <configuration>
+              <relocations>
+                <relocation>
+                  <pattern>com.</pattern>
+                  <shadedPattern>com.google.cloud.spanner.jdbc.shaded.com.</shadedPattern>
+                  <excludes>
+                    <exclude>com.google.cloud.spanner.**</exclude>
+                  </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>android.</pattern>
+                  <shadedPattern>com.google.cloud.spanner.jdbc.shaded.android.</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.</pattern>
+                  <shadedPattern>com.google.cloud.spanner.jdbc.shaded.io.</shadedPattern>
+                  <excludes>
+                    <exclude>io.grpc.netty.shaded.**</exclude>
+                  </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>org.</pattern>
+                  <shadedPattern>com.google.cloud.spanner.jdbc.shaded.org.</shadedPattern>
+                  <excludes>
+                    <exclude>org.conscrypt.**</exclude>
+                  </excludes>
+                </relocation>
+              </relocations>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
   <reporting>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.1.2</version>
         <reportSets>
           <reportSet>
             <reports>
@@ -338,7 +388,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>3.3.0</version>
         <reportSets>
           <reportSet>
             <id>html</id>

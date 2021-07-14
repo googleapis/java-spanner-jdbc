@@ -17,10 +17,14 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.api.client.util.Preconditions;
+import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerException;
+import com.google.cloud.spanner.TimestampBound;
+import com.google.cloud.spanner.connection.AutocommitDmlMode;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.StatementParser;
+import com.google.cloud.spanner.connection.TransactionMode;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import java.sql.Array;
@@ -50,7 +54,7 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   private Map<String, Class<?>> typeMap = new HashMap<>();
 
-  JdbcConnection(String connectionUrl, ConnectionOptions options) {
+  JdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     super(connectionUrl, options);
   }
 
@@ -104,6 +108,66 @@ class JdbcConnection extends AbstractJdbcConnection {
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
+  }
+  
+  @Override
+  public void setTransactionMode(TransactionMode mode) throws SQLException {
+    checkClosed();
+    getSpannerConnection().setTransactionMode(mode);
+  }
+
+  @Override
+  public TransactionMode getTransactionMode() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().getTransactionMode();
+  }
+
+  @Override
+  public void setAutocommitDmlMode(AutocommitDmlMode mode) throws SQLException {
+    checkClosed();
+    getSpannerConnection().setAutocommitDmlMode(mode);
+  }
+
+  @Override
+  public AutocommitDmlMode getAutocommitDmlMode() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().getAutocommitDmlMode();
+  }
+
+  @Override
+  public void setReadOnlyStaleness(TimestampBound staleness) throws SQLException {
+    checkClosed();
+    getSpannerConnection().setReadOnlyStaleness(staleness);
+  }
+
+  @Override
+  public TimestampBound getReadOnlyStaleness() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().getReadOnlyStaleness();
+  }
+
+  @Override
+  public void setOptimizerVersion(String optimizerVersion) throws SQLException {
+    checkClosed();
+    getSpannerConnection().setOptimizerVersion(optimizerVersion);
+  }
+
+  @Override
+  public String getOptimizerVersion() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().getOptimizerVersion();
+  }
+
+  @Override
+  public boolean isInTransaction() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().isInTransaction();
+  }
+
+  @Override
+  public boolean isTransactionStarted() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().isTransactionStarted();
   }
 
   @Override
@@ -345,6 +409,36 @@ class JdbcConnection extends AbstractJdbcConnection {
     checkClosed();
     try {
       return getSpannerConnection().getCommitTimestamp().toSqlTimestamp();
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public CommitResponse getCommitResponse() throws SQLException {
+    checkClosed();
+    try {
+      return getSpannerConnection().getCommitResponse();
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public void setReturnCommitStats(boolean returnCommitStats) throws SQLException {
+    checkClosed();
+    try {
+      getSpannerConnection().setReturnCommitStats(returnCommitStats);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public boolean isReturnCommitStats() throws SQLException {
+    checkClosed();
+    try {
+      return getSpannerConnection().isReturnCommitStats();
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }

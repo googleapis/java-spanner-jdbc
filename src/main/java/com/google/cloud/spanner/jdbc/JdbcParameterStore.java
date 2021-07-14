@@ -19,6 +19,7 @@ package com.google.cloud.spanner.jdbc;
 import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Statement.Builder;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.ValueBinder;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.common.io.CharStreams;
@@ -39,12 +40,14 @@ import java.sql.NClob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLType;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /** This class handles the parameters of a {@link PreparedStatement}. */
 class JdbcParameterStore {
@@ -128,7 +131,8 @@ class JdbcParameterStore {
         getParameter(parameterIndex),
         getType(parameterIndex),
         getScaleOrLength(parameterIndex),
-        column);
+        column,
+        null);
   }
 
   void setType(int parameterIndex, Integer type) throws SQLException {
@@ -137,26 +141,71 @@ class JdbcParameterStore {
         getParameter(parameterIndex),
         type,
         getScaleOrLength(parameterIndex),
-        getColumn(parameterIndex));
+        getColumn(parameterIndex),
+        null);
   }
 
+  /** Sets a parameter value. The type will be determined based on the type of the value. */
+  void setParameter(int parameterIndex, Object value) throws SQLException {
+    setParameter(parameterIndex, value, null, null, null, null);
+  }
+
+  /** Sets a parameter value as the specified vendor-specific {@link SQLType}. */
+  void setParameter(int parameterIndex, Object value, SQLType sqlType) throws SQLException {
+    setParameter(parameterIndex, value, null, null, null, sqlType);
+  }
+
+  /**
+   * Sets a parameter value as the specified vendor-specific {@link SQLType} with the specified
+   * scale or length. This method is only here to support the {@link
+   * PreparedStatement#setObject(int, Object, SQLType, int)} method.
+   */
+  void setParameter(int parameterIndex, Object value, SQLType sqlType, Integer scaleOrLength)
+      throws SQLException {
+    setParameter(parameterIndex, value, null, scaleOrLength, null, sqlType);
+  }
+
+  /**
+   * Sets a parameter value as the specified sql type. The type can be one of the constants in
+   * {@link Types} or a vendor specific type code supplied by a vendor specific {@link SQLType}.
+   */
   void setParameter(int parameterIndex, Object value, Integer sqlType) throws SQLException {
     setParameter(parameterIndex, value, sqlType, null);
   }
 
+  /**
+   * Sets a parameter value as the specified sql type with the specified scale or length. The type
+   * can be one of the constants in {@link Types} or a vendor specific type code supplied by a
+   * vendor specific {@link SQLType}.
+   */
   void setParameter(int parameterIndex, Object value, Integer sqlType, Integer scaleOrLength)
       throws SQLException {
-    setParameter(parameterIndex, value, sqlType, scaleOrLength, null);
+    setParameter(parameterIndex, value, sqlType, scaleOrLength, null, null);
   }
 
+  /**
+   * Sets a parameter value as the specified sql type with the specified scale or length. Any {@link
+   * SQLType} instance will take precedence over sqlType. The type can be one of the constants in
+   * {@link Types} or a vendor specific type code supplied by a vendor specific {@link SQLType}.
+   */
   void setParameter(
-      int parameterIndex, Object value, Integer sqlType, Integer scaleOrLength, String column)
+      int parameterIndex,
+      Object value,
+      Integer sqlType,
+      Integer scaleOrLength,
+      String column,
+      SQLType sqlTypeObject)
       throws SQLException {
-    // check that only valid type/value combinations are entered
-    if (sqlType != null) {
-      checkTypeAndValueSupported(value, sqlType);
-    }
-    // set the parameter
+    // Ignore the sql type if the application has created a Spanner Value object.
+    if (!(value instanceof Value)) {
+      // check that only valid type/value combinations are entered
+      if (sqlTypeObject != null && sqlType == null) {
+        sqlType = sqlTypeObject.getVendorTypeNumber();
+      }
+      if (sqlType != null) {
+        checkTypeAndValueSupported(value, sqlType);
+      }
+    } // set the parameter
     highestIndex = Math.max(parameterIndex, highestIndex);
     int arrayIndex = parameterIndex - 1;
     if (arrayIndex >= parametersList.size() || parametersList.get(arrayIndex) == null) {
@@ -203,7 +252,9 @@ class JdbcParameterStore {
       case Types.LONGNVARCHAR:
       case Types.DATE:
       case Types.TIME:
+      case Types.TIME_WITH_TIMEZONE:
       case Types.TIMESTAMP:
+      case Types.TIMESTAMP_WITH_TIMEZONE:
       case Types.BINARY:
       case Types.VARBINARY:
       case Types.LONGVARBINARY:
@@ -248,7 +299,9 @@ class JdbcParameterStore {
             || value instanceof URL;
       case Types.DATE:
       case Types.TIME:
+      case Types.TIME_WITH_TIMEZONE:
       case Types.TIMESTAMP:
+      case Types.TIMESTAMP_WITH_TIMEZONE:
         return value instanceof Date || value instanceof Time || value instanceof Timestamp;
       case Types.BINARY:
       case Types.VARBINARY:
@@ -411,7 +464,11 @@ class JdbcParameterStore {
   /** Set a value from a JDBC parameter on a Spanner {@link Statement}. */
   Builder setValue(ValueBinder<Builder> binder, Object value, Integer sqlType) throws SQLException {
     Builder res;
-    if (sqlType != null && sqlType == Types.ARRAY) {
+    if (value instanceof Value) {
+      // If a Value has been constructed, then that should override any sqlType that might have been
+      // supplied.
+      res = binder.to((Value) value);
+    } else if (sqlType != null && sqlType == Types.ARRAY) {
       if (value instanceof Array) {
         Array array = (Array) value;
         value = array.getArray();
@@ -507,6 +564,8 @@ class JdbcParameterStore {
           }
         } else if (value instanceof URL) {
           return binder.to(((URL) value).toString());
+        } else if (value instanceof UUID) {
+          return binder.to(((UUID) value).toString());
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid string", Code.INVALID_ARGUMENT);
       case Types.DATE:
@@ -519,7 +578,9 @@ class JdbcParameterStore {
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid date", Code.INVALID_ARGUMENT);
       case Types.TIME:
+      case Types.TIME_WITH_TIMEZONE:
       case Types.TIMESTAMP:
+      case Types.TIMESTAMP_WITH_TIMEZONE:
         if (value instanceof Date) {
           return binder.to(JdbcTypeConverter.toGoogleTimestamp((Date) value));
         } else if (value instanceof Time) {
@@ -649,6 +710,8 @@ class JdbcParameterStore {
       return binder.to(String.valueOf((char[]) value));
     } else if (URL.class.isAssignableFrom(value.getClass())) {
       return binder.to(((URL) value).toString());
+    } else if (UUID.class.isAssignableFrom(value.getClass())) {
+      return binder.to(((UUID) value).toString());
     } else if (byte[].class.isAssignableFrom(value.getClass())) {
       return binder.to(ByteArray.copyFrom((byte[]) value));
     } else if (InputStream.class.isAssignableFrom(value.getClass())) {
@@ -710,7 +773,9 @@ class JdbcParameterStore {
         case Types.DATE:
           return binder.toDateArray((Iterable<com.google.cloud.Date>) null);
         case Types.TIME:
+        case Types.TIME_WITH_TIMEZONE:
         case Types.TIMESTAMP:
+        case Types.TIMESTAMP_WITH_TIMEZONE:
           return binder.toTimestampArray((Iterable<com.google.cloud.Timestamp>) null);
         case Types.BINARY:
         case Types.VARBINARY:
@@ -838,8 +903,9 @@ class JdbcParameterStore {
       case Types.SQLXML:
         return binder.to((String) null);
       case Types.TIME:
-        return binder.to((com.google.cloud.Timestamp) null);
+      case Types.TIME_WITH_TIMEZONE:
       case Types.TIMESTAMP:
+      case Types.TIMESTAMP_WITH_TIMEZONE:
         return binder.to((com.google.cloud.Timestamp) null);
       case Types.TINYINT:
         return binder.to((Long) null);

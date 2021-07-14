@@ -17,17 +17,18 @@ If you are using Maven, add this to your pom.xml file:
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>1.17.3</version>
+  <version>2.2.6</version>
 </dependency>
 ```
 
-If you are using Gradle, add this to your dependencies
+If you are using Gradle without BOM, add this to your dependencies
 ```Groovy
-compile 'com.google.cloud:google-cloud-spanner-jdbc:1.17.3'
+compile 'com.google.cloud:google-cloud-spanner-jdbc:2.2.6'
 ```
+
 If you are using SBT, add this to your dependencies
 ```Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "1.17.3"
+libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.2.6"
 ```
 
 ## Authentication
@@ -58,6 +59,67 @@ See the [Google Cloud Spanner JDBC client library docs][javadocs] to learn how t
 use this Google Cloud Spanner JDBC Client Library.
 
 
+### Creating a JDBC Connection
+
+The following example shows how to create a JDBC connection to Cloud Spanner and execute a simple query.
+
+```java
+String projectId = "my-project";
+String instanceId = "my-instance";
+String databaseId = "my-database";
+
+try (Connection connection =
+    DriverManager.getConnection(
+        String.format(
+            "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+            projectId, instanceId, databaseId))) {
+  try (Statement statement = connection.createStatement()) {
+    try (ResultSet rs = statement.executeQuery("SELECT CURRENT_TIMESTAMP()")) {
+      while (rs.next()) {
+        System.out.printf(
+            "Connected to Cloud Spanner at [%s]%n", rs.getTimestamp(1).toString());
+      }
+    }
+  }
+}
+```
+
+### Connection URL Properties
+
+The Cloud Spanner JDBC driver supports the following connection URL properties. Note that all of
+these can also be supplied in a Properties instance that is passed to the
+`DriverManager#getConnection(String url, Properties properties)` method.
+
+#### Commonly Used Properties
+- credentials (String): URL for the credentials file to use for the connection. If you do not specify any credentials at all, the default credentials of the environment as returned by `GoogleCredentials#getApplicationDefault()` is used. Example: `jdbc:cloudspanner:/projects/my-project/instances/my-instance/databases/my-db;credentials=/path/to/credentials.json`
+- autocommit (boolean): Sets the initial autocommit mode for the connection. Default is true.
+- readonly (boolean): Sets the initial readonly mode for the connection. Default is false.
+- autoConfigEmulator (boolean): Automatically configure the connection to try to connect to the Cloud Spanner emulator. You do not need to specify any host or port in the connection string as long as the emulator is running on the default host/port (localhost:9010). The instance and database in the connection string will automatically be created if these do not yet exist on the emulator. This means that you do not need to execute any `gcloud` commands on the emulator to create the instance and database before you can connect to it. Example: `jdbc:cloudspanner:/projects/test-project/instances/test-instance/databases/test-db;autoConfigEmulator=true`
+- usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted connection to a (local) server. This option can only be used when connecting to a local emulator that does not require an encrypted connection, and that does not require authentication. Example: `jdbc:cloudspanner://localhost:9010/projects/test-project/instances/test-instance/databases/test-db;usePlainText=true`
+- optimizerVersion (String): Sets the default query optimizer version to use for this connection. See also https://cloud.google.com/spanner/docs/query-optimizer/query-optimizer-versions.
+
+#### Advanced Properties
+- minSessions (int): Sets the minimum number of sessions in the backing session pool. Defaults to 100.
+- maxSessions (int): Sets the maximum number of sessions in the backing session pool. Defaults to 400.
+- numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
+- retryAbortsInternally (boolean): The JDBC driver will by default automatically retry aborted transactions internally. This is done by keeping track of all statements and the results of these during a transaction, and if the transaction is aborted by Cloud Spanner, it will replay the statements on a new transaction and compare the results with the initial attempt. Disable this option if you want to handle aborted transactions in your own application.
+- oauthToken (string): A valid pre-existing OAuth token to use for authentication for this connection. Setting this property will take precedence over any value set for a credentials file.
+- lenient (boolean): Enable this to force the JDBC driver to ignore unknown properties in the connection URL. Some applications automatically add additional properties to the URL that are not recognized by the JDBC driver. Normally, the JDBC driver will reject this, unless `lenient` mode is enabled.
+
+### Jar with Dependencies
+A single jar with all dependencies can be downloaded from https://repo1.maven.org/maven2/com/google/cloud/google-cloud-spanner-jdbc/latest
+or be built with the command `mvn package` (select the jar that is named `google-cloud-spanner-jdbc-<version>-single-jar-with-dependencies.jar`).
+
+### Creating a Shaded Jar
+
+A jar with all dependencies included is automatically generated when you execute `mvn package`.
+The dependencies in this jar are not shaded. To create a jar with shaded dependencies you must
+activate the `shade` profile like this:
+
+ ```
+ mvn package -Pshade
+ ```
+
 
 
 
@@ -68,7 +130,7 @@ To get help, follow the instructions in the [shared Troubleshooting document][tr
 
 ## Java Versions
 
-Java 7 or above is required for using this client.
+Java 8 or above is required for using this client.
 
 ## Versioning
 
@@ -95,13 +157,14 @@ Apache 2.0 - See [LICENSE][license] for more information.
 
 Java Version | Status
 ------------ | ------
-Java 7 | [![Kokoro CI][kokoro-badge-image-1]][kokoro-badge-link-1]
 Java 8 | [![Kokoro CI][kokoro-badge-image-2]][kokoro-badge-link-2]
 Java 8 OSX | [![Kokoro CI][kokoro-badge-image-3]][kokoro-badge-link-3]
 Java 8 Windows | [![Kokoro CI][kokoro-badge-image-4]][kokoro-badge-link-4]
 Java 11 | [![Kokoro CI][kokoro-badge-image-5]][kokoro-badge-link-5]
 
-[product-docs]: https://cloud.google.com/pubsub/docs/
+Java is a registered trademark of Oracle and/or its affiliates.
+
+[product-docs]: https://cloud.google.com/spanner/docs/use-oss-jdbc
 [javadocs]: https://googleapis.dev/java/google-cloud-spanner-jdbc/latest/index.html
 [kokoro-badge-image-1]: http://storage.googleapis.com/cloud-devrel-public/java/badges/java-spanner-jdbc/java7.svg
 [kokoro-badge-link-1]: http://storage.googleapis.com/cloud-devrel-public/java/badges/java-spanner-jdbc/java7.html

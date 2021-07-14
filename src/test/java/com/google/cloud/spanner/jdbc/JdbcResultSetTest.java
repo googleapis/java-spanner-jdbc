@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.cloud.ByteArray;
 import com.google.cloud.Date;
@@ -34,6 +35,7 @@ import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.rpc.Code;
 import java.io.IOException;
@@ -51,6 +53,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import org.junit.Test;
@@ -124,6 +127,28 @@ public class JdbcResultSetTest {
   private static final String STRING_COL_TIME = "STRING_COL_TIME";
   private static final int STRING_COLINDEX_TIME = 24;
   private static final String STRING_TIME_VALUE = "10:31:15";
+  private static final String NUMERIC_COL_NULL = "NUMERIC_COL_NULL";
+  private static final String NUMERIC_COL_NOT_NULL = "NUMERIC_COL_NOT_NULL";
+  private static final BigDecimal NUMERIC_VALUE = new BigDecimal("3.14");
+  private static final int NUMERIC_COLINDEX_NULL = 25;
+  private static final int NUMERIC_COLINDEX_NOTNULL = 26;
+
+  private static final String BOOL_ARRAY_COL = "BOOL_ARRAY";
+  private static final List<Boolean> BOOL_ARRAY_VALUE = Arrays.asList(true, null, false);
+  private static final String BYTES_ARRAY_COL = "BYTES_ARRAY";
+  private static final List<ByteArray> BYTES_ARRAY_VALUE = Arrays.asList(BYTES_VALUE, null);
+  private static final String DATE_ARRAY_COL = "DATE_ARRAY";
+  private static final List<Date> DATE_ARRAY_VALUE = Arrays.asList(DATE_VALUE, null);
+  private static final String FLOAT64_ARRAY_COL = "FLOAT64_ARRAY";
+  private static final List<Double> FLOAT64_ARRAY_VALUE = Arrays.asList(DOUBLE_VALUE, null);
+  private static final String INT64_ARRAY_COL = "INT64_ARRAY";
+  private static final List<Long> INT64_ARRAY_VALUE = Arrays.asList(LONG_VALUE, null);
+  private static final String NUMERIC_ARRAY_COL = "NUMERIC_ARRAY";
+  private static final List<BigDecimal> NUMERIC_ARRAY_VALUE = Arrays.asList(NUMERIC_VALUE, null);
+  private static final String STRING_ARRAY_COL = "STRING_ARRAY";
+  private static final List<String> STRING_ARRAY_VALUE = Arrays.asList(STRING_VALUE, null);
+  private static final String TIMESTAMP_ARRAY_COL = "TIMESTAMP_ARRAY";
+  private static final List<Timestamp> TIMESTAMP_ARRAY_VALUE = Arrays.asList(TIMESTAMP_VALUE, null);
 
   private JdbcResultSet subject;
 
@@ -153,7 +178,17 @@ public class JdbcResultSetTest {
             StructField.of(STRING_COL_NUMBER, Type.string()),
             StructField.of(STRING_COL_DATE, Type.string()),
             StructField.of(STRING_COL_TIMESTAMP, Type.string()),
-            StructField.of(STRING_COL_TIME, Type.string())),
+            StructField.of(STRING_COL_TIME, Type.string()),
+            StructField.of(NUMERIC_COL_NULL, Type.numeric()),
+            StructField.of(NUMERIC_COL_NOT_NULL, Type.numeric()),
+            StructField.of(BOOL_ARRAY_COL, Type.array(Type.bool())),
+            StructField.of(BYTES_ARRAY_COL, Type.array(Type.bytes())),
+            StructField.of(DATE_ARRAY_COL, Type.array(Type.date())),
+            StructField.of(FLOAT64_ARRAY_COL, Type.array(Type.float64())),
+            StructField.of(INT64_ARRAY_COL, Type.array(Type.int64())),
+            StructField.of(NUMERIC_ARRAY_COL, Type.array(Type.numeric())),
+            StructField.of(STRING_ARRAY_COL, Type.array(Type.string())),
+            StructField.of(TIMESTAMP_ARRAY_COL, Type.array(Type.timestamp()))),
         Arrays.asList(
             Struct.newBuilder()
                 .set(STRING_COL_NULL)
@@ -204,6 +239,26 @@ public class JdbcResultSetTest {
                 .to(STRING_TIMESTAMP_VALUE)
                 .set(STRING_COL_TIME)
                 .to(STRING_TIME_VALUE)
+                .set(NUMERIC_COL_NULL)
+                .to((BigDecimal) null)
+                .set(NUMERIC_COL_NOT_NULL)
+                .to(NUMERIC_VALUE)
+                .set(BOOL_ARRAY_COL)
+                .toBoolArray(BOOL_ARRAY_VALUE)
+                .set(BYTES_ARRAY_COL)
+                .toBytesArray(BYTES_ARRAY_VALUE)
+                .set(DATE_ARRAY_COL)
+                .toDateArray(DATE_ARRAY_VALUE)
+                .set(FLOAT64_ARRAY_COL)
+                .toFloat64Array(FLOAT64_ARRAY_VALUE)
+                .set(INT64_ARRAY_COL)
+                .toInt64Array(INT64_ARRAY_VALUE)
+                .set(NUMERIC_ARRAY_COL)
+                .toNumericArray(NUMERIC_ARRAY_VALUE)
+                .set(STRING_ARRAY_COL)
+                .toStringArray(STRING_ARRAY_VALUE)
+                .set(TIMESTAMP_ARRAY_COL)
+                .toTimestampArray(TIMESTAMP_ARRAY_VALUE)
                 .build()));
   }
 
@@ -803,12 +858,38 @@ public class JdbcResultSetTest {
   }
 
   @Test
+  public void testGetMetaDataBeforeNext() throws SQLException {
+    ResultSet spannerResultSet = mock(ResultSet.class);
+    when(spannerResultSet.next()).thenReturn(true, false);
+
+    JdbcResultSet resultSet = JdbcResultSet.of(spannerResultSet);
+    assertNotNull(resultSet.getMetaData());
+    assertTrue(resultSet.next());
+    assertFalse(resultSet.next());
+  }
+
+  @Test
+  public void testGetMetaDataTwiceBeforeNext() throws SQLException {
+    ResultSet spannerResultSet = mock(ResultSet.class);
+    when(spannerResultSet.next()).thenReturn(true, false);
+
+    JdbcResultSet resultSet = JdbcResultSet.of(spannerResultSet);
+    assertNotNull(resultSet.getMetaData());
+    assertNotNull(resultSet.getMetaData());
+
+    // This would have returned false before the fix in
+    // https://github.com/googleapis/java-spanner-jdbc/pull/323
+    assertTrue(resultSet.next());
+    assertFalse(resultSet.next());
+  }
+
+  @Test
   public void testFindColumn() throws SQLException {
     assertEquals(2, subject.findColumn(STRING_COL_NOT_NULL));
   }
 
   @Test
-  public void testGetBigDecimalIndex() throws SQLException {
+  public void testGetBigDecimalFromDouble_usingIndex() throws SQLException {
     assertNotNull(subject.getBigDecimal(DOUBLE_COLINDEX_NOTNULL));
     assertEquals(BigDecimal.valueOf(DOUBLE_VALUE), subject.getBigDecimal(DOUBLE_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
@@ -817,11 +898,29 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetBigDecimalLabel() throws SQLException {
+  public void testGetBigDecimalFromDouble_usingLabel() throws SQLException {
     assertNotNull(subject.getBigDecimal(DOUBLE_COL_NOT_NULL));
     assertEquals(BigDecimal.valueOf(DOUBLE_VALUE), subject.getBigDecimal(DOUBLE_COL_NOT_NULL));
     assertFalse(subject.wasNull());
     assertNull(subject.getBigDecimal(DOUBLE_COL_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetBigDecimalIndex() throws SQLException {
+    assertNotNull(subject.getBigDecimal(NUMERIC_COLINDEX_NOTNULL));
+    assertEquals(NUMERIC_VALUE, subject.getBigDecimal(NUMERIC_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getBigDecimal(NUMERIC_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetBigDecimalLabel() throws SQLException {
+    assertNotNull(subject.getBigDecimal(NUMERIC_COL_NOT_NULL));
+    assertEquals(NUMERIC_VALUE, subject.getBigDecimal(NUMERIC_COL_NOT_NULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getBigDecimal(NUMERIC_COL_NULL));
     assertTrue(subject.wasNull());
   }
 
@@ -1590,5 +1689,39 @@ public class JdbcResultSetTest {
   @Test
   public void testGetHoldability() throws SQLException {
     assertEquals(java.sql.ResultSet.CLOSE_CURSORS_AT_COMMIT, subject.getHoldability());
+  }
+
+  @Test
+  public void testGetObjectAsValue() throws SQLException {
+    assertEquals(
+        Value.bool(BOOLEAN_VALUE), subject.getObject(BOOLEAN_COLINDEX_NOTNULL, Value.class));
+    assertEquals(Value.bytes(BYTES_VALUE), subject.getObject(BYTES_COLINDEX_NOTNULL, Value.class));
+    assertEquals(Value.date(DATE_VALUE), subject.getObject(DATE_COLINDEX_NOTNULL, Value.class));
+    assertEquals(
+        Value.float64(DOUBLE_VALUE), subject.getObject(DOUBLE_COLINDEX_NOTNULL, Value.class));
+    assertEquals(Value.int64(LONG_VALUE), subject.getObject(LONG_COLINDEX_NOTNULL, Value.class));
+    assertEquals(
+        Value.numeric(NUMERIC_VALUE), subject.getObject(NUMERIC_COLINDEX_NOTNULL, Value.class));
+    assertEquals(
+        Value.string(STRING_VALUE), subject.getObject(STRING_COLINDEX_NOTNULL, Value.class));
+    assertEquals(
+        Value.timestamp(TIMESTAMP_VALUE),
+        subject.getObject(TIMESTAMP_COLINDEX_NOTNULL, Value.class));
+
+    assertEquals(Value.boolArray(BOOL_ARRAY_VALUE), subject.getObject(BOOL_ARRAY_COL, Value.class));
+    assertEquals(
+        Value.bytesArray(BYTES_ARRAY_VALUE), subject.getObject(BYTES_ARRAY_COL, Value.class));
+    assertEquals(Value.dateArray(DATE_ARRAY_VALUE), subject.getObject(DATE_ARRAY_COL, Value.class));
+    assertEquals(
+        Value.float64Array(FLOAT64_ARRAY_VALUE), subject.getObject(FLOAT64_ARRAY_COL, Value.class));
+    assertEquals(
+        Value.int64Array(INT64_ARRAY_VALUE), subject.getObject(INT64_ARRAY_COL, Value.class));
+    assertEquals(
+        Value.numericArray(NUMERIC_ARRAY_VALUE), subject.getObject(NUMERIC_ARRAY_COL, Value.class));
+    assertEquals(
+        Value.stringArray(STRING_ARRAY_VALUE), subject.getObject(STRING_ARRAY_COL, Value.class));
+    assertEquals(
+        Value.timestampArray(TIMESTAMP_ARRAY_VALUE),
+        subject.getObject(TIMESTAMP_ARRAY_COL, Value.class));
   }
 }

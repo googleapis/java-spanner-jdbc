@@ -28,6 +28,7 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLWarning;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -66,7 +67,7 @@ import java.util.regex.Pattern;
  * The property-value strings should be url-encoded.
  *
  * <p>The project-id part of the URI may be filled with the placeholder DEFAULT_PROJECT_ID. This
- * placeholder will be replaced by the default project id of the environment that is requesting a
+ * placeholder is replaced by the default project id of the environment that is requesting a
  * connection.
  *
  * <p>The supported properties are:
@@ -74,27 +75,45 @@ import java.util.regex.Pattern;
  * <ul>
  *   <li>credentials (String): URL for the credentials file to use for the connection. If you do not
  *       specify any credentials at all, the default credentials of the environment as returned by
- *       {@link GoogleCredentials#getApplicationDefault()} will be used.
+ *       {@link GoogleCredentials#getApplicationDefault()} is used.
+ *   <li>autocommit (boolean): Sets the initial autocommit mode for the connection. Default is true.
+ *   <li>readonly (boolean): Sets the initial readonly mode for the connection. Default is false.
+ *   <li>autoConfigEmulator (boolean): Automatically configure the connection to try to connect to
+ *       the Cloud Spanner emulator. You do not need to specify any host or port in the connection
+ *       string as long as the emulator is running on the default host/port (localhost:9010). The
+ *       instance and database in the connection string will automatically be created if these do
+ *       not yet exist on the emulator. This means that you do not need to execute any `gcloud`
+ *       commands on the emulator to create the instance and database before you can connect to it.
+ *   <li>usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted
+ *       connection to the server. This option can only be used when connecting to a local emulator
+ *       that does not require an encrypted connection, and that does not require authentication.
+ *   <li>optimizerVersion (string): The query optimizer version to use for the connection. The value
+ *       must be either a valid version number or <code>LATEST</code>. If no value is specified, the
+ *       query optimizer version specified in the environment variable <code>
+ *       SPANNER_OPTIMIZER_VERSION</code> is used. If no query optimizer version is specified in the
+ *       connection URL or in the environment variable, the default query optimizer version of Cloud
+ *       Spanner is used.
  *   <li>oauthtoken (String): A valid OAuth2 token to use for the JDBC connection. The token must
  *       have been obtained with one or both of the scopes
  *       'https://www.googleapis.com/auth/spanner.admin' and/or
  *       'https://www.googleapis.com/auth/spanner.data'. If you specify both a credentials file and
  *       an OAuth token, the JDBC driver will throw an exception when you try to obtain a
  *       connection.
- *   <li>autocommit (boolean): Sets the initial autocommit mode for the connection. Default is true.
- *   <li>readonly (boolean): Sets the initial readonly mode for the connection. Default is false.
  *   <li>retryAbortsInternally (boolean): Sets the initial retryAbortsInternally mode for the
  *       connection. Default is true. @see {@link
  *       com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection#setRetryAbortsInternally(boolean)}
  *       for more information.
+ *   <li>minSessions (int): Sets the minimum number of sessions in the backing session pool.
+ *       Defaults to 100.
+ *   <li>maxSessions (int): Sets the maximum number of sessions in the backing session pool.
+ *       Defaults to 400.
  *   <li>numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
- *   <li>usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted connection to the server. This option can only be used when connecting to a local emulator that does not require an encrypted connection, and that does not require authentication.
- *   <li>optimizerVersion (string): The query optimizer version to use for the connection. The value must be either a valid version number or <code>LATEST</code>. If no value is specified, the query optimizer version specified in the environment variable <code>SPANNER_OPTIMIZER_VERSION<code> will be used. If no query optimizer version is specified in the connection URL or in the environment variable, the default query optimizer version of Cloud Spanner will be used.
  * </ul>
  */
 public class JdbcDriver implements Driver {
   private static final String JDBC_API_CLIENT_LIB_TOKEN = "sp-jdbc";
-  static final int MAJOR_VERSION = 1;
+  // Updated to version 2 when upgraded to Java 8 (JDBC 4.2)
+  static final int MAJOR_VERSION = 2;
   static final int MINOR_VERSION = 0;
   private static final String JDBC_URL_FORMAT =
       "jdbc:" + ConnectionOptions.Builder.SPANNER_URI_FORMAT;
@@ -172,7 +191,11 @@ public class JdbcDriver implements Driver {
           // Connection API
           String connectionUri = appendPropertiesToUrl(url.substring(5), info);
           ConnectionOptions options = ConnectionOptions.newBuilder().setUri(connectionUri).build();
-          return new JdbcConnection(url, options);
+          JdbcConnection connection = new JdbcConnection(url, options);
+          if (options.getWarnings() != null) {
+            connection.pushWarning(new SQLWarning(options.getWarnings()));
+          }
+          return connection;
         }
       } catch (SpannerException e) {
         throw JdbcSqlExceptionFactory.of(e);
@@ -229,12 +252,12 @@ public class JdbcDriver implements Driver {
 
   @Override
   public int getMajorVersion() {
-    return 1;
+    return MAJOR_VERSION;
   }
 
   @Override
   public int getMinorVersion() {
-    return 0;
+    return MINOR_VERSION;
   }
 
   @Override

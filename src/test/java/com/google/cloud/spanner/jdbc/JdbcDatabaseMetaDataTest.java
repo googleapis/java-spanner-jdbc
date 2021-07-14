@@ -20,6 +20,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -267,6 +269,8 @@ public class JdbcDatabaseMetaDataTest {
         }) {
       assertThat(meta.supportsTransactionIsolationLevel(level), is(false));
     }
+    assertEquals(10485760L, meta.getMaxLogicalLobSize());
+    assertFalse(meta.supportsRefCursors());
 
     // trivial tests that guarantee that the function works, but the return value doesn't matter
     assertThat(meta.getNumericFunctions(), is(notNullValue()));
@@ -322,6 +326,18 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getClientInfoProperties()) {
+      assertThat(rs.next(), is(true));
+      assertThat(rs.getString("NAME"), is(equalTo("APPLICATIONNAME")));
+      assertThat(rs.getString("DEFAULT_VALUE"), is(equalTo("")));
+
+      assertThat(rs.next(), is(true));
+      assertThat(rs.getString("NAME"), is(equalTo("CLIENTHOSTNAME")));
+      assertThat(rs.getString("DEFAULT_VALUE"), is(equalTo("")));
+
+      assertThat(rs.next(), is(true));
+      assertThat(rs.getString("NAME"), is(equalTo("CLIENTUSER")));
+      assertThat(rs.getString("DEFAULT_VALUE"), is(equalTo("")));
+
       assertThat(rs.next(), is(false));
       ResultSetMetaData rsmd = rs.getMetaData();
       assertThat(rsmd.getColumnCount(), is(equalTo(4)));

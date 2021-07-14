@@ -68,6 +68,10 @@ public final class JdbcSqlExceptionFactory {
       implements JdbcSqlException {
     private static final long serialVersionUID = 2363793358642102814L;
 
+    private JdbcSqlTimeoutException(SpannerException e) {
+      super(e.getMessage(), "Timed out", Code.DEADLINE_EXCEEDED_VALUE, e);
+    }
+
     private JdbcSqlTimeoutException(String message) {
       super(message, "Timed out", Code.DEADLINE_EXCEEDED_VALUE);
     }
@@ -120,6 +124,16 @@ public final class JdbcSqlExceptionFactory {
 
     private JdbcSqlBatchUpdateException(int[] updateCounts, SpannerBatchUpdateException cause) {
       super(cause.getMessage(), updateCounts, cause);
+      this.code = Code.forNumber(cause.getCode());
+    }
+
+    private JdbcSqlBatchUpdateException(long[] updateCounts, SpannerBatchUpdateException cause) {
+      super(
+          cause.getMessage(),
+          cause.getErrorCode().toString(),
+          cause.getCode(),
+          updateCounts,
+          cause);
       this.code = Code.forNumber(cause.getCode());
     }
 
@@ -188,7 +202,7 @@ public final class JdbcSqlExceptionFactory {
           return new JdbcAbortedException((AbortedException) e);
         }
       case DEADLINE_EXCEEDED:
-        return new JdbcSqlTimeoutException(e.getMessage());
+        return new JdbcSqlTimeoutException(e);
       case ALREADY_EXISTS:
       case CANCELLED:
       case DATA_LOSS:
@@ -309,6 +323,12 @@ public final class JdbcSqlExceptionFactory {
   /** Creates a {@link JdbcSqlException} for batch update exceptions. */
   static BatchUpdateException batchException(
       int[] updateCounts, SpannerBatchUpdateException cause) {
+    return new JdbcSqlBatchUpdateException(updateCounts, cause);
+  }
+
+  /** Creates a {@link JdbcSqlException} for large batch update exceptions. */
+  static BatchUpdateException batchException(
+      long[] updateCounts, SpannerBatchUpdateException cause) {
     return new JdbcSqlBatchUpdateException(updateCounts, cause);
   }
 }

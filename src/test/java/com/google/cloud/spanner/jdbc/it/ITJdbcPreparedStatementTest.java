@@ -16,18 +16,22 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static com.google.cloud.spanner.testing.EmulatorSpannerHelper.isUsingEmulator;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
-import com.google.api.client.util.Base64;
+import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.common.base.Strings;
+import com.google.common.io.BaseEncoding;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.StringReader;
@@ -38,16 +42,18 @@ import java.sql.Date;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Scanner;
 import java.util.TimeZone;
-import org.junit.BeforeClass;
+import java.util.UUID;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -222,7 +228,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private static byte[] parseBytes(String value) {
-    return Base64.decodeBase64(value);
+    return BaseEncoding.base64().decode(value);
   }
 
   private List<Singer> createSingers() {
@@ -257,11 +263,6 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     return res;
   }
 
-  @BeforeClass
-  public static void notOnEmulator() {
-    assumeFalse("foreign keys are not supported on the emulator", env.getTestHelper().isEmulator());
-  }
-
   @Override
   protected boolean doCreateMusicTables() {
     return true;
@@ -289,7 +290,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         }
         int[] results = ps.executeBatch();
         for (int res : results) {
-          assertThat(res, is(equalTo(1)));
+          assertEquals(1, res);
         }
       }
       try (PreparedStatement ps =
@@ -302,7 +303,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           ps.setString(3, album.albumTitle);
           ps.setLong(4, album.marketingBudget);
           assertInsertAlbumParameterMetadata(ps.getParameterMetaData());
-          assertThat(ps.executeUpdate(), is(equalTo(1)));
+          assertEquals(1, ps.executeUpdate());
           // check that calling executeUpdate will not reset the meta data
           assertInsertAlbumParameterMetadata(ps.getParameterMetaData());
         }
@@ -319,7 +320,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           ps.setLong(5, song.duration);
           ps.setCharacterStream(6, new StringReader(song.songGenre));
           assertInsertSongParameterMetadata(ps.getParameterMetaData());
-          assertThat(ps.executeUpdate(), is(equalTo(1)));
+          assertEquals(1, ps.executeUpdate());
           // check that calling executeUpdate will not reset the meta data
           assertInsertSongParameterMetadata(ps.getParameterMetaData());
         }
@@ -336,7 +337,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           ps.setTimestamp(5, concert.endTime);
           ps.setArray(6, connection.createArrayOf("INT64", concert.ticketPrices));
           assertInsertConcertParameterMetadata(ps.getParameterMetaData());
-          assertThat(ps.executeUpdate(), is(equalTo(1)));
+          assertEquals(1, ps.executeUpdate());
           // check that calling executeUpdate will not reset the meta data
           assertInsertConcertParameterMetadata(ps.getParameterMetaData());
         }
@@ -350,26 +351,26 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     try (Connection connection = createConnection()) {
       try (ResultSet rs =
           connection.createStatement().executeQuery("SELECT COUNT(*) FROM Singers")) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getInt(1), is(equalTo(30)));
-        assertThat(rs.next(), is(false));
+        assertTrue(rs.next());
+        assertEquals(30, rs.getInt(1));
+        assertFalse(rs.next());
       }
       try (ResultSet rs =
           connection.createStatement().executeQuery("SELECT COUNT(*) FROM Albums")) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getByte(1), is(equalTo((byte) 60)));
-        assertThat(rs.next(), is(false));
+        assertTrue(rs.next());
+        assertEquals(60, rs.getByte(1));
+        assertFalse(rs.next());
       }
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT COUNT(*) FROM Songs")) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getShort(1), is(equalTo((short) 149)));
-        assertThat(rs.next(), is(false));
+        assertTrue(rs.next());
+        assertEquals(149, rs.getShort(1));
+        assertFalse(rs.next());
       }
       try (ResultSet rs =
           connection.createStatement().executeQuery("SELECT COUNT(*) FROM Concerts")) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getLong(1), is(equalTo(100L)));
-        assertThat(rs.next(), is(false));
+        assertTrue(rs.next());
+        assertEquals(100L, rs.getLong(1));
+        assertFalse(rs.next());
       }
       try (PreparedStatement ps =
           connection.prepareStatement("SELECT * FROM Concerts WHERE VenueId=? AND SingerId=?")) {
@@ -379,13 +380,13 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         // (1,1,DATE '2003-06-19',TIMESTAMP '2003-06-19T12:30:05Z',TIMESTAMP
         // '2003-06-19T18:57:15Z',[11,93,140,923]);
         try (ResultSet rs = ps.executeQuery()) {
-          assertThat(rs.next(), is(true));
-          assertThat(rs.getLong(1), is(equalTo(1L)));
-          assertThat(rs.getLong(2), is(equalTo(1L)));
-          assertThat(rs.getDate(3), is(equalTo(Date.valueOf("2003-06-19"))));
-          assertThat(rs.getTimestamp(4), is(equalTo(Timestamp.valueOf("2003-06-19 12:30:05"))));
-          assertThat(rs.getTimestamp(5), is(equalTo(Timestamp.valueOf("2003-06-19 18:57:15"))));
-          assertThat(((Long[]) rs.getArray(6).getArray())[0], is(equalTo(11L)));
+          assertTrue(rs.next());
+          assertEquals(1L, rs.getLong(1));
+          assertEquals(1L, rs.getLong(2));
+          assertEquals(Date.valueOf("2003-06-19"), rs.getDate(3));
+          assertEquals(Timestamp.valueOf("2003-06-19 12:30:05"), rs.getTimestamp(4));
+          assertEquals(Timestamp.valueOf("2003-06-19 18:57:15"), rs.getTimestamp(5));
+          assertArrayEquals(new Long[] {11L, 93L, 140L, 923L}, (Long[]) rs.getArray(6).getArray());
         }
       }
     }
@@ -461,9 +462,9 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
             ps.setLong(1, 100L);
             ps.setLong(2, 19L);
             try (ResultSet rs = ps.executeQuery()) {
-              assertThat(rs.next(), is(true));
+              assertTrue(rs.next());
               if (testCalendar == null) {
-                assertThat(rs.getDate(3), is(equalTo(Date.valueOf(expectedValues.get(index)))));
+                assertEquals(Date.valueOf(expectedValues.get(index)), rs.getDate(3));
               } else {
                 // Parse the date in the local timezone.
                 Date date = Date.valueOf(expectedValues.get(index));
@@ -473,9 +474,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                 localCalendar.set(date.getYear() + 1900, date.getMonth(), date.getDate());
                 // Check that the actual time of the date returned by the ResultSet is equal to the
                 // local time in the timezone of the Calendar that is used.
-                assertThat(
-                    rs.getDate(3, testCalendar),
-                    is(equalTo(new Date(localCalendar.getTimeInMillis()))));
+                assertEquals(
+                    new Date(localCalendar.getTimeInMillis()), rs.getDate(3, testCalendar));
               }
             }
           }
@@ -567,38 +567,34 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
             ps.setLong(1, 100L);
             ps.setLong(2, 19L);
             try (ResultSet rs = ps.executeQuery()) {
-              assertThat(rs.next(), is(true));
+              assertTrue(rs.next());
 
               // First test the timestamp that was sent to Spanner using the default timezone.
               // Get the timestamp in the default timezone.
               Timestamp inDefaultTZ = rs.getTimestamp(4);
-              assertThat(inDefaultTZ.getTime(), is(equalTo(testTimestamp.getTime())));
+              assertEquals(testTimestamp.getTime(), inDefaultTZ.getTime());
               // Then get it in the test timezone.
               if (testCalendar != null) {
                 Timestamp inOtherTZ = rs.getTimestamp(4, testCalendar);
-                assertThat(
-                    inOtherTZ.getTime(),
-                    is(
-                        equalTo(
-                            testTimestamp.getTime() + testCalendar.getTimeZone().getRawOffset())));
+                assertEquals(
+                    testTimestamp.getTime() + testCalendar.getTimeZone().getRawOffset(),
+                    inOtherTZ.getTime());
               }
 
               // Then test the timestamp that was sent to Spanner using a specific timezone.
               // Get the timestamp in the default timezone.
               inDefaultTZ = rs.getTimestamp(5);
               if (testCalendar == null) {
-                assertThat(inDefaultTZ.getTime(), is(equalTo(testTimestamp.getTime())));
+                assertEquals(testTimestamp.getTime(), inDefaultTZ.getTime());
               } else {
-                assertThat(
-                    inDefaultTZ.getTime(),
-                    is(
-                        equalTo(
-                            testTimestamp.getTime() - testCalendar.getTimeZone().getRawOffset())));
+                assertEquals(
+                    testTimestamp.getTime() - testCalendar.getTimeZone().getRawOffset(),
+                    inDefaultTZ.getTime());
               }
               // Then get it in the test timezone.
               if (testCalendar != null) {
                 Timestamp inOtherTZ = rs.getTimestamp(5, testCalendar);
-                assertThat(inOtherTZ.getTime(), is(equalTo(testTimestamp.getTime())));
+                assertEquals(testTimestamp.getTime(), inOtherTZ.getTime());
               }
             }
           }
@@ -626,15 +622,15 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           }
           updateCounts = ps.executeBatch();
         }
-        assertThat(updateCounts.length, is(equalTo(params.length)));
+        assertEquals(params.length, updateCounts.length);
         long totalUpdated = 0;
         try (PreparedStatement ps =
             con1.prepareStatement("SELECT COUNT(*) FROM Singers WHERE LastName LIKE ?")) {
           for (int i = 0; i < updateCounts.length; i++) {
             ps.setString(1, params[i]);
             try (ResultSet rs = ps.executeQuery()) {
-              assertThat(rs.next(), is(true));
-              assertThat(updateCounts[i], is(equalTo(rs.getInt(1))));
+              assertTrue(rs.next());
+              assertEquals(rs.getInt(1), updateCounts[i]);
               totalUpdated += updateCounts[i];
             }
           }
@@ -643,11 +639,11 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         try (ResultSet rs =
             con2.createStatement()
                 .executeQuery("SELECT COUNT(*) FROM Singers WHERE FirstName=LastName")) {
-          assertThat(rs.next(), is(true));
+          assertTrue(rs.next());
           if (autocommit) {
-            assertThat(rs.getLong(1), is(equalTo(totalUpdated)));
+            assertEquals(totalUpdated, rs.getLong(1));
           } else {
-            assertThat(rs.getLong(1), is(equalTo(0L)));
+            assertEquals(0, rs.getLong(1));
           }
         }
         // If not in autocommit mode --> commit and verify.
@@ -656,15 +652,15 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           try (ResultSet rs =
               con2.createStatement()
                   .executeQuery("SELECT COUNT(*) FROM Singers WHERE FirstName=LastName")) {
-            assertThat(rs.next(), is(true));
-            assertThat(rs.getLong(1), is(equalTo(totalUpdated)));
+            assertTrue(rs.next());
+            assertEquals(totalUpdated, rs.getLong(1));
           }
         }
         // Set first names to null for the updated records for the next test run.
-        assertThat(
+        int updateCount =
             con2.createStatement()
-                .executeUpdate("UPDATE Singers SET FirstName=null WHERE FirstName=LastName"),
-            is(equalTo((int) totalUpdated)));
+                .executeUpdate("UPDATE Singers SET FirstName=null WHERE FirstName=LastName");
+        assertEquals(totalUpdated, updateCount);
       }
     }
   }
@@ -688,7 +684,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           ps.executeBatch();
           fail("missing expected BatchUpdateException");
         } catch (BatchUpdateException e) {
-          assertThat(e.getUpdateCounts().length, is(equalTo(2)));
+          assertEquals(2, e.getUpdateCounts().length);
         }
         // If not in autocommit mode --> rollback before the next run.
         if (!autocommit) {
@@ -719,7 +715,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         statement.executeBatch();
         fail("missing expected BatchUpdateException");
       } catch (BatchUpdateException e) {
-        assertThat(e.getUpdateCounts(), is(notNullValue()));
+        assertNotNull(e.getUpdateCounts());
       }
       // The following statements will fail because the table does not exist.
       try (Statement statement = con.createStatement()) {
@@ -734,7 +730,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         statement.executeBatch();
         fail();
       } catch (BatchUpdateException e) {
-        assertThat(e.getUpdateCounts(), is(notNullValue()));
+        assertNotNull(e.getUpdateCounts());
       }
       // The following statements will fail because the primary key values conflict.
       try (Statement statement = con.createStatement()) {
@@ -745,7 +741,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         statement.executeBatch();
         fail();
       } catch (BatchUpdateException e) {
-        assertThat(e.getUpdateCounts(), is(notNullValue()));
+        assertNotNull(e.getUpdateCounts());
       }
     }
   }
@@ -763,7 +759,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         ps.setDouble(2, 2D);
         ps.setBoolean(3, true);
         ps.setString(4, "test");
-        ps.setString(5, "testtest");
+        ps.setObject(5, UUID.fromString("2d37f522-e0a5-4f22-8e09-4d77d299c967"));
         ps.setBytes(6, "test".getBytes());
         ps.setBytes(7, "testtest".getBytes());
         ps.setDate(8, new Date(System.currentTimeMillis()));
@@ -797,59 +793,208 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         ps.setArray(
             20,
             con.createArrayOf("NUMERIC", new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN}));
-        assertThat(ps.executeUpdate(), is(equalTo(1)));
+        assertEquals(1, ps.executeUpdate());
       }
       try (ResultSet rs =
           con.createStatement().executeQuery("SELECT * FROM TableWithAllColumnTypes")) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getLong(1), is(equalTo(1L)));
-        assertThat(rs.getDouble(2), is(equalTo(2D)));
-        assertThat(rs.getBoolean(3), is(true));
-        assertThat(rs.getString(4), is(equalTo("test")));
-        assertThat(rs.getString(5), is(equalTo("testtest")));
-        assertThat(rs.getBytes(6), is(equalTo("test".getBytes())));
-        assertThat(rs.getBytes(7), is(equalTo("testtest".getBytes())));
-        assertThat(rs.getDate(8), is(notNullValue()));
-        assertThat(rs.getTimestamp(9), is(notNullValue()));
-        assertThat(rs.getTime(10), is(notNullValue())); // Commit timestamp
-        assertThat(rs.getBigDecimal(11), is(equalTo(BigDecimal.TEN)));
-        assertThat((Long[]) rs.getArray(12).getArray(), is(equalTo(new Long[] {1L, 2L, 3L})));
-        assertThat(
-            (Double[]) rs.getArray(13).getArray(), is(equalTo(new Double[] {1.1D, 2.2D, 3.3D})));
-        assertThat(
-            (Boolean[]) rs.getArray(14).getArray(), is(equalTo(new Boolean[] {true, null, false})));
-        assertThat(
-            (String[]) rs.getArray(15).getArray(), is(equalTo(new String[] {"1", "2", "3"})));
-        assertThat(
-            (String[]) rs.getArray(16).getArray(), is(equalTo(new String[] {"3", "2", "1"})));
-        assertThat(
-            (byte[][]) rs.getArray(17).getArray(),
-            is(equalTo(new byte[][] {"1".getBytes(), "2".getBytes(), "3".getBytes()})));
-        assertThat(
-            (byte[][]) rs.getArray(18).getArray(),
-            is(equalTo(new byte[][] {"333".getBytes(), "222".getBytes(), "111".getBytes()})));
-        assertThat(((Date[]) rs.getArray(19).getArray()).length, is(equalTo(3)));
-        assertThat(((Timestamp[]) rs.getArray(20).getArray()).length, is(equalTo(3)));
-        assertThat(
-            (BigDecimal[]) rs.getArray(21).getArray(),
-            is(equalTo(new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN})));
-        assertThat(rs.next(), is(false));
+        assertTrue(rs.next());
+        assertEquals(1L, rs.getLong(1));
+        assertEquals(2d, rs.getDouble(2), 0.0d);
+        assertTrue(rs.getBoolean(3));
+        assertEquals("test", rs.getString(4));
+        assertEquals("2d37f522-e0a5-4f22-8e09-4d77d299c967", rs.getString(5));
+        assertArrayEquals("test".getBytes(), rs.getBytes(6));
+        assertArrayEquals("testtest".getBytes(), rs.getBytes(7));
+        assertNotNull(rs.getDate(8));
+        assertNotNull(rs.getTimestamp(9));
+        assertNotNull(rs.getTime(10)); // Commit timestamp
+        assertEquals(BigDecimal.TEN, rs.getBigDecimal(11));
+        assertArrayEquals(new Long[] {1L, 2L, 3L}, (Long[]) rs.getArray(12).getArray());
+        assertArrayEquals(new Double[] {1.1D, 2.2D, 3.3D}, (Double[]) rs.getArray(13).getArray());
+        assertArrayEquals(
+            new Boolean[] {true, null, false}, (Boolean[]) rs.getArray(14).getArray());
+        assertArrayEquals(new String[] {"1", "2", "3"}, (String[]) rs.getArray(15).getArray());
+        assertArrayEquals(new String[] {"3", "2", "1"}, (String[]) rs.getArray(16).getArray());
+        assertArrayEquals(
+            new byte[][] {"1".getBytes(), "2".getBytes(), "3".getBytes()},
+            (byte[][]) rs.getArray(17).getArray());
+        assertArrayEquals(
+            new byte[][] {"333".getBytes(), "222".getBytes(), "111".getBytes()},
+            (byte[][]) rs.getArray(18).getArray());
+        assertEquals(3, ((Date[]) rs.getArray(19).getArray()).length);
+        assertEquals(3, ((Timestamp[]) rs.getArray(20).getArray()).length);
+        assertArrayEquals(
+            new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN},
+            (BigDecimal[]) rs.getArray(21).getArray());
+        assertFalse(rs.next());
+      }
+    }
+  }
+
+  @Test
+  public void test09_MetaData_FromQuery() throws SQLException {
+    assumeFalse("The emulator does not support PLAN mode", isUsingEmulator());
+    try (Connection con = createConnection()) {
+      try (PreparedStatement ps =
+          con.prepareStatement("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=?")) {
+        ResultSetMetaData metadata = ps.getMetaData();
+        assertEquals(22, metadata.getColumnCount());
+        int index = 0;
+        assertEquals("ColInt64", metadata.getColumnLabel(++index));
+        assertEquals("ColFloat64", metadata.getColumnLabel(++index));
+        assertEquals("ColBool", metadata.getColumnLabel(++index));
+        assertEquals("ColString", metadata.getColumnLabel(++index));
+        assertEquals("ColStringMax", metadata.getColumnLabel(++index));
+        assertEquals("ColBytes", metadata.getColumnLabel(++index));
+        assertEquals("ColBytesMax", metadata.getColumnLabel(++index));
+        assertEquals("ColDate", metadata.getColumnLabel(++index));
+        assertEquals("ColTimestamp", metadata.getColumnLabel(++index));
+        assertEquals("ColCommitTS", metadata.getColumnLabel(++index));
+        assertEquals("ColNumeric", metadata.getColumnLabel(++index));
+        assertEquals("ColInt64Array", metadata.getColumnLabel(++index));
+        assertEquals("ColFloat64Array", metadata.getColumnLabel(++index));
+        assertEquals("ColBoolArray", metadata.getColumnLabel(++index));
+        assertEquals("ColStringArray", metadata.getColumnLabel(++index));
+        assertEquals("ColStringMaxArray", metadata.getColumnLabel(++index));
+        assertEquals("ColBytesArray", metadata.getColumnLabel(++index));
+        assertEquals("ColBytesMaxArray", metadata.getColumnLabel(++index));
+        assertEquals("ColDateArray", metadata.getColumnLabel(++index));
+        assertEquals("ColTimestampArray", metadata.getColumnLabel(++index));
+        assertEquals("ColNumericArray", metadata.getColumnLabel(++index));
+        assertEquals("ColComputed", metadata.getColumnLabel(++index));
+      }
+    }
+  }
+
+  @Test
+  public void test10_MetaData_FromDML() throws SQLException {
+    try (Connection con = createConnection()) {
+      try (PreparedStatement ps =
+          con.prepareStatement(
+              "UPDATE TableWithAllColumnTypes SET ColBool=FALSE WHERE ColInt64=?")) {
+        ResultSetMetaData metadata = ps.getMetaData();
+        assertEquals(0, metadata.getColumnCount());
+      }
+    }
+  }
+
+  @Test
+  public void test11_InsertDataUsingSpannerValue() throws SQLException {
+    try (Connection con = createConnection()) {
+      try (PreparedStatement ps =
+          con.prepareStatement(
+              "INSERT INTO TableWithAllColumnTypes ("
+                  + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, "
+                  + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray"
+                  + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        ps.setObject(1, Value.int64(2L));
+        ps.setObject(2, Value.float64(2D));
+        ps.setObject(3, Value.bool(true));
+        ps.setObject(4, Value.string("testvalues"));
+        ps.setObject(5, Value.string("2d37f522-e0a5-4f22-8e09-4d77d299c967"));
+        ps.setObject(6, Value.bytes(ByteArray.copyFrom("test".getBytes())));
+        ps.setObject(7, Value.bytes(ByteArray.copyFrom("testtest".getBytes())));
+        ps.setObject(8, Value.date(com.google.cloud.Date.fromYearMonthDay(2021, 5, 3)));
+        ps.setObject(
+            9, Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(99999L, 99)));
+        ps.setObject(10, Value.numeric(BigDecimal.TEN));
+        ps.setObject(11, Value.int64Array(new long[] {1L, 2L, 3L}));
+        ps.setObject(12, Value.float64Array(new double[] {1.1D, 2.2D, 3.3D}));
+        ps.setObject(13, Value.boolArray(Arrays.asList(Boolean.TRUE, null, Boolean.FALSE)));
+        ps.setObject(14, Value.stringArray(Arrays.asList("1", "2", "3")));
+        ps.setObject(15, Value.stringArray(Arrays.asList("3", "2", "1")));
+        ps.setObject(
+            16,
+            Value.bytesArray(
+                Arrays.asList(
+                    ByteArray.copyFrom("1"), ByteArray.copyFrom("2"), ByteArray.copyFrom("3"))));
+        ps.setObject(
+            17,
+            Value.bytesArray(
+                Arrays.asList(
+                    ByteArray.copyFrom("333"),
+                    ByteArray.copyFrom("222"),
+                    ByteArray.copyFrom("111"))));
+        ps.setObject(
+            18,
+            Value.dateArray(
+                Arrays.asList(com.google.cloud.Date.fromYearMonthDay(2021, 5, 3), null)));
+        ps.setObject(
+            19,
+            Value.timestampArray(
+                Arrays.asList(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(99999L, 99), null)));
+        ps.setObject(20, Value.numericArray(Arrays.asList(BigDecimal.ONE, null, BigDecimal.TEN)));
+        assertEquals(1, ps.executeUpdate());
+      }
+      try (ResultSet rs =
+          con.createStatement()
+              .executeQuery("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=2")) {
+        assertTrue(rs.next());
+        assertEquals(Value.int64(2L), rs.getObject(1, Value.class));
+        assertEquals(Value.float64(2d), rs.getObject(2, Value.class));
+        assertEquals(Value.bool(true), rs.getObject(3, Value.class));
+        assertEquals(Value.string("testvalues"), rs.getObject(4, Value.class));
+        assertEquals(
+            Value.string("2d37f522-e0a5-4f22-8e09-4d77d299c967"), rs.getObject(5, Value.class));
+        assertEquals(Value.bytes(ByteArray.copyFrom("test")), rs.getObject(6, Value.class));
+        assertEquals(Value.bytes(ByteArray.copyFrom("testtest")), rs.getObject(7, Value.class));
+        assertEquals(
+            Value.date(com.google.cloud.Date.fromYearMonthDay(2021, 5, 3)),
+            rs.getObject(8, Value.class));
+        assertEquals(
+            Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(99999L, 99)),
+            rs.getObject(9, Value.class));
+        assertNotNull(rs.getObject(10, Value.class)); // Commit timestamp
+        assertEquals(Value.numeric(BigDecimal.TEN), rs.getObject(11, Value.class));
+        assertEquals(Value.int64Array(new long[] {1L, 2L, 3L}), rs.getObject(12, Value.class));
+        assertEquals(
+            Value.float64Array(new double[] {1.1D, 2.2D, 3.3D}), rs.getObject(13, Value.class));
+        assertEquals(
+            Value.boolArray(Arrays.asList(true, null, false)), rs.getObject(14, Value.class));
+        assertEquals(
+            Value.stringArray(Arrays.asList("1", "2", "3")), rs.getObject(15, Value.class));
+        assertEquals(
+            Value.stringArray(Arrays.asList("3", "2", "1")), rs.getObject(16, Value.class));
+        assertEquals(
+            Value.bytesArray(
+                Arrays.asList(
+                    ByteArray.copyFrom("1"), ByteArray.copyFrom("2"), ByteArray.copyFrom("3"))),
+            rs.getObject(17, Value.class));
+        assertEquals(
+            Value.bytesArray(
+                Arrays.asList(
+                    ByteArray.copyFrom("333"),
+                    ByteArray.copyFrom("222"),
+                    ByteArray.copyFrom("111"))),
+            rs.getObject(18, Value.class));
+        assertEquals(
+            Value.dateArray(
+                Arrays.asList(com.google.cloud.Date.fromYearMonthDay(2021, 5, 3), null)),
+            rs.getObject(19, Value.class));
+        assertEquals(
+            Value.timestampArray(
+                Arrays.asList(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(99999L, 99), null)),
+            rs.getObject(20, Value.class));
+        assertEquals(
+            Value.numericArray(Arrays.asList(BigDecimal.ONE, null, BigDecimal.TEN)),
+            rs.getObject(21, Value.class));
+        assertFalse(rs.next());
       }
     }
   }
 
   private void assertDefaultParameterMetaData(ParameterMetaData pmd, int expectedParamCount)
       throws SQLException {
-    assertThat(pmd.getParameterCount(), is(equalTo(expectedParamCount)));
+    assertEquals(expectedParamCount, pmd.getParameterCount());
     for (int param = 1; param <= expectedParamCount; param++) {
-      assertThat(pmd.getParameterType(param), is(equalTo(Types.OTHER)));
-      assertThat(pmd.getParameterTypeName(param), is(equalTo("OTHER")));
-      assertThat(pmd.getPrecision(param), is(equalTo(0)));
-      assertThat(pmd.getScale(param), is(equalTo(0)));
-      assertThat(pmd.getParameterClassName(param), is(nullValue()));
-      assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-      assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-      assertThat(pmd.isSigned(param), is(false));
+      assertEquals(Types.OTHER, pmd.getParameterType(param));
+      assertEquals("OTHER", pmd.getParameterTypeName(param));
+      assertEquals(0, pmd.getPrecision(param));
+      assertEquals(0, pmd.getScale(param));
+      assertNull(pmd.getParameterClassName(param));
+      assertEquals(ParameterMetaData.parameterModeIn, pmd.getParameterMode(param));
+      assertEquals(ParameterMetaData.parameterNullableUnknown, pmd.isNullable(param));
+      assertFalse(pmd.isSigned(param));
     }
   }
 
@@ -877,7 +1022,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private void assertInsertSingerParameterMetadata(ParameterMetaData pmd) throws SQLException {
-    assertThat(pmd.getParameterCount(), is(equalTo(5)));
+    assertEquals(5, pmd.getParameterCount());
     assertByteParam(pmd, 1);
     assertStringParam(pmd, 2);
     assertStringParam(pmd, 3);
@@ -886,7 +1031,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private void assertInsertAlbumParameterMetadata(ParameterMetaData pmd) throws SQLException {
-    assertThat(pmd.getParameterCount(), is(equalTo(4)));
+    assertEquals(4, pmd.getParameterCount());
     assertLongParam(pmd, 1);
     assertLongParam(pmd, 2);
     assertStringParam(pmd, 3);
@@ -894,7 +1039,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private void assertInsertSongParameterMetadata(ParameterMetaData pmd) throws SQLException {
-    assertThat(pmd.getParameterCount(), is(equalTo(6)));
+    assertEquals(6, pmd.getParameterCount());
     assertByteParam(pmd, 1);
     assertIntParam(pmd, 2);
     assertShortParam(pmd, 3);
@@ -904,7 +1049,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private void assertInsertConcertParameterMetadata(ParameterMetaData pmd) throws SQLException {
-    assertThat(pmd.getParameterCount(), is(equalTo(6)));
+    assertEquals(6, pmd.getParameterCount());
     assertLongParam(pmd, 1);
     assertLongParam(pmd, 2);
     assertDateParam(pmd, 3);
@@ -914,124 +1059,101 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private void assertLongParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.BIGINT)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("INT64")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(pmd.getParameterClassName(param), is(equalTo(Long.class.getName())));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(true));
+    assertEquals(Types.BIGINT, pmd.getParameterType(param));
+    assertInt64Param(pmd, param, Long.class);
   }
 
   private void assertIntParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.INTEGER)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("INT64")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(pmd.getParameterClassName(param), is(equalTo(Integer.class.getName())));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(true));
+    assertEquals(Types.INTEGER, pmd.getParameterType(param));
+    assertInt64Param(pmd, param, Integer.class);
   }
 
   private void assertShortParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.SMALLINT)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("INT64")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(pmd.getParameterClassName(param), is(equalTo(Short.class.getName())));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(true));
+    assertEquals(Types.SMALLINT, pmd.getParameterType(param));
+    assertInt64Param(pmd, param, Short.class);
   }
 
   private void assertByteParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.TINYINT)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("INT64")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(pmd.getParameterClassName(param), is(equalTo(Byte.class.getName())));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(true));
+    assertEquals(Types.TINYINT, pmd.getParameterType(param));
+    assertInt64Param(pmd, param, Byte.class);
+  }
+
+  private void assertInt64Param(ParameterMetaData pmd, int param, Class<?> paramClass)
+      throws SQLException {
+    assertEquals("INT64", pmd.getParameterTypeName(param));
+    assertEquals(0, pmd.getPrecision(param));
+    assertEquals(0, pmd.getScale(param));
+    assertEquals(paramClass.getName(), pmd.getParameterClassName(param));
+    assertEquals(ParameterMetaData.parameterModeIn, pmd.getParameterMode(param));
+    assertEquals(ParameterMetaData.parameterNullableUnknown, pmd.isNullable(param));
+    assertTrue(pmd.isSigned(param));
   }
 
   private void assertStringParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.NVARCHAR)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("STRING")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(pmd.getParameterClassName(param), is(equalTo(String.class.getName())));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(false));
+    assertStringParam(pmd, param, String.class);
+  }
+
+  private void assertStringParam(ParameterMetaData pmd, int param, Class<?> paramClass)
+      throws SQLException {
+    assertEquals(Types.NVARCHAR, pmd.getParameterType(param));
+    assertEquals("STRING", pmd.getParameterTypeName(param));
+    assertEquals(0, pmd.getPrecision(param));
+    assertEquals(0, pmd.getScale(param));
+    assertEquals(paramClass.getName(), pmd.getParameterClassName(param));
+    assertEquals(ParameterMetaData.parameterModeIn, pmd.getParameterMode(param));
+    assertEquals(ParameterMetaData.parameterNullableUnknown, pmd.isNullable(param));
+    assertFalse(pmd.isSigned(param));
   }
 
   private void assertNStringParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.NVARCHAR)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("STRING")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(pmd.getParameterClassName(param), is(equalTo(String.class.getName())));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(false));
+    assertStringParam(pmd, param);
   }
 
   private void assertStringReaderParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.NVARCHAR)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("STRING")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(pmd.getParameterClassName(param), is(equalTo(StringReader.class.getName())));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(false));
+    assertStringParam(pmd, param, StringReader.class);
   }
 
   private void assertBytesParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.BINARY)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("BYTES")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(pmd.getParameterClassName(param), is(equalTo(byte[].class.getName())));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(false));
+    assertEquals(Types.BINARY, pmd.getParameterType(param));
+    assertEquals("BYTES", pmd.getParameterTypeName(param));
+    assertEquals(0, pmd.getPrecision(param));
+    assertEquals(0, pmd.getScale(param));
+    assertEquals(byte[].class.getName(), pmd.getParameterClassName(param));
+    assertEquals(ParameterMetaData.parameterModeIn, pmd.getParameterMode(param));
+    assertEquals(ParameterMetaData.parameterNullableUnknown, pmd.isNullable(param));
+    assertFalse(pmd.isSigned(param));
   }
 
   private void assertDateParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.DATE)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("DATE")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(pmd.getParameterClassName(param), is(equalTo(Date.class.getName())));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(false));
+    assertEquals(Types.DATE, pmd.getParameterType(param));
+    assertEquals("DATE", pmd.getParameterTypeName(param));
+    assertEquals(0, pmd.getPrecision(param));
+    assertEquals(0, pmd.getScale(param));
+    assertEquals(Date.class.getName(), pmd.getParameterClassName(param));
+    assertEquals(ParameterMetaData.parameterModeIn, pmd.getParameterMode(param));
+    assertEquals(ParameterMetaData.parameterNullableUnknown, pmd.isNullable(param));
+    assertFalse(pmd.isSigned(param));
   }
 
   private void assertTimestampParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.TIMESTAMP)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("TIMESTAMP")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(pmd.getParameterClassName(param), is(equalTo(Timestamp.class.getName())));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(false));
+    assertEquals(Types.TIMESTAMP, pmd.getParameterType(param));
+    assertEquals("TIMESTAMP", pmd.getParameterTypeName(param));
+    assertEquals(0, pmd.getPrecision(param));
+    assertEquals(0, pmd.getScale(param));
+    assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(param));
+    assertEquals(ParameterMetaData.parameterModeIn, pmd.getParameterMode(param));
+    assertEquals(ParameterMetaData.parameterNullableUnknown, pmd.isNullable(param));
+    assertFalse(pmd.isSigned(param));
   }
 
   private void assertLongArrayParam(ParameterMetaData pmd, int param) throws SQLException {
-    assertThat(pmd.getParameterType(param), is(equalTo(Types.ARRAY)));
-    assertThat(pmd.getParameterTypeName(param), is(equalTo("ARRAY")));
-    assertThat(pmd.getPrecision(param), is(equalTo(0)));
-    assertThat(pmd.getScale(param), is(equalTo(0)));
-    assertThat(
-        pmd.getParameterClassName(param), is(equalTo("com.google.cloud.spanner.jdbc.JdbcArray")));
-    assertThat(pmd.getParameterMode(param), is(equalTo(ParameterMetaData.parameterModeIn)));
-    assertThat(pmd.isNullable(param), is(equalTo(ParameterMetaData.parameterNullableUnknown)));
-    assertThat(pmd.isSigned(param), is(false));
+    assertEquals(Types.ARRAY, pmd.getParameterType(param));
+    assertEquals("ARRAY", pmd.getParameterTypeName(param));
+    assertEquals(0, pmd.getPrecision(param));
+    assertEquals(0, pmd.getScale(param));
+    assertEquals("com.google.cloud.spanner.jdbc.JdbcArray", pmd.getParameterClassName(param));
+    assertEquals(ParameterMetaData.parameterModeIn, pmd.getParameterMode(param));
+    assertEquals(ParameterMetaData.parameterNullableUnknown, pmd.isNullable(param));
+    assertFalse(pmd.isSigned(param));
   }
 }

@@ -19,12 +19,14 @@ package com.google.cloud.spanner.jdbc;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.spanner.SpannerExceptionFactory;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnection;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnectionProvider;
 import com.google.cloud.spanner.connection.ConnectionImplTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
+import java.sql.SQLException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -46,13 +48,17 @@ public class JdbcConnectionGeneratedSqlScriptTest {
       com.google.cloud.spanner.connection.Connection spannerConnection =
           ConnectionImplTest.createConnection(options);
       when(options.getConnection()).thenReturn(spannerConnection);
-      JdbcConnection connection =
-          new JdbcConnection(
-              "jdbc:cloudspanner://localhost/projects/project/instances/instance/databases/database;credentialsUrl=url",
-              options);
-      JdbcGenericConnection res = JdbcGenericConnection.of(connection);
-      res.setStripCommentsBeforeExecute(true);
-      return res;
+      try {
+        JdbcConnection connection =
+            new JdbcConnection(
+                "jdbc:cloudspanner://localhost/projects/project/instances/instance/databases/database;credentialsUrl=url",
+                options);
+        JdbcGenericConnection res = JdbcGenericConnection.of(connection);
+        res.setStripCommentsBeforeExecute(true);
+        return res;
+      } catch (SQLException e) {
+        throw SpannerExceptionFactory.asSpannerException(e);
+      }
     }
   }
 

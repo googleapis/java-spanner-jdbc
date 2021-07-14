@@ -29,9 +29,9 @@ import java.sql.NClob;
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
+import java.sql.SQLType;
 import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -198,7 +198,7 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   @Override
   public void setObject(int parameterIndex, Object value) throws SQLException {
     checkClosed();
-    parameters.setParameter(parameterIndex, value, null);
+    parameters.setParameter(parameterIndex, value, (SQLType) null);
   }
 
   @Override
@@ -230,14 +230,6 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   public void setArray(int parameterIndex, Array value) throws SQLException {
     checkClosed();
     parameters.setParameter(parameterIndex, value, Types.ARRAY);
-  }
-
-  @Override
-  public ResultSetMetaData getMetaData() throws SQLException {
-    checkClosed();
-    try (ResultSet rs = executeQuery()) {
-      return rs.getMetaData();
-    }
   }
 
   @Override
@@ -328,6 +320,21 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
       throws SQLException {
     checkClosed();
     parameters.setParameter(parameterIndex, value, targetSqlType, scaleOrLength);
+  }
+
+  @Override
+  public void setObject(int parameterIndex, Object value, SQLType targetSqlType)
+      throws SQLException {
+    checkClosed();
+    parameters.setParameter(parameterIndex, value, targetSqlType.getVendorTypeNumber());
+  }
+
+  @Override
+  public void setObject(int parameterIndex, Object value, SQLType targetSqlType, int scaleOrLength)
+      throws SQLException {
+    checkClosed();
+    parameters.setParameter(
+        parameterIndex, value, targetSqlType.getVendorTypeNumber(), scaleOrLength);
   }
 
   @Override

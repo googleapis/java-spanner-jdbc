@@ -25,6 +25,7 @@ import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
+import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -53,7 +54,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @BeforeClass
   public static void skipOnEmulator() {
-    assumeFalse("foreign keys are not supported on the emulator", env.getTestHelper().isEmulator());
+    assumeFalse(
+        "foreign keys are not supported on the emulator", EmulatorSpannerHelper.isUsingEmulator());
   }
 
   @Override
@@ -70,6 +72,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
     private final Integer radix;
     private final boolean nullable;
     private final Integer charOctetLength;
+    private final boolean computed;
 
     private Column(
         String name,
@@ -80,6 +83,19 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
         Integer radix,
         boolean nullable,
         Integer charOctetLength) {
+      this(name, type, typeName, colSize, decimalDigits, radix, nullable, charOctetLength, false);
+    }
+
+    private Column(
+        String name,
+        int type,
+        String typeName,
+        Integer colSize,
+        Integer decimalDigits,
+        Integer radix,
+        boolean nullable,
+        Integer charOctetLength,
+        boolean computed) {
       this.name = name;
       this.type = type;
       this.typeName = typeName;
@@ -88,6 +104,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
       this.radix = radix;
       this.nullable = nullable;
       this.charOctetLength = charOctetLength;
+      this.computed = computed;
     }
   }
 
@@ -133,7 +150,17 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new Column("ColDateArray", Types.ARRAY, "ARRAY<DATE>", 10, null, null, true, null),
           new Column(
               "ColTimestampArray", Types.ARRAY, "ARRAY<TIMESTAMP>", 35, null, null, true, null),
-          new Column("ColNumericArray", Types.ARRAY, "ARRAY<NUMERIC>", 15, null, 10, true, null));
+          new Column("ColNumericArray", Types.ARRAY, "ARRAY<NUMERIC>", 15, null, 10, true, null),
+          new Column(
+              "ColComputed",
+              Types.NVARCHAR,
+              "STRING(MAX)",
+              2621440,
+              null,
+              null,
+              true,
+              2621440,
+              true));
 
   @Test
   public void testGetColumns() throws SQLException {
@@ -195,7 +222,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           assertThat(rs.getShort("SOURCE_DATA_TYPE"), is(equalTo((short) 0)));
           assertThat(rs.wasNull(), is(true));
           assertThat(rs.getString("IS_AUTOINCREMENT"), is(equalTo("NO")));
-          assertThat(rs.getString("IS_GENERATEDCOLUMN"), is(equalTo("NO")));
+          assertThat(rs.getString("IS_GENERATEDCOLUMN"), is(equalTo(col.computed ? "YES" : "NO")));
           assertThat(rs.getMetaData().getColumnCount(), is(equalTo(24)));
 
           pos++;

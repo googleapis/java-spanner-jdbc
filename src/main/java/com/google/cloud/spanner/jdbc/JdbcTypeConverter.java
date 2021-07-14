@@ -21,6 +21,7 @@ import com.google.cloud.Date;
 import com.google.cloud.Timestamp;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
+import com.google.cloud.spanner.Value;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -28,6 +29,7 @@ import java.sql.Array;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -59,8 +61,13 @@ class JdbcTypeConverter {
     JdbcPreconditions.checkArgument(targetType != null, "targetType may not be null");
     checkValidTypeAndValueForConvert(type, value);
 
-    if (value == null) return null;
+    if (value == null) {
+      return null;
+    }
     try {
+      if (targetType.equals(Value.class)) {
+        return convertToSpannerValue(value, type);
+      }
       if (targetType.equals(String.class)) {
         if (type.getCode() == Code.BYTES) return new String((byte[]) value, UTF8);
         if (type.getCode() == Code.TIMESTAMP) {
@@ -153,6 +160,58 @@ class JdbcTypeConverter {
     throw JdbcSqlExceptionFactory.of(
         "Cannot convert " + type.getCode().name() + " to " + targetType.getName(),
         com.google.rpc.Code.INVALID_ARGUMENT);
+  }
+
+  private static Value convertToSpannerValue(Object value, Type type) throws SQLException {
+    switch (type.getCode()) {
+      case ARRAY:
+        switch (type.getArrayElementType().getCode()) {
+          case BOOL:
+            return Value.boolArray(Arrays.asList((Boolean[]) ((java.sql.Array) value).getArray()));
+          case BYTES:
+            return Value.bytesArray(toGoogleBytes((byte[][]) ((java.sql.Array) value).getArray()));
+          case DATE:
+            return Value.dateArray(
+                toGoogleDates((java.sql.Date[]) ((java.sql.Array) value).getArray()));
+          case FLOAT64:
+            return Value.float64Array(
+                Arrays.asList((Double[]) ((java.sql.Array) value).getArray()));
+          case INT64:
+            return Value.int64Array(Arrays.asList((Long[]) ((java.sql.Array) value).getArray()));
+          case NUMERIC:
+            return Value.numericArray(
+                Arrays.asList((BigDecimal[]) ((java.sql.Array) value).getArray()));
+          case STRING:
+            return Value.stringArray(Arrays.asList((String[]) ((java.sql.Array) value).getArray()));
+          case TIMESTAMP:
+            return Value.timestampArray(
+                toGoogleTimestamps((java.sql.Timestamp[]) ((java.sql.Array) value).getArray()));
+          case STRUCT:
+          default:
+            throw JdbcSqlExceptionFactory.of(
+                "invalid argument: " + value, com.google.rpc.Code.INVALID_ARGUMENT);
+        }
+      case BOOL:
+        return Value.bool((Boolean) value);
+      case BYTES:
+        return Value.bytes(ByteArray.copyFrom((byte[]) value));
+      case DATE:
+        return Value.date(toGoogleDate((java.sql.Date) value));
+      case FLOAT64:
+        return Value.float64((Double) value);
+      case INT64:
+        return Value.int64((Long) value);
+      case NUMERIC:
+        return Value.numeric((BigDecimal) value);
+      case STRING:
+        return Value.string((String) value);
+      case TIMESTAMP:
+        return Value.timestamp(toGoogleTimestamp((java.sql.Timestamp) value));
+      case STRUCT:
+      default:
+        throw JdbcSqlExceptionFactory.of(
+            "invalid argument: " + value, com.google.rpc.Code.INVALID_ARGUMENT);
+    }
   }
 
   private static void checkValidTypeAndValueForConvert(Type type, Object value)

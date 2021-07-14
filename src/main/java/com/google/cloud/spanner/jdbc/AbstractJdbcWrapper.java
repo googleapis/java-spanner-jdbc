@@ -66,7 +66,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     if (sqlType == Types.NUMERIC || sqlType == Types.DECIMAL)
       return Type.numeric().getCode().name();
     if (sqlType == Types.NVARCHAR) return Type.string().getCode().name();
-    if (sqlType == Types.TIMESTAMP) return Type.timestamp().getCode().name();
+    if (sqlType == Types.TIMESTAMP || sqlType == Types.TIMESTAMP_WITH_TIMEZONE)
+      return Type.timestamp().getCode().name();
     if (sqlType == Types.ARRAY) return Code.ARRAY.name();
 
     return OTHER_NAME;
@@ -84,7 +85,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
         || sqlType == Types.TINYINT) return Long.class.getName();
     if (sqlType == Types.NUMERIC || sqlType == Types.DECIMAL) return BigDecimal.class.getName();
     if (sqlType == Types.NVARCHAR) return String.class.getName();
-    if (sqlType == Types.TIMESTAMP) return Timestamp.class.getName();
+    if (sqlType == Types.TIMESTAMP || sqlType == Types.TIMESTAMP_WITH_TIMEZONE)
+      return Timestamp.class.getName();
     if (sqlType == Types.ARRAY) return Object.class.getName();
 
     return null;

@@ -16,27 +16,33 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.ByteArray;
+import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.rpc.Code;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Date;
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSetMetaData;
@@ -48,8 +54,9 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.TimeZone;
-import org.junit.Assert;
+import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -96,10 +103,45 @@ public class JdbcPreparedStatementTest {
     return connection;
   }
 
+  @Test
+  public void testValueAsParameter() throws SQLException {
+    String sql = generateSqlWithParameters(1);
+    JdbcConnection connection = createMockConnection();
+    for (Value value :
+        new Value[] {
+          Value.bool(true),
+          Value.bool(false),
+          Value.bytes(ByteArray.copyFrom("foo")),
+          Value.date(com.google.cloud.Date.fromYearMonthDay(2021, 5, 17)),
+          Value.float64(6.626d),
+          Value.int64(13L),
+          Value.numeric(new BigDecimal("3.14")),
+          Value.string("bar"),
+          Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(999L, 99)),
+          Value.boolArray(Collections.singleton(true)),
+          Value.bytesArray(Collections.singleton(ByteArray.copyFrom("foo"))),
+          Value.dateArray(
+              Collections.singleton(com.google.cloud.Date.fromYearMonthDay(2021, 5, 17))),
+          Value.float64Array(Collections.singleton(6.626d)),
+          Value.int64Array(Collections.singleton(13L)),
+          Value.numericArray(Collections.singleton(new BigDecimal("3.14"))),
+          Value.stringArray(Collections.singleton("bar")),
+          Value.timestampArray(
+              Collections.singleton(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(999L, 99))),
+        }) {
+
+      try (JdbcPreparedStatement ps = new JdbcPreparedStatement(connection, sql)) {
+        ps.setObject(1, value);
+        Statement statement = ps.createStatement();
+        assertEquals(statement.getParameters().get("p1"), value);
+      }
+    }
+  }
+
   @SuppressWarnings("deprecation")
   @Test
   public void testParameters() throws SQLException, MalformedURLException {
-    final int numberOfParams = 48;
+    final int numberOfParams = 51;
     String sql = generateSqlWithParameters(numberOfParams);
 
     JdbcConnection connection = createMockConnection();
@@ -148,133 +190,137 @@ public class JdbcPreparedStatementTest {
       ps.setTimestamp(46, new Timestamp(1000l), Calendar.getInstance(TimeZone.getTimeZone("GMT")));
       ps.setUnicodeStream(47, new ByteArrayInputStream("TEST".getBytes()), 4);
       ps.setURL(48, new URL("https://spanner.google.com"));
+      ps.setObject(49, UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"));
+      ps.setObject(50, "TEST", JDBCType.NVARCHAR);
+      ps.setObject(51, "TEST", JDBCType.NVARCHAR, 20);
 
       testSetUnsupportedTypes(ps);
 
       JdbcParameterMetaData pmd = ps.getParameterMetaData();
-      Assert.assertEquals(numberOfParams, pmd.getParameterCount());
-      Assert.assertEquals(JdbcArray.class.getName(), pmd.getParameterClassName(1));
-      Assert.assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(2));
-      Assert.assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(3));
-      Assert.assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(4));
-      Assert.assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(6));
-      Assert.assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(7));
-      Assert.assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(8));
-      Assert.assertEquals(JdbcBlob.class.getName(), pmd.getParameterClassName(9));
-      Assert.assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(10));
-      Assert.assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(11));
-      Assert.assertEquals(Boolean.class.getName(), pmd.getParameterClassName(12));
-      Assert.assertEquals(Byte.class.getName(), pmd.getParameterClassName(13));
-      Assert.assertEquals(byte[].class.getName(), pmd.getParameterClassName(14));
-      Assert.assertEquals(StringReader.class.getName(), pmd.getParameterClassName(15));
-      Assert.assertEquals(StringReader.class.getName(), pmd.getParameterClassName(16));
-      Assert.assertEquals(StringReader.class.getName(), pmd.getParameterClassName(17));
-      Assert.assertEquals(JdbcClob.class.getName(), pmd.getParameterClassName(18));
-      Assert.assertEquals(StringReader.class.getName(), pmd.getParameterClassName(19));
-      Assert.assertEquals(StringReader.class.getName(), pmd.getParameterClassName(20));
-      Assert.assertEquals(Date.class.getName(), pmd.getParameterClassName(21));
-      Assert.assertEquals(Date.class.getName(), pmd.getParameterClassName(22));
-      Assert.assertEquals(Double.class.getName(), pmd.getParameterClassName(23));
-      Assert.assertEquals(Float.class.getName(), pmd.getParameterClassName(24));
-      Assert.assertEquals(Integer.class.getName(), pmd.getParameterClassName(25));
-      Assert.assertEquals(Long.class.getName(), pmd.getParameterClassName(26));
-      Assert.assertEquals(StringReader.class.getName(), pmd.getParameterClassName(27));
-      Assert.assertEquals(StringReader.class.getName(), pmd.getParameterClassName(28));
-      Assert.assertEquals(JdbcClob.class.getName(), pmd.getParameterClassName(29));
-      Assert.assertEquals(StringReader.class.getName(), pmd.getParameterClassName(30));
-      Assert.assertEquals(StringReader.class.getName(), pmd.getParameterClassName(31));
-      Assert.assertEquals(String.class.getName(), pmd.getParameterClassName(32));
-      Assert.assertEquals(Long.class.getName(), pmd.getParameterClassName(33));
-      Assert.assertEquals(Long.class.getName(), pmd.getParameterClassName(34));
-      Assert.assertEquals(String.class.getName(), pmd.getParameterClassName(35));
-      Assert.assertEquals(String.class.getName(), pmd.getParameterClassName(36));
-      Assert.assertEquals(String.class.getName(), pmd.getParameterClassName(37));
-      Assert.assertNull(pmd.getParameterClassName(38));
-      Assert.assertNull(pmd.getParameterClassName(39));
-      Assert.assertEquals(Short.class.getName(), pmd.getParameterClassName(40));
-      Assert.assertNull(pmd.getParameterClassName(41));
-      Assert.assertEquals(String.class.getName(), pmd.getParameterClassName(42));
-      Assert.assertEquals(Time.class.getName(), pmd.getParameterClassName(43));
-      Assert.assertEquals(Time.class.getName(), pmd.getParameterClassName(44));
-      Assert.assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(45));
-      Assert.assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(46));
-      Assert.assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(47));
-      Assert.assertEquals(URL.class.getName(), pmd.getParameterClassName(48));
+      assertEquals(numberOfParams, pmd.getParameterCount());
+      assertEquals(JdbcArray.class.getName(), pmd.getParameterClassName(1));
+      assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(2));
+      assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(3));
+      assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(4));
+      assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(6));
+      assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(7));
+      assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(8));
+      assertEquals(JdbcBlob.class.getName(), pmd.getParameterClassName(9));
+      assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(10));
+      assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(11));
+      assertEquals(Boolean.class.getName(), pmd.getParameterClassName(12));
+      assertEquals(Byte.class.getName(), pmd.getParameterClassName(13));
+      assertEquals(byte[].class.getName(), pmd.getParameterClassName(14));
+      assertEquals(StringReader.class.getName(), pmd.getParameterClassName(15));
+      assertEquals(StringReader.class.getName(), pmd.getParameterClassName(16));
+      assertEquals(StringReader.class.getName(), pmd.getParameterClassName(17));
+      assertEquals(JdbcClob.class.getName(), pmd.getParameterClassName(18));
+      assertEquals(StringReader.class.getName(), pmd.getParameterClassName(19));
+      assertEquals(StringReader.class.getName(), pmd.getParameterClassName(20));
+      assertEquals(Date.class.getName(), pmd.getParameterClassName(21));
+      assertEquals(Date.class.getName(), pmd.getParameterClassName(22));
+      assertEquals(Double.class.getName(), pmd.getParameterClassName(23));
+      assertEquals(Float.class.getName(), pmd.getParameterClassName(24));
+      assertEquals(Integer.class.getName(), pmd.getParameterClassName(25));
+      assertEquals(Long.class.getName(), pmd.getParameterClassName(26));
+      assertEquals(StringReader.class.getName(), pmd.getParameterClassName(27));
+      assertEquals(StringReader.class.getName(), pmd.getParameterClassName(28));
+      assertEquals(JdbcClob.class.getName(), pmd.getParameterClassName(29));
+      assertEquals(StringReader.class.getName(), pmd.getParameterClassName(30));
+      assertEquals(StringReader.class.getName(), pmd.getParameterClassName(31));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(32));
+      assertEquals(Long.class.getName(), pmd.getParameterClassName(33));
+      assertEquals(Long.class.getName(), pmd.getParameterClassName(34));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(35));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(36));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(37));
+      assertNull(pmd.getParameterClassName(38));
+      assertNull(pmd.getParameterClassName(39));
+      assertEquals(Short.class.getName(), pmd.getParameterClassName(40));
+      assertNull(pmd.getParameterClassName(41));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(42));
+      assertEquals(Time.class.getName(), pmd.getParameterClassName(43));
+      assertEquals(Time.class.getName(), pmd.getParameterClassName(44));
+      assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(45));
+      assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(46));
+      assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(47));
+      assertEquals(URL.class.getName(), pmd.getParameterClassName(48));
+      assertEquals(UUID.class.getName(), pmd.getParameterClassName(49));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(50));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(51));
 
       ps.clearParameters();
       pmd = ps.getParameterMetaData();
-      Assert.assertEquals(numberOfParams, pmd.getParameterCount());
+      assertEquals(numberOfParams, pmd.getParameterCount());
     }
   }
 
   private void testSetUnsupportedTypes(PreparedStatement ps) {
-    // TODO: Rewrite these tests using functional interfaces when Java8 is available.
-    boolean expectedException = false;
     try {
       ps.setRef(38, (Ref) null);
+      fail("missing expected exception");
     } catch (SQLException e) {
-      if (e instanceof JdbcSqlException) {
-        expectedException = ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT;
-      }
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
-    assertThat(expectedException, is(true));
-    expectedException = false;
     try {
       ps.setRowId(39, (RowId) null);
+      fail("missing expected exception");
     } catch (SQLException e) {
-      if (e instanceof JdbcSqlException) {
-        expectedException = ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT;
-      }
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
-    assertThat(expectedException, is(true));
-    expectedException = false;
     try {
       ps.setSQLXML(41, (SQLXML) null);
+      fail("missing expected exception");
     } catch (SQLException e) {
-      if (e instanceof JdbcSqlException) {
-        expectedException = ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT;
-      }
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
-    assertThat(expectedException, is(true));
   }
 
   @Test
   public void testSetNullValues() throws SQLException {
-    String sql = generateSqlWithParameters(27);
+    final int numberOfParameters = 27;
+    String sql = generateSqlWithParameters(numberOfParameters);
     try (JdbcPreparedStatement ps = new JdbcPreparedStatement(createMockConnection(), sql)) {
-      ps.setNull(1, Types.BLOB);
-      ps.setNull(2, Types.NVARCHAR);
-      ps.setNull(4, Types.BINARY);
-      ps.setNull(5, Types.BOOLEAN);
-      ps.setNull(6, Types.TINYINT);
-      ps.setNull(7, Types.DATE);
-      ps.setNull(8, Types.DOUBLE);
-      ps.setNull(9, Types.FLOAT);
-      ps.setNull(10, Types.INTEGER);
-      ps.setNull(11, Types.BIGINT);
-      ps.setNull(12, Types.SMALLINT);
-      ps.setNull(13, Types.TIME);
-      ps.setNull(14, Types.TIMESTAMP);
-      ps.setNull(15, Types.CHAR);
-      ps.setNull(16, Types.CLOB);
-      ps.setNull(17, Types.LONGNVARCHAR);
-      ps.setNull(18, Types.LONGVARBINARY);
-      ps.setNull(19, Types.LONGVARCHAR);
-      ps.setNull(20, Types.NCHAR);
-      ps.setNull(21, Types.NCLOB);
-      ps.setNull(23, Types.NVARCHAR);
-      ps.setNull(24, Types.REAL);
-      ps.setNull(25, Types.BIT);
-      ps.setNull(26, Types.VARBINARY);
-      ps.setNull(27, Types.VARCHAR);
+      int index = 0;
+      ps.setNull(++index, Types.BLOB);
+      ps.setNull(++index, Types.NVARCHAR);
+      ps.setNull(++index, Types.BINARY);
+      ps.setNull(++index, Types.BOOLEAN);
+      ps.setNull(++index, Types.TINYINT);
+      ps.setNull(++index, Types.DATE);
+      ps.setNull(++index, Types.DOUBLE);
+      ps.setNull(++index, Types.FLOAT);
+      ps.setNull(++index, Types.INTEGER);
+      ps.setNull(++index, Types.BIGINT);
+      ps.setNull(++index, Types.SMALLINT);
+      ps.setNull(++index, Types.TIME);
+      ps.setNull(++index, Types.TIME_WITH_TIMEZONE);
+      ps.setNull(++index, Types.TIMESTAMP);
+      ps.setNull(++index, Types.TIMESTAMP_WITH_TIMEZONE);
+      ps.setNull(++index, Types.CHAR);
+      ps.setNull(++index, Types.CLOB);
+      ps.setNull(++index, Types.LONGNVARCHAR);
+      ps.setNull(++index, Types.LONGVARBINARY);
+      ps.setNull(++index, Types.LONGVARCHAR);
+      ps.setNull(++index, Types.NCHAR);
+      ps.setNull(++index, Types.NCLOB);
+      ps.setNull(++index, Types.NVARCHAR);
+      ps.setNull(++index, Types.REAL);
+      ps.setNull(++index, Types.BIT);
+      ps.setNull(++index, Types.VARBINARY);
+      ps.setNull(++index, Types.VARCHAR);
+      assertEquals(numberOfParameters, index);
 
       JdbcParameterMetaData pmd = ps.getParameterMetaData();
-      Assert.assertEquals(27, pmd.getParameterCount());
-      Assert.assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(14));
+      assertEquals(numberOfParameters, pmd.getParameterCount());
+      assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(15));
 
       ps.clearParameters();
       pmd = ps.getParameterMetaData();
-      Assert.assertEquals(27, pmd.getParameterCount());
+      assertEquals(numberOfParameters, pmd.getParameterCount());
     }
   }
 
@@ -297,17 +343,28 @@ public class JdbcPreparedStatementTest {
                     .set("AMOUNT")
                     .to(Math.PI)
                     .build()));
-    when(connection.executeQuery(Statement.of(sql))).thenReturn(rs);
+    when(connection.analyzeQuery(Statement.of(sql), QueryAnalyzeMode.PLAN)).thenReturn(rs);
     try (JdbcPreparedStatement ps =
         new JdbcPreparedStatement(createMockConnection(connection), sql)) {
       ResultSetMetaData metadata = ps.getMetaData();
-      assertThat(metadata.getColumnCount(), is(equalTo(3)));
-      assertThat(metadata.getColumnLabel(1), is(equalTo("ID")));
-      assertThat(metadata.getColumnLabel(2), is(equalTo("NAME")));
-      assertThat(metadata.getColumnLabel(3), is(equalTo("AMOUNT")));
-      assertThat(metadata.getColumnType(1), is(equalTo(Types.BIGINT)));
-      assertThat(metadata.getColumnType(2), is(equalTo(Types.NVARCHAR)));
-      assertThat(metadata.getColumnType(3), is(equalTo(Types.DOUBLE)));
+      assertEquals(3, metadata.getColumnCount());
+      assertEquals("ID", metadata.getColumnLabel(1));
+      assertEquals("NAME", metadata.getColumnLabel(2));
+      assertEquals("AMOUNT", metadata.getColumnLabel(3));
+      assertEquals(Types.BIGINT, metadata.getColumnType(1));
+      assertEquals(Types.NVARCHAR, metadata.getColumnType(2));
+      assertEquals(Types.DOUBLE, metadata.getColumnType(3));
+    }
+  }
+
+  @Test
+  public void testGetResultSetMetaDataForDml() throws SQLException {
+    Connection connection = mock(Connection.class);
+    try (JdbcPreparedStatement ps =
+        new JdbcPreparedStatement(
+            createMockConnection(connection), "UPDATE FOO SET BAR=1 WHERE TRUE")) {
+      ResultSetMetaData metadata = ps.getMetaData();
+      assertEquals(0, metadata.getColumnCount());
     }
   }
 }
