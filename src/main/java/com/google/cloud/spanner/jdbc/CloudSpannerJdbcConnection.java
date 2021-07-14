@@ -51,10 +51,14 @@ public interface CloudSpannerJdbcConnection extends Connection {
    *
    * @param tag The tag to use.
    */
-  void setTransactionTag(String tag) throws SQLException;
+  default void setTransactionTag(String tag) throws SQLException {
+    throw new UnsupportedOperationException();
+  };
 
   /** @return The transaction tag of the current transaction. */
-  String getTransactionTag() throws SQLException;
+  default String getTransactionTag() throws SQLException {
+    throw new UnsupportedOperationException();
+  };
 
   /**
    * Sets the statement tag to use for the next statement that will be executed. The tag is
@@ -64,14 +68,18 @@ public interface CloudSpannerJdbcConnection extends Connection {
    * @param tag The statement tag to use with the next statement that will be executed on this
    *     connection.
    */
-  void setStatementTag(String tag) throws SQLException;
+  default void setStatementTag(String tag) throws SQLException {
+    throw new UnsupportedOperationException();
+  };
 
   /**
    * @return The statement tag that will be used with the next statement that is executed on this
    *     connection.
    */
-  String getStatementTag() throws SQLException;
-  
+  default String getStatementTag() throws SQLException {
+    throw new UnsupportedOperationException();
+  };
+
   /**
    * Sets the transaction mode to use for current transaction. This method may only be called when
    * in a transaction, and before the transaction is actually started, i.e. before any statements

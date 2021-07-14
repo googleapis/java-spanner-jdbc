@@ -109,7 +109,7 @@ class JdbcConnection extends AbstractJdbcConnection {
       throw JdbcSqlExceptionFactory.of(e);
     }
   }
-  
+
   @Override
   public void setTransactionMode(TransactionMode mode) throws SQLException {
     checkClosed();
