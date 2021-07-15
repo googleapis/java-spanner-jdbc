@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.2.6...v2.3.0) (2021-07-15)
+
+
+### Features
+
+* add support for tagging to JDBC connection ([#270](https://www.github.com/googleapis/java-spanner-jdbc/issues/270)) ([a4bd82c](https://www.github.com/googleapis/java-spanner-jdbc/commit/a4bd82c8e4ce8b7179b943ac06b049598276f1b4))
+
 ### [2.2.6](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.2.5...v2.2.6) (2021-07-06)
 
 
