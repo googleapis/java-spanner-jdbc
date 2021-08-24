@@ -854,7 +854,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
             (BigDecimal[]) rs.getArray(++index).getArray());
         if (!EmulatorSpannerHelper.isUsingEmulator()) {
           assertArrayEquals(
-              new String[] {"{\"test_value\": \"foo\"}", "{}", "[]", null},
+              new String[] {"{\"test_value\":\"foo\"}", "{}", "[]", null},
               (String[]) rs.getArray(++index).getArray());
         }
         assertFalse(rs.next());

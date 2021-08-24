@@ -187,6 +187,8 @@ class JdbcTypeConverter {
           case TIMESTAMP:
             return Value.timestampArray(
                 toGoogleTimestamps((java.sql.Timestamp[]) ((java.sql.Array) value).getArray()));
+          case JSON:
+            return Value.jsonArray(Arrays.asList((String[]) ((java.sql.Array) value).getArray()));
           case STRUCT:
           default:
             throw JdbcSqlExceptionFactory.of(
@@ -208,6 +210,8 @@ class JdbcTypeConverter {
         return Value.string((String) value);
       case TIMESTAMP:
         return Value.timestamp(toGoogleTimestamp((java.sql.Timestamp) value));
+      case JSON:
+        return Value.json((String) value);
       case STRUCT:
       default:
         throw JdbcSqlExceptionFactory.of(
