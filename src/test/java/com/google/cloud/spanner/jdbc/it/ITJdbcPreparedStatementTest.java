@@ -81,7 +81,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         throw new IllegalArgumentException(values);
       }
       return new Singer(
-          Long.valueOf(array[0]), // singer id
+          Long.parseLong(array[0]), // singer id
           array[1].substring(1, array[1].length() - 1), // first name
           array[2].substring(1, array[2].length() - 1), // last name
           parseBytes(array[3].substring(13, array[3].length() - 2)), // singer info
@@ -111,10 +111,10 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         throw new IllegalArgumentException(values);
       }
       return new Album(
-          Long.valueOf(array[0]), // singer id
-          Long.valueOf(array[1]), // album id
+          Long.parseLong(array[0]), // singer id
+          Long.parseLong(array[1]), // album id
           array[2].substring(1, array[2].length() - 1), // album title
-          Long.valueOf(array[3]) // marketing budget
+          Long.parseLong(array[3]) // marketing budget
           );
     }
 
@@ -140,11 +140,11 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         throw new IllegalArgumentException(values);
       }
       return new Song(
-          Long.valueOf(array[0]), // singer id
-          Long.valueOf(array[1]), // album id
-          Long.valueOf(array[2]), // song id
+          Long.parseLong(array[0]), // singer id
+          Long.parseLong(array[1]), // album id
+          Long.parseLong(array[2]), // song id
           array[3].substring(1, array[3].length() - 1), // song name
-          Long.valueOf(array[4]), // duration
+          Long.parseLong(array[4]), // duration
           array[5].substring(1, array[5].length() - 1));
     }
 
@@ -173,14 +173,14 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     private final Long[] ticketPrices;
 
     private static Concert of(String values) {
-      values = values.replaceAll("\\[(\\d+),(\\d+),(\\d+),(\\d+)\\]", "[$1;$2;$3;$4]");
+      values = values.replaceAll("\\[(\\d+),(\\d+),(\\d+),(\\d+)]", "[$1;$2;$3;$4]");
       String[] array = values.split(",");
       if (array.length != 6) {
         throw new IllegalArgumentException(values);
       }
       return new Concert(
-          Long.valueOf(array[0]), // venue id
-          Long.valueOf(array[1]), // singer id
+          Long.parseLong(array[0]), // venue id
+          Long.parseLong(array[1]), // singer id
           parseDate(array[2].substring(6, array[2].length() - 1)), // concert date
           parseTimestamp(array[3].substring(11, array[3].length() - 1)), // begin time
           parseTimestamp(array[4].substring(11, array[4].length() - 1)), // end time
@@ -421,17 +421,17 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     // requested timezone) should be returned.
     Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     cal.clear();
-    cal.set(2015, 10, 15, 10, 0, 0);
+    cal.set(2015, Calendar.NOVEMBER, 15, 10, 0, 0);
     testDates.add(new Date(cal.getTimeInMillis()));
 
     cal = Calendar.getInstance(TimeZone.getTimeZone("CET"));
     cal.clear();
-    cal.set(2015, 10, 15, 10, 0, 0);
+    cal.set(2015, Calendar.NOVEMBER, 15, 10, 0, 0);
     testDates.add(new Date(cal.getTimeInMillis()));
 
     cal = Calendar.getInstance(TimeZone.getTimeZone("PST"));
     cal.clear();
-    cal.set(2015, 10, 15, 10, 0, 0);
+    cal.set(2015, Calendar.NOVEMBER, 15, 10, 0, 0);
     testDates.add(new Date(cal.getTimeInMillis()));
 
     List<Calendar> calendars = new ArrayList<>();
@@ -503,17 +503,6 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     expectedValues.add("2015-11-15 10:00:00");
     expectedValues.add("2015-11-15 10:00:00");
 
-    List<TimeZone> timezones = new ArrayList<>();
-    timezones.add(TimeZone.getDefault());
-    timezones.add(TimeZone.getDefault());
-    timezones.add(TimeZone.getDefault());
-    timezones.add(TimeZone.getDefault());
-    timezones.add(TimeZone.getDefault());
-    timezones.add(TimeZone.getDefault());
-    timezones.add(TimeZone.getTimeZone("UTC"));
-    timezones.add(TimeZone.getTimeZone("CET"));
-    timezones.add(TimeZone.getTimeZone("PST"));
-
     List<Timestamp> testTimestamps = new ArrayList<>();
     testTimestamps.add(Timestamp.valueOf(expectedValues.get(0)));
     testTimestamps.add(Timestamp.valueOf(expectedValues.get(1)));
@@ -526,17 +515,17 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     // format.
     Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     cal.clear();
-    cal.set(2015, 10, 15);
+    cal.set(2015, Calendar.NOVEMBER, 15);
     testTimestamps.add(new Timestamp(cal.getTimeInMillis()));
 
     cal = Calendar.getInstance(TimeZone.getTimeZone("CET"));
     cal.clear();
-    cal.set(2015, 10, 15);
+    cal.set(2015, Calendar.NOVEMBER, 15);
     testTimestamps.add(new Timestamp(cal.getTimeInMillis()));
 
     cal = Calendar.getInstance(TimeZone.getTimeZone("PST"));
     cal.clear();
-    cal.set(2015, 10, 15);
+    cal.set(2015, Calendar.NOVEMBER, 15);
     testTimestamps.add(new Timestamp(cal.getTimeInMillis()));
 
     List<Calendar> calendars = new ArrayList<>();
@@ -1070,7 +1059,6 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         String line = scanner.nextLine();
         builder.append(line).append("\n");
       }
-      scanner.close();
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
     }
