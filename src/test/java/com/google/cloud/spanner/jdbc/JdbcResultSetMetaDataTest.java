@@ -74,6 +74,7 @@ public class JdbcResultSetMetaDataTest {
       if (type == Type.int64()) return 10;
       if (type == Type.timestamp()) return 24;
       if (type == Type.string()) return 50;
+      if (type == Type.json()) return 50;
       if (type == Type.bytes()) return 50;
       return 50;
     }
@@ -182,6 +183,7 @@ public class JdbcResultSetMetaDataTest {
     types.add(Type.float64());
     types.add(Type.int64());
     types.add(Type.string());
+    types.add(Type.json());
     types.add(Type.timestamp());
     List<Type> arrayTypes = new ArrayList<>();
     for (Type type : types) {
@@ -219,6 +221,7 @@ public class JdbcResultSetMetaDataTest {
     if (type == Type.float64()) return Value.float64(123.45D);
     if (type == Type.int64()) return Value.int64(12345L);
     if (type == Type.string()) return Value.string("test value " + row);
+    if (type == Type.json()) return Value.json("{\"test_value\": " + row + "}");
     if (type == Type.timestamp()) return Value.timestamp(com.google.cloud.Timestamp.now());
 
     if (type.getCode() == Code.ARRAY) {
@@ -240,6 +243,9 @@ public class JdbcResultSetMetaDataTest {
         return Value.int64Array(Arrays.asList(12345L, 54321L));
       if (type.getArrayElementType() == Type.string())
         return Value.stringArray(Arrays.asList("test value " + row, "test value " + row));
+      if (type.getArrayElementType() == Type.json())
+        return Value.jsonArray(
+            Arrays.asList("{\"test_value\": " + row + "}", "{\"test_value\": " + row + "}"));
       if (type.getArrayElementType() == Type.timestamp())
         return Value.timestampArray(
             Arrays.asList(com.google.cloud.Timestamp.now(), com.google.cloud.Timestamp.now()));
@@ -263,7 +269,9 @@ public class JdbcResultSetMetaDataTest {
   public void testIsCaseSensitive() throws SQLException {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       Type type = TEST_COLUMNS.get(i - 1).type;
-      assertEquals(type == Type.string() || type == Type.bytes(), subject.isCaseSensitive(i));
+      assertEquals(
+          type == Type.string() || type == Type.bytes() || type == Type.json(),
+          subject.isCaseSensitive(i));
     }
   }
 
@@ -319,6 +327,7 @@ public class JdbcResultSetMetaDataTest {
       int length = subject.getPrecision(column);
       return length == 0 ? 50 : length;
     }
+    if (type == Type.json()) return 50;
     if (type == Type.timestamp()) return 16;
     return 10;
   }
@@ -397,6 +406,7 @@ public class JdbcResultSetMetaDataTest {
     if (type == Type.float64()) return Types.DOUBLE;
     if (type == Type.int64()) return Types.BIGINT;
     if (type == Type.string()) return Types.NVARCHAR;
+    if (type == Type.json()) return Types.NVARCHAR;
     if (type == Type.timestamp()) return Types.TIMESTAMP;
     if (type.getCode() == Code.ARRAY) return Types.ARRAY;
     return Types.OTHER;
@@ -446,6 +456,7 @@ public class JdbcResultSetMetaDataTest {
     if (type == Type.float64()) return Double.class.getName();
     if (type == Type.int64()) return Long.class.getName();
     if (type == Type.string()) return String.class.getName();
+    if (type == Type.json()) return String.class.getName();
     if (type == Type.timestamp()) return Timestamp.class.getName();
     if (type.getCode() == Code.ARRAY) {
       if (type.getArrayElementType() == Type.bool()) return Boolean[].class.getName();
@@ -454,6 +465,7 @@ public class JdbcResultSetMetaDataTest {
       if (type.getArrayElementType() == Type.float64()) return Double[].class.getName();
       if (type.getArrayElementType() == Type.int64()) return Long[].class.getName();
       if (type.getArrayElementType() == Type.string()) return String[].class.getName();
+      if (type.getArrayElementType() == Type.json()) return String[].class.getName();
       if (type.getArrayElementType() == Type.timestamp()) return Timestamp[].class.getName();
     }
     return null;
@@ -466,15 +478,17 @@ public class JdbcResultSetMetaDataTest {
           + "Col 4: COL4 FLOAT64\n"
           + "Col 5: COL5 INT64\n"
           + "Col 6: COL6 STRING\n"
-          + "Col 7: COL7 TIMESTAMP\n"
-          + "Col 8: COL8 ARRAY\n"
+          + "Col 7: COL7 JSON\n"
+          + "Col 8: COL8 TIMESTAMP\n"
           + "Col 9: COL9 ARRAY\n"
           + "Col 10: COL10 ARRAY\n"
           + "Col 11: COL11 ARRAY\n"
           + "Col 12: COL12 ARRAY\n"
           + "Col 13: COL13 ARRAY\n"
           + "Col 14: COL14 ARRAY\n"
-          + "Col 15: CALCULATED INT64\n";
+          + "Col 15: COL15 ARRAY\n"
+          + "Col 16: COL16 ARRAY\n"
+          + "Col 17: CALCULATED INT64\n";
 
   @Test
   public void testToString() {

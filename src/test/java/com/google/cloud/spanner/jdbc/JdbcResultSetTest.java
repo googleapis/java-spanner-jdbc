@@ -132,6 +132,11 @@ public class JdbcResultSetTest {
   private static final BigDecimal NUMERIC_VALUE = new BigDecimal("3.14");
   private static final int NUMERIC_COLINDEX_NULL = 25;
   private static final int NUMERIC_COLINDEX_NOTNULL = 26;
+  private static final String JSON_COL_NULL = "JSON_COL_NULL";
+  private static final String JSON_COL_NOT_NULL = "JSON_COL_NOT_NULL";
+  private static final int JSON_COLINDEX_NULL = 27;
+  private static final int JSON_COLINDEX_NOT_NULL = 28;
+  private static final String JSON_VALUE = "{\"name\":\"John\", \"age\":30, \"car\":null}";
 
   private static final String BOOL_ARRAY_COL = "BOOL_ARRAY";
   private static final List<Boolean> BOOL_ARRAY_VALUE = Arrays.asList(true, null, false);
@@ -149,6 +154,8 @@ public class JdbcResultSetTest {
   private static final List<String> STRING_ARRAY_VALUE = Arrays.asList(STRING_VALUE, null);
   private static final String TIMESTAMP_ARRAY_COL = "TIMESTAMP_ARRAY";
   private static final List<Timestamp> TIMESTAMP_ARRAY_VALUE = Arrays.asList(TIMESTAMP_VALUE, null);
+  private static final String JSON_ARRAY_COL = "JSON_ARRAY";
+  private static final List<String> JSON_ARRAY_VALUE = Arrays.asList(JSON_VALUE, null);
 
   private JdbcResultSet subject;
 
@@ -181,12 +188,15 @@ public class JdbcResultSetTest {
             StructField.of(STRING_COL_TIME, Type.string()),
             StructField.of(NUMERIC_COL_NULL, Type.numeric()),
             StructField.of(NUMERIC_COL_NOT_NULL, Type.numeric()),
+            StructField.of(JSON_COL_NULL, Type.json()),
+            StructField.of(JSON_COL_NOT_NULL, Type.json()),
             StructField.of(BOOL_ARRAY_COL, Type.array(Type.bool())),
             StructField.of(BYTES_ARRAY_COL, Type.array(Type.bytes())),
             StructField.of(DATE_ARRAY_COL, Type.array(Type.date())),
             StructField.of(FLOAT64_ARRAY_COL, Type.array(Type.float64())),
             StructField.of(INT64_ARRAY_COL, Type.array(Type.int64())),
             StructField.of(NUMERIC_ARRAY_COL, Type.array(Type.numeric())),
+            StructField.of(JSON_ARRAY_COL, Type.array(Type.json())),
             StructField.of(STRING_ARRAY_COL, Type.array(Type.string())),
             StructField.of(TIMESTAMP_ARRAY_COL, Type.array(Type.timestamp()))),
         Arrays.asList(
@@ -243,6 +253,10 @@ public class JdbcResultSetTest {
                 .to((BigDecimal) null)
                 .set(NUMERIC_COL_NOT_NULL)
                 .to(NUMERIC_VALUE)
+                .set(JSON_COL_NULL)
+                .to(Value.json(null))
+                .set(JSON_COL_NOT_NULL)
+                .to(Value.json(JSON_VALUE))
                 .set(BOOL_ARRAY_COL)
                 .toBoolArray(BOOL_ARRAY_VALUE)
                 .set(BYTES_ARRAY_COL)
@@ -255,6 +269,8 @@ public class JdbcResultSetTest {
                 .toInt64Array(INT64_ARRAY_VALUE)
                 .set(NUMERIC_ARRAY_COL)
                 .toNumericArray(NUMERIC_ARRAY_VALUE)
+                .set(JSON_ARRAY_COL)
+                .toJsonArray(JSON_ARRAY_VALUE)
                 .set(STRING_ARRAY_COL)
                 .toStringArray(STRING_ARRAY_VALUE)
                 .set(TIMESTAMP_ARRAY_COL)
@@ -319,6 +335,15 @@ public class JdbcResultSetTest {
     assertEquals(STRING_VALUE, subject.getString(STRING_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertNull(subject.getString(STRING_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetJsonIndex() throws SQLException {
+    assertNotNull(subject.getString(JSON_COLINDEX_NOT_NULL));
+    assertEquals(JSON_VALUE, subject.getString(JSON_COLINDEX_NOT_NULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getString(JSON_COLINDEX_NULL));
     assertTrue(subject.wasNull());
   }
 
@@ -1341,6 +1366,15 @@ public class JdbcResultSetTest {
         subject.getObject(DATE_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertNull(subject.getObject(DATE_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetJsonAsObjectIndex() throws SQLException {
+    assertNotNull(subject.getObject(JSON_COLINDEX_NOT_NULL));
+    assertEquals(JSON_VALUE, subject.getObject(JSON_COLINDEX_NOT_NULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getObject(JSON_COLINDEX_NULL));
     assertTrue(subject.wasNull());
   }
 

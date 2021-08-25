@@ -181,6 +181,15 @@ public class JdbcParameterStoreTest {
     assertTrue(stringReadersEqual((StringReader) params.getParameter(1), new StringReader("test")));
     verifyParameter(params, Value.string("test"));
 
+    String jsonString = "{\"test\": \"value\"}";
+    params.setParameter(1, jsonString, JsonType.VENDOR_TYPE_NUMBER);
+    assertEquals(jsonString, params.getParameter(1));
+    verifyParameter(params, Value.json(jsonString));
+
+    params.setParameter(1, jsonString, JsonType.INSTANCE);
+    assertEquals(jsonString, params.getParameter(1));
+    verifyParameter(params, Value.json(jsonString));
+
     params.setParameter(1, BigDecimal.ONE, Types.DECIMAL);
     verifyParameter(params, Value.numeric(BigDecimal.ONE));
 
@@ -416,7 +425,8 @@ public class JdbcParameterStoreTest {
           Types.LONGVARCHAR,
           Types.NCHAR,
           Types.NVARCHAR,
-          Types.LONGNVARCHAR
+          Types.LONGNVARCHAR,
+          JsonType.VENDOR_TYPE_NUMBER
         }) {
       assertInvalidParameter(params, new Object(), type);
       assertInvalidParameter(params, Boolean.TRUE, type);
@@ -441,7 +451,8 @@ public class JdbcParameterStoreTest {
           Types.LONGVARCHAR,
           Types.NCHAR,
           Types.NVARCHAR,
-          Types.LONGNVARCHAR
+          Types.LONGNVARCHAR,
+          JsonType.VENDOR_TYPE_NUMBER
         }) {
       Reader reader = new StringReader("test");
       reader.close();
@@ -529,6 +540,11 @@ public class JdbcParameterStoreTest {
     params.setParameter(1, UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"), (Integer) null);
     assertEquals(UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"), params.getParameter(1));
     verifyParameter(params, Value.string("83b988cf-1f4e-428a-be3d-cc712621942e"));
+
+    String jsonString = "{\"test\": \"value\"}";
+    params.setParameter(1, Value.json(jsonString), (Integer) null);
+    assertEquals(Value.json(jsonString), params.getParameter(1));
+    verifyParameter(params, Value.json(jsonString));
   }
 
   private boolean stringReadersEqual(StringReader r1, StringReader r2) throws IOException {
@@ -683,6 +699,26 @@ public class JdbcParameterStoreTest {
     params.setParameter(1, JdbcArray.createArray("STRING", null), Types.ARRAY);
     assertEquals(JdbcArray.createArray("STRING", null), params.getParameter(1));
     verifyParameter(params, Value.stringArray(null));
+
+    String jsonString1 = "{\"test\": \"value1\"}";
+    String jsonString2 = "{\"test\": \"value2\"}";
+    params.setParameter(
+        1,
+        JdbcArray.createArray("JSON", new String[] {jsonString1, jsonString2, null}),
+        Types.ARRAY);
+    assertEquals(
+        JdbcArray.createArray("JSON", new String[] {jsonString1, jsonString2, null}),
+        params.getParameter(1));
+    verifyParameter(params, Value.jsonArray(Arrays.asList(jsonString1, jsonString2, null)));
+
+    params.setParameter(1, JdbcArray.createArray("JSON", null), Types.ARRAY);
+    assertEquals(JdbcArray.createArray("JSON", null), params.getParameter(1));
+    verifyParameter(params, Value.jsonArray(null));
+
+    params.setParameter(1, Value.jsonArray(Arrays.asList(jsonString1, jsonString2, null)));
+    assertEquals(
+        Value.jsonArray(Arrays.asList(jsonString1, jsonString2, null)), params.getParameter(1));
+    verifyParameter(params, Value.jsonArray(Arrays.asList(jsonString1, jsonString2, null)));
   }
 
   private void verifyParameter(JdbcParameterStore params, Value value) throws SQLException {
