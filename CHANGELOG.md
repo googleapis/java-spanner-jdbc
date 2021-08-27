@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.3.5...v2.4.0) (2021-08-27)
+
+
+### Features
+
+* support JSON data type ([#447](https://www.github.com/googleapis/java-spanner-jdbc/issues/447)) ([ca1c906](https://www.github.com/googleapis/java-spanner-jdbc/commit/ca1c906e1ed3cad6444068ab9c8465401d6d3074))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-spanner-bom to v6.12.1 ([#577](https://www.github.com/googleapis/java-spanner-jdbc/issues/577)) ([a78b177](https://www.github.com/googleapis/java-spanner-jdbc/commit/a78b177f97c298a5b43fcadbca125e957e9f781a))
+
 ### [2.3.5](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.3.4...v2.3.5) (2021-08-24)
 
 
