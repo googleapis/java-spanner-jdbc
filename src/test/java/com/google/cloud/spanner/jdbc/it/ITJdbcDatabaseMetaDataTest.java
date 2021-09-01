@@ -23,7 +23,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assume.assumeFalse;
 
-import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.sql.Connection;
@@ -40,7 +40,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Integration tests for {@link DatabaseMetaData} implementation for Spanner. */
-@Category(IntegrationTest.class)
+@Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
   private static final String DEFAULT_CATALOG = "";

@@ -20,8 +20,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.Mutation;
+import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.junit.runners.MethodSorters;
 
-@Category(IntegrationTest.class)
+@Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {

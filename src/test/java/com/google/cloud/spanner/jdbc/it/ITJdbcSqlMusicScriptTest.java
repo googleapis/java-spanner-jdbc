@@ -16,7 +16,7 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
@@ -27,7 +27,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-@Category(IntegrationTest.class)
+@Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 public class ITJdbcSqlMusicScriptTest extends ITAbstractJdbcTest {
   private static final String SCRIPT_FILE = "ITSqlMusicScriptTest.sql";

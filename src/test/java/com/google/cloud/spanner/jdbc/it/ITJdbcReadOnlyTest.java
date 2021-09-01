@@ -16,8 +16,8 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.Mutation;
+import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** This test class runs a SQL script for testing a connection in read-only mode. */
-@Category(IntegrationTest.class)
+@Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
   private static final long TEST_ROWS_COUNT = 1000L;

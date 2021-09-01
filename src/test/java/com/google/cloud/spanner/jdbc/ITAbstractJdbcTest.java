@@ -90,7 +90,7 @@ public class ITAbstractJdbcTest {
   }
 
   @BeforeClass
-  public static void setup() throws IOException, InterruptedException, ExecutionException {
+  public static void setup() {
     database = env.getTestHelper().createTestDatabase();
   }
 

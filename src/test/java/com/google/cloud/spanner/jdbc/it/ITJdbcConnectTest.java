@@ -20,7 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
@@ -49,7 +49,7 @@ import org.junit.runners.JUnit4;
  *
  * This class tests all three possibilities.
  */
-@Category(IntegrationTest.class)
+@Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 public class ITJdbcConnectTest extends ITAbstractJdbcTest {
 
