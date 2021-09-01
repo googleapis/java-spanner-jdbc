@@ -27,7 +27,6 @@ import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -35,7 +34,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.ExecutionException;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
