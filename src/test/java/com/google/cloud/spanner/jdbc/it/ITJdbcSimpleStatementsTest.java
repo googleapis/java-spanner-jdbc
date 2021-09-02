@@ -23,7 +23,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
@@ -41,7 +41,7 @@ import org.junit.runners.JUnit4;
 
 /** Test executing simple statements through JDBC. */
 @RunWith(JUnit4.class)
-@Category(IntegrationTest.class)
+@Category(ParallelIntegrationTest.class)
 public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
   @Test
   public void testSelect1() throws SQLException {

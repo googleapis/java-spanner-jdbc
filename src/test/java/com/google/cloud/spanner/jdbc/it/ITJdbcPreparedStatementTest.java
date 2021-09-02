@@ -27,7 +27,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.ByteArray;
-import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JsonType;
@@ -64,7 +64,7 @@ import org.junit.runners.JUnit4;
 import org.junit.runners.MethodSorters;
 
 /** Integration tests for JDBC {@link PreparedStatement}s. */
-@Category(IntegrationTest.class)
+@Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {

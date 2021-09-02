@@ -22,7 +22,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.cloud.spanner.ErrorCode;
-import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
@@ -44,7 +44,7 @@ import org.junit.runners.MethodSorters;
  * performs all possible operations on this test database using only sql scripts. This test uses the
  * JDBC driver for Spanner.
  */
-@Category(IntegrationTest.class)
+@Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {

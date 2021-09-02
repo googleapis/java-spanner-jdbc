@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
-import com.google.cloud.spanner.IntegrationTest;
+import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
@@ -53,7 +53,7 @@ import org.junit.runners.JUnit4;
  *
  * This class tests all three possibilities.
  */
-@Category(IntegrationTest.class)
+@Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
   private String connectionUriSuffix;

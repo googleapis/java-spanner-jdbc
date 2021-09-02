@@ -141,7 +141,7 @@
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-spanner-v1</artifactId>
     </dependency>
-    
+
     <!-- Test dependencies -->
     <dependency>
       <groupId>com.google.cloud</groupId>
@@ -219,18 +219,41 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <systemPropertyVariables>
-            <spanner.testenv.config.class>com.google.cloud.spanner.GceTestEnvConfig</spanner.testenv.config.class>
-            <spanner.testenv.instance>projects/gcloud-devel/instances/spanner-testing</spanner.testenv.instance>
+            <spanner.testenv.config.class>
+              com.google.cloud.spanner.GceTestEnvConfig
+            </spanner.testenv.config.class>
+            <spanner.testenv.instance>
+              projects/gcloud-devel/instances/spanner-testing
+            </spanner.testenv.instance>
           </systemPropertyVariables>
-          <groups>com.google.cloud.spanner.IntegrationTest</groups>
-          <excludedGroups>com.google.cloud.spanner.FlakyTest</excludedGroups>
           <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
         </configuration>
         <executions>
           <execution>
+            <id>default</id>
             <goals>
               <goal>integration-test</goal>
             </goals>
+            <configuration>
+              <groups>com.google.cloud.spanner.IntegrationTest</groups>
+              <excludedGroups>
+                com.google.cloud.spanner.FlakyTest,com.google.cloud.spanner.ParallelIntegrationTest
+              </excludedGroups>
+            </configuration>
+          </execution>
+          <execution>
+            <id>parallel-integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+            <configuration>
+              <groups>com.google.cloud.spanner.ParallelIntegrationTest</groups>
+              <excludedGroups>
+                com.google.cloud.spanner.FlakyTest,com.google.cloud.spanner.IntegrationTest
+              </excludedGroups>
+              <forkCount>8</forkCount>
+              <reuseForks>true</reuseForks>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -318,7 +341,7 @@
       </plugins>
     </pluginManagement>
   </build>
-  
+
   <profiles>
     <profile>
       <id>shade</id>
@@ -361,7 +384,7 @@
       </build>
     </profile>
   </profiles>
-  
+
   <reporting>
     <plugins>
       <plugin>
