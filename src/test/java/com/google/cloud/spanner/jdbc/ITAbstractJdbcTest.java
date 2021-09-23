@@ -18,7 +18,6 @@ package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.GceTestEnvConfig;
-import com.google.cloud.spanner.IntegrationTest;
 import com.google.cloud.spanner.IntegrationTestEnv;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
 import com.google.cloud.spanner.connection.ConnectionOptions;
@@ -38,10 +37,8 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.experimental.categories.Category;
 
 /** Base class for all JDBC integration tests. */
-@Category(IntegrationTest.class)
 public class ITAbstractJdbcTest {
   protected class ITJdbcConnectionProvider
       implements com.google.cloud.spanner.connection.AbstractSqlScriptVerifier
