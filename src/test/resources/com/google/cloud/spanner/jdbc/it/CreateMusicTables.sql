@@ -26,6 +26,11 @@ CREATE TABLE Singers (
 
 CREATE INDEX SingersByFirstLastName ON Singers(FirstName, LastName);
 
+CREATE VIEW SingersView SQL SECURITY INVOKER AS
+SELECT s.SingerId AS SingerId, s.FirstName AS FirstName, s.LastName AS LastName
+FROM Singers s
+ORDER BY s.LastName, s.FirstName;
+
 CREATE TABLE Albums (
   SingerId        INT64 NOT NULL,
   AlbumId         INT64 NOT NULL,
