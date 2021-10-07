@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.AbortedDueToConcurrentModificationException;
 import com.google.cloud.spanner.AbortedException;
 import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.CommitStats;
@@ -323,7 +324,7 @@ public interface CloudSpannerJdbcConnection extends Connection {
 
   /**
    * @see
-   *     com.google.cloud.spanner.connection.Connection#addTransactionRetryListener(TransactionRetryListener)
+   *     com.google.cloud.spanner.connection.Connection#addTransactionRetryListener(com.google.cloud.spanner.connection.TransactionRetryListener)
    * @throws SQLException if the {@link Connection} is closed.
    */
   void addTransactionRetryListener(
@@ -339,7 +340,7 @@ public interface CloudSpannerJdbcConnection extends Connection {
 
   /**
    * @see
-   *     com.google.cloud.spanner.connection.Connection#removeTransactionRetryListener(TransactionRetryListener)
+   *     com.google.cloud.spanner.connection.Connection#removeTransactionRetryListener(com.google.cloud.spanner.connection.TransactionRetryListener)
    * @throws SQLException if the {@link Connection} is closed.
    */
   boolean removeTransactionRetryListener(

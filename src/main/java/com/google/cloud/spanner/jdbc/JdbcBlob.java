@@ -84,7 +84,7 @@ class JdbcBlob implements Blob {
   }
 
   @Override
-  public InputStream getBinaryStream() throws SQLException {
+  public InputStream getBinaryStream() {
     return new ByteArrayInputStream(value);
   }
 
@@ -119,7 +119,7 @@ class JdbcBlob implements Blob {
     int totalSize = 0;
     List<byte[]> totalBytes = new ArrayList<>();
     try (InputStream is = pattern.getBinaryStream()) {
-      int bytesRead = 0;
+      int bytesRead;
       while ((bytesRead = is.read(buffer)) > -1) {
         if (bytesRead == buffer.length) {
           totalBytes.add(buffer);

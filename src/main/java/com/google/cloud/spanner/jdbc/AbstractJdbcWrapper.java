@@ -199,7 +199,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   static long parseLong(String val) throws SQLException {
     Preconditions.checkNotNull(val);
     try {
-      return Long.valueOf(val);
+      return Long.parseLong(val);
     } catch (NumberFormatException e) {
       throw JdbcSqlExceptionFactory.of(
           String.format("%s is not a valid number", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
@@ -233,7 +233,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   static double parseDouble(String val) throws SQLException {
     Preconditions.checkNotNull(val);
     try {
-      return Double.valueOf(val);
+      return Double.parseDouble(val);
     } catch (NumberFormatException e) {
       throw JdbcSqlExceptionFactory.of(
           String.format("%s is not a valid number", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
@@ -354,7 +354,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   }
 
   @Override
-  public boolean isWrapperFor(Class<?> iface) throws SQLException {
+  public boolean isWrapperFor(Class<?> iface) {
     return iface != null && iface.isAssignableFrom(getClass());
   }
 

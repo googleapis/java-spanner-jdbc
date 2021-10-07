@@ -170,7 +170,7 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
 
   @Override
   public void setClientInfo(String name, String value) throws SQLClientInfoException {
-    Properties supported = null;
+    Properties supported;
     try {
       checkClosed();
       supported = JdbcDatabaseMetaData.getDefaultClientInfoProperties();
@@ -255,10 +255,9 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
   void pushWarning(SQLWarning warning) {
     if (lastWarning == null) {
       firstWarning = warning;
-      lastWarning = warning;
     } else {
       lastWarning.setNextWarning(warning);
-      lastWarning = warning;
     }
+    lastWarning = warning;
   }
 }
