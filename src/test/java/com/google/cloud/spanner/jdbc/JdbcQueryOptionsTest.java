@@ -23,22 +23,18 @@ import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.SpannerOptions.SpannerEnvironment;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
+import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.common.base.MoreObjects;
 import com.google.spanner.v1.ExecuteSqlRequest;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import org.junit.Before;
+import javax.annotation.Nonnull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class JdbcQueryOptionsTest extends AbstractMockServerTest {
-  @Before
-  public void setup() throws Exception {
-    stopServer();
-    startStaticServer();
-  }
 
   @Test
   public void testDefaultOptions() throws SQLException {
@@ -202,14 +198,18 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
 
   @Test
   public void testUseOptionsFromEnvironment() throws SQLException {
+    // Make sure that all existing connections are closed, so these do not affect this test.
+    ConnectionOptions.closeSpanner();
     try {
       SpannerOptions.useEnvironment(
           new SpannerEnvironment() {
+            @Nonnull
             @Override
             public String getOptimizerVersion() {
               return "20";
             }
 
+            @Nonnull
             @Override
             public String getOptimizerStatisticsPackage() {
               return "env_package";
