@@ -16,10 +16,10 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
@@ -63,33 +63,33 @@ public class AbstractJdbcResultSetTest {
 
   @Test
   public void testFetchSize() throws SQLException {
-    assertThat(rs.getFetchSize(), is(equalTo(0)));
+    assertEquals(0, rs.getFetchSize());
     for (int size : new int[] {0, 1, 10, 100}) {
       rs.setFetchSize(size);
-      assertThat(rs.getFetchSize(), is(equalTo(size)));
+      assertEquals(size, rs.getFetchSize());
     }
   }
 
   @Test
   public void testGetType() throws SQLException {
-    assertThat(rs.getType(), is(equalTo(ResultSet.TYPE_FORWARD_ONLY)));
+    assertEquals(ResultSet.TYPE_FORWARD_ONLY, rs.getType());
   }
 
   @Test
   public void testGetConcurrency() throws SQLException {
-    assertThat(rs.getConcurrency(), is(equalTo(ResultSet.CONCUR_READ_ONLY)));
+    assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
   }
 
   @Test
   public void testRowInsertedUpdatedDeleted() throws SQLException {
-    assertThat(rs.rowInserted(), is(false));
-    assertThat(rs.rowUpdated(), is(false));
-    assertThat(rs.rowDeleted(), is(false));
+    assertFalse(rs.rowInserted());
+    assertFalse(rs.rowUpdated());
+    assertFalse(rs.rowDeleted());
   }
 
   @Test
   public void testGetFetchDirection() throws SQLException {
-    assertThat(rs.getFetchDirection(), is(equalTo(ResultSet.FETCH_FORWARD)));
+    assertEquals(ResultSet.FETCH_FORWARD, rs.getFetchDirection());
   }
 
   @Test
@@ -99,786 +99,216 @@ public class AbstractJdbcResultSetTest {
         new int[] {ResultSet.FETCH_FORWARD, ResultSet.FETCH_REVERSE, ResultSet.FETCH_UNKNOWN}) {
       try {
         rs.setFetchDirection(direction);
-        assertThat(supported.contains(direction), is(true));
+        assertTrue(supported.contains(direction));
       } catch (JdbcSqlExceptionImpl e) {
-        assertThat(supported.contains(direction), is(false));
-        assertThat(e.getCode(), is(equalTo(Code.INVALID_ARGUMENT)));
+        assertFalse(supported.contains(direction));
+        assertEquals(Code.INVALID_ARGUMENT, e.getCode());
       }
     }
   }
 
-  private static interface SqlRunnable {
-    void run() throws SQLException;
-  }
-
   @Test
-  public void testUnsupportedFeatures() throws SQLException {
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.getCursorName();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.isLast();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.beforeFirst();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.afterLast();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.first();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.last();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.absolute(1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.relative(1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.previous();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNull(1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNull("test");
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBoolean(1, Boolean.TRUE);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBoolean("test", Boolean.TRUE);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateByte(1, (byte) 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateByte("test", (byte) 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateShort(1, (short) 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateShort("test", (short) 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateInt(1, 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateInt("test", 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateLong(1, 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateLong("test", 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateFloat(1, 1F);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateFloat("test", 1F);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateDouble(1, 1D);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateDouble("test", 1D);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBigDecimal(1, BigDecimal.ONE);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBigDecimal("test", BigDecimal.ONE);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateString(1, "value");
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateString("test", "value");
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBytes(1, "value".getBytes());
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBytes("test", "value".getBytes());
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateDate(1, new Date(System.currentTimeMillis()));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateDate("test", new Date(System.currentTimeMillis()));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateTimestamp(1, new Timestamp(System.currentTimeMillis()));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateTimestamp("test", new Timestamp(System.currentTimeMillis()));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateTime(1, new Time(System.currentTimeMillis()));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateTime("test", new Time(System.currentTimeMillis()));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateAsciiStream(1, new ByteArrayInputStream("value".getBytes()));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateAsciiStream("test", new ByteArrayInputStream("value".getBytes()));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateAsciiStream(1, new ByteArrayInputStream("value".getBytes()), 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateAsciiStream("test", new ByteArrayInputStream("value".getBytes()), 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateAsciiStream(1, new ByteArrayInputStream("value".getBytes()), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateAsciiStream("test", new ByteArrayInputStream("value".getBytes()), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBinaryStream(1, new ByteArrayInputStream("value".getBytes()));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBinaryStream("test", new ByteArrayInputStream("value".getBytes()));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBinaryStream(1, new ByteArrayInputStream("value".getBytes()), 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBinaryStream("test", new ByteArrayInputStream("value".getBytes()), 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBinaryStream(1, new ByteArrayInputStream("value".getBytes()), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBinaryStream("test", new ByteArrayInputStream("value".getBytes()), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateCharacterStream(1, new StringReader("value"));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateCharacterStream("test", new StringReader("value"));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateCharacterStream(1, new StringReader("value"), 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateCharacterStream("test", new StringReader("value"), 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateCharacterStream(1, new StringReader("value"), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateCharacterStream("test", new StringReader("value"), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateObject(1, new Object());
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateObject(1, new Object(), 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateObject(1, new Object(), mock(SQLType.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateObject(1, new Object(), mock(SQLType.class), 0);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateObject("test", new Object());
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateObject("test", new Object(), 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateObject("test", new Object(), mock(SQLType.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateObject("test", new Object(), mock(SQLType.class), 1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.insertRow();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateRow();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.deleteRow();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.refreshRow();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.cancelRowUpdates();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.moveToInsertRow();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.moveToCurrentRow();
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.getRef(1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.getRef("test");
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateRef(1, mock(Ref.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateRef("test", mock(Ref.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBlob(1, mock(Blob.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBlob("test", mock(Blob.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBlob(1, mock(InputStream.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBlob("test", mock(InputStream.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBlob(1, mock(InputStream.class), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateBlob("test", mock(InputStream.class), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateClob(1, mock(Clob.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateClob("test", mock(Clob.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateClob(1, mock(Reader.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateClob("test", mock(Reader.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateClob(1, mock(Reader.class), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateClob("test", mock(Reader.class), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateArray(1, mock(Array.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateArray("test", mock(Array.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.getRowId(1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.getRowId("test");
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateRowId(1, mock(RowId.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateRowId("test", mock(RowId.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNString(1, "value");
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNString("test", "value");
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNClob(1, mock(NClob.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNClob("test", mock(NClob.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNClob(1, mock(Reader.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNClob("test", mock(Reader.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNClob(1, mock(Reader.class), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNClob("test", mock(Reader.class), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.getSQLXML(1);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.getSQLXML("test");
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateSQLXML(1, mock(SQLXML.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateSQLXML("test", mock(SQLXML.class));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNCharacterStream(1, new StringReader("value"));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNCharacterStream("test", new StringReader("value"));
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNCharacterStream(1, new StringReader("value"), 1L);
-          }
-        });
-    assertUnsupported(
-        new SqlRunnable() {
-          @Override
-          public void run() throws SQLException {
-            rs.updateNCharacterStream("test", new StringReader("value"), 1L);
-          }
-        });
-  }
-
-  private <T> void assertUnsupported(SqlRunnable runnable) throws SQLException {
-    try {
-      runnable.run();
-      fail("missing expected SQLFeatureNotSupportedException");
-    } catch (SQLFeatureNotSupportedException e) {
-      // ignore, this is the expected exception.
-    } catch (Exception e) {
-      throw JdbcSqlExceptionFactory.of("unexpected exception", Code.INTERNAL, e);
-    }
+  public void testUnsupportedFeatures() {
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.getCursorName());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.isLast());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.beforeFirst());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.afterLast());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.first());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.last());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.absolute(1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.relative(1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.previous());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNull(1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNull("test"));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBoolean(1, Boolean.TRUE));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateBoolean("test", Boolean.TRUE));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateByte(1, (byte) 1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateByte("test", (byte) 1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateShort(1, (short) 1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateShort("test", (short) 1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateInt(1, 1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateInt("test", 1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateLong(1, 1L));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateLong("test", 1L));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateFloat(1, 1F));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateFloat("test", 1F));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateDouble(1, 1D));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateDouble("test", 1D));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateBigDecimal(1, BigDecimal.ONE));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateBigDecimal("test", BigDecimal.ONE));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateString(1, "value"));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateString("test", "value"));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateBytes(1, "value".getBytes()));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateBytes("test", "value".getBytes()));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateDate(1, new Date(System.currentTimeMillis())));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateDate("test", new Date(System.currentTimeMillis())));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateTimestamp(1, new Timestamp(System.currentTimeMillis())));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateTimestamp("test", new Timestamp(System.currentTimeMillis())));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateTime(1, new Time(System.currentTimeMillis())));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateTime("test", new Time(System.currentTimeMillis())));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateAsciiStream(1, new ByteArrayInputStream("value".getBytes())));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateAsciiStream("test", new ByteArrayInputStream("value".getBytes())));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateAsciiStream(1, new ByteArrayInputStream("value".getBytes()), 1));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateAsciiStream("test", new ByteArrayInputStream("value".getBytes()), 1));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateAsciiStream(1, new ByteArrayInputStream("value".getBytes()), 1L));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateAsciiStream("test", new ByteArrayInputStream("value".getBytes()), 1L));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateBinaryStream(1, new ByteArrayInputStream("value".getBytes())));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateBinaryStream("test", new ByteArrayInputStream("value".getBytes())));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateBinaryStream(1, new ByteArrayInputStream("value".getBytes()), 1));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateBinaryStream("test", new ByteArrayInputStream("value".getBytes()), 1));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateBinaryStream(1, new ByteArrayInputStream("value".getBytes()), 1L));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateBinaryStream("test", new ByteArrayInputStream("value".getBytes()), 1L));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateCharacterStream(1, new StringReader("value")));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateCharacterStream("test", new StringReader("value")));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateCharacterStream(1, new StringReader("value"), 1));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateCharacterStream("test", new StringReader("value"), 1));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateCharacterStream(1, new StringReader("value"), 1L));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateCharacterStream("test", new StringReader("value"), 1L));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateObject(1, new Object()));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateObject(1, new Object(), 1));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateObject(1, new Object(), mock(SQLType.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateObject(1, new Object(), mock(SQLType.class), 0));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateObject("test", new Object()));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateObject("test", new Object(), 1));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateObject("test", new Object(), mock(SQLType.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateObject("test", new Object(), mock(SQLType.class), 1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.insertRow());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateRow());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.deleteRow());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.refreshRow());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.cancelRowUpdates());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.moveToInsertRow());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.moveToCurrentRow());
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.getRef(1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.getRef("test"));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateRef(1, mock(Ref.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateRef("test", mock(Ref.class)));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBlob(1, mock(Blob.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateBlob("test", mock(Blob.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateBlob(1, mock(InputStream.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateBlob("test", mock(InputStream.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateBlob(1, mock(InputStream.class), 1L));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateBlob("test", mock(InputStream.class), 1L));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateClob(1, mock(Clob.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateClob("test", mock(Clob.class)));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateClob(1, mock(Reader.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateClob("test", mock(Reader.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateClob(1, mock(Reader.class), 1L));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateClob("test", mock(Reader.class), 1L));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateArray(1, mock(Array.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateArray("test", mock(Array.class)));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.getRowId(1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.getRowId("test"));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateRowId(1, mock(RowId.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateRowId("test", mock(RowId.class)));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNString(1, "value"));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNString("test", "value"));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNClob(1, mock(NClob.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateNClob("test", mock(NClob.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateNClob(1, mock(Reader.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateNClob("test", mock(Reader.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateNClob(1, mock(Reader.class), 1L));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateNClob("test", mock(Reader.class), 1L));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.getSQLXML(1));
+    assertThrows(SQLFeatureNotSupportedException.class, () -> rs.getSQLXML("test"));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateSQLXML(1, mock(SQLXML.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class, () -> rs.updateSQLXML("test", mock(SQLXML.class)));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateNCharacterStream(1, new StringReader("value")));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateNCharacterStream("test", new StringReader("value")));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateNCharacterStream(1, new StringReader("value"), 1L));
+    assertThrows(
+        SQLFeatureNotSupportedException.class,
+        () -> rs.updateNCharacterStream("test", new StringReader("value"), 1L));
   }
 }
