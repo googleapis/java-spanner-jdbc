@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -42,7 +43,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -99,7 +99,7 @@ public class JdbcStatementTest {
             SpannerExceptionFactory.newSpannerException(
                 ErrorCode.INVALID_ARGUMENT, "not an update"));
 
-    when(spanner.executeBatchUpdate(Matchers.anyListOf(com.google.cloud.spanner.Statement.class)))
+    when(spanner.executeBatchUpdate(anyList()))
         .thenAnswer(
             new Answer<long[]>() {
               @SuppressWarnings("unchecked")

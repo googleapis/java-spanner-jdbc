@@ -21,6 +21,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.ParallelIntegrationTest;
@@ -802,6 +806,19 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
   }
 
   @Test
+  public void testGetViews() throws SQLException {
+    try (Connection connection = createConnection()) {
+      try (ResultSet rs = connection.getMetaData().getTables("", "", null, new String[] {"VIEW"})) {
+        assertTrue(rs.next());
+        assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));
+        assertEquals(DEFAULT_CATALOG, rs.getString("TABLE_CAT"));
+        assertEquals("SingersView", rs.getString("TABLE_NAME"));
+        assertFalse(rs.next());
+      }
+    }
+  }
+
+  @Test
   public void testGetSchemas() throws SQLException {
     try (Connection connection = createConnection()) {
       try (ResultSet rs = connection.getMetaData().getSchemas()) {
@@ -820,9 +837,15 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   private static final class Table {
     private final String name;
+    private final String type;
 
     private Table(String name) {
+      this(name, "TABLE");
+    }
+
+    private Table(String name, String type) {
       this.name = name;
+      this.type = type;
     }
   }
 
@@ -831,6 +854,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new Table("Albums"),
           new Table("Concerts"),
           new Table("Singers"),
+          new Table("SingersView", "VIEW"),
           new Table("Songs"),
           new Table("TableWithAllColumnTypes"),
           new Table("TableWithRef"));
@@ -841,17 +865,17 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
       try (ResultSet rs =
           connection.getMetaData().getTables(DEFAULT_CATALOG, DEFAULT_SCHEMA, null, null)) {
         for (Table table : EXPECTED_TABLES) {
-          assertThat(rs.next(), is(true));
-          assertThat(rs.getString("TABLE_CAT"), is(equalTo(DEFAULT_CATALOG)));
-          assertThat(rs.getString("TABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
-          assertThat(rs.getString("TABLE_NAME"), is(equalTo(table.name)));
-          assertThat(rs.getString("TABLE_TYPE"), is(equalTo("TABLE")));
-          assertThat(rs.getString("REMARKS"), is(nullValue()));
-          assertThat(rs.getString("TYPE_CAT"), is(nullValue()));
-          assertThat(rs.getString("TYPE_SCHEM"), is(nullValue()));
-          assertThat(rs.getString("TYPE_NAME"), is(nullValue()));
-          assertThat(rs.getString("SELF_REFERENCING_COL_NAME"), is(nullValue()));
-          assertThat(rs.getString("REF_GENERATION"), is(nullValue()));
+          assertTrue(rs.next());
+          assertEquals(DEFAULT_CATALOG, rs.getString("TABLE_CAT"));
+          assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));
+          assertEquals(table.name, rs.getString("TABLE_NAME"));
+          assertEquals(table.type, rs.getString("TABLE_TYPE"));
+          assertNull(rs.getString("REMARKS"));
+          assertNull(rs.getString("TYPE_CAT"));
+          assertNull(rs.getString("TYPE_SCHEM"));
+          assertNull(rs.getString("TYPE_NAME"));
+          assertNull(rs.getString("SELF_REFERENCING_COL_NAME"));
+          assertNull(rs.getString("REF_GENERATION"));
         }
         assertThat(rs.next(), is(false));
       }
