@@ -67,12 +67,7 @@ public class AbstractJdbcWrapperTest {
     assertThat(unwrapSucceeds(subject, getClass())).isFalse();
   }
 
-  private interface CheckedCastChecker<V> {
-    boolean cast(V val);
-  }
-
-  private static final class CheckedCastToByteChecker implements CheckedCastChecker<Long> {
-    @Override
+  private static final class CheckedCastToByteChecker {
     public boolean cast(Long val) {
       try {
         AbstractJdbcWrapper.checkedCastToByte(val);
@@ -97,8 +92,7 @@ public class AbstractJdbcWrapperTest {
     assertThat(checker.cast(Long.MIN_VALUE)).isFalse();
   }
 
-  private static final class CheckedCastToShortChecker implements CheckedCastChecker<Long> {
-    @Override
+  private static final class CheckedCastToShortChecker {
     public boolean cast(Long val) {
       try {
         AbstractJdbcWrapper.checkedCastToShort(val);
@@ -123,8 +117,7 @@ public class AbstractJdbcWrapperTest {
     assertThat(checker.cast(Long.MIN_VALUE)).isFalse();
   }
 
-  private static final class CheckedCastToIntChecker implements CheckedCastChecker<Long> {
-    @Override
+  private static final class CheckedCastToIntChecker {
     public boolean cast(Long val) {
       try {
         AbstractJdbcWrapper.checkedCastToInt(val);
@@ -149,8 +142,7 @@ public class AbstractJdbcWrapperTest {
     assertThat(checker.cast(Long.MIN_VALUE)).isFalse();
   }
 
-  private static final class CheckedCastToFloatChecker implements CheckedCastChecker<Double> {
-    @Override
+  private static final class CheckedCastToFloatChecker {
     public boolean cast(Double val) {
       try {
         AbstractJdbcWrapper.checkedCastToFloat(val);
