@@ -47,7 +47,6 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLWarning;
 import java.sql.Savepoint;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -62,7 +61,7 @@ public class JdbcConnectionTest {
   private static final com.google.cloud.spanner.ResultSet SELECT1_RESULTSET =
       ResultSets.forRows(
           Type.struct(StructField.of("", Type.int64())),
-          Arrays.asList(Struct.newBuilder().set("").to(1L).build()));
+          Collections.singletonList(Struct.newBuilder().set("").to(1L).build()));
 
   private JdbcConnection createConnection(ConnectionOptions options) throws SQLException {
     com.google.cloud.spanner.connection.Connection spannerConnection =

@@ -614,7 +614,8 @@ public class JdbcParameterStoreTest {
     assertEquals(JdbcArray.createArray("DATE", new Date[] {sqlDate}), params.getParameter(1));
     verifyParameter(
         params,
-        Value.dateArray(Arrays.asList(com.google.cloud.Date.fromYearMonthDay(2018, 12, 14))));
+        Value.dateArray(
+            Collections.singletonList(com.google.cloud.Date.fromYearMonthDay(2018, 12, 14))));
 
     params.setParameter(1, JdbcArray.createArray("DATE", new Date[] {sqlDate, null}), Types.ARRAY);
     assertEquals(JdbcArray.createArray("DATE", new Date[] {sqlDate, null}), params.getParameter(1));
@@ -632,7 +633,8 @@ public class JdbcParameterStoreTest {
     assertEquals(
         JdbcArray.createArray("TIMESTAMP", new Timestamp[] {sqlTimestamp}), params.getParameter(1));
     verifyParameter(
-        params, Value.timestampArray(Arrays.asList(com.google.cloud.Timestamp.of(sqlTimestamp))));
+        params, Value.timestampArray(
+            Collections.singletonList(com.google.cloud.Timestamp.of(sqlTimestamp))));
 
     params.setParameter(
         1, JdbcArray.createArray("TIMESTAMP", new Timestamp[] {sqlTimestamp, null}), Types.ARRAY);

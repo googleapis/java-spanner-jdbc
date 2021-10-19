@@ -771,7 +771,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(StructField.of("TABLE_CAT", Type.string())),
-            Arrays.asList(Struct.newBuilder().set("TABLE_CAT").to("").build())));
+            Collections.singletonList(Struct.newBuilder().set("TABLE_CAT").to("").build())));
   }
 
   @Override

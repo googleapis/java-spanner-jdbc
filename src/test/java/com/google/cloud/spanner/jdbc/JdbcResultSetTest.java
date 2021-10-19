@@ -199,7 +199,7 @@ public class JdbcResultSetTest {
             StructField.of(JSON_ARRAY_COL, Type.array(Type.json())),
             StructField.of(STRING_ARRAY_COL, Type.array(Type.string())),
             StructField.of(TIMESTAMP_ARRAY_COL, Type.array(Type.timestamp()))),
-        Arrays.asList(
+        Collections.singletonList(
             Struct.newBuilder()
                 .set(STRING_COL_NULL)
                 .to((String) null)

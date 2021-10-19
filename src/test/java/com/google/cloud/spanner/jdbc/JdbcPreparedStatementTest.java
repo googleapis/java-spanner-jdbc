@@ -49,7 +49,6 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.TimeZone;
@@ -331,7 +330,7 @@ public class JdbcPreparedStatementTest {
                 StructField.of("ID", Type.int64()),
                 StructField.of("NAME", Type.string()),
                 StructField.of("AMOUNT", Type.float64())),
-            Arrays.asList(
+            Collections.singletonList(
                 Struct.newBuilder()
                     .set("ID")
                     .to(1L)
