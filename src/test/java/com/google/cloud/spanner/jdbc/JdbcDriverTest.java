@@ -24,7 +24,6 @@ import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptions.ConnectionProperty;
 import com.google.cloud.spanner.connection.SpannerPool;
-import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
@@ -148,21 +147,11 @@ public class JdbcDriverTest {
     Collection<String> validConnectionPropertyNames =
         Collections2.transform(
             ConnectionOptions.VALID_PROPERTIES,
-            new Function<ConnectionProperty, String>() {
-              @Override
-              public String apply(ConnectionProperty input) {
-                return input.getName();
-              }
-            });
+            ConnectionProperty::getName);
     Collection<String> driverPropertyNames =
         Collections2.transform(
             ImmutableList.copyOf(props),
-            new Function<DriverPropertyInfo, String>() {
-              @Override
-              public String apply(DriverPropertyInfo input) {
-                return input.name;
-              }
-            });
+            input -> input.name);
     assertThat(driverPropertyNames).containsExactlyElementsIn(validConnectionPropertyNames);
   }
 

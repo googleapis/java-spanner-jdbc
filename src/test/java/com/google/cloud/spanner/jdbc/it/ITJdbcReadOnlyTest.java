@@ -108,25 +108,19 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
           connection.createStatement().executeQuery("SELECT * FROM NUMBERS");
       ExecutorService exec = Executors.newFixedThreadPool(2);
       exec.submit(
-          new Runnable() {
-            @Override
-            public void run() {
-              try {
-                while (rs1.next()) {}
-              } catch (SQLException e) {
-                throw new RuntimeException(e);
-              }
+          () -> {
+            try {
+              while (rs1.next()) {}
+            } catch (SQLException e) {
+              throw new RuntimeException(e);
             }
           });
       exec.submit(
-          new Runnable() {
-            @Override
-            public void run() {
-              try {
-                while (rs2.next()) {}
-              } catch (SQLException e) {
-                throw new RuntimeException(e);
-              }
+          () -> {
+            try {
+              while (rs2.next()) {}
+            } catch (SQLException e) {
+              throw new RuntimeException(e);
             }
           });
       exec.shutdown();

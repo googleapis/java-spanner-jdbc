@@ -43,7 +43,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 @RunWith(JUnit4.class)
@@ -53,6 +52,7 @@ public class JdbcStatementTest {
   private static final String LARGE_UPDATE = "UPDATE FOO SET BAR=1 WHERE 1=1";
   private static final String DDL = "CREATE INDEX FOO ON BAR(ID)";
 
+  @SuppressWarnings("unchecked")
   private JdbcStatement createStatement() {
     Connection spanner = mock(Connection.class);
 
@@ -101,23 +101,19 @@ public class JdbcStatementTest {
 
     when(spanner.executeBatchUpdate(anyList()))
         .thenAnswer(
-            new Answer<long[]>() {
-              @SuppressWarnings("unchecked")
-              @Override
-              public long[] answer(InvocationOnMock invocation) {
-                List<com.google.cloud.spanner.Statement> statements =
-                    (List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0];
-                if (statements.isEmpty()
-                    || StatementParser.INSTANCE.isDdlStatement(statements.get(0).getSql())) {
-                  return new long[0];
-                }
-                long[] res =
-                    new long
-                        [((List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0])
-                            .size()];
-                Arrays.fill(res, 1L);
-                return res;
+            (Answer<long[]>) invocation -> {
+              List<com.google.cloud.spanner.Statement> statements =
+                  (List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0];
+              if (statements.isEmpty()
+                  || StatementParser.INSTANCE.isDdlStatement(statements.get(0).getSql())) {
+                return new long[0];
               }
+              long[] res =
+                  new long
+                      [((List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0])
+                          .size()];
+              Arrays.fill(res, 1L);
+              return res;
             });
 
     JdbcConnection connection = mock(JdbcConnection.class);

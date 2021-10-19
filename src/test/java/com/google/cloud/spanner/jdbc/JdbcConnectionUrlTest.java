@@ -17,14 +17,12 @@
 package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
-import com.google.common.base.Predicate;
-import com.google.protobuf.AbstractMessage;
 import com.google.spanner.v1.BatchCreateSessionsRequest;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -54,13 +52,8 @@ public class JdbcConnectionUrlTest {
     public void testMinSessions() throws InterruptedException, TimeoutException, SQLException {
       try (Connection connection = createJdbcConnection()) {
         mockSpanner.waitForRequestsToContain(
-            new Predicate<AbstractMessage>() {
-              @Override
-              public boolean apply(AbstractMessage input) {
-                return input instanceof BatchCreateSessionsRequest
-                    && ((BatchCreateSessionsRequest) input).getSessionCount() == 1;
-              }
-            },
+            input -> input instanceof BatchCreateSessionsRequest
+                && ((BatchCreateSessionsRequest) input).getSessionCount() == 1,
             5000L);
       }
     }
@@ -88,25 +81,19 @@ public class JdbcConnectionUrlTest {
         final CountDownLatch latch = new CountDownLatch(1);
         Future<Void> fut1 =
             executor1.submit(
-                new Callable<Void>() {
-                  @Override
-                  public Void call() throws SQLException, InterruptedException {
-                    latch.await(5L, TimeUnit.SECONDS);
-                    connection1.createStatement().executeUpdate(INSERT_STATEMENT.getSql());
-                    connection1.commit();
-                    return null;
-                  }
+                () -> {
+                  assertTrue(latch.await(5L, TimeUnit.SECONDS));
+                  connection1.createStatement().executeUpdate(INSERT_STATEMENT.getSql());
+                  connection1.commit();
+                  return null;
                 });
         Future<Void> fut2 =
             executor2.submit(
-                new Callable<Void>() {
-                  @Override
-                  public Void call() throws SQLException {
-                    latch.countDown();
-                    connection2.createStatement().executeUpdate(INSERT_STATEMENT.getSql());
-                    connection2.commit();
-                    return null;
-                  }
+                () -> {
+                  latch.countDown();
+                  connection2.createStatement().executeUpdate(INSERT_STATEMENT.getSql());
+                  connection2.commit();
+                  return null;
                 });
         // Wait until both finishes.
         fut1.get(5L, TimeUnit.SECONDS);
