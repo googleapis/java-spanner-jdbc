@@ -34,7 +34,7 @@ public interface TransactionRetryListener {
     /** The retry was aborted by Spanner and another retry attempt will be started. */
     RETRY_ABORTED_AND_RESTARTING,
     /**
-     * The retry was aborted by the {@link Connection} because of a concurrent modification. The
+     * The retry was aborted by the {@link java.sql.Connection} because of a concurrent modification. The
      * transaction cannot continue and will throw an {@link
      * AbortedDueToConcurrentModificationException}.
      */

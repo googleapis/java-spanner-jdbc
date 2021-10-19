@@ -35,7 +35,7 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
   private Boolean readonly;
   private Boolean retryAbortsInternally;
 
-  /** Make sure the JDBC driver class is loaded. */
+  // Make sure the JDBC driver class is loaded.
   static {
     try {
       Class.forName("com.google.cloud.spanner.jdbc.JdbcDriver");
