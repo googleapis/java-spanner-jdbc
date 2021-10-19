@@ -110,7 +110,7 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
   }
 
   @Override
-  public boolean isClosed() throws SQLException {
+  public boolean isClosed() {
     return false;
   }
 

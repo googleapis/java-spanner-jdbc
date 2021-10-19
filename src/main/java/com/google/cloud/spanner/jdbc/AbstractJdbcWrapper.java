@@ -333,7 +333,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   }
 
   /** Should return true if this object has been closed */
-  public abstract boolean isClosed() throws SQLException;
+  public abstract boolean isClosed();
 
   /** Throws a {@link SQLException} if this object is closed */
   void checkClosed() throws SQLException {

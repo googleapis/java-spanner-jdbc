@@ -120,7 +120,7 @@ abstract class AbstractJdbcResultSet extends AbstractJdbcWrapper implements Resu
   }
 
   @Override
-  public int getType() throws SQLException {
+  public int getType() {
     return TYPE_FORWARD_ONLY;
   }
 

@@ -235,7 +235,7 @@ class JdbcArray implements Array {
   }
 
   @Override
-  public void free() throws SQLException {
+  public void free() {
     this.freed = true;
     this.data = null;
   }

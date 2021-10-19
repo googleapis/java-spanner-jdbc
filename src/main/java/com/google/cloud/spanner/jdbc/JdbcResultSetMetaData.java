@@ -46,7 +46,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   }
 
   @Override
-  public int getColumnCount() throws SQLException {
+  public int getColumnCount() {
     return spannerResultSet.getColumnCount();
   }
 
@@ -117,7 +117,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   }
 
   @Override
-  public String getColumnName(int column) throws SQLException {
+  public String getColumnName(int column) {
     return spannerResultSet.getType().getStructFields().get(column - 1).getName();
   }
 
@@ -174,7 +174,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   }
 
   @Override
-  public String getColumnTypeName(int column) throws SQLException {
+  public String getColumnTypeName(int column) {
     return spannerResultSet.getColumnType(column - 1).getCode().name();
   }
 
@@ -201,14 +201,10 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   @Override
   public String toString() {
     StringBuilder res = new StringBuilder();
-    try {
-      for (int col = 1; col <= getColumnCount(); col++) {
-        res.append("Col ").append(col).append(": ");
-        res.append(getColumnName(col)).append(" ").append(getColumnTypeName(col));
-        res.append("\n");
-      }
-    } catch (SQLException e) {
-      return "An error occurred while generating string: " + e.getMessage();
+    for (int col = 1; col <= getColumnCount(); col++) {
+      res.append("Col ").append(col).append(": ");
+      res.append(getColumnName(col)).append(" ").append(getColumnTypeName(col));
+      res.append("\n");
     }
     return res.toString();
   }

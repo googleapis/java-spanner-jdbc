@@ -71,7 +71,7 @@ public class AbstractJdbcResultSetTest {
   }
 
   @Test
-  public void testGetType() throws SQLException {
+  public void testGetType() {
     assertEquals(ResultSet.TYPE_FORWARD_ONLY, rs.getType());
   }
 

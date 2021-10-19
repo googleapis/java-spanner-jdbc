@@ -318,12 +318,12 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   @Override
-  public void close() throws SQLException {
+  public void close() {
     this.closed = true;
   }
 
   @Override
-  public boolean isClosed() throws SQLException {
+  public boolean isClosed() {
     return closed;
   }
 

@@ -254,7 +254,7 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetColumnCount() throws SQLException {
+  public void testGetColumnCount() {
     assertEquals(TEST_COLUMNS.size(), subject.getColumnCount());
   }
 
@@ -340,7 +340,7 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetColumnName() throws SQLException {
+  public void testGetColumnName() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(TEST_COLUMNS.get(i - 1).name, subject.getColumnName(i));
     }
@@ -413,7 +413,7 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void getColumnTypeName() throws SQLException {
+  public void getColumnTypeName() {
     int index = 1;
     for (TestColumn col : TEST_COLUMNS) {
       assertEquals(col.type.getCode().name(), subject.getColumnTypeName(index));

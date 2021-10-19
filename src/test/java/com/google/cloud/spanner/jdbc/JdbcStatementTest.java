@@ -449,7 +449,7 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testConvertUpdateCountsToSuccessNoInfo() throws SQLException {
+  public void testConvertUpdateCountsToSuccessNoInfo() {
     try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
       long[] updateCounts = new long[3];
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 2L, 3L}, updateCounts);

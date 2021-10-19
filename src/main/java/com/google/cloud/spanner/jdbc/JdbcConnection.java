@@ -221,7 +221,7 @@ class JdbcConnection extends AbstractJdbcConnection {
   }
 
   @Override
-  public boolean isClosed() throws SQLException {
+  public boolean isClosed() {
     return getSpannerConnection().isClosed();
   }
 

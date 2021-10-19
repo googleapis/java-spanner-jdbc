@@ -887,7 +887,7 @@ class JdbcParameterStore {
    * Sets a null value with a specific SQL type. If the sqlType is null, the value will be set as a
    * String.
    */
-  private Builder setNullValue(ValueBinder<Builder> binder, Integer sqlType) throws SQLException {
+  private Builder setNullValue(ValueBinder<Builder> binder, Integer sqlType) {
     if (sqlType == null) {
       return binder.to((String) null);
     }

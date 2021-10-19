@@ -63,7 +63,7 @@ class JdbcClob implements NClob {
   }
 
   @Override
-  public long length() throws SQLException {
+  public long length() {
     return value.length();
   }
 
@@ -184,7 +184,7 @@ class JdbcClob implements NClob {
   }
 
   @Override
-  public void free() throws SQLException {
+  public void free() {
     value = new StringBuilder();
   }
 

@@ -1070,7 +1070,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testIsClosed() throws SQLException {
+  public void testIsClosed() {
     try (JdbcResultSet rs = JdbcResultSet.of(mock(Statement.class), getMockResultSet())) {
       assertFalse(rs.isClosed());
       rs.close();

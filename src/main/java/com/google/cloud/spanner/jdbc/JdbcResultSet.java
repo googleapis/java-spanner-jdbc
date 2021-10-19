@@ -99,7 +99,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   @Override
-  public void close() throws SQLException {
+  public void close() {
     spanner.close();
     this.closed = true;
   }
@@ -864,7 +864,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   @Override
-  public boolean isClosed() throws SQLException {
+  public boolean isClosed() {
     return closed;
   }
 
