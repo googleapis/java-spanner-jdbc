@@ -40,6 +40,7 @@ import com.google.rpc.Code;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -57,7 +58,7 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class JdbcTypeConverterTest {
-  private static final Charset UTF8 = Charset.forName("UTF8");
+  private static final Charset UTF8 = StandardCharsets.UTF_8;
 
   @Test
   public void testConvertArray() throws SQLException {

@@ -25,6 +25,7 @@ import com.google.cloud.spanner.Value;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.SQLException;
 import java.sql.Time;
@@ -41,7 +42,7 @@ import org.threeten.bp.format.DateTimeFormatter;
 /** Convenience class for converting values between Java, JDBC and Cloud Spanner. */
 class JdbcTypeConverter {
   private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-  private static final Charset UTF8 = Charset.forName("UTF8");
+  private static final Charset UTF8 = StandardCharsets.UTF_8;
 
   /**
    * Converts the given value from the Google {@link Type} to the Java {@link Class} type. The input
