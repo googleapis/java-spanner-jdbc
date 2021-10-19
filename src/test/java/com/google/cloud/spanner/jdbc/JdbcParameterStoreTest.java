@@ -633,7 +633,8 @@ public class JdbcParameterStoreTest {
     assertEquals(
         JdbcArray.createArray("TIMESTAMP", new Timestamp[] {sqlTimestamp}), params.getParameter(1));
     verifyParameter(
-        params, Value.timestampArray(
+        params,
+        Value.timestampArray(
             Collections.singletonList(com.google.cloud.Timestamp.of(sqlTimestamp))));
 
     params.setParameter(

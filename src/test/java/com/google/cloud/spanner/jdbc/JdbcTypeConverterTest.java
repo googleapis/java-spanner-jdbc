@@ -95,10 +95,8 @@ public class JdbcTypeConverterTest {
     Boolean[] testValues = new Boolean[] {Boolean.TRUE, Boolean.FALSE};
     for (Boolean b : testValues) {
       assertThat(convert(b, Type.bool(), Boolean.class)).isEqualTo(b);
-      assertThat(convert(b, Type.bool(), Byte.class))
-          .isEqualTo(b ? (byte) 1 : (byte) 0);
-      assertThat(convert(b, Type.bool(), Short.class))
-          .isEqualTo(b ? (short) 1 : (short) 0);
+      assertThat(convert(b, Type.bool(), Byte.class)).isEqualTo(b ? (byte) 1 : (byte) 0);
+      assertThat(convert(b, Type.bool(), Short.class)).isEqualTo(b ? (short) 1 : (short) 0);
       assertThat(convert(b, Type.bool(), Integer.class)).isEqualTo(b ? 1 : 0);
       assertThat(convert(b, Type.bool(), Long.class)).isEqualTo(b ? 1L : 0L);
       assertThat(convert(b, Type.bool(), Float.class)).isEqualTo(b ? 1F : 0F);
@@ -239,18 +237,18 @@ public class JdbcTypeConverterTest {
           1L,
           Long.MIN_VALUE,
           Long.MAX_VALUE,
-            (long) Integer.MIN_VALUE,
-            (long) Integer.MAX_VALUE,
-            ((long) Integer.MIN_VALUE - 1),
-            ((long) Integer.MAX_VALUE + 1),
-            (long) Short.MIN_VALUE,
-            (long) Short.MAX_VALUE,
-            (long) (Short.MIN_VALUE - 1),
-            (long) (Short.MAX_VALUE + 1),
-            (long) Byte.MIN_VALUE,
-            (long) Byte.MAX_VALUE,
-            (long) (Byte.MIN_VALUE - 1),
-            (long) (Byte.MAX_VALUE + 1)
+          (long) Integer.MIN_VALUE,
+          (long) Integer.MAX_VALUE,
+          ((long) Integer.MIN_VALUE - 1),
+          ((long) Integer.MAX_VALUE + 1),
+          (long) Short.MIN_VALUE,
+          (long) Short.MAX_VALUE,
+          (long) (Short.MIN_VALUE - 1),
+          (long) (Short.MAX_VALUE + 1),
+          (long) Byte.MIN_VALUE,
+          (long) Byte.MAX_VALUE,
+          (long) (Byte.MIN_VALUE - 1),
+          (long) (Byte.MAX_VALUE + 1)
         };
     testConvertInt64ToNumber(testValues, Long.class, Long.MIN_VALUE, Long.MAX_VALUE);
     testConvertInt64ToNumber(testValues, Integer.class, Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -289,9 +287,9 @@ public class JdbcTypeConverterTest {
           1D,
           Double.MIN_VALUE,
           Double.MAX_VALUE,
-            (double) Float.MIN_VALUE,
-            (double) Float.MAX_VALUE,
-            Float.MAX_VALUE + 1D
+          (double) Float.MIN_VALUE,
+          (double) Float.MAX_VALUE,
+          Float.MAX_VALUE + 1D
         };
     for (Double d : testValues) {
       assertThat(convert(d, Type.float64(), Double.class)).isEqualTo(d);
@@ -329,8 +327,7 @@ public class JdbcTypeConverterTest {
       assertThat(convert(d, Type.numeric(), Double.class)).isEqualTo(d.doubleValue());
       assertThat(convert(d, Type.numeric(), Float.class)).isEqualTo(d.floatValue());
       assertThat(convert(d, Type.numeric(), String.class)).isEqualTo(String.valueOf(d));
-      assertThat(convert(d, Type.numeric(), Boolean.class))
-          .isEqualTo(!d.equals(BigDecimal.ZERO));
+      assertThat(convert(d, Type.numeric(), Boolean.class)).isEqualTo(!d.equals(BigDecimal.ZERO));
       if (d.compareTo(BigDecimal.valueOf(Long.MAX_VALUE)) > 0
           || d.compareTo(BigDecimal.valueOf(Long.MIN_VALUE)) < 0
           || d.scale() > 0) {

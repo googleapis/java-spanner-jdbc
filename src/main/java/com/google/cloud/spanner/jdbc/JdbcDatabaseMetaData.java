@@ -678,7 +678,8 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public ResultSet getProcedures(String catalog, String schemaPattern, String procedureNamePattern) {
+  public ResultSet getProcedures(
+      String catalog, String schemaPattern, String procedureNamePattern) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -813,8 +814,8 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public ResultSet getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern)
-       {
+  public ResultSet getTablePrivileges(
+      String catalog, String schemaPattern, String tableNamePattern) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -830,19 +831,16 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
 
   @Override
   public ResultSet getBestRowIdentifier(
-      String catalog, String schema, String table, int scope, boolean nullable)
-       {
-         return getEmptyColumnsResultSet();
+      String catalog, String schema, String table, int scope, boolean nullable) {
+    return getEmptyColumnsResultSet();
   }
 
   @Override
-  public ResultSet getVersionColumns(String catalog, String schema, String table)
-       {
-         return getEmptyColumnsResultSet();
+  public ResultSet getVersionColumns(String catalog, String schema, String table) {
+    return getEmptyColumnsResultSet();
   }
 
-  private ResultSet getEmptyColumnsResultSet()
-  {
+  private ResultSet getEmptyColumnsResultSet() {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -1322,8 +1320,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
 
   @Override
   public ResultSet getUDTs(
-      String catalog, String schemaPattern, String typeNamePattern, int[] types)
-       {
+      String catalog, String schemaPattern, String typeNamePattern, int[] types) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(

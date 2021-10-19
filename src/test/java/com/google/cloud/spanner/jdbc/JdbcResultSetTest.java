@@ -592,9 +592,7 @@ public class JdbcResultSetTest {
   @Test
   public void testGetDoubleIndexFromString() throws SQLException {
     assertEquals(
-        Double.parseDouble(STRING_NUMBER_VALUE),
-        subject.getDouble(STRING_COLINDEX_NUMBER),
-        0d);
+        Double.parseDouble(STRING_NUMBER_VALUE), subject.getDouble(STRING_COLINDEX_NUMBER), 0d);
     assertFalse(subject.wasNull());
     assertEquals(0d, subject.getDouble(STRING_COLINDEX_NULL), 0d);
     assertTrue(subject.wasNull());
@@ -1049,8 +1047,7 @@ public class JdbcResultSetTest {
 
     assertNotNull(subject.getTimestamp(DATE_COLINDEX_NOTNULL, cal));
     assertEquals(
-        Timestamp.parseTimestamp(String.format("%sT00:00:00-08:00", DATE_VALUE))
-            .toSqlTimestamp(),
+        Timestamp.parseTimestamp(String.format("%sT00:00:00-08:00", DATE_VALUE)).toSqlTimestamp(),
         subject.getTimestamp(DATE_COLINDEX_NOTNULL, cal));
     assertFalse(subject.wasNull());
     assertNull(subject.getTimestamp(DATE_COLINDEX_NULL, cal));
@@ -1251,9 +1248,7 @@ public class JdbcResultSetTest {
   @Test
   public void testGetFloatIndexFromString() throws SQLException {
     assertEquals(
-        Float.parseFloat(STRING_NUMBER_VALUE),
-        subject.getFloat(STRING_COLINDEX_NUMBER),
-        0f);
+        Float.parseFloat(STRING_NUMBER_VALUE), subject.getFloat(STRING_COLINDEX_NUMBER), 0f);
     assertFalse(subject.wasNull());
     assertEquals(0f, subject.getFloat(STRING_COLINDEX_NULL), 0f);
     assertTrue(subject.wasNull());

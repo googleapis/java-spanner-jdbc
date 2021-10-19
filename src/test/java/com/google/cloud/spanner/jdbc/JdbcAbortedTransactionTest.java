@@ -101,8 +101,7 @@ public class JdbcAbortedTransactionTest {
   private static MockSpannerServiceImpl mockSpanner;
   private static Server server;
 
-  @Parameter
-  public boolean retryAbortsInternally;
+  @Parameter public boolean retryAbortsInternally;
 
   @Parameters(name = "retryAbortsInternally = {0}")
   public static Collection<Object[]> data() {

@@ -89,8 +89,7 @@ class JdbcTypeConverter {
         if (type.getCode() == Code.BOOL) return value;
         if (type.getCode() == Code.INT64) return (Long) value != 0;
         if (type.getCode() == Code.FLOAT64) return (Double) value != 0d;
-        if (type.getCode() == Code.NUMERIC)
-          return !value.equals(BigDecimal.ZERO);
+        if (type.getCode() == Code.NUMERIC) return !value.equals(BigDecimal.ZERO);
       }
       if (targetType.equals(BigDecimal.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? BigDecimal.ONE : BigDecimal.ZERO;

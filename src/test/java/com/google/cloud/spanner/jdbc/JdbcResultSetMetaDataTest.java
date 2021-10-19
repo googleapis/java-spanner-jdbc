@@ -157,12 +157,13 @@ public class JdbcResultSetMetaDataTest {
       index++;
     }
     TestColumn.Builder builder = TestColumn.Builder.getBuilder();
-    TestColumn column = builder
-        .withName("CALCULATED")
-        .withType(Type.int64())
-        .withNullableUnknown()
-        .withCalculated()
-        .build();
+    TestColumn column =
+        builder
+            .withName("CALCULATED")
+            .withType(Type.int64())
+            .withNullableUnknown()
+            .withCalculated()
+            .build();
     res.add(column);
     return res;
   }

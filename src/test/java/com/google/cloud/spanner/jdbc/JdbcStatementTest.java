@@ -101,20 +101,21 @@ public class JdbcStatementTest {
 
     when(spanner.executeBatchUpdate(anyList()))
         .thenAnswer(
-            (Answer<long[]>) invocation -> {
-              List<com.google.cloud.spanner.Statement> statements =
-                  (List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0];
-              if (statements.isEmpty()
-                  || StatementParser.INSTANCE.isDdlStatement(statements.get(0).getSql())) {
-                return new long[0];
-              }
-              long[] res =
-                  new long
-                      [((List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0])
-                          .size()];
-              Arrays.fill(res, 1L);
-              return res;
-            });
+            (Answer<long[]>)
+                invocation -> {
+                  List<com.google.cloud.spanner.Statement> statements =
+                      (List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0];
+                  if (statements.isEmpty()
+                      || StatementParser.INSTANCE.isDdlStatement(statements.get(0).getSql())) {
+                    return new long[0];
+                  }
+                  long[] res =
+                      new long
+                          [((List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0])
+                              .size()];
+                  Arrays.fill(res, 1L);
+                  return res;
+                });
 
     JdbcConnection connection = mock(JdbcConnection.class);
     when(connection.getSpannerConnection()).thenReturn(spanner);

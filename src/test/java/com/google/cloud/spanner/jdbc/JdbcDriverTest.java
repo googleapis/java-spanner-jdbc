@@ -145,13 +145,9 @@ public class JdbcDriverTest {
     assertThat(props).hasLength(ConnectionOptions.VALID_PROPERTIES.size());
 
     Collection<String> validConnectionPropertyNames =
-        Collections2.transform(
-            ConnectionOptions.VALID_PROPERTIES,
-            ConnectionProperty::getName);
+        Collections2.transform(ConnectionOptions.VALID_PROPERTIES, ConnectionProperty::getName);
     Collection<String> driverPropertyNames =
-        Collections2.transform(
-            ImmutableList.copyOf(props),
-            input -> input.name);
+        Collections2.transform(ImmutableList.copyOf(props), input -> input.name);
     assertThat(driverPropertyNames).containsExactlyElementsIn(validConnectionPropertyNames);
   }
 

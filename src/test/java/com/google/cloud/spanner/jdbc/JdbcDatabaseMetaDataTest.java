@@ -513,7 +513,8 @@ public class JdbcDatabaseMetaDataTest {
   public void testGetUserName() throws SQLException, IOException {
     GoogleCredentials credentials =
         GoogleCredentials.fromStream(
-            Objects.requireNonNull(ConnectionOptionsTest.class.getResource("test-key.json")).openStream());
+            Objects.requireNonNull(ConnectionOptionsTest.class.getResource("test-key.json"))
+                .openStream());
     JdbcConnection connection = mock(JdbcConnection.class);
     ConnectionOptions options = mock(ConnectionOptions.class);
     when(options.getCredentials()).thenReturn(credentials);

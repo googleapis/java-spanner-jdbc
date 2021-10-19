@@ -52,8 +52,9 @@ public class JdbcConnectionUrlTest {
     public void testMinSessions() throws InterruptedException, TimeoutException, SQLException {
       try (Connection connection = createJdbcConnection()) {
         mockSpanner.waitForRequestsToContain(
-            input -> input instanceof BatchCreateSessionsRequest
-                && ((BatchCreateSessionsRequest) input).getSessionCount() == 1,
+            input ->
+                input instanceof BatchCreateSessionsRequest
+                    && ((BatchCreateSessionsRequest) input).getSessionCount() == 1,
             5000L);
       }
     }

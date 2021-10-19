@@ -100,8 +100,7 @@ public class JdbcSqlScriptVerifier extends AbstractSqlScriptVerifier {
           Collections.addAll(res, longs);
           return res;
         }
-        throw new IllegalArgumentException(
-            "Unsupported array base type: " + array.getBaseType());
+        throw new IllegalArgumentException("Unsupported array base type: " + array.getBaseType());
       }
       return value;
     }
