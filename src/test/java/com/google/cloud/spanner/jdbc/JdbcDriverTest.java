@@ -57,16 +57,14 @@ public class JdbcDriverTest {
     }
   }
 
-  private static MockSpannerServiceImpl mockSpanner;
   private static Server server;
-  private static InetSocketAddress address;
   private static final String TEST_KEY_PATH =
       Objects.requireNonNull(JdbcDriverTest.class.getResource("test-key.json")).getFile();
 
   @BeforeClass
   public static void startStaticServer() throws IOException {
-    mockSpanner = new MockSpannerServiceImpl();
-    address = new InetSocketAddress("localhost", 0);
+    MockSpannerServiceImpl mockSpanner = new MockSpannerServiceImpl();
+    InetSocketAddress address = new InetSocketAddress("localhost", 0);
     server = NettyServerBuilder.forAddress(address).addService(mockSpanner).build().start();
   }
 
