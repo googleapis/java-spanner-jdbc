@@ -241,8 +241,8 @@ public class JdbcTypeConverterTest {
           Long.MAX_VALUE,
             (long) Integer.MIN_VALUE,
             (long) Integer.MAX_VALUE,
-            (long) (Integer.MIN_VALUE - 1),
-            (long) (Integer.MAX_VALUE + 1),
+            ((long) Integer.MIN_VALUE - 1),
+            ((long) Integer.MAX_VALUE + 1),
             (long) Short.MIN_VALUE,
             (long) Short.MAX_VALUE,
             (long) (Short.MIN_VALUE - 1),
@@ -295,7 +295,7 @@ public class JdbcTypeConverterTest {
         };
     for (Double d : testValues) {
       assertThat(convert(d, Type.float64(), Double.class)).isEqualTo(d);
-      if (d > Float.MAX_VALUE || d < -Float.MAX_VALUE) {
+      if (Math.abs(d) > Math.abs(Float.MAX_VALUE)) {
         assertConvertThrows(d, Type.float64(), Float.class, Code.OUT_OF_RANGE);
       } else {
         assertThat(convert(d, Type.float64(), Float.class)).isEqualTo(d.floatValue());

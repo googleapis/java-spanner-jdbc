@@ -106,7 +106,7 @@ public class JdbcDatabaseMetaDataTest {
     assertThat(meta.getMaxCursorNameLength(), is(equalTo(0)));
     assertThat(meta.getMaxIndexLength(), is(equalTo(8000)));
     assertThat(meta.getMaxProcedureNameLength(), is(equalTo(0)));
-    assertThat(meta.getMaxRowSize(), is(equalTo(1024 * 10000000)));
+    assertThat(meta.getMaxRowSize(), is(equalTo(0)));
     assertThat(meta.getMaxSchemaNameLength(), is(equalTo(0)));
     assertThat(meta.getMaxStatementLength(), is(equalTo(1000000)));
     assertThat(meta.getMaxStatements(), is(equalTo(0)));

@@ -171,7 +171,7 @@ public class AbstractJdbcWrapperTest {
     assertThat(checker.cast(Double.MAX_VALUE)).isFalse();
     assertThat(checker.cast(-1D)).isTrue();
     assertThat(checker.cast((double) Float.MIN_VALUE)).isTrue();
-    assertThat(checker.cast((double) (-Float.MAX_VALUE * 2))).isFalse();
+    assertThat(checker.cast(-Float.MAX_VALUE * 2d)).isFalse();
     assertThat(checker.cast(-Double.MAX_VALUE)).isFalse();
   }
 

@@ -607,7 +607,9 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
 
   @Override
   public int getMaxRowSize() {
-    return 1024 * 10000000;
+    // The limit is 1024 columns per table * 10MB per column, which is more than fits in an int.
+    // We therefore return 0 to indicate no limit (or an unknown limit).
+    return 0;
   }
 
   @Override
