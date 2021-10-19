@@ -53,11 +53,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class JdbcParameterStoreTest {
 
-  /**
-   * Tests setting a {@link Value} as a parameter value.
-   *
-   * @throws SQLException
-   */
+  /** Tests setting a {@link Value} as a parameter value. */
   @Test
   public void testSetValueAsParameter() throws SQLException {
     JdbcParameterStore params = new JdbcParameterStore();

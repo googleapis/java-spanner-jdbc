@@ -52,7 +52,7 @@ public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
   public void test01_SqlScript() throws Exception {
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
     verifier.verifyStatementsInFile(
-        "ITReadWriteAutocommitSpannerTest.sql", SqlScriptVerifier.class);
+        "ITReadWriteAutocommitSpannerTest.sql", SqlScriptVerifier.class, false);
   }
 
   @Test

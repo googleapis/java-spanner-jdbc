@@ -111,7 +111,7 @@ enum JdbcDataType {
     }
   },
   FLOAT64 {
-    private Set<Class<?>> classes = new HashSet<Class<?>>(Arrays.asList(Float.class, Double.class));
+    private final Set<Class<?>> classes = new HashSet<>(Arrays.asList(Float.class, Double.class));
 
     @Override
     public int getSqlType() {
@@ -144,8 +144,8 @@ enum JdbcDataType {
     }
   },
   INT64 {
-    private Set<Class<?>> classes =
-        new HashSet<Class<?>>(Arrays.asList(Byte.class, Integer.class, Long.class));
+    private final Set<Class<?>> classes =
+        new HashSet<>(Arrays.asList(Byte.class, Integer.class, Long.class));
 
     @Override
     public int getSqlType() {

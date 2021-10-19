@@ -37,6 +37,7 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -46,9 +47,7 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class JdbcDriverTest {
-  /**
-   * Make sure the JDBC driver class is loaded. This is needed when running the test using Maven.
-   */
+  // Make sure the JDBC driver class is loaded. This is needed when running the test using Maven.
   static {
     try {
       Class.forName("com.google.cloud.spanner.jdbc.JdbcDriver");
@@ -62,7 +61,7 @@ public class JdbcDriverTest {
   private static Server server;
   private static InetSocketAddress address;
   private static final String TEST_KEY_PATH =
-      JdbcDriverTest.class.getResource("test-key.json").getFile();
+      Objects.requireNonNull(JdbcDriverTest.class.getResource("test-key.json")).getFile();
 
   @BeforeClass
   public static void startStaticServer() throws IOException {

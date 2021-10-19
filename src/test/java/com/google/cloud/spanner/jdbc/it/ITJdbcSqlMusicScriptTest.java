@@ -37,7 +37,7 @@ public class ITJdbcSqlMusicScriptTest extends ITAbstractJdbcTest {
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier();
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), SCRIPT_FILE, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection), SCRIPT_FILE, SqlScriptVerifier.class, false);
     }
   }
 }

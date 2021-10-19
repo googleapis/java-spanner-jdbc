@@ -27,7 +27,7 @@ import org.junit.runners.JUnit4;
  * As JDBC connections store the statement timeout on {@link Statement} objects instead of on the
  * {@link Connection}, the JDBC driver needs to set and reset the connection timeout on the
  * underlying connection after each statement execution. JDBC also uses seconds as the time unit for
- * timeouts, while the underlying {@link com.google.cloud.spanner.jdbc.Connection}s use
+ * timeouts, while the underlying {@link com.google.cloud.spanner.connection.Connection}s use
  * milliseconds. This test script tests a number of special cases regarding this.
  */
 @RunWith(JUnit4.class)
@@ -35,6 +35,6 @@ public class JdbcTimeoutSqlTest {
   @Test
   public void testTimeoutScript() throws Exception {
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new TestConnectionProvider());
-    verifier.verifyStatementsInFile("TimeoutSqlScriptTest.sql", getClass());
+    verifier.verifyStatementsInFile("TimeoutSqlScriptTest.sql", getClass(), false);
   }
 }

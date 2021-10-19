@@ -19,6 +19,7 @@ package com.google.cloud.spanner.jdbc;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 import com.google.rpc.Code;
 import java.io.IOException;
@@ -113,20 +114,20 @@ public class JdbcClobTest {
     clob.setString(1L, "test");
     char[] cbuf = new char[4];
     try (Reader reader = clob.getCharacterStream()) {
-      reader.read(cbuf, 0, 4);
+      assertEquals(4, reader.read(cbuf, 0, 4));
     }
     assertThat(cbuf, is(equalTo(new char[] {'t', 'e', 's', 't'})));
     try (Reader reader = clob.getCharacterStream()) {
-      reader.read(cbuf, 0, 2);
-      reader.read(cbuf, 2, 2);
+      assertEquals(2, reader.read(cbuf, 0, 2));
+      assertEquals(2, reader.read(cbuf, 2, 2));
     }
     assertThat(cbuf, is(equalTo(new char[] {'t', 'e', 's', 't'})));
     try (Reader reader = clob.getCharacterStream()) {
-      reader.read(cbuf, 0, 2);
+      assertEquals(2, reader.read(cbuf, 0, 2));
       // changing the value of the clob will not change a character stream that has already been
       // opened
       clob.setString(1L, "foobar");
-      reader.read(cbuf, 2, 2);
+      assertEquals(2, reader.read(cbuf, 2, 2));
     }
     assertThat(cbuf, is(equalTo(new char[] {'t', 'e', 's', 't'})));
   }

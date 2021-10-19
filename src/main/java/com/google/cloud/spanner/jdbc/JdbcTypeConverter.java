@@ -290,6 +290,7 @@ class JdbcTypeConverter {
 
   static java.sql.Date toSqlDate(Date date, Calendar cal) {
     if (date != null) {
+      //noinspection MagicConstant
       cal.set(date.getYear(), date.getMonth() - 1, date.getDayOfMonth(), 0, 0, 0);
       cal.clear(Calendar.MILLISECOND);
       return new java.sql.Date(cal.getTimeInMillis());
@@ -329,7 +330,7 @@ class JdbcTypeConverter {
 
   private enum GetOrSetTimestampInCalendar {
     GET,
-    SET;
+    SET
   }
 
   private static java.sql.Timestamp getOrSetTimestampInCalendar(
@@ -429,7 +430,7 @@ class JdbcTypeConverter {
   static java.sql.Time parseSqlTime(String val, Calendar cal) {
     if (val != null) {
       Time time = Time.valueOf(val);
-      cal.set(1970, 0, 1, time.getHours(), time.getMinutes(), time.getSeconds());
+      cal.set(1970, Calendar.JANUARY, 1, time.getHours(), time.getMinutes(), time.getSeconds());
       cal.clear(Calendar.MILLISECOND);
       return new java.sql.Time(cal.getTimeInMillis());
     }

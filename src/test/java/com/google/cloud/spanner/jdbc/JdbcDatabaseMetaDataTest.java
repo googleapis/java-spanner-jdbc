@@ -36,6 +36,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Objects;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -344,6 +345,7 @@ public class JdbcDatabaseMetaDataTest {
     }
   }
 
+  @Test
   public void testGetColumnPrivileges() throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
@@ -511,7 +513,7 @@ public class JdbcDatabaseMetaDataTest {
   public void testGetUserName() throws SQLException, IOException {
     GoogleCredentials credentials =
         GoogleCredentials.fromStream(
-            ConnectionOptionsTest.class.getResource("test-key.json").openStream());
+            Objects.requireNonNull(ConnectionOptionsTest.class.getResource("test-key.json")).openStream());
     JdbcConnection connection = mock(JdbcConnection.class);
     ConnectionOptions options = mock(ConnectionOptions.class);
     when(options.getCredentials()).thenReturn(credentials);

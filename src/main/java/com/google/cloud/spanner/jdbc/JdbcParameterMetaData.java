@@ -48,6 +48,7 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
   @Override
   public int isNullable(int param) throws SQLException {
     Integer nullable = statement.getParameters().getNullable(param);
+    //noinspection MagicConstant
     return nullable == null ? parameterNullableUnknown : nullable.intValue();
   }
 

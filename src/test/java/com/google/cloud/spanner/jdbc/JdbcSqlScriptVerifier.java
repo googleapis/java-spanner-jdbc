@@ -31,6 +31,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /** SQL Script verifier for JDBC connections */
@@ -93,18 +94,14 @@ public class JdbcSqlScriptVerifier extends AbstractSqlScriptVerifier {
         return com.google.cloud.Timestamp.of((Timestamp) value);
       } else if (value instanceof Array) {
         Array array = (Array) value;
-        switch (array.getBaseType()) {
-          case Types.BIGINT:
-            Long[] longs = (Long[]) array.getArray();
-            List<Long> res = new ArrayList<>();
-            for (Long l : longs) {
-              res.add(l);
-            }
-            return res;
-          default:
-            throw new IllegalArgumentException(
-                "Unsupported array base type: " + array.getBaseType());
+        if (array.getBaseType() == Types.BIGINT) {
+          Long[] longs = (Long[]) array.getArray();
+          List<Long> res = new ArrayList<>();
+          Collections.addAll(res, longs);
+          return res;
         }
+        throw new IllegalArgumentException(
+            "Unsupported array base type: " + array.getBaseType());
       }
       return value;
     }

@@ -420,15 +420,13 @@ class JdbcParameterStore {
             isInQuoted = false;
             startQuote = 0;
           }
-        } else if (c == '\\') {
-          lastCharWasEscapeChar = true;
         } else {
-          lastCharWasEscapeChar = false;
+          lastCharWasEscapeChar = (c == '\\');
         }
         named.append(c);
       } else {
         if (c == POS_PARAM) {
-          named.append("@p" + paramIndex);
+          named.append("@p").append(paramIndex);
           paramIndex++;
         } else {
           if (c == SINGLE_QUOTE || c == DOUBLE_QUOTE || c == BACKTICK_QUOTE) {
@@ -497,7 +495,7 @@ class JdbcParameterStore {
       throws SQLException {
     if (value == null) {
       return setNullValue(binder, sqlType);
-    } else if (sqlType == null || sqlType == Integer.valueOf(Types.OTHER)) {
+    } else if (sqlType == null || sqlType.equals(Types.OTHER)) {
       return setParamWithUnknownType(binder, value);
     } else {
       return setParamWithKnownType(binder, value, sqlType);
@@ -559,7 +557,7 @@ class JdbcParameterStore {
         } else if (value instanceof Reader) {
           stringValue = getStringFromReader((Reader) value);
         } else if (value instanceof URL) {
-          stringValue = ((URL) value).toString();
+          stringValue = value.toString();
         } else if (value instanceof UUID) {
           stringValue = ((UUID) value).toString();
         } else {
@@ -621,7 +619,7 @@ class JdbcParameterStore {
       case Types.ARRAY:
         if (value instanceof Array) {
           Array jdbcArray = (Array) value;
-          return setArrayValue(binder, sqlType, jdbcArray == null ? null : jdbcArray.getArray());
+          return setArrayValue(binder, sqlType, jdbcArray.getArray());
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid array", Code.INVALID_ARGUMENT);
       case Types.BLOB:
@@ -719,8 +717,7 @@ class JdbcParameterStore {
       } catch (IOException e) {
         throw new IllegalArgumentException("Could not read from readable", e);
       }
-    } else if (Clob.class.isAssignableFrom(value.getClass())
-        || NClob.class.isAssignableFrom(value.getClass())) {
+    } else if (Clob.class.isAssignableFrom(value.getClass())) {
       try {
         Clob clob = (Clob) value;
         return binder.to(CharStreams.toString(clob.getCharacterStream()));
@@ -739,7 +736,7 @@ class JdbcParameterStore {
     } else if (char[].class.isAssignableFrom(value.getClass())) {
       return binder.to(String.valueOf((char[]) value));
     } else if (URL.class.isAssignableFrom(value.getClass())) {
-      return binder.to(((URL) value).toString());
+      return binder.to(value.toString());
     } else if (UUID.class.isAssignableFrom(value.getClass())) {
       return binder.to(((UUID) value).toString());
     } else if (byte[].class.isAssignableFrom(value.getClass())) {
@@ -761,9 +758,7 @@ class JdbcParameterStore {
     } else if (Array.class.isAssignableFrom(value.getClass())) {
       try {
         Array jdbcArray = (Array) value;
-        if (value != null) {
-          return setArrayValue(binder, jdbcArray.getBaseType(), jdbcArray.getArray());
-        }
+        return setArrayValue(binder, jdbcArray.getBaseType(), jdbcArray.getArray());
       } catch (SQLException e) {
         throw new IllegalArgumentException(
             "Unsupported parameter type: " + value.getClass().getName() + " - " + value.toString());
@@ -813,7 +808,7 @@ class JdbcParameterStore {
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
         case Types.BLOB:
-          return binder.toBytesArray((Iterable<ByteArray>) null);
+          return binder.toBytesArray(null);
       }
       throw JdbcSqlExceptionFactory.unsupported("Unknown/unsupported array base type: " + type);
     }

@@ -71,7 +71,7 @@ class JdbcArray implements Array {
    * @param elements The elements to store in the array.
    * @return the initialized {@link Array}.
    */
-  static JdbcArray createArray(JdbcDataType type, List<? extends Object> elements) {
+  static JdbcArray createArray(JdbcDataType type, List<?> elements) {
     return new JdbcArray(type, elements);
   }
 

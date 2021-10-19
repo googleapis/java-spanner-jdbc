@@ -57,7 +57,6 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
         String line = scanner.nextLine();
         builder.append(line).append("\n");
       }
-      scanner.close();
     }
     return builder.toString();
   }
@@ -132,7 +131,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public String getDatabaseProductVersion() throws SQLException {
+  public String getDatabaseProductVersion() {
     return getDatabaseMajorVersion() + "." + getDatabaseMinorVersion();
   }
 

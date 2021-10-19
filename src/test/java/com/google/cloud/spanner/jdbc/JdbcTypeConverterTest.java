@@ -446,35 +446,35 @@ public class JdbcTypeConverterTest {
   public void testToSqlDateWithCalendar() {
     for (TimeZone zone : getTestTimeZones()) {
       Calendar cal = Calendar.getInstance(zone);
-      cal.set(2019, 7, 24, 0, 0, 0);
+      cal.set(2019, Calendar.AUGUST, 24, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       assertThat(
               toSqlDate(
                   com.google.cloud.Date.fromYearMonthDay(2019, 8, 24), Calendar.getInstance(zone)))
           .isEqualTo(new Date(cal.getTimeInMillis()));
 
-      cal.set(2019, 0, 1, 0, 0, 0);
+      cal.set(2019, Calendar.JANUARY, 1, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       assertThat(
               toSqlDate(
                   com.google.cloud.Date.fromYearMonthDay(2019, 1, 1), Calendar.getInstance(zone)))
           .isEqualTo(new Date(cal.getTimeInMillis()));
 
-      cal.set(2019, 11, 31, 0, 0, 0);
+      cal.set(2019, Calendar.DECEMBER, 31, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       assertThat(
               toSqlDate(
                   com.google.cloud.Date.fromYearMonthDay(2019, 12, 31), Calendar.getInstance(zone)))
           .isEqualTo(new Date(cal.getTimeInMillis()));
 
-      cal.set(2016, 1, 29, 0, 0, 0);
+      cal.set(2016, Calendar.FEBRUARY, 29, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       assertThat(
               toSqlDate(
                   com.google.cloud.Date.fromYearMonthDay(2016, 2, 29), Calendar.getInstance(zone)))
           .isEqualTo(new Date(cal.getTimeInMillis()));
 
-      cal.set(2000, 1, 29, 0, 0, 0);
+      cal.set(2000, Calendar.FEBRUARY, 29, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       assertThat(
               toSqlDate(
@@ -569,7 +569,7 @@ public class JdbcTypeConverterTest {
       com.google.cloud.Timestamp gts =
           ReadOnlyStalenessUtil.parseRfc3339("2019-08-24T11:23:01.1998+03:00");
       Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+03:00"));
-      cal.set(2019, 7, 24, 11, 23, 1);
+      cal.set(2019, Calendar.AUGUST, 24, 11, 23, 1);
       cal.set(Calendar.MILLISECOND, 0);
       Timestamp ts = new Timestamp(cal.getTimeInMillis() + zone.getRawOffset());
       ts.setNanos(199800000);
@@ -577,7 +577,7 @@ public class JdbcTypeConverterTest {
 
       gts = ReadOnlyStalenessUtil.parseRfc3339("2019-12-31T23:59:59.999999999-03:00");
       cal = Calendar.getInstance(TimeZone.getTimeZone("GMT-03:00"));
-      cal.set(2019, 11, 31, 23, 59, 59);
+      cal.set(2019, Calendar.DECEMBER, 31, 23, 59, 59);
       cal.set(Calendar.MILLISECOND, 0);
       ts = new Timestamp(cal.getTimeInMillis() + zone.getRawOffset());
       ts.setNanos(999999999);
@@ -585,14 +585,14 @@ public class JdbcTypeConverterTest {
 
       gts = ReadOnlyStalenessUtil.parseRfc3339("2016-02-29T12:00:00Z");
       cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-      cal.set(2016, 1, 29, 12, 0, 0);
+      cal.set(2016, Calendar.FEBRUARY, 29, 12, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       ts = new Timestamp(cal.getTimeInMillis() + zone.getRawOffset());
       assertThat(getAsSqlTimestamp(gts, Calendar.getInstance(zone))).isEqualTo(ts);
 
       gts = ReadOnlyStalenessUtil.parseRfc3339("2000-02-29T00:00:00.000000000-10:00");
       cal = Calendar.getInstance(TimeZone.getTimeZone("GMT-10:00"));
-      cal.set(2000, 1, 29, 0, 0, 0);
+      cal.set(2000, Calendar.FEBRUARY, 29, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       ts = new Timestamp(cal.getTimeInMillis() + zone.getRawOffset());
       assertThat(getAsSqlTimestamp(gts, Calendar.getInstance(zone))).isEqualTo(ts);
@@ -604,7 +604,7 @@ public class JdbcTypeConverterTest {
   public void testSetTimestampInCalendar() {
     for (TimeZone zone : getTestTimeZones()) {
       Calendar cal = Calendar.getInstance(zone);
-      cal.set(2019, 7, 24, 11, 23, 1);
+      cal.set(2019, Calendar.AUGUST, 24, 11, 23, 1);
       cal.set(Calendar.MILLISECOND, 0);
       Timestamp ts = new Timestamp(2019 - 1900, 7, 24, 11, 23, 1, 0);
       Timestamp tsInCal = setTimestampInCalendar(ts, Calendar.getInstance(zone));
@@ -612,7 +612,7 @@ public class JdbcTypeConverterTest {
           .isEqualTo(cal.getTimeInMillis() - TimeZone.getDefault().getOffset(ts.getTime()));
 
       cal = Calendar.getInstance(zone);
-      cal.set(2019, 11, 31, 23, 59, 59);
+      cal.set(2019, Calendar.DECEMBER, 31, 23, 59, 59);
       cal.set(Calendar.MILLISECOND, 999);
       ts = new Timestamp(2019 - 1900, 11, 31, 23, 59, 59, 999000000);
       tsInCal = setTimestampInCalendar(ts, Calendar.getInstance(zone));
@@ -620,7 +620,7 @@ public class JdbcTypeConverterTest {
           .isEqualTo(cal.getTimeInMillis() - TimeZone.getDefault().getOffset(ts.getTime()));
 
       cal = Calendar.getInstance(zone);
-      cal.set(2016, 1, 29, 12, 0, 0);
+      cal.set(2016, Calendar.FEBRUARY, 29, 12, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       ts = new Timestamp(2016 - 1900, 1, 29, 12, 0, 0, 0);
       tsInCal = setTimestampInCalendar(ts, Calendar.getInstance(zone));
@@ -628,7 +628,7 @@ public class JdbcTypeConverterTest {
           .isEqualTo(cal.getTimeInMillis() - TimeZone.getDefault().getOffset(ts.getTime()));
 
       cal = Calendar.getInstance(zone);
-      cal.set(2000, 1, 29, 0, 0, 0);
+      cal.set(2000, Calendar.FEBRUARY, 29, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       ts = new Timestamp(2000 - 1900, 1, 29, 0, 0, 0, 0);
       tsInCal = setTimestampInCalendar(ts, Calendar.getInstance(zone));

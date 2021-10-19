@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -1052,7 +1053,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private List<String> readValuesFromFile(String filename) {
-    File file = new File(getClass().getResource(filename).getFile());
+    File file = new File(Objects.requireNonNull(getClass().getResource(filename)).getFile());
     StringBuilder builder = new StringBuilder();
     try (Scanner scanner = new Scanner(file)) {
       while (scanner.hasNextLine()) {

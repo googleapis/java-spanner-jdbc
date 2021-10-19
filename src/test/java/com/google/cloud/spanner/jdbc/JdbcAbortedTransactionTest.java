@@ -104,7 +104,7 @@ public class JdbcAbortedTransactionTest {
   private static Server server;
   private static InetSocketAddress address;
 
-  @Parameter(0)
+  @Parameter
   public boolean retryAbortsInternally;
 
   @Parameters(name = "retryAbortsInternally = {0}")

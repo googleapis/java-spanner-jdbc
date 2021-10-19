@@ -16,6 +16,8 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
+import static org.junit.Assert.assertTrue;
+
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
@@ -54,7 +56,7 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
         // create tables
         JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
         verifier.verifyStatementsInFile(
-            "ITReadOnlySpannerTest_CreateTables.sql", SqlScriptVerifier.class);
+            "ITReadOnlySpannerTest_CreateTables.sql", SqlScriptVerifier.class, false);
 
         // fill tables with data
         connection.setAutoCommit(false);
@@ -94,7 +96,7 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
     // Wait 100ms to ensure that staleness tests in the script succeed.
     Thread.sleep(100L);
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
-    verifier.verifyStatementsInFile("ITReadOnlySpannerTest.sql", SqlScriptVerifier.class);
+    verifier.verifyStatementsInFile("ITReadOnlySpannerTest.sql", SqlScriptVerifier.class, false);
   }
 
   @Test
@@ -128,7 +130,7 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
             }
           });
       exec.shutdown();
-      exec.awaitTermination(1000L, TimeUnit.SECONDS);
+      assertTrue(exec.awaitTermination(1000L, TimeUnit.SECONDS));
       rs1.close();
       rs2.close();
     }

@@ -461,7 +461,7 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetBooleanIndex() throws SQLException {
-    assertNotNull(subject.getBoolean(BOOLEAN_COLINDEX_NOTNULL));
+    assertTrue(subject.getBoolean(BOOLEAN_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertFalse(subject.getBoolean(BOOLEAN_COLINDEX_NULL));
     assertTrue(subject.wasNull());
@@ -469,7 +469,7 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetBooleanIndexForLong() throws SQLException {
-    assertNotNull(subject.getBoolean(LONG_COLINDEX_NOTNULL));
+    assertTrue(subject.getBoolean(LONG_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertFalse(subject.getBoolean(LONG_COLINDEX_NULL));
     assertTrue(subject.wasNull());
@@ -477,7 +477,7 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetBooleanIndexForDouble() throws SQLException {
-    assertNotNull(subject.getBoolean(DOUBLE_COLINDEX_NOTNULL));
+    assertTrue(subject.getBoolean(DOUBLE_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertFalse(subject.getBoolean(DOUBLE_COLINDEX_NULL));
     assertTrue(subject.wasNull());
@@ -485,7 +485,7 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetBooleanIndexForString() throws SQLException {
-    assertNotNull(subject.getBoolean(STRING_COLINDEX_NOTNULL));
+    assertFalse(subject.getBoolean(STRING_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertFalse(subject.getBoolean(STRING_COLINDEX_NULL));
     assertTrue(subject.wasNull());
@@ -521,7 +521,7 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetLongIndex() throws SQLException {
-    assertNotNull(subject.getLong(LONG_COLINDEX_NOTNULL));
+    assertEquals(1L, subject.getLong(LONG_COLINDEX_NOTNULL));
     assertEquals(LONG_VALUE, subject.getLong(LONG_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertEquals(0L, subject.getLong(LONG_COLINDEX_NULL));
@@ -530,7 +530,7 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetLongIndexForBool() throws SQLException {
-    assertNotNull(subject.getLong(BOOLEAN_COLINDEX_NOTNULL));
+    assertEquals(1L, subject.getLong(BOOLEAN_COLINDEX_NOTNULL));
     assertEquals(BOOLEAN_VALUE ? 1L : 0L, subject.getLong(BOOLEAN_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertEquals(0L, subject.getLong(BOOLEAN_COLINDEX_NULL));
@@ -539,7 +539,7 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetLongIndexForFloat64() throws SQLException {
-    assertNotNull(subject.getLong(DOUBLE_COLINDEX_NOTNULL));
+    assertEquals(3L, subject.getLong(DOUBLE_COLINDEX_NOTNULL));
     assertEquals((long) DOUBLE_VALUE, subject.getLong(DOUBLE_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertEquals(0L, subject.getLong(DOUBLE_COLINDEX_NULL));
@@ -583,7 +583,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetDoubleIndex() throws SQLException {
-    assertNotNull(subject.getDouble(DOUBLE_COLINDEX_NOTNULL));
     assertEquals(DOUBLE_VALUE, subject.getDouble(DOUBLE_COLINDEX_NOTNULL), 0d);
     assertFalse(subject.wasNull());
     assertEquals(0d, subject.getDouble(DOUBLE_COLINDEX_NULL), 0d);
@@ -592,9 +591,8 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetDoubleIndexFromString() throws SQLException {
-    assertNotNull(subject.getDouble(STRING_COLINDEX_NUMBER));
     assertEquals(
-        Double.valueOf(STRING_NUMBER_VALUE).doubleValue(),
+        Double.parseDouble(STRING_NUMBER_VALUE),
         subject.getDouble(STRING_COLINDEX_NUMBER),
         0d);
     assertFalse(subject.wasNull());
@@ -604,7 +602,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetDoubleIndexFromBool() throws SQLException {
-    assertNotNull(subject.getDouble(BOOLEAN_COLINDEX_NOTNULL));
     assertEquals(BOOLEAN_VALUE ? 1d : 0d, subject.getDouble(BOOLEAN_COLINDEX_NOTNULL), 0d);
     assertFalse(subject.wasNull());
     assertEquals(0d, subject.getDouble(BOOLEAN_COLINDEX_NULL), 0d);
@@ -613,7 +610,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetDoubleIndexFromInt64() throws SQLException {
-    assertNotNull(subject.getDouble(LONG_COLINDEX_NOTNULL));
     assertEquals(LONG_VALUE, subject.getDouble(LONG_COLINDEX_NOTNULL), 0d);
     assertFalse(subject.wasNull());
     assertEquals(0d, subject.getDouble(LONG_COLINDEX_NULL), 0d);
@@ -800,7 +796,7 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetBooleanLabel() throws SQLException {
-    assertNotNull(subject.getBoolean(BOOLEAN_COL_NOT_NULL));
+    assertTrue(subject.getBoolean(BOOLEAN_COL_NOT_NULL));
     assertFalse(subject.wasNull());
     assertFalse(subject.getBoolean(BOOLEAN_COL_NULL));
     assertTrue(subject.wasNull());
@@ -808,7 +804,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetLongLabel() throws SQLException {
-    assertNotNull(subject.getLong(LONG_COL_NOT_NULL));
     assertEquals(1l, subject.getLong(LONG_COL_NOT_NULL));
     assertFalse(subject.wasNull());
     assertEquals(0l, subject.getLong(LONG_COL_NULL));
@@ -817,7 +812,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetDoubleLabel() throws SQLException {
-    assertNotNull(subject.getDouble(DOUBLE_COL_NOT_NULL));
     assertEquals(DOUBLE_VALUE, subject.getDouble(DOUBLE_COL_NOT_NULL), 0d);
     assertFalse(subject.wasNull());
     assertEquals(0d, subject.getDouble(DOUBLE_COL_NULL), 0d);
@@ -970,6 +964,7 @@ public class JdbcResultSetTest {
     Calendar calGMT = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
     Calendar expectedCal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
     expectedCal.clear();
+    //noinspection MagicConstant
     expectedCal.set(DATE_VALUE.getYear(), DATE_VALUE.getMonth() - 1, DATE_VALUE.getDayOfMonth());
     java.sql.Date expected = new java.sql.Date(expectedCal.getTimeInMillis());
     assertEquals(expected, subject.getDate(DATE_COLINDEX_NOTNULL, calGMT));
@@ -990,6 +985,7 @@ public class JdbcResultSetTest {
 
     Calendar calGMT = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
     Calendar expected = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+    //noinspection MagicConstant
     expected.set(
         DATE_VALUE.getYear(), DATE_VALUE.getMonth() - 1, DATE_VALUE.getDayOfMonth(), 0, 0, 0);
     expected.clear(Calendar.MILLISECOND);
@@ -1084,7 +1080,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetByteIndex() throws SQLException {
-    assertNotNull(subject.getByte(LONG_COLINDEX_NOTNULL));
     assertEquals(LONG_VALUE, subject.getByte(LONG_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertEquals(0, subject.getByte(LONG_COLINDEX_NULL));
@@ -1093,7 +1088,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetByteIndexFromString() throws SQLException {
-    assertNotNull(subject.getByte(STRING_COLINDEX_NUMBER));
     assertEquals(
         Byte.valueOf(STRING_NUMBER_VALUE).byteValue(), subject.getByte(STRING_COLINDEX_NUMBER));
     assertFalse(subject.wasNull());
@@ -1101,14 +1095,12 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetByteIndexFromDouble() throws SQLException {
-    assertNotNull(subject.getByte(DOUBLE_COLINDEX_NOTNULL));
     assertEquals((byte) DOUBLE_VALUE, subject.getByte(DOUBLE_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
   }
 
   @Test
   public void testGetByteIndexFromBoolean() throws SQLException {
-    assertNotNull(subject.getByte(BOOLEAN_COLINDEX_NOTNULL));
     assertEquals(BOOLEAN_VALUE ? 1 : 0, subject.getByte(BOOLEAN_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
   }
@@ -1134,7 +1126,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetShortIndex() throws SQLException {
-    assertNotNull(subject.getShort(LONG_COLINDEX_NOTNULL));
     assertEquals(LONG_VALUE, subject.getShort(LONG_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
     assertEquals(0, subject.getShort(LONG_COLINDEX_NULL));
@@ -1143,7 +1134,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetShortIndexFromString() throws SQLException {
-    assertNotNull(subject.getShort(STRING_COLINDEX_NUMBER));
     assertEquals(
         Short.valueOf(STRING_NUMBER_VALUE).shortValue(), subject.getShort(STRING_COLINDEX_NUMBER));
     assertFalse(subject.wasNull());
@@ -1151,14 +1141,12 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetShortIndexFromDouble() throws SQLException {
-    assertNotNull(subject.getShort(DOUBLE_COLINDEX_NOTNULL));
     assertEquals((short) DOUBLE_VALUE, subject.getShort(DOUBLE_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
   }
 
   @Test
   public void testGetShortIndexFromBoolean() throws SQLException {
-    assertNotNull(subject.getShort(BOOLEAN_COLINDEX_NOTNULL));
     assertEquals(BOOLEAN_VALUE ? 1 : 0, subject.getShort(BOOLEAN_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
   }
@@ -1195,7 +1183,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetIntIndex() throws SQLException {
-    assertNotNull(subject.getInt(LONG_COLINDEX_NOTNULL));
     int expected = (int) LONG_VALUE;
     assertEquals(expected, subject.getInt(LONG_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
@@ -1205,7 +1192,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetIntIndexFromString() throws SQLException {
-    assertNotNull(subject.getInt(STRING_COLINDEX_NUMBER));
     assertEquals(
         Integer.valueOf(STRING_NUMBER_VALUE).intValue(), subject.getInt(STRING_COLINDEX_NUMBER));
     assertFalse(subject.wasNull());
@@ -1213,14 +1199,12 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetIntIndexFromDouble() throws SQLException {
-    assertNotNull(subject.getInt(DOUBLE_COLINDEX_NOTNULL));
     assertEquals((int) DOUBLE_VALUE, subject.getInt(DOUBLE_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
   }
 
   @Test
   public void testGetIntIndexFromBoolean() throws SQLException {
-    assertNotNull(subject.getInt(BOOLEAN_COLINDEX_NOTNULL));
     assertEquals(BOOLEAN_VALUE ? 1 : 0, subject.getInt(BOOLEAN_COLINDEX_NOTNULL));
     assertFalse(subject.wasNull());
   }
@@ -1257,7 +1241,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetFloatIndex() throws SQLException {
-    assertNotNull(subject.getFloat(DOUBLE_COLINDEX_NOTNULL));
     float expected = (float) DOUBLE_VALUE;
     assertEquals(expected, subject.getFloat(DOUBLE_COLINDEX_NOTNULL), 0f);
     assertFalse(subject.wasNull());
@@ -1267,7 +1250,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetFloatIndexFromString() throws SQLException {
-    assertNotNull(subject.getFloat(STRING_COLINDEX_NUMBER));
     assertEquals(
         Float.valueOf(STRING_NUMBER_VALUE).floatValue(),
         subject.getFloat(STRING_COLINDEX_NUMBER),
@@ -1279,7 +1261,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetFloatIndexFromBool() throws SQLException {
-    assertNotNull(subject.getFloat(BOOLEAN_COLINDEX_NOTNULL));
     assertEquals(BOOLEAN_VALUE ? 1f : 0f, subject.getFloat(BOOLEAN_COLINDEX_NOTNULL), 0f);
     assertFalse(subject.wasNull());
     assertEquals(0f, subject.getFloat(BOOLEAN_COLINDEX_NULL), 0f);
@@ -1288,7 +1269,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetFloatIndexFromInt64() throws SQLException {
-    assertNotNull(subject.getFloat(LONG_COLINDEX_NOTNULL));
     assertEquals(LONG_VALUE, subject.getFloat(LONG_COLINDEX_NOTNULL), 0f);
     assertFalse(subject.wasNull());
     assertEquals(0f, subject.getFloat(LONG_COLINDEX_NULL), 0f);
@@ -1308,7 +1288,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetByteLabel() throws SQLException {
-    assertNotNull(subject.getByte(LONG_COL_NOT_NULL));
     assertEquals(1, subject.getByte(LONG_COL_NOT_NULL));
     assertFalse(subject.wasNull());
     assertEquals(0, subject.getByte(LONG_COL_NULL));
@@ -1317,7 +1296,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetShortLabel() throws SQLException {
-    assertNotNull(subject.getShort(LONG_COL_NOT_NULL));
     assertEquals(1, subject.getShort(LONG_COL_NOT_NULL));
     assertFalse(subject.wasNull());
     assertEquals(0, subject.getShort(LONG_COL_NULL));
@@ -1326,7 +1304,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetIntLabel() throws SQLException {
-    assertNotNull(subject.getInt(LONG_COL_NOT_NULL));
     assertEquals(1, subject.getInt(LONG_COL_NOT_NULL));
     assertFalse(subject.wasNull());
     assertEquals(0, subject.getInt(LONG_COL_NULL));
@@ -1335,7 +1312,6 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetFloatLabel() throws SQLException {
-    assertNotNull(subject.getFloat(DOUBLE_COL_NOT_NULL));
     float expected = (float) DOUBLE_VALUE;
     assertEquals(expected, subject.getFloat(DOUBLE_COL_NOT_NULL), 0f);
     assertFalse(subject.wasNull());

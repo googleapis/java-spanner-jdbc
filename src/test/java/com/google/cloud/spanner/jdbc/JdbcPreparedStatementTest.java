@@ -44,11 +44,8 @@ import java.net.URL;
 import java.sql.Date;
 import java.sql.JDBCType;
 import java.sql.PreparedStatement;
-import java.sql.Ref;
 import java.sql.ResultSetMetaData;
-import java.sql.RowId;
 import java.sql.SQLException;
-import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -257,21 +254,21 @@ public class JdbcPreparedStatementTest {
 
   private void testSetUnsupportedTypes(PreparedStatement ps) {
     try {
-      ps.setRef(38, (Ref) null);
+      ps.setRef(38, null);
       fail("missing expected exception");
     } catch (SQLException e) {
       assertTrue(e instanceof JdbcSqlException);
       assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
     try {
-      ps.setRowId(39, (RowId) null);
+      ps.setRowId(39, null);
       fail("missing expected exception");
     } catch (SQLException e) {
       assertTrue(e instanceof JdbcSqlException);
       assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
     try {
-      ps.setSQLXML(41, (SQLXML) null);
+      ps.setSQLXML(41, null);
       fail("missing expected exception");
     } catch (SQLException e) {
       assertTrue(e instanceof JdbcSqlException);
