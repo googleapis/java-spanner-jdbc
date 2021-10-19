@@ -1428,7 +1428,7 @@ public class JdbcResultSetTest {
     try (JdbcResultSet rs = JdbcResultSet.of(mock(Statement.class), getMockResultSet())) {
       assertFalse(rs.isAfterLast());
       while (rs.next()) {
-        // do nothing
+        assertFalse(rs.isAfterLast());
       }
       assertTrue(rs.isAfterLast());
     }
@@ -1653,7 +1653,7 @@ public class JdbcResultSetTest {
   public void testGetAfterLast() {
     try (JdbcResultSet rs = JdbcResultSet.of(mock(Statement.class), getMockResultSet())) {
       while (rs.next()) {
-        // do nothing
+        assertNotNull(rs.getBigDecimal(LONG_COLINDEX_NOTNULL));
       }
       rs.getBigDecimal(LONG_COLINDEX_NOTNULL);
       fail("missing expected exception");

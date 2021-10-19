@@ -110,7 +110,9 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
       exec.submit(
           () -> {
             try {
-              while (rs1.next()) {}
+              while (rs1.next()) {
+                assertTrue(rs1.getInt(1) > 0);
+              }
             } catch (SQLException e) {
               throw new RuntimeException(e);
             }
@@ -118,7 +120,9 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
       exec.submit(
           () -> {
             try {
-              while (rs2.next()) {}
+              while (rs2.next()) {
+                assertTrue(rs2.getInt(1) > 0);
+              }
             } catch (SQLException e) {
               throw new RuntimeException(e);
             }

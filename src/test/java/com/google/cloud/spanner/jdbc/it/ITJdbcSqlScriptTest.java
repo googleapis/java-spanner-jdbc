@@ -90,15 +90,17 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
           INSERT_AND_VERIFY_TEST_DATA,
           SqlScriptVerifier.class, false);
     } catch (SQLException e) {
-      if (EmulatorSpannerHelper.isUsingEmulator()
-          && e.getErrorCode() == ErrorCode.ALREADY_EXISTS.getGrpcStatusCode().value()) {
-        // Ignore, this is expected as errors during a read/write transaction are sticky on the
-        // emulator.
+      // Ignore these errors on the emulator, as they are sticky during a read/write transaction on
+      // the emulator.
+      if (!(EmulatorSpannerHelper.isUsingEmulator()
+          && e.getErrorCode() == ErrorCode.ALREADY_EXISTS.getGrpcStatusCode().value())) {
+        throw e;
       }
     } catch (SpannerException e) {
-      if (EmulatorSpannerHelper.isUsingEmulator() && e.getErrorCode() == ErrorCode.ALREADY_EXISTS) {
-        // Ignore, this is expected as errors during a read/write transaction are sticky on the
-        // emulator.
+      // Ignore these errors on the emulator, as they are sticky during a read/write transaction on
+      // the emulator.
+      if (!(EmulatorSpannerHelper.isUsingEmulator() && e.getErrorCode() == ErrorCode.ALREADY_EXISTS)) {
+        throw e;
       }
     }
   }
@@ -117,14 +119,17 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection), TEST_GET_COMMIT_TIMESTAMP, SqlScriptVerifier.class, false);
     } catch (SQLException e) {
-      if (EmulatorSpannerHelper.isUsingEmulator()
-          && e.getErrorCode() == ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value()) {
-        // Ignore as errors during read/write transactions are sticky on the emulator.
+      // Ignore these errors on the emulator, as they are sticky during a read/write transaction on
+      // the emulator.
+      if (!(EmulatorSpannerHelper.isUsingEmulator()
+          && e.getErrorCode() == ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value())) {
+        throw e;
       }
     } catch (SpannerException e) {
-      if (EmulatorSpannerHelper.isUsingEmulator() && e.getErrorCode() == ErrorCode.ALREADY_EXISTS) {
-        // Ignore, this is expected as errors during a read/write transaction are sticky on the
-        // emulator.
+      // Ignore these errors on the emulator, as they are sticky during a read/write transaction on
+      // the emulator.
+      if (!(EmulatorSpannerHelper.isUsingEmulator() && e.getErrorCode() == ErrorCode.ALREADY_EXISTS)) {
+        throw e;
       }
     }
   }

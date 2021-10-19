@@ -264,6 +264,7 @@ public class JdbcAbortedTransactionTest {
       mockSpanner.putStatementResult(
           StatementResult.query(SELECT_RANDOM, new RandomResultSetGenerator(25).generate()));
       try (ResultSet rs = connection.createStatement().executeQuery(SELECT_RANDOM.getSql())) {
+        //noinspection StatementWithEmptyBody
         while (rs.next()) {}
       }
       // Set a new random answer that will be returned during the retry.
