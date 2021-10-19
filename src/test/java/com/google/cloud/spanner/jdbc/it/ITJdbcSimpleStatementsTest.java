@@ -186,7 +186,7 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
                 Struct.newBuilder().set("point").to(Value.int64Array(new long[] {5L, 7L})).build());
         // Getting a result set from an array of structs is not supported, as structs are not
         // supported as a valid column type in a result set.
-        assertThrows(SQLFeatureNotSupportedException.class, () -> array.getResultSet());
+        assertThrows(SQLFeatureNotSupportedException.class, array::getResultSet);
         assertFalse(resultSet.next());
       }
     }

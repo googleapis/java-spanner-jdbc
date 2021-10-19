@@ -210,7 +210,7 @@ public class JdbcArrayTest {
         .asList()
         .containsExactly(Struct.newBuilder().set("f1").to("v1").set("f2").to(1L).build(), null)
         .inOrder();
-    assertThrows(SQLFeatureNotSupportedException.class, () -> array.getResultSet());
+    assertThrows(SQLFeatureNotSupportedException.class, array::getResultSet);
   }
 
   @Test
