@@ -1251,7 +1251,7 @@ public class JdbcResultSetTest {
   @Test
   public void testGetFloatIndexFromString() throws SQLException {
     assertEquals(
-        Float.valueOf(STRING_NUMBER_VALUE),
+        Float.parseFloat(STRING_NUMBER_VALUE),
         subject.getFloat(STRING_COLINDEX_NUMBER),
         0f);
     assertFalse(subject.wasNull());
