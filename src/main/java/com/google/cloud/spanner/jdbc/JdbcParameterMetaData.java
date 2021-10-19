@@ -49,7 +49,7 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
   public int isNullable(int param) throws SQLException {
     Integer nullable = statement.getParameters().getNullable(param);
     //noinspection MagicConstant
-    return nullable == null ? parameterNullableUnknown : nullable.intValue();
+    return nullable == null ? parameterNullableUnknown : nullable;
   }
 
   @Override
@@ -68,7 +68,7 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
   @Override
   public int getPrecision(int param) throws SQLException {
     Integer length = statement.getParameters().getScaleOrLength(param);
-    return length == null ? 0 : length.intValue();
+    return length == null ? 0 : length;
   }
 
   @Override
@@ -79,7 +79,7 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
   @Override
   public int getParameterType(int param) throws SQLException {
     Integer type = statement.getParameters().getType(param);
-    if (type != null) return type.intValue();
+    if (type != null) return type;
 
     Object value = statement.getParameters().getParameter(param);
     if (value == null) {
@@ -125,7 +125,7 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
     Object value = statement.getParameters().getParameter(param);
     if (value != null) return value.getClass().getName();
     Integer type = statement.getParameters().getType(param);
-    if (type != null) return getClassName(type.intValue());
+    if (type != null) return getClassName(type);
     return null;
   }
 

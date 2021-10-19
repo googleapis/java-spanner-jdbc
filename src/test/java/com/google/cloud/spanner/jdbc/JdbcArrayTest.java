@@ -97,7 +97,7 @@ public class JdbcArrayTest {
 
     array = JdbcArray.createArray("FLOAT64", new Double[] {1.1D, 2.2D, Math.PI});
     assertThat(array.getBaseType()).isEqualTo(Types.DOUBLE);
-    assertThat(((Double[]) array.getArray(1, 3))[2]).isEqualTo(Double.valueOf(Math.PI));
+    assertThat(((Double[]) array.getArray(1, 3))[2]).isEqualTo(Math.PI);
     try (ResultSet rs = array.getResultSet()) {
       assertThat(rs.next()).isTrue();
       assertThat(rs.getDouble(2)).isEqualTo(1.1D);
@@ -110,7 +110,7 @@ public class JdbcArrayTest {
 
     array = JdbcArray.createArray("INT64", new Long[] {1L, 2L, 3L});
     assertThat(array.getBaseType()).isEqualTo(Types.BIGINT);
-    assertThat(((Long[]) array.getArray(1, 1))[0]).isEqualTo(Long.valueOf(1L));
+    assertThat(((Long[]) array.getArray(1, 1))[0]).isEqualTo(1L);
     try (ResultSet rs = array.getResultSet()) {
       assertThat(rs.next()).isTrue();
       assertThat(rs.getLong(2)).isEqualTo(1L);

@@ -88,12 +88,12 @@ public class AbstractJdbcWrapperTest {
     CheckedCastToByteChecker checker = new CheckedCastToByteChecker();
     assertThat(checker.cast(0L)).isTrue();
     assertThat(checker.cast(1L)).isTrue();
-    assertThat(checker.cast(Long.valueOf(Byte.MAX_VALUE))).isTrue();
-    assertThat(checker.cast(Long.valueOf(Byte.MAX_VALUE) + 1L)).isFalse();
+    assertThat(checker.cast((long) Byte.MAX_VALUE)).isTrue();
+    assertThat(checker.cast((long) Byte.MAX_VALUE + 1L)).isFalse();
     assertThat(checker.cast(Long.MAX_VALUE)).isFalse();
     assertThat(checker.cast(-1L)).isTrue();
-    assertThat(checker.cast(Long.valueOf(Byte.MIN_VALUE))).isTrue();
-    assertThat(checker.cast(Long.valueOf(Byte.MIN_VALUE) - 1L)).isFalse();
+    assertThat(checker.cast((long) Byte.MIN_VALUE)).isTrue();
+    assertThat(checker.cast((long) Byte.MIN_VALUE - 1L)).isFalse();
     assertThat(checker.cast(Long.MIN_VALUE)).isFalse();
   }
 
@@ -114,12 +114,12 @@ public class AbstractJdbcWrapperTest {
     CheckedCastToShortChecker checker = new CheckedCastToShortChecker();
     assertThat(checker.cast(0L)).isTrue();
     assertThat(checker.cast(1L)).isTrue();
-    assertThat(checker.cast(Long.valueOf(Short.MAX_VALUE))).isTrue();
-    assertThat(checker.cast(Long.valueOf(Short.MAX_VALUE) + 1L)).isFalse();
+    assertThat(checker.cast((long) Short.MAX_VALUE)).isTrue();
+    assertThat(checker.cast((long) Short.MAX_VALUE + 1L)).isFalse();
     assertThat(checker.cast(Long.MAX_VALUE)).isFalse();
     assertThat(checker.cast(-1L)).isTrue();
-    assertThat(checker.cast(Long.valueOf(Short.MIN_VALUE))).isTrue();
-    assertThat(checker.cast(Long.valueOf(Short.MIN_VALUE) - 1L)).isFalse();
+    assertThat(checker.cast((long) Short.MIN_VALUE)).isTrue();
+    assertThat(checker.cast((long) Short.MIN_VALUE - 1L)).isFalse();
     assertThat(checker.cast(Long.MIN_VALUE)).isFalse();
   }
 
@@ -140,12 +140,12 @@ public class AbstractJdbcWrapperTest {
     CheckedCastToIntChecker checker = new CheckedCastToIntChecker();
     assertThat(checker.cast(0L)).isTrue();
     assertThat(checker.cast(1L)).isTrue();
-    assertThat(checker.cast(Long.valueOf(Integer.MAX_VALUE))).isTrue();
-    assertThat(checker.cast(Long.valueOf(Integer.MAX_VALUE) + 1L)).isFalse();
+    assertThat(checker.cast((long) Integer.MAX_VALUE)).isTrue();
+    assertThat(checker.cast((long) Integer.MAX_VALUE + 1L)).isFalse();
     assertThat(checker.cast(Long.MAX_VALUE)).isFalse();
     assertThat(checker.cast(-1L)).isTrue();
-    assertThat(checker.cast(Long.valueOf(Integer.MIN_VALUE))).isTrue();
-    assertThat(checker.cast(Long.valueOf(Integer.MIN_VALUE) - 1L)).isFalse();
+    assertThat(checker.cast((long) Integer.MIN_VALUE)).isTrue();
+    assertThat(checker.cast((long) Integer.MIN_VALUE - 1L)).isFalse();
     assertThat(checker.cast(Long.MIN_VALUE)).isFalse();
   }
 
@@ -166,12 +166,12 @@ public class AbstractJdbcWrapperTest {
     CheckedCastToFloatChecker checker = new CheckedCastToFloatChecker();
     assertThat(checker.cast(0D)).isTrue();
     assertThat(checker.cast(1D)).isTrue();
-    assertThat(checker.cast(Double.valueOf(Float.MAX_VALUE))).isTrue();
-    assertThat(checker.cast(Double.valueOf(Float.MAX_VALUE) * 2.0D)).isFalse();
+    assertThat(checker.cast((double) Float.MAX_VALUE)).isTrue();
+    assertThat(checker.cast((double) Float.MAX_VALUE * 2.0D)).isFalse();
     assertThat(checker.cast(Double.MAX_VALUE)).isFalse();
     assertThat(checker.cast(-1D)).isTrue();
-    assertThat(checker.cast(Double.valueOf(Float.MIN_VALUE))).isTrue();
-    assertThat(checker.cast(Double.valueOf(-Float.MAX_VALUE * 2))).isFalse();
+    assertThat(checker.cast((double) Float.MIN_VALUE)).isTrue();
+    assertThat(checker.cast((double) (-Float.MAX_VALUE * 2))).isFalse();
     assertThat(checker.cast(-Double.MAX_VALUE)).isFalse();
   }
 

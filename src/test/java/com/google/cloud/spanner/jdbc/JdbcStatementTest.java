@@ -460,34 +460,34 @@ public class JdbcStatementTest {
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Long.valueOf(Statement.SUCCESS_NO_INFO),
-              Long.valueOf(Statement.SUCCESS_NO_INFO),
-              Long.valueOf(Statement.SUCCESS_NO_INFO));
+              (long) Statement.SUCCESS_NO_INFO,
+              (long) Statement.SUCCESS_NO_INFO,
+              (long) Statement.SUCCESS_NO_INFO);
 
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {0L, 0L, 0L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Long.valueOf(Statement.EXECUTE_FAILED),
-              Long.valueOf(Statement.EXECUTE_FAILED),
-              Long.valueOf(Statement.EXECUTE_FAILED));
+              (long) Statement.EXECUTE_FAILED,
+              (long) Statement.EXECUTE_FAILED,
+              (long) Statement.EXECUTE_FAILED);
 
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 0L, 2L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Long.valueOf(Statement.SUCCESS_NO_INFO),
-              Long.valueOf(Statement.EXECUTE_FAILED),
-              Long.valueOf(Statement.SUCCESS_NO_INFO));
+              (long) Statement.SUCCESS_NO_INFO,
+              (long) Statement.EXECUTE_FAILED,
+              (long) Statement.SUCCESS_NO_INFO);
 
       statement.convertUpdateCountsToSuccessNoInfo(
           new long[] {1L, Integer.MAX_VALUE + 1L, 2L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Long.valueOf(Statement.SUCCESS_NO_INFO),
-              Long.valueOf(Statement.SUCCESS_NO_INFO),
-              Long.valueOf(Statement.SUCCESS_NO_INFO));
+              (long) Statement.SUCCESS_NO_INFO,
+              (long) Statement.SUCCESS_NO_INFO,
+              (long) Statement.SUCCESS_NO_INFO);
     }
   }
 }
