@@ -485,7 +485,7 @@ class JdbcParameterStore {
     }
     if (res == null && value != null) {
       throw JdbcSqlExceptionFactory.of(
-          "Unsupported parameter type: " + value.getClass().getName() + " - " + value.toString(),
+          "Unsupported parameter type: " + value.getClass().getName() + " - " + value,
           Code.INVALID_ARGUMENT);
     }
     return res;
@@ -761,7 +761,7 @@ class JdbcParameterStore {
         return setArrayValue(binder, jdbcArray.getBaseType(), jdbcArray.getArray());
       } catch (SQLException e) {
         throw new IllegalArgumentException(
-            "Unsupported parameter type: " + value.getClass().getName() + " - " + value.toString());
+            "Unsupported parameter type: " + value.getClass().getName() + " - " + value);
       }
     }
     return null;

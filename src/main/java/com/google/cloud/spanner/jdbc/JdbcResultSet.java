@@ -592,7 +592,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     if (type == Type.timestamp()) return getTimestamp(columnIndex);
     if (type.getCode() == Code.ARRAY) return getArray(columnIndex);
     throw JdbcSqlExceptionFactory.of(
-        "Unknown type: " + type.toString(), com.google.rpc.Code.INVALID_ARGUMENT);
+        "Unknown type: " + type, com.google.rpc.Code.INVALID_ARGUMENT);
   }
 
   @Override

@@ -1049,7 +1049,7 @@ public class JdbcResultSetTest {
 
     assertNotNull(subject.getTimestamp(DATE_COLINDEX_NOTNULL, cal));
     assertEquals(
-        Timestamp.parseTimestamp(String.format("%sT00:00:00-08:00", DATE_VALUE.toString()))
+        Timestamp.parseTimestamp(String.format("%sT00:00:00-08:00", DATE_VALUE))
             .toSqlTimestamp(),
         subject.getTimestamp(DATE_COLINDEX_NOTNULL, cal));
     assertFalse(subject.wasNull());
