@@ -832,23 +832,17 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   public ResultSet getBestRowIdentifier(
       String catalog, String schema, String table, int scope, boolean nullable)
        {
-    return JdbcResultSet.of(
-        ResultSets.forRows(
-            Type.struct(
-                StructField.of("SCOPE", Type.int64()),
-                StructField.of("COLUMN_NAME", Type.string()),
-                StructField.of("DATA_TYPE", Type.int64()),
-                StructField.of("TYPE_NAME", Type.string()),
-                StructField.of("COLUMN_SIZE", Type.int64()),
-                StructField.of("BUFFER_LENGTH", Type.int64()),
-                StructField.of("DECIMAL_DIGITS", Type.int64()),
-                StructField.of("PSEUDO_COLUMN", Type.int64())),
-            Collections.emptyList()));
+         return getEmptyColumnsResultSet();
   }
 
   @Override
   public ResultSet getVersionColumns(String catalog, String schema, String table)
        {
+         return getEmptyColumnsResultSet();
+  }
+
+  private ResultSet getEmptyColumnsResultSet()
+  {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
