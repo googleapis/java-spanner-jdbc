@@ -90,7 +90,7 @@ class JdbcTypeConverter {
         if (type.getCode() == Code.INT64) return (Long) value != 0;
         if (type.getCode() == Code.FLOAT64) return (Double) value != 0d;
         if (type.getCode() == Code.NUMERIC)
-          return !((BigDecimal) value).equals(BigDecimal.ZERO);
+          return !value.equals(BigDecimal.ZERO);
       }
       if (targetType.equals(BigDecimal.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? BigDecimal.ONE : BigDecimal.ZERO;
@@ -224,40 +224,31 @@ class JdbcTypeConverter {
       throws SQLException {
     if (value == null) return;
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.ARRAY && Array.class.isAssignableFrom(value.getClass()))
-            || type.getCode() != Code.ARRAY,
+        type.getCode() != Code.ARRAY || Array.class.isAssignableFrom(value.getClass()),
         "input type is array, but input value is not an instance of java.sql.Array");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.BOOL && value.getClass().equals(Boolean.class))
-            || type.getCode() != Code.BOOL,
+        type.getCode() != Code.BOOL || value.getClass().equals(Boolean.class),
         "input type is bool, but input value is not an instance of Boolean");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.BYTES && value.getClass().equals(byte[].class))
-            || type.getCode() != Code.BYTES,
+        type.getCode() != Code.BYTES || value.getClass().equals(byte[].class),
         "input type is bytes, but input value is not an instance of byte[]");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.DATE && value.getClass().equals(java.sql.Date.class))
-            || type.getCode() != Code.DATE,
+        type.getCode() != Code.DATE || value.getClass().equals(java.sql.Date.class),
         "input type is date, but input value is not an instance of java.sql.Date");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.FLOAT64 && value.getClass().equals(Double.class))
-            || type.getCode() != Code.FLOAT64,
+        type.getCode() != Code.FLOAT64 || value.getClass().equals(Double.class),
         "input type is float64, but input value is not an instance of Double");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.INT64 && value.getClass().equals(Long.class))
-            || type.getCode() != Code.INT64,
+        type.getCode() != Code.INT64 || value.getClass().equals(Long.class),
         "input type is int64, but input value is not an instance of Long");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.STRING && value.getClass().equals(String.class))
-            || type.getCode() != Code.STRING,
+        type.getCode() != Code.STRING || value.getClass().equals(String.class),
         "input type is string, but input value is not an instance of String");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.TIMESTAMP && value.getClass().equals(java.sql.Timestamp.class))
-            || type.getCode() != Code.TIMESTAMP,
+        type.getCode() != Code.TIMESTAMP || value.getClass().equals(java.sql.Timestamp.class),
         "input type is timestamp, but input value is not an instance of java.sql.Timestamp");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.NUMERIC && value.getClass().equals(BigDecimal.class))
-            || type.getCode() != Code.NUMERIC,
+        type.getCode() != Code.NUMERIC || value.getClass().equals(BigDecimal.class),
         "input type is numeric, but input value is not an instance of BigDecimal");
   }
 
