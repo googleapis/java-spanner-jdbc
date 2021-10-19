@@ -272,7 +272,9 @@ class JdbcTypeConverter {
 
   static List<Date> toGoogleDates(java.sql.Date[] dates) {
     List<com.google.cloud.Date> res = new ArrayList<>(dates.length);
-    for (int index = 0; index < dates.length; index++) res.add(toGoogleDate(dates[index]));
+    for (java.sql.Date date : dates) {
+      res.add(toGoogleDate(date));
+    }
     return res;
   }
 
@@ -378,8 +380,8 @@ class JdbcTypeConverter {
 
   static List<Timestamp> toGoogleTimestamps(java.sql.Timestamp[] timestamps) {
     List<com.google.cloud.Timestamp> res = new ArrayList<>(timestamps.length);
-    for (int index = 0; index < timestamps.length; index++) {
-      res.add(toGoogleTimestamp(timestamps[index]));
+    for (java.sql.Timestamp timestamp : timestamps) {
+      res.add(toGoogleTimestamp(timestamp));
     }
     return res;
   }
@@ -421,8 +423,8 @@ class JdbcTypeConverter {
 
   static List<ByteArray> toGoogleBytes(byte[][] bytes) {
     List<ByteArray> res = new ArrayList<>(bytes.length);
-    for (int index = 0; index < bytes.length; index++) {
-      res.add(bytes[index] == null ? null : ByteArray.copyFrom(bytes[index]));
+    for (byte[] aByte : bytes) {
+      res.add(aByte == null ? null : ByteArray.copyFrom(aByte));
     }
     return res;
   }

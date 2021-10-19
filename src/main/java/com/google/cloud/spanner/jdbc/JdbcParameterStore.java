@@ -869,16 +869,16 @@ class JdbcParameterStore {
 
   private List<Long> toLongList(Number[] input) {
     List<Long> res = new ArrayList<>(input.length);
-    for (int i = 0; i < input.length; i++) {
-      res.add(input[i] == null ? null : input[i].longValue());
+    for (Number number : input) {
+      res.add(number == null ? null : number.longValue());
     }
     return res;
   }
 
   private List<Double> toDoubleList(Number[] input) {
     List<Double> res = new ArrayList<>(input.length);
-    for (int i = 0; i < input.length; i++) {
-      res.add(input[i] == null ? null : input[i].doubleValue());
+    for (Number number : input) {
+      res.add(number == null ? null : number.doubleValue());
     }
     return res;
   }
