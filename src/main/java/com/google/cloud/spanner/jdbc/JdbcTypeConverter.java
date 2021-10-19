@@ -368,7 +368,7 @@ class JdbcTypeConverter {
   static Timestamp toGoogleTimestamp(java.sql.Date ts) {
     if (ts != null) {
       long milliseconds = ts.getTime();
-      long seconds = milliseconds / 1000l;
+      long seconds = milliseconds / 1000L;
       long nanos = (milliseconds - (seconds * 1000)) * 1000000;
       return com.google.cloud.Timestamp.ofTimeSecondsAndNanos(seconds, (int) nanos);
     }
@@ -378,7 +378,7 @@ class JdbcTypeConverter {
   static Timestamp toGoogleTimestamp(java.sql.Time ts) {
     if (ts != null) {
       long milliseconds = ts.getTime();
-      long seconds = milliseconds / 1000l;
+      long seconds = milliseconds / 1000L;
       long nanos = (milliseconds - (seconds * 1000)) * 1000000;
       return com.google.cloud.Timestamp.ofTimeSecondsAndNanos(seconds, (int) nanos);
     }
@@ -388,7 +388,7 @@ class JdbcTypeConverter {
   static Timestamp toGoogleTimestamp(java.sql.Timestamp ts) {
     if (ts != null) {
       long milliseconds = ts.getTime();
-      long seconds = milliseconds / 1000l;
+      long seconds = milliseconds / 1000L;
       int nanos = ts.getNanos();
       return com.google.cloud.Timestamp.ofTimeSecondsAndNanos(seconds, nanos);
     }

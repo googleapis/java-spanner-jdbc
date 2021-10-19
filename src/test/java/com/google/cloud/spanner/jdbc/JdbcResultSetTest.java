@@ -804,9 +804,9 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetLongLabel() throws SQLException {
-    assertEquals(1l, subject.getLong(LONG_COL_NOT_NULL));
+    assertEquals(1L, subject.getLong(LONG_COL_NOT_NULL));
     assertFalse(subject.wasNull());
-    assertEquals(0l, subject.getLong(LONG_COL_NULL));
+    assertEquals(0L, subject.getLong(LONG_COL_NULL));
     assertTrue(subject.wasNull());
   }
 
