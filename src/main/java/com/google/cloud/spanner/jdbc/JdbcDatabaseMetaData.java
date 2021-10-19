@@ -61,7 +61,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
     return builder.toString();
   }
 
-  private JdbcConnection connection;
+  private final JdbcConnection connection;
 
   JdbcDatabaseMetaData(JdbcConnection connection) {
     this.connection = connection;

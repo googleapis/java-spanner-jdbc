@@ -157,7 +157,7 @@ public class JdbcResultSetTest {
   private static final String JSON_ARRAY_COL = "JSON_ARRAY";
   private static final List<String> JSON_ARRAY_VALUE = Arrays.asList(JSON_VALUE, null);
 
-  private JdbcResultSet subject;
+  private final JdbcResultSet subject;
 
   static ResultSet getMockResultSet() {
     return ResultSets.forRows(
