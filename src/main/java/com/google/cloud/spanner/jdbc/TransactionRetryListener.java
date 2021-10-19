@@ -28,7 +28,7 @@ public interface TransactionRetryListener {
   /** Use {@link com.google.cloud.spanner.connection.TransactionRetryListener.RetryResult} */
   @InternalApi
   @Deprecated
-  public enum RetryResult {
+  enum RetryResult {
     /** The retry executed successfully and the transaction will continue. */
     RETRY_SUCCESSFUL,
     /** The retry was aborted by Spanner and another retry attempt will be started. */
