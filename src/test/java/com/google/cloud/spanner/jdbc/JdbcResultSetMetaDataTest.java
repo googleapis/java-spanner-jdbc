@@ -49,7 +49,6 @@ import org.mockito.internal.stubbing.answers.Returns;
 @RunWith(JUnit4.class)
 public class JdbcResultSetMetaDataTest {
   private JdbcResultSetMetaData subject;
-  private java.sql.Connection connection;
 
   private static class TestColumn {
     private final Type type;
@@ -57,7 +56,7 @@ public class JdbcResultSetMetaDataTest {
     private final int defaultSize;
     private final boolean calculated;
 
-    private TestColumn(Type type, String name, Integer nulls, int size, boolean calculated) {
+    private TestColumn(Type type, String name, Integer nulls, boolean calculated) {
       Preconditions.checkNotNull(type);
       Preconditions.checkNotNull(name);
       Preconditions.checkNotNull(nulls);
@@ -87,7 +86,6 @@ public class JdbcResultSetMetaDataTest {
       private Type type;
       private String name;
       private Integer nulls;
-      private int size = 0;
       private boolean calculated = false;
 
       public static Builder getBuilder() {
@@ -95,7 +93,7 @@ public class JdbcResultSetMetaDataTest {
       }
 
       private TestColumn build() {
-        return new TestColumn(type, name, nulls, size, calculated);
+        return new TestColumn(type, name, nulls, calculated);
       }
 
       private Builder withType(Type type) {
@@ -123,13 +121,8 @@ public class JdbcResultSetMetaDataTest {
         return this;
       }
 
-      private Builder withSize(int size) {
-        this.size = size;
-        return this;
-      }
-
-      private Builder withCalculated(boolean calculated) {
-        this.calculated = calculated;
+      private Builder withCalculated() {
+        this.calculated = true;
         return this;
       }
     }
@@ -139,7 +132,7 @@ public class JdbcResultSetMetaDataTest {
 
   @Before
   public void setup() throws SQLException {
-    connection = mock(java.sql.Connection.class);
+    java.sql.Connection connection = mock(java.sql.Connection.class);
     Statement statement = mock(Statement.class);
     JdbcResultSet resultSet = getFooTestResultSet(statement);
     when(connection.getSchema()).thenReturn("");
@@ -154,25 +147,24 @@ public class JdbcResultSetMetaDataTest {
     int index = 1;
     for (Type type : getAllTypes()) {
       TestColumn.Builder builder = TestColumn.Builder.getBuilder();
-      builder.withName("COL" + index).withType(type).withSize(getDefaultSize(type));
-      if (index % 2 == 1) builder.withNotNull();
-      else builder.withNullable();
+      builder.withName("COL" + index).withType(type);
+      if (index % 2 == 1) {
+        builder.withNotNull();
+      } else {
+        builder.withNullable();
+      }
       res.add(builder.build());
       index++;
     }
     TestColumn.Builder builder = TestColumn.Builder.getBuilder();
-    builder
+    TestColumn column = builder
         .withName("CALCULATED")
         .withType(Type.int64())
         .withNullableUnknown()
-        .withCalculated(true);
-    res.add(builder.build());
+        .withCalculated()
+        .build();
+    res.add(column);
     return res;
-  }
-
-  private static int getDefaultSize(Type type) {
-    if (type == Type.string()) return 100;
-    return 0;
   }
 
   private static List<Type> getAllTypes() {
