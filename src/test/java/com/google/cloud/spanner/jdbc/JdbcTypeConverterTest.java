@@ -513,7 +513,7 @@ public class JdbcTypeConverterTest {
 
   @SuppressWarnings("deprecation")
   @Test
-  public void testToSqlTimestamp() throws SQLException {
+  public void testToSqlTimestamp() {
     TimeZone initialDefault = TimeZone.getDefault();
     try {
       for (TimeZone zone : getTestTimeZones()) {
@@ -564,7 +564,7 @@ public class JdbcTypeConverterTest {
   }
 
   @Test
-  public void testGetAsSqlTimestamp() throws SQLException {
+  public void testGetAsSqlTimestamp() {
     for (TimeZone zone : getTestTimeZones()) {
       com.google.cloud.Timestamp gts =
           ReadOnlyStalenessUtil.parseRfc3339("2019-08-24T11:23:01.1998+03:00");
@@ -601,7 +601,7 @@ public class JdbcTypeConverterTest {
 
   @SuppressWarnings("deprecation")
   @Test
-  public void testSetTimestampInCalendar() throws SQLException {
+  public void testSetTimestampInCalendar() {
     for (TimeZone zone : getTestTimeZones()) {
       Calendar cal = Calendar.getInstance(zone);
       cal.set(2019, 7, 24, 11, 23, 1);

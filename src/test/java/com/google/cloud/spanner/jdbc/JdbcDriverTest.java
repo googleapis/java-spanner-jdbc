@@ -128,7 +128,7 @@ public class JdbcDriverTest {
   }
 
   @Test
-  public void testConnectWithCredentialsAndOAuthToken() throws SQLException {
+  public void testConnectWithCredentialsAndOAuthToken() {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(

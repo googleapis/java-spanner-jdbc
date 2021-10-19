@@ -90,7 +90,7 @@ public class JdbcConnectionTest {
   }
 
   @Test
-  public void testReadOnly() throws SQLException {
+  public void testReadOnly() {
     ConnectionOptions options = mock(ConnectionOptions.class);
     when(options.isAutocommit()).thenReturn(true);
     when(options.isReadOnly()).thenReturn(true);
@@ -149,11 +149,6 @@ public class JdbcConnectionTest {
       }
     }
   }
-
-  @Test
-  public void testClosedAbstractJdbcConnection()
-      throws SQLException, NoSuchMethodException, SecurityException, IllegalAccessException,
-          IllegalArgumentException {}
 
   @Test
   public void testClosedJdbcConnection()
@@ -729,7 +724,7 @@ public class JdbcConnectionTest {
   }
 
   @Test
-  public void testIsReturnCommitStats_throwsSqlException() throws SQLException {
+  public void testIsReturnCommitStats_throwsSqlException() {
     ConnectionOptions options = mock(ConnectionOptions.class);
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
@@ -751,7 +746,7 @@ public class JdbcConnectionTest {
   }
 
   @Test
-  public void testSetReturnCommitStats_throwsSqlException() throws SQLException {
+  public void testSetReturnCommitStats_throwsSqlException() {
     ConnectionOptions options = mock(ConnectionOptions.class);
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
@@ -774,7 +769,7 @@ public class JdbcConnectionTest {
   }
 
   @Test
-  public void testGetCommitResponse_throwsSqlException() throws SQLException {
+  public void testGetCommitResponse_throwsSqlException() {
     ConnectionOptions options = mock(ConnectionOptions.class);
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);

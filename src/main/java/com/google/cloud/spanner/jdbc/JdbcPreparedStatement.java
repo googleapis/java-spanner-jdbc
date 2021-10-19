@@ -45,7 +45,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
         JdbcParameterStore.convertPositionalParametersToNamedParameters(sqlWithoutComments);
   }
 
-  ParametersInfo getParametersInfo() throws SQLException {
+  ParametersInfo getParametersInfo() {
     return parameters;
   }
 

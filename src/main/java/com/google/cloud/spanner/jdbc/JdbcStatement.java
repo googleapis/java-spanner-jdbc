@@ -332,7 +332,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   }
 
   @VisibleForTesting
-  void convertUpdateCountsToSuccessNoInfo(long[] updateCounts, long[] res) throws SQLException {
+  void convertUpdateCountsToSuccessNoInfo(long[] updateCounts, long[] res) {
     Preconditions.checkNotNull(updateCounts);
     Preconditions.checkNotNull(res);
     Preconditions.checkArgument(res.length >= updateCounts.length);

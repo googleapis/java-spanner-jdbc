@@ -35,7 +35,7 @@ public class AbstractJdbcWrapperTest {
   /** Create a concrete sub class to use for testing. */
   private static class TestWrapper extends AbstractJdbcWrapper {
     @Override
-    public boolean isClosed() throws SQLException {
+    public boolean isClosed() {
       return false;
     }
   }
@@ -44,7 +44,7 @@ public class AbstractJdbcWrapperTest {
   private static class SubTestWrapper extends TestWrapper {}
 
   @Test
-  public void testIsWrapperFor() throws SQLException {
+  public void testIsWrapperFor() {
     TestWrapper subject = new TestWrapper();
     assertThat(subject.isWrapperFor(TestWrapper.class)).isTrue();
     assertThat(subject.isWrapperFor(SubTestWrapper.class)).isFalse();
@@ -59,7 +59,7 @@ public class AbstractJdbcWrapperTest {
   }
 
   @Test
-  public void testUnwrap() throws SQLException {
+  public void testUnwrap() {
     TestWrapper subject = new TestWrapper();
     assertThat(unwrapSucceeds(subject, TestWrapper.class)).isTrue();
     assertThat(unwrapSucceeds(subject, SubTestWrapper.class)).isFalse();
@@ -67,7 +67,7 @@ public class AbstractJdbcWrapperTest {
     assertThat(unwrapSucceeds(subject, getClass())).isFalse();
   }
 
-  private static interface CheckedCastChecker<V> {
+  private interface CheckedCastChecker<V> {
     boolean cast(V val);
   }
 
@@ -84,7 +84,7 @@ public class AbstractJdbcWrapperTest {
   }
 
   @Test
-  public void testCheckedCastToByte() throws SQLException {
+  public void testCheckedCastToByte() {
     CheckedCastToByteChecker checker = new CheckedCastToByteChecker();
     assertThat(checker.cast(0L)).isTrue();
     assertThat(checker.cast(1L)).isTrue();
@@ -110,7 +110,7 @@ public class AbstractJdbcWrapperTest {
   }
 
   @Test
-  public void testCheckedCastToShort() throws SQLException {
+  public void testCheckedCastToShort() {
     CheckedCastToShortChecker checker = new CheckedCastToShortChecker();
     assertThat(checker.cast(0L)).isTrue();
     assertThat(checker.cast(1L)).isTrue();
@@ -136,7 +136,7 @@ public class AbstractJdbcWrapperTest {
   }
 
   @Test
-  public void testCheckedCastToInt() throws SQLException {
+  public void testCheckedCastToInt() {
     CheckedCastToIntChecker checker = new CheckedCastToIntChecker();
     assertThat(checker.cast(0L)).isTrue();
     assertThat(checker.cast(1L)).isTrue();
@@ -162,7 +162,7 @@ public class AbstractJdbcWrapperTest {
   }
 
   @Test
-  public void testCheckedCastToFloat() throws SQLException {
+  public void testCheckedCastToFloat() {
     CheckedCastToFloatChecker checker = new CheckedCastToFloatChecker();
     assertThat(checker.cast(0D)).isTrue();
     assertThat(checker.cast(1D)).isTrue();

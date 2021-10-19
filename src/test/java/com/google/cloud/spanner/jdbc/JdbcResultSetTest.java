@@ -402,7 +402,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetStringIndexForArray() throws SQLException {
+  public void testGetStringIndexForArray() {
     try {
       subject.getString(ARRAY_COLINDEX_NOTNULL);
       fail("missing SQLException");
@@ -414,7 +414,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetStringIndexForNullArray() throws SQLException {
+  public void testGetStringIndexForNullArray() {
     try {
       subject.getString(ARRAY_COLINDEX_NULL);
       fail("missing SQLException");
@@ -492,7 +492,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetBooleanIndexForDate() throws SQLException {
+  public void testGetBooleanIndexForDate() {
     try {
       subject.getBoolean(DATE_COLINDEX_NOTNULL);
       fail("missing expected SQLException");
@@ -547,7 +547,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetLongIndexForString() throws SQLException {
+  public void testGetLongIndexForString() {
     try {
       subject.getLong(STRING_COLINDEX_NOTNULL);
       fail("missing expected SQLException");
@@ -571,7 +571,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetLongIndexForTimestamp() throws SQLException {
+  public void testGetLongIndexForTimestamp() {
     try {
       subject.getLong(TIMESTAMP_COLINDEX_NOTNULL);
       fail("missing expected SQLException");
@@ -621,7 +621,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetDoubleIndexFromTimestamp() throws SQLException {
+  public void testGetDoubleIndexFromTimestamp() {
     try {
       subject.getDouble(TIMESTAMP_COLINDEX_NULL);
       fail("missing expected SQLException");
@@ -1164,7 +1164,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetShortIndexFromBytes() throws SQLException {
+  public void testGetShortIndexFromBytes() {
     try {
       subject.getShort(BYTES_COL_NULL);
       fail("missing expected SQLException");
@@ -1226,7 +1226,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetIntIndexFromTimestamp() throws SQLException {
+  public void testGetIntIndexFromTimestamp() {
     try {
       subject.getInt(TIMESTAMP_COL_NULL);
       fail("missing expected SQLException");
@@ -1296,7 +1296,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetFloatIndexFromTimestamp() throws SQLException {
+  public void testGetFloatIndexFromTimestamp() {
     try {
       subject.getFloat(TIMESTAMP_COLINDEX_NULL);
       fail("missing expected SQLException");
@@ -1429,12 +1429,12 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testGetWarnings() throws SQLException {
+  public void testGetWarnings() {
     assertNull(subject.getWarnings());
   }
 
   @Test
-  public void testClearWarnings() throws SQLException {
+  public void testClearWarnings() {
     subject.clearWarnings();
   }
 
@@ -1693,7 +1693,7 @@ public class JdbcResultSetTest {
   }
 
   @Test
-  public void testFindIllegalColumnName() throws SQLException {
+  public void testFindIllegalColumnName() {
     try {
       subject.findColumn(UNKNOWN_COLUMN);
       fail("missing expected exception");

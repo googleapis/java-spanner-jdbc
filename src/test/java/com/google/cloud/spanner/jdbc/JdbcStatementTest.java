@@ -104,7 +104,7 @@ public class JdbcStatementTest {
             new Answer<long[]>() {
               @SuppressWarnings("unchecked")
               @Override
-              public long[] answer(InvocationOnMock invocation) throws Throwable {
+              public long[] answer(InvocationOnMock invocation) {
                 List<com.google.cloud.spanner.Statement> statements =
                     (List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0];
                 if (statements.isEmpty()
@@ -331,7 +331,7 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testExecuteUpdateWithSelectStatement() throws SQLException {
+  public void testExecuteUpdateWithSelectStatement() {
     Statement statement = createStatement();
     try {
       statement.executeUpdate(SELECT);
@@ -438,7 +438,7 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testConvertUpdateCounts() throws SQLException {
+  public void testConvertUpdateCounts() {
     try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
       int[] updateCounts = statement.convertUpdateCounts(new long[] {1L, 2L, 3L});
       assertThat(updateCounts).asList().containsExactly(1, 2, 3);

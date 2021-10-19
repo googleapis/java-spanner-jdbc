@@ -194,7 +194,7 @@ public class JdbcResultSetMetaDataTest {
     return types;
   }
 
-  private JdbcResultSet getFooTestResultSet(Statement statement) throws SQLException {
+  private JdbcResultSet getFooTestResultSet(Statement statement) {
     List<Struct> rows = new ArrayList<>(4);
     for (int row = 1; row <= 4; row++) {
       Struct.Builder builder = Struct.newBuilder();
