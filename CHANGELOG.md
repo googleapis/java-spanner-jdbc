@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.5.0](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.4.5...v2.5.0) (2021-10-25)
+
+
+### Features
+
+* support VIEW in metadata queries ([#633](https://www.github.com/googleapis/java-spanner-jdbc/issues/633)) ([b929191](https://www.github.com/googleapis/java-spanner-jdbc/commit/b929191a7b6699f9daf9a7c06097e9794c79ff8d)), closes [#632](https://www.github.com/googleapis/java-spanner-jdbc/issues/632)
+
+
+### Bug Fixes
+
+* **java:** java 17 dependency arguments ([#1266](https://www.github.com/googleapis/java-spanner-jdbc/issues/1266)) ([#645](https://www.github.com/googleapis/java-spanner-jdbc/issues/645)) ([0474502](https://www.github.com/googleapis/java-spanner-jdbc/commit/0474502936ff1a43244fcb830fecfc5f42895899))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v2.4.0 ([#641](https://www.github.com/googleapis/java-spanner-jdbc/issues/641)) ([ab26010](https://www.github.com/googleapis/java-spanner-jdbc/commit/ab26010ba107d4ba9591d661743ad542ae3b227f))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v6.13.0 ([#637](https://www.github.com/googleapis/java-spanner-jdbc/issues/637)) ([d981c8c](https://www.github.com/googleapis/java-spanner-jdbc/commit/d981c8c744829aa039b16df0b150caf49a99f1cc))
+* update dependency com.google.cloud:google-cloud-spanner-bom to v6.14.0 ([#647](https://www.github.com/googleapis/java-spanner-jdbc/issues/647)) ([3cda837](https://www.github.com/googleapis/java-spanner-jdbc/commit/3cda83737c25c8878d19bee1727de84e086065b6))
+* upgrade Mockito to support Java17 ([#635](https://www.github.com/googleapis/java-spanner-jdbc/issues/635)) ([d78792f](https://www.github.com/googleapis/java-spanner-jdbc/commit/d78792f7acdd2fdac8a655fba06789ba50457679))
+
 ### [2.4.5](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.4.4...v2.4.5) (2021-09-29)
 
 
