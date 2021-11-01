@@ -24,7 +24,6 @@ import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptions.ConnectionProperty;
 import com.google.cloud.spanner.connection.SpannerPool;
-import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
@@ -37,6 +36,7 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -46,9 +46,7 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class JdbcDriverTest {
-  /**
-   * Make sure the JDBC driver class is loaded. This is needed when running the test using Maven.
-   */
+  // Make sure the JDBC driver class is loaded. This is needed when running the test using Maven.
   static {
     try {
       Class.forName("com.google.cloud.spanner.jdbc.JdbcDriver");
@@ -58,16 +56,14 @@ public class JdbcDriverTest {
     }
   }
 
-  private static MockSpannerServiceImpl mockSpanner;
   private static Server server;
-  private static InetSocketAddress address;
   private static final String TEST_KEY_PATH =
-      JdbcDriverTest.class.getResource("test-key.json").getFile();
+      Objects.requireNonNull(JdbcDriverTest.class.getResource("test-key.json")).getFile();
 
   @BeforeClass
   public static void startStaticServer() throws IOException {
-    mockSpanner = new MockSpannerServiceImpl();
-    address = new InetSocketAddress("localhost", 0);
+    MockSpannerServiceImpl mockSpanner = new MockSpannerServiceImpl();
+    InetSocketAddress address = new InetSocketAddress("localhost", 0);
     server = NettyServerBuilder.forAddress(address).addService(mockSpanner).build().start();
   }
 
@@ -128,7 +124,7 @@ public class JdbcDriverTest {
   }
 
   @Test
-  public void testConnectWithCredentialsAndOAuthToken() throws SQLException {
+  public void testConnectWithCredentialsAndOAuthToken() {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -149,23 +145,9 @@ public class JdbcDriverTest {
     assertThat(props).hasLength(ConnectionOptions.VALID_PROPERTIES.size());
 
     Collection<String> validConnectionPropertyNames =
-        Collections2.transform(
-            ConnectionOptions.VALID_PROPERTIES,
-            new Function<ConnectionProperty, String>() {
-              @Override
-              public String apply(ConnectionProperty input) {
-                return input.getName();
-              }
-            });
+        Collections2.transform(ConnectionOptions.VALID_PROPERTIES, ConnectionProperty::getName);
     Collection<String> driverPropertyNames =
-        Collections2.transform(
-            ImmutableList.copyOf(props),
-            new Function<DriverPropertyInfo, String>() {
-              @Override
-              public String apply(DriverPropertyInfo input) {
-                return input.name;
-              }
-            });
+        Collections2.transform(ImmutableList.copyOf(props), input -> input.name);
     assertThat(driverPropertyNames).containsExactlyElementsIn(validConnectionPropertyNames);
   }
 

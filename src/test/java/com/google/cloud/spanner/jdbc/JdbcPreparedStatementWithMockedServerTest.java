@@ -51,7 +51,6 @@ import org.junit.runners.Parameterized.Parameters;
 public class JdbcPreparedStatementWithMockedServerTest {
   private static MockSpannerServiceImpl mockSpanner;
   private static Server server;
-  private static InetSocketAddress address;
 
   @Parameter public boolean executeLarge;
 
@@ -64,7 +63,7 @@ public class JdbcPreparedStatementWithMockedServerTest {
   public static void startStaticServer() throws IOException {
     mockSpanner = new MockSpannerServiceImpl();
     mockSpanner.setAbortProbability(0.0D);
-    address = new InetSocketAddress("localhost", 0);
+    InetSocketAddress address = new InetSocketAddress("localhost", 0);
     server = NettyServerBuilder.forAddress(address).addService(mockSpanner).build().start();
   }
 

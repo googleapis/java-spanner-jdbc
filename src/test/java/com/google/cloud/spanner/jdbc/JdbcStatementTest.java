@@ -43,7 +43,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 @RunWith(JUnit4.class)
@@ -53,6 +52,7 @@ public class JdbcStatementTest {
   private static final String LARGE_UPDATE = "UPDATE FOO SET BAR=1 WHERE 1=1";
   private static final String DDL = "CREATE INDEX FOO ON BAR(ID)";
 
+  @SuppressWarnings("unchecked")
   private JdbcStatement createStatement() {
     Connection spanner = mock(Connection.class);
 
@@ -101,24 +101,21 @@ public class JdbcStatementTest {
 
     when(spanner.executeBatchUpdate(anyList()))
         .thenAnswer(
-            new Answer<long[]>() {
-              @SuppressWarnings("unchecked")
-              @Override
-              public long[] answer(InvocationOnMock invocation) throws Throwable {
-                List<com.google.cloud.spanner.Statement> statements =
-                    (List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0];
-                if (statements.isEmpty()
-                    || StatementParser.INSTANCE.isDdlStatement(statements.get(0).getSql())) {
-                  return new long[0];
-                }
-                long[] res =
-                    new long
-                        [((List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0])
-                            .size()];
-                Arrays.fill(res, 1L);
-                return res;
-              }
-            });
+            (Answer<long[]>)
+                invocation -> {
+                  List<com.google.cloud.spanner.Statement> statements =
+                      (List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0];
+                  if (statements.isEmpty()
+                      || StatementParser.INSTANCE.isDdlStatement(statements.get(0).getSql())) {
+                    return new long[0];
+                  }
+                  long[] res =
+                      new long
+                          [((List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0])
+                              .size()];
+                  Arrays.fill(res, 1L);
+                  return res;
+                });
 
     JdbcConnection connection = mock(JdbcConnection.class);
     when(connection.getSpannerConnection()).thenReturn(spanner);
@@ -331,7 +328,7 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testExecuteUpdateWithSelectStatement() throws SQLException {
+  public void testExecuteUpdateWithSelectStatement() {
     Statement statement = createStatement();
     try {
       statement.executeUpdate(SELECT);
@@ -438,7 +435,7 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testConvertUpdateCounts() throws SQLException {
+  public void testConvertUpdateCounts() {
     try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
       int[] updateCounts = statement.convertUpdateCounts(new long[] {1L, 2L, 3L});
       assertThat(updateCounts).asList().containsExactly(1, 2, 3);
@@ -453,41 +450,41 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testConvertUpdateCountsToSuccessNoInfo() throws SQLException {
+  public void testConvertUpdateCountsToSuccessNoInfo() {
     try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
       long[] updateCounts = new long[3];
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 2L, 3L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Long.valueOf(Statement.SUCCESS_NO_INFO),
-              Long.valueOf(Statement.SUCCESS_NO_INFO),
-              Long.valueOf(Statement.SUCCESS_NO_INFO));
+              (long) Statement.SUCCESS_NO_INFO,
+              (long) Statement.SUCCESS_NO_INFO,
+              (long) Statement.SUCCESS_NO_INFO);
 
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {0L, 0L, 0L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Long.valueOf(Statement.EXECUTE_FAILED),
-              Long.valueOf(Statement.EXECUTE_FAILED),
-              Long.valueOf(Statement.EXECUTE_FAILED));
+              (long) Statement.EXECUTE_FAILED,
+              (long) Statement.EXECUTE_FAILED,
+              (long) Statement.EXECUTE_FAILED);
 
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 0L, 2L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Long.valueOf(Statement.SUCCESS_NO_INFO),
-              Long.valueOf(Statement.EXECUTE_FAILED),
-              Long.valueOf(Statement.SUCCESS_NO_INFO));
+              (long) Statement.SUCCESS_NO_INFO,
+              (long) Statement.EXECUTE_FAILED,
+              (long) Statement.SUCCESS_NO_INFO);
 
       statement.convertUpdateCountsToSuccessNoInfo(
           new long[] {1L, Integer.MAX_VALUE + 1L, 2L}, updateCounts);
       assertThat(updateCounts)
           .asList()
           .containsExactly(
-              Long.valueOf(Statement.SUCCESS_NO_INFO),
-              Long.valueOf(Statement.SUCCESS_NO_INFO),
-              Long.valueOf(Statement.SUCCESS_NO_INFO));
+              (long) Statement.SUCCESS_NO_INFO,
+              (long) Statement.SUCCESS_NO_INFO,
+              (long) Statement.SUCCESS_NO_INFO);
     }
   }
 }

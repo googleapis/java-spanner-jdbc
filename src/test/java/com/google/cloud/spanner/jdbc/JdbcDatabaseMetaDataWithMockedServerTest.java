@@ -68,13 +68,12 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
 
   private static MockSpannerServiceImpl mockSpanner;
   private static Server server;
-  private static InetSocketAddress address;
 
   @BeforeClass
   public static void startStaticServer() throws IOException {
     mockSpanner = new MockSpannerServiceImpl();
     mockSpanner.setAbortProbability(0.0D); // We don't want any unpredictable aborted transactions.
-    address = new InetSocketAddress("localhost", 0);
+    InetSocketAddress address = new InetSocketAddress("localhost", 0);
     server = NettyServerBuilder.forAddress(address).addService(mockSpanner).build().start();
   }
 
@@ -130,6 +129,7 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
       // Executing an internal metadata query should be allowed during a DDL batch.
       // This query will be executed on a single use read-only transaction.
       try (ResultSet tables = connection.getMetaData().getTables("CAT", "SCH", "TAB", null)) {
+        //noinspection StatementWithEmptyBody
         while (tables.next()) {}
       }
       connection.createStatement().execute("CREATE TABLE FOO");
@@ -159,6 +159,7 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().execute("START BATCH DDL");
       try (ResultSet tables = connection.getMetaData().getColumns("CAT", "SCH", "TAB", null)) {
+        //noinspection StatementWithEmptyBody
         while (tables.next()) {}
       }
       connection.createStatement().execute("CREATE TABLE FOO");
@@ -192,12 +193,15 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().execute("START BATCH DDL");
       try (ResultSet tables = connection.getMetaData().getPrimaryKeys("CAT", "SCH", "TAB")) {
+        //noinspection StatementWithEmptyBody
         while (tables.next()) {}
       }
       try (ResultSet tables = connection.getMetaData().getImportedKeys("CAT", "SCH", "TAB")) {
+        //noinspection StatementWithEmptyBody
         while (tables.next()) {}
       }
       try (ResultSet tables = connection.getMetaData().getExportedKeys("CAT", "SCH", "TAB")) {
+        //noinspection StatementWithEmptyBody
         while (tables.next()) {}
       }
       connection.createStatement().execute("CREATE TABLE FOO");
@@ -232,6 +236,7 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
       connection.createStatement().execute("START BATCH DDL");
       try (ResultSet tables =
           connection.getMetaData().getCrossReference("CAT", "SCH", "TAB", "CAT2", "SCH2", "TAB2")) {
+        //noinspection StatementWithEmptyBody
         while (tables.next()) {}
       }
       connection.createStatement().execute("CREATE TABLE FOO");
@@ -264,6 +269,7 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
       connection.createStatement().execute("START BATCH DDL");
       try (ResultSet tables =
           connection.getMetaData().getIndexInfo("CAT", "SCH", "TAB", true, false)) {
+        //noinspection StatementWithEmptyBody
         while (tables.next()) {}
       }
       connection.createStatement().execute("CREATE TABLE FOO");
@@ -289,9 +295,11 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().execute("START BATCH DDL");
       try (ResultSet tables = connection.getMetaData().getSchemas()) {
+        //noinspection StatementWithEmptyBody
         while (tables.next()) {}
       }
       try (ResultSet tables = connection.getMetaData().getSchemas(null, null)) {
+        //noinspection StatementWithEmptyBody
         while (tables.next()) {}
       }
       connection.createStatement().execute("CREATE TABLE FOO");

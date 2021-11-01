@@ -25,6 +25,7 @@ import com.google.cloud.spanner.Value;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.SQLException;
 import java.sql.Time;
@@ -41,7 +42,7 @@ import org.threeten.bp.format.DateTimeFormatter;
 /** Convenience class for converting values between Java, JDBC and Cloud Spanner. */
 class JdbcTypeConverter {
   private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-  private static final Charset UTF8 = Charset.forName("UTF8");
+  private static final Charset UTF8 = StandardCharsets.UTF_8;
 
   /**
    * Converts the given value from the Google {@link Type} to the Java {@link Class} type. The input
@@ -86,10 +87,9 @@ class JdbcTypeConverter {
       }
       if (targetType.equals(Boolean.class)) {
         if (type.getCode() == Code.BOOL) return value;
-        if (type.getCode() == Code.INT64) return Boolean.valueOf((Long) value != 0);
-        if (type.getCode() == Code.FLOAT64) return Boolean.valueOf((Double) value != 0d);
-        if (type.getCode() == Code.NUMERIC)
-          return Boolean.valueOf(!((BigDecimal) value).equals(BigDecimal.ZERO));
+        if (type.getCode() == Code.INT64) return (Long) value != 0;
+        if (type.getCode() == Code.FLOAT64) return (Double) value != 0d;
+        if (type.getCode() == Code.NUMERIC) return !value.equals(BigDecimal.ZERO);
       }
       if (targetType.equals(BigDecimal.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? BigDecimal.ONE : BigDecimal.ZERO;
@@ -223,40 +223,31 @@ class JdbcTypeConverter {
       throws SQLException {
     if (value == null) return;
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.ARRAY && Array.class.isAssignableFrom(value.getClass()))
-            || type.getCode() != Code.ARRAY,
+        type.getCode() != Code.ARRAY || Array.class.isAssignableFrom(value.getClass()),
         "input type is array, but input value is not an instance of java.sql.Array");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.BOOL && value.getClass().equals(Boolean.class))
-            || type.getCode() != Code.BOOL,
+        type.getCode() != Code.BOOL || value.getClass().equals(Boolean.class),
         "input type is bool, but input value is not an instance of Boolean");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.BYTES && value.getClass().equals(byte[].class))
-            || type.getCode() != Code.BYTES,
+        type.getCode() != Code.BYTES || value.getClass().equals(byte[].class),
         "input type is bytes, but input value is not an instance of byte[]");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.DATE && value.getClass().equals(java.sql.Date.class))
-            || type.getCode() != Code.DATE,
+        type.getCode() != Code.DATE || value.getClass().equals(java.sql.Date.class),
         "input type is date, but input value is not an instance of java.sql.Date");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.FLOAT64 && value.getClass().equals(Double.class))
-            || type.getCode() != Code.FLOAT64,
+        type.getCode() != Code.FLOAT64 || value.getClass().equals(Double.class),
         "input type is float64, but input value is not an instance of Double");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.INT64 && value.getClass().equals(Long.class))
-            || type.getCode() != Code.INT64,
+        type.getCode() != Code.INT64 || value.getClass().equals(Long.class),
         "input type is int64, but input value is not an instance of Long");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.STRING && value.getClass().equals(String.class))
-            || type.getCode() != Code.STRING,
+        type.getCode() != Code.STRING || value.getClass().equals(String.class),
         "input type is string, but input value is not an instance of String");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.TIMESTAMP && value.getClass().equals(java.sql.Timestamp.class))
-            || type.getCode() != Code.TIMESTAMP,
+        type.getCode() != Code.TIMESTAMP || value.getClass().equals(java.sql.Timestamp.class),
         "input type is timestamp, but input value is not an instance of java.sql.Timestamp");
     JdbcPreconditions.checkArgument(
-        (type.getCode() == Code.NUMERIC && value.getClass().equals(BigDecimal.class))
-            || type.getCode() != Code.NUMERIC,
+        type.getCode() != Code.NUMERIC || value.getClass().equals(BigDecimal.class),
         "input type is numeric, but input value is not an instance of BigDecimal");
   }
 
@@ -280,7 +271,9 @@ class JdbcTypeConverter {
 
   static List<Date> toGoogleDates(java.sql.Date[] dates) {
     List<com.google.cloud.Date> res = new ArrayList<>(dates.length);
-    for (int index = 0; index < dates.length; index++) res.add(toGoogleDate(dates[index]));
+    for (java.sql.Date date : dates) {
+      res.add(toGoogleDate(date));
+    }
     return res;
   }
 
@@ -290,6 +283,7 @@ class JdbcTypeConverter {
 
   static java.sql.Date toSqlDate(Date date, Calendar cal) {
     if (date != null) {
+      //noinspection MagicConstant
       cal.set(date.getYear(), date.getMonth() - 1, date.getDayOfMonth(), 0, 0, 0);
       cal.clear(Calendar.MILLISECOND);
       return new java.sql.Date(cal.getTimeInMillis());
@@ -329,7 +323,7 @@ class JdbcTypeConverter {
 
   private enum GetOrSetTimestampInCalendar {
     GET,
-    SET;
+    SET
   }
 
   private static java.sql.Timestamp getOrSetTimestampInCalendar(
@@ -363,20 +357,10 @@ class JdbcTypeConverter {
     return res;
   }
 
-  static Timestamp toGoogleTimestamp(java.sql.Date ts) {
+  static Timestamp toGoogleTimestamp(java.util.Date ts) {
     if (ts != null) {
       long milliseconds = ts.getTime();
-      long seconds = milliseconds / 1000l;
-      long nanos = (milliseconds - (seconds * 1000)) * 1000000;
-      return com.google.cloud.Timestamp.ofTimeSecondsAndNanos(seconds, (int) nanos);
-    }
-    return null;
-  }
-
-  static Timestamp toGoogleTimestamp(java.sql.Time ts) {
-    if (ts != null) {
-      long milliseconds = ts.getTime();
-      long seconds = milliseconds / 1000l;
+      long seconds = milliseconds / 1000L;
       long nanos = (milliseconds - (seconds * 1000)) * 1000000;
       return com.google.cloud.Timestamp.ofTimeSecondsAndNanos(seconds, (int) nanos);
     }
@@ -386,7 +370,7 @@ class JdbcTypeConverter {
   static Timestamp toGoogleTimestamp(java.sql.Timestamp ts) {
     if (ts != null) {
       long milliseconds = ts.getTime();
-      long seconds = milliseconds / 1000l;
+      long seconds = milliseconds / 1000L;
       int nanos = ts.getNanos();
       return com.google.cloud.Timestamp.ofTimeSecondsAndNanos(seconds, nanos);
     }
@@ -395,8 +379,8 @@ class JdbcTypeConverter {
 
   static List<Timestamp> toGoogleTimestamps(java.sql.Timestamp[] timestamps) {
     List<com.google.cloud.Timestamp> res = new ArrayList<>(timestamps.length);
-    for (int index = 0; index < timestamps.length; index++) {
-      res.add(toGoogleTimestamp(timestamps[index]));
+    for (java.sql.Timestamp timestamp : timestamps) {
+      res.add(toGoogleTimestamp(timestamp));
     }
     return res;
   }
@@ -429,7 +413,7 @@ class JdbcTypeConverter {
   static java.sql.Time parseSqlTime(String val, Calendar cal) {
     if (val != null) {
       Time time = Time.valueOf(val);
-      cal.set(1970, 0, 1, time.getHours(), time.getMinutes(), time.getSeconds());
+      cal.set(1970, Calendar.JANUARY, 1, time.getHours(), time.getMinutes(), time.getSeconds());
       cal.clear(Calendar.MILLISECOND);
       return new java.sql.Time(cal.getTimeInMillis());
     }
@@ -438,8 +422,8 @@ class JdbcTypeConverter {
 
   static List<ByteArray> toGoogleBytes(byte[][] bytes) {
     List<ByteArray> res = new ArrayList<>(bytes.length);
-    for (int index = 0; index < bytes.length; index++) {
-      res.add(bytes[index] == null ? null : ByteArray.copyFrom(bytes[index]));
+    for (byte[] aByte : bytes) {
+      res.add(aByte == null ? null : ByteArray.copyFrom(aByte));
     }
     return res;
   }

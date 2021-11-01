@@ -20,7 +20,6 @@ import com.google.cloud.spanner.Options.QueryOption;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.Statement;
-import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.jdbc.JdbcParameterStore.ParametersInfo;
@@ -45,7 +44,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
         JdbcParameterStore.convertPositionalParametersToNamedParameters(sqlWithoutComments);
   }
 
-  ParametersInfo getParametersInfo() throws SQLException {
+  ParametersInfo getParametersInfo() {
     return parameters;
   }
 
@@ -107,7 +106,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
       // Return metadata for an empty result set as DML statements do not return any results (as a
       // result set).
       com.google.cloud.spanner.ResultSet resultSet =
-          ResultSets.forRows(Type.struct(), ImmutableList.<Struct>of());
+          ResultSets.forRows(Type.struct(), ImmutableList.of());
       resultSet.next();
       return new JdbcResultSetMetaData(JdbcResultSet.of(resultSet), this);
     }

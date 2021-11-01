@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -61,17 +62,8 @@ class JdbcClob implements NClob {
         "position+length larger than " + Integer.MAX_VALUE + " is not supported");
   }
 
-  private StringBuilder repeat(char c, long length) {
-    checkLength(length);
-    StringBuilder res = new StringBuilder((int) length);
-    for (int i = 0; i < length; i++) {
-      res.append(c);
-    }
-    return res;
-  }
-
   @Override
-  public long length() throws SQLException {
+  public long length() {
     return value.length();
   }
 
@@ -92,12 +84,12 @@ class JdbcClob implements NClob {
   }
 
   @Override
-  public Reader getCharacterStream() throws SQLException {
+  public Reader getCharacterStream() {
     return new StringReader(value.toString());
   }
 
   @Override
-  public InputStream getAsciiStream() throws SQLException {
+  public InputStream getAsciiStream() {
     return new ByteArrayInputStream(StandardCharsets.US_ASCII.encode(value.toString()).array());
   }
 
@@ -131,10 +123,11 @@ class JdbcClob implements NClob {
     JdbcPreconditions.checkArgument(str != null, "str is null");
     JdbcPreconditions.checkArgument(pos >= 1, "Position must be >= 1");
     checkPosition(pos);
-    if ((pos - 1) > length()) {
-      value.append(repeat(' ', pos - length() - 1));
+    int ipos = (int) pos;
+    if ((ipos - 1) > value.length()) {
+      value.append(Strings.repeat(" ", ipos - value.length() - 1));
     }
-    value.replace((int) pos - 1, (int) pos + str.length() - 1, str);
+    value.replace(ipos - 1, ipos + str.length() - 1, str);
     return str.length();
   }
 
@@ -191,7 +184,7 @@ class JdbcClob implements NClob {
   }
 
   @Override
-  public void free() throws SQLException {
+  public void free() {
     value = new StringBuilder();
   }
 
@@ -201,8 +194,7 @@ class JdbcClob implements NClob {
     JdbcPreconditions.checkArgument(length >= 0, "length must be >= 0");
     checkPosition(pos);
     checkPositionPlusLength(pos, length);
-    return new StringReader(
-        value.substring((int) pos - 1, (int) pos + (int) length - 1).toString());
+    return new StringReader(value.substring((int) pos - 1, (int) pos + (int) length - 1));
   }
 
   @Override

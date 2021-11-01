@@ -22,7 +22,6 @@ import com.google.cloud.spanner.SpannerBatchUpdateException;
 import com.google.cloud.spanner.SpannerException;
 import com.google.rpc.Code;
 import java.sql.BatchUpdateException;
-import java.sql.ClientInfoStatus;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -89,7 +88,7 @@ public final class JdbcSqlExceptionFactory {
     private final Code code;
 
     private JdbcSqlClientInfoException(String message, Code code) {
-      super(message, Collections.<String, ClientInfoStatus>emptyMap());
+      super(message, Collections.emptyMap());
       this.code = code;
     }
 

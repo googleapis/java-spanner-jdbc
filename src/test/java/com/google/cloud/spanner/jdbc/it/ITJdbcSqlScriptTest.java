@@ -28,6 +28,7 @@ import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
+import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -76,7 +77,7 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test01_CreateTables() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), CREATE_TABLES_FILE, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection), CREATE_TABLES_FILE, SqlScriptVerifier.class, false);
     }
   }
 
@@ -87,17 +88,21 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           INSERT_AND_VERIFY_TEST_DATA,
-          SqlScriptVerifier.class);
+          SqlScriptVerifier.class,
+          false);
     } catch (SQLException e) {
-      if (env.getTestHelper().isEmulator()
-          && e.getErrorCode() == ErrorCode.ALREADY_EXISTS.getGrpcStatusCode().value()) {
-        // Ignore, this is expected as errors during a read/write transaction are sticky on the
-        // emulator.
+      // Ignore these errors on the emulator, as they are sticky during a read/write transaction on
+      // the emulator.
+      if (!(EmulatorSpannerHelper.isUsingEmulator()
+          && e.getErrorCode() == ErrorCode.ALREADY_EXISTS.getGrpcStatusCode().value())) {
+        throw e;
       }
     } catch (SpannerException e) {
-      if (env.getTestHelper().isEmulator() && e.getErrorCode() == ErrorCode.ALREADY_EXISTS) {
-        // Ignore, this is expected as errors during a read/write transaction are sticky on the
-        // emulator.
+      // Ignore these errors on the emulator, as they are sticky during a read/write transaction on
+      // the emulator.
+      if (!(EmulatorSpannerHelper.isUsingEmulator()
+          && e.getErrorCode() == ErrorCode.ALREADY_EXISTS)) {
+        throw e;
       }
     }
   }
@@ -106,7 +111,10 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test03_TestGetReadTimestamp() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_GET_READ_TIMESTAMP, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection),
+          TEST_GET_READ_TIMESTAMP,
+          SqlScriptVerifier.class,
+          false);
     }
   }
 
@@ -114,16 +122,23 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test04_TestGetCommitTimestamp() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_GET_COMMIT_TIMESTAMP, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection),
+          TEST_GET_COMMIT_TIMESTAMP,
+          SqlScriptVerifier.class,
+          false);
     } catch (SQLException e) {
-      if (env.getTestHelper().isEmulator()
-          && e.getErrorCode() == ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value()) {
-        // Ignore as errors during read/write transactions are sticky on the emulator.
+      // Ignore these errors on the emulator, as they are sticky during a read/write transaction on
+      // the emulator.
+      if (!(EmulatorSpannerHelper.isUsingEmulator()
+          && e.getErrorCode() == ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value())) {
+        throw e;
       }
     } catch (SpannerException e) {
-      if (env.getTestHelper().isEmulator() && e.getErrorCode() == ErrorCode.ALREADY_EXISTS) {
-        // Ignore, this is expected as errors during a read/write transaction are sticky on the
-        // emulator.
+      // Ignore these errors on the emulator, as they are sticky during a read/write transaction on
+      // the emulator.
+      if (!(EmulatorSpannerHelper.isUsingEmulator()
+          && e.getErrorCode() == ErrorCode.ALREADY_EXISTS)) {
+        throw e;
       }
     }
   }
@@ -134,7 +149,8 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           TEST_TEMPORARY_TRANSACTIONS,
-          SqlScriptVerifier.class);
+          SqlScriptVerifier.class,
+          false);
     }
   }
 
@@ -142,7 +158,10 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test06_TestTransactionMode() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_TRANSACTION_MODE, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection),
+          TEST_TRANSACTION_MODE,
+          SqlScriptVerifier.class,
+          false);
     }
   }
 
@@ -152,7 +171,8 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           TEST_TRANSACTION_MODE_READ_ONLY,
-          SqlScriptVerifier.class);
+          SqlScriptVerifier.class,
+          false);
     }
   }
 
@@ -160,7 +180,10 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test08_TestReadOnlyStaleness() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_READ_ONLY_STALENESS, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection),
+          TEST_READ_ONLY_STALENESS,
+          SqlScriptVerifier.class,
+          false);
     }
   }
 
@@ -168,7 +191,10 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test09_TestAutocommitDmlMode() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_AUTOCOMMIT_DML_MODE, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection),
+          TEST_AUTOCOMMIT_DML_MODE,
+          SqlScriptVerifier.class,
+          false);
     }
   }
 
@@ -176,7 +202,10 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test10_TestAutocommitReadOnly() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_AUTOCOMMIT_READ_ONLY, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection),
+          TEST_AUTOCOMMIT_READ_ONLY,
+          SqlScriptVerifier.class,
+          false);
     }
   }
 
@@ -184,7 +213,10 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test11_TestStatementTimeout() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_STATEMENT_TIMEOUT, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection),
+          TEST_STATEMENT_TIMEOUT,
+          SqlScriptVerifier.class,
+          false);
     }
     try (Connection connection = createConnection()) {
       // Create a statement with a query timeout, but do not set a statement timeout on the
@@ -222,7 +254,10 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test12_TestSetStatements() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_SET_STATEMENTS, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection),
+          TEST_SET_STATEMENTS,
+          SqlScriptVerifier.class,
+          false);
     }
   }
 
@@ -230,7 +265,10 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test13_TestInvalidStatements() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_INVALID_STATEMENTS, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection),
+          TEST_INVALID_STATEMENTS,
+          SqlScriptVerifier.class,
+          false);
     }
   }
 
@@ -238,7 +276,7 @@ public class ITJdbcSqlScriptTest extends ITAbstractJdbcTest {
   public void test14_TestQueryOptions() throws Exception {
     try (Connection connection = createConnection()) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), TEST_QUERY_OPTIONS, SqlScriptVerifier.class);
+          JdbcGenericConnection.of(connection), TEST_QUERY_OPTIONS, SqlScriptVerifier.class, false);
     }
   }
 }

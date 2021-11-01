@@ -20,6 +20,7 @@ import com.google.cloud.spanner.Options;
 import com.google.cloud.spanner.Options.QueryOption;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.SpannerException;
+import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.cloud.spanner.connection.StatementResult.ClientSideStatementType;
 import com.google.rpc.Code;
@@ -252,7 +253,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       if (mustResetTimeout && resultIsShowStatementTimeout(result)) {
         // it was a 'SHOW STATEMENT_TIMEOUT statement, we need to re-run to get the correct value
         mustResetTimeout = false;
-        result = rerunShowStatementTimeout(statement, result, originalTimeout);
+        result = rerunShowStatementTimeout(statement, originalTimeout);
       }
       return result;
     } catch (SpannerException e) {
@@ -292,9 +293,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   private StatementResult rerunShowStatementTimeout(
-      com.google.cloud.spanner.Statement statement,
-      StatementResult result,
-      StatementTimeout originalTimeout)
+      com.google.cloud.spanner.Statement statement, StatementTimeout originalTimeout)
       throws SQLException {
     resetStatementTimeout(originalTimeout);
     return connection.getSpannerConnection().execute(statement);
@@ -319,12 +318,12 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   @Override
-  public void close() throws SQLException {
+  public void close() {
     this.closed = true;
   }
 
   @Override
-  public boolean isClosed() throws SQLException {
+  public boolean isClosed() {
     return closed;
   }
 
@@ -414,22 +413,22 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   @Override
-  public int getFetchDirection() throws SQLException {
+  public int getFetchDirection() {
     return ResultSet.FETCH_FORWARD;
   }
 
   @Override
-  public int getResultSetConcurrency() throws SQLException {
+  public int getResultSetConcurrency() {
     return ResultSet.CONCUR_READ_ONLY;
   }
 
   @Override
-  public int getResultSetType() throws SQLException {
+  public int getResultSetType() {
     return ResultSet.TYPE_FORWARD_ONLY;
   }
 
   @Override
-  public int getResultSetHoldability() throws SQLException {
+  public int getResultSetHoldability() {
     return ResultSet.CLOSE_CURSORS_AT_COMMIT;
   }
 }

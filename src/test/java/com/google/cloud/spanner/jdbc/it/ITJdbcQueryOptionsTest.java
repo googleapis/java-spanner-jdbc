@@ -34,6 +34,7 @@ import com.google.spanner.v1.ExecuteSqlRequest.QueryOptions;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import javax.annotation.Nonnull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -187,11 +188,13 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
     try {
       SpannerOptions.useEnvironment(
           new SpannerOptions.SpannerEnvironment() {
+            @Nonnull
             @Override
             public String getOptimizerVersion() {
               return "1";
             }
 
+            @Nonnull
             @Override
             public String getOptimizerStatisticsPackage() {
               return "latest";
@@ -212,11 +215,13 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
       // Now set an invalid version on the environment. The query will now fail.
       SpannerOptions.useEnvironment(
           new SpannerOptions.SpannerEnvironment() {
+            @Nonnull
             @Override
             public String getOptimizerVersion() {
               return "9999999";
             }
 
+            @Nonnull
             @Override
             public String getOptimizerStatisticsPackage() {
               return "latest";

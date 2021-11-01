@@ -99,7 +99,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   @Override
-  public void close() throws SQLException {
+  public void close() {
     spanner.close();
     this.closed = true;
   }
@@ -161,15 +161,15 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     Code type = spanner.getColumnType(spannerIndex).getCode();
     switch (type) {
       case BOOL:
-        return isNull ? false : spanner.getBoolean(spannerIndex);
+        return !isNull && spanner.getBoolean(spannerIndex);
       case FLOAT64:
-        return isNull ? false : spanner.getDouble(spannerIndex) != 0D;
+        return !isNull && spanner.getDouble(spannerIndex) != 0D;
       case INT64:
-        return isNull ? false : spanner.getLong(spannerIndex) != 0L;
+        return !isNull && spanner.getLong(spannerIndex) != 0L;
       case NUMERIC:
-        return isNull ? false : !spanner.getBigDecimal(spannerIndex).equals(BigDecimal.ZERO);
+        return !isNull && !spanner.getBigDecimal(spannerIndex).equals(BigDecimal.ZERO);
       case STRING:
-        return isNull ? false : Boolean.valueOf(spanner.getString(spannerIndex));
+        return !isNull && Boolean.parseBoolean(spanner.getString(spannerIndex));
       case BYTES:
       case JSON:
       case DATE:
@@ -591,8 +591,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     if (type == Type.json()) return getString(columnIndex);
     if (type == Type.timestamp()) return getTimestamp(columnIndex);
     if (type.getCode() == Code.ARRAY) return getArray(columnIndex);
-    throw JdbcSqlExceptionFactory.of(
-        "Unknown type: " + type.toString(), com.google.rpc.Code.INVALID_ARGUMENT);
+    throw JdbcSqlExceptionFactory.of("Unknown type: " + type, com.google.rpc.Code.INVALID_ARGUMENT);
   }
 
   @Override
@@ -737,7 +736,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
           "Column with index " + columnIndex + " does not contain an array",
           com.google.rpc.Code.INVALID_ARGUMENT);
     JdbcDataType dataType = JdbcDataType.getType(type.getArrayElementType().getCode());
-    List<? extends Object> elements = dataType.getArrayElements(spanner, columnIndex - 1);
+    List<?> elements = dataType.getArrayElements(spanner, columnIndex - 1);
 
     return JdbcArray.createArray(dataType, elements);
   }
@@ -864,7 +863,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   @Override
-  public boolean isClosed() throws SQLException {
+  public boolean isClosed() {
     return closed;
   }
 

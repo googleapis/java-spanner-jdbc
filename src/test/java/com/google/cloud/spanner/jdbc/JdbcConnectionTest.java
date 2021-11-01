@@ -47,7 +47,6 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLWarning;
 import java.sql.Savepoint;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -62,7 +61,7 @@ public class JdbcConnectionTest {
   private static final com.google.cloud.spanner.ResultSet SELECT1_RESULTSET =
       ResultSets.forRows(
           Type.struct(StructField.of("", Type.int64())),
-          Arrays.asList(Struct.newBuilder().set("").to(1L).build()));
+          Collections.singletonList(Struct.newBuilder().set("").to(1L).build()));
 
   private JdbcConnection createConnection(ConnectionOptions options) throws SQLException {
     com.google.cloud.spanner.connection.Connection spannerConnection =
@@ -90,7 +89,7 @@ public class JdbcConnectionTest {
   }
 
   @Test
-  public void testReadOnly() throws SQLException {
+  public void testReadOnly() {
     ConnectionOptions options = mock(ConnectionOptions.class);
     when(options.isAutocommit()).thenReturn(true);
     when(options.isReadOnly()).thenReturn(true);
@@ -149,11 +148,6 @@ public class JdbcConnectionTest {
       }
     }
   }
-
-  @Test
-  public void testClosedAbstractJdbcConnection()
-      throws SQLException, NoSuchMethodException, SecurityException, IllegalAccessException,
-          IllegalArgumentException {}
 
   @Test
   public void testClosedJdbcConnection()
@@ -729,7 +723,7 @@ public class JdbcConnectionTest {
   }
 
   @Test
-  public void testIsReturnCommitStats_throwsSqlException() throws SQLException {
+  public void testIsReturnCommitStats_throwsSqlException() {
     ConnectionOptions options = mock(ConnectionOptions.class);
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
@@ -751,7 +745,7 @@ public class JdbcConnectionTest {
   }
 
   @Test
-  public void testSetReturnCommitStats_throwsSqlException() throws SQLException {
+  public void testSetReturnCommitStats_throwsSqlException() {
     ConnectionOptions options = mock(ConnectionOptions.class);
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
@@ -774,7 +768,7 @@ public class JdbcConnectionTest {
   }
 
   @Test
-  public void testGetCommitResponse_throwsSqlException() throws SQLException {
+  public void testGetCommitResponse_throwsSqlException() {
     ConnectionOptions options = mock(ConnectionOptions.class);
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);

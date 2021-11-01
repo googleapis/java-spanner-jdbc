@@ -25,7 +25,6 @@ import com.google.cloud.spanner.connection.AutocommitDmlMode;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.connection.TransactionMode;
-import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import java.sql.Array;
 import java.sql.Blob;
@@ -222,7 +221,7 @@ class JdbcConnection extends AbstractJdbcConnection {
   }
 
   @Override
-  public boolean isClosed() throws SQLException {
+  public boolean isClosed() {
     return getSpannerConnection().isClosed();
   }
 
@@ -594,17 +593,11 @@ class JdbcConnection extends AbstractJdbcConnection {
     checkClosed();
     return Iterators.transform(
         getSpannerConnection().getTransactionRetryListeners(),
-        new Function<
-            com.google.cloud.spanner.connection.TransactionRetryListener,
-            TransactionRetryListener>() {
-          @Override
-          public TransactionRetryListener apply(
-              com.google.cloud.spanner.connection.TransactionRetryListener input) {
-            if (input instanceof JdbcToSpannerTransactionRetryListener) {
-              return ((JdbcToSpannerTransactionRetryListener) input).delegate;
-            }
-            return null;
+        input -> {
+          if (input instanceof JdbcToSpannerTransactionRetryListener) {
+            return ((JdbcToSpannerTransactionRetryListener) input).delegate;
           }
+          return null;
         });
   }
 

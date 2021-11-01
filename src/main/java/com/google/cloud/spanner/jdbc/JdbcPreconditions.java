@@ -31,7 +31,7 @@ class JdbcPreconditions {
    *
    * @param expression the boolean expression that should be true.
    * @param value the parameter value that is being checked.
-   * @throws JdbcSqlException with {@link Code#INVALID_ARGUMENT} if {@code expression} is false
+   * @throws SQLException with {@link Code#INVALID_ARGUMENT} if {@code expression} is false
    */
   static void checkArgument(boolean expression, Object value) throws SQLException {
     if (!expression) {
@@ -46,7 +46,7 @@ class JdbcPreconditions {
    * @param expression a boolean expression
    * @param errorMessage the exception message to use if the check fails; will be converted to a
    *     string using {@link String#valueOf(Object)}
-   * @throws JdbcSqlException with {@link Code#FAILED_PRECONDITION} if {@code expression} is false
+   * @throws SQLException with {@link Code#FAILED_PRECONDITION} if {@code expression} is false
    */
   static void checkState(boolean expression, @Nullable Object errorMessage) throws SQLException {
     if (!expression) {

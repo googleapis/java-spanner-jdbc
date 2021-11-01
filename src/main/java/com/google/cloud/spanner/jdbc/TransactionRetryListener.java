@@ -28,14 +28,14 @@ public interface TransactionRetryListener {
   /** Use {@link com.google.cloud.spanner.connection.TransactionRetryListener.RetryResult} */
   @InternalApi
   @Deprecated
-  public enum RetryResult {
+  enum RetryResult {
     /** The retry executed successfully and the transaction will continue. */
     RETRY_SUCCESSFUL,
     /** The retry was aborted by Spanner and another retry attempt will be started. */
     RETRY_ABORTED_AND_RESTARTING,
     /**
-     * The retry was aborted by the {@link Connection} because of a concurrent modification. The
-     * transaction cannot continue and will throw an {@link
+     * The retry was aborted by the {@link java.sql.Connection} because of a concurrent
+     * modification. The transaction cannot continue and will throw an {@link
      * AbortedDueToConcurrentModificationException}.
      */
     RETRY_ABORTED_DUE_TO_CONCURRENT_MODIFICATION,
@@ -48,7 +48,7 @@ public interface TransactionRetryListener {
      * An unexpected error occurred during transaction retry, the transaction cannot continue and
      * will throw an exception.
      */
-    RETRY_ERROR;
+    RETRY_ERROR
   }
 
   /**

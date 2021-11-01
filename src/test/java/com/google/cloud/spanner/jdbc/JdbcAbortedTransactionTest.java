@@ -99,13 +99,9 @@ public class JdbcAbortedTransactionTest {
   private static final int UPDATE_COUNT = 1;
 
   private static MockSpannerServiceImpl mockSpanner;
-  private static MockInstanceAdminImpl mockInstanceAdmin;
-  private static MockDatabaseAdminImpl mockDatabaseAdmin;
   private static Server server;
-  private static InetSocketAddress address;
 
-  @Parameter(0)
-  public boolean retryAbortsInternally;
+  @Parameter public boolean retryAbortsInternally;
 
   @Parameters(name = "retryAbortsInternally = {0}")
   public static Collection<Object[]> data() {
@@ -121,9 +117,9 @@ public class JdbcAbortedTransactionTest {
     mockSpanner.setAbortProbability(0.0D); // We don't want any unpredictable aborted transactions.
     mockSpanner.putStatementResult(StatementResult.query(SELECT1, SELECT1_RESULTSET));
     mockSpanner.putStatementResult(StatementResult.update(UPDATE_STATEMENT, UPDATE_COUNT));
-    mockInstanceAdmin = new MockInstanceAdminImpl();
-    mockDatabaseAdmin = new MockDatabaseAdminImpl();
-    address = new InetSocketAddress("localhost", 0);
+    MockInstanceAdminImpl mockInstanceAdmin = new MockInstanceAdminImpl();
+    MockDatabaseAdminImpl mockDatabaseAdmin = new MockDatabaseAdminImpl();
+    InetSocketAddress address = new InetSocketAddress("localhost", 0);
     server =
         NettyServerBuilder.forAddress(address)
             .addService(mockSpanner)
@@ -267,6 +263,7 @@ public class JdbcAbortedTransactionTest {
       mockSpanner.putStatementResult(
           StatementResult.query(SELECT_RANDOM, new RandomResultSetGenerator(25).generate()));
       try (ResultSet rs = connection.createStatement().executeQuery(SELECT_RANDOM.getSql())) {
+        //noinspection StatementWithEmptyBody
         while (rs.next()) {}
       }
       // Set a new random answer that will be returned during the retry.

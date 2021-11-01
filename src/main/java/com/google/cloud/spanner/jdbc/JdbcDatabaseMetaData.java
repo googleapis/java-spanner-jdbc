@@ -57,12 +57,11 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
         String line = scanner.nextLine();
         builder.append(line).append("\n");
       }
-      scanner.close();
     }
     return builder.toString();
   }
 
-  private JdbcConnection connection;
+  private final JdbcConnection connection;
 
   JdbcDatabaseMetaData(JdbcConnection connection) {
     this.connection = connection;
@@ -74,22 +73,22 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public boolean allProceduresAreCallable() throws SQLException {
+  public boolean allProceduresAreCallable() {
     return true;
   }
 
   @Override
-  public boolean allTablesAreSelectable() throws SQLException {
+  public boolean allTablesAreSelectable() {
     return true;
   }
 
   @Override
-  public String getURL() throws SQLException {
+  public String getURL() {
     return connection.getConnectionUrl();
   }
 
   @Override
-  public String getUserName() throws SQLException {
+  public String getUserName() {
     Credentials credentials = connection.getConnectionOptions().getCredentials();
     if (credentials != null) {
       if (credentials instanceof ServiceAccountSigner) {
@@ -102,47 +101,47 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public boolean isReadOnly() throws SQLException {
+  public boolean isReadOnly() {
     return false;
   }
 
   @Override
-  public boolean nullsAreSortedHigh() throws SQLException {
+  public boolean nullsAreSortedHigh() {
     return false;
   }
 
   @Override
-  public boolean nullsAreSortedLow() throws SQLException {
+  public boolean nullsAreSortedLow() {
     return true;
   }
 
   @Override
-  public boolean nullsAreSortedAtStart() throws SQLException {
+  public boolean nullsAreSortedAtStart() {
     return false;
   }
 
   @Override
-  public boolean nullsAreSortedAtEnd() throws SQLException {
+  public boolean nullsAreSortedAtEnd() {
     return false;
   }
 
   @Override
-  public String getDatabaseProductName() throws SQLException {
+  public String getDatabaseProductName() {
     return PRODUCT_NAME;
   }
 
   @Override
-  public String getDatabaseProductVersion() throws SQLException {
+  public String getDatabaseProductVersion() {
     return getDatabaseMajorVersion() + "." + getDatabaseMinorVersion();
   }
 
   @Override
-  public String getDriverName() throws SQLException {
+  public String getDriverName() {
     return JdbcDriver.class.getName();
   }
 
   @Override
-  public String getDriverVersion() throws SQLException {
+  public String getDriverVersion() {
     return getDriverMajorVersion() + "." + getDriverMinorVersion();
   }
 
@@ -157,528 +156,530 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public boolean usesLocalFiles() throws SQLException {
+  public boolean usesLocalFiles() {
     return false;
   }
 
   @Override
-  public boolean usesLocalFilePerTable() throws SQLException {
+  public boolean usesLocalFilePerTable() {
     return false;
   }
 
   @Override
-  public boolean supportsMixedCaseIdentifiers() throws SQLException {
+  public boolean supportsMixedCaseIdentifiers() {
     return false;
   }
 
   @Override
-  public boolean storesUpperCaseIdentifiers() throws SQLException {
+  public boolean storesUpperCaseIdentifiers() {
     return false;
   }
 
   @Override
-  public boolean storesLowerCaseIdentifiers() throws SQLException {
+  public boolean storesLowerCaseIdentifiers() {
     return false;
   }
 
   @Override
-  public boolean storesMixedCaseIdentifiers() throws SQLException {
+  public boolean storesMixedCaseIdentifiers() {
     return true;
   }
 
   @Override
-  public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException {
+  public boolean supportsMixedCaseQuotedIdentifiers() {
     return false;
   }
 
   @Override
-  public boolean storesUpperCaseQuotedIdentifiers() throws SQLException {
+  public boolean storesUpperCaseQuotedIdentifiers() {
     return false;
   }
 
   @Override
-  public boolean storesLowerCaseQuotedIdentifiers() throws SQLException {
+  public boolean storesLowerCaseQuotedIdentifiers() {
     return false;
   }
 
   @Override
-  public boolean storesMixedCaseQuotedIdentifiers() throws SQLException {
+  public boolean storesMixedCaseQuotedIdentifiers() {
     return true;
   }
 
   @Override
-  public String getIdentifierQuoteString() throws SQLException {
+  public String getIdentifierQuoteString() {
     return "`";
   }
 
   @Override
-  public String getSQLKeywords() throws SQLException {
+  public String getSQLKeywords() {
     return "ASSERT_ROWS_MODIFIED,ENUM,GROUPS,HASH,IGNORE,LOOKUP,PROTO,RESPECT,STRUCT,WINDOW";
   }
 
   @Override
-  public String getNumericFunctions() throws SQLException {
+  public String getNumericFunctions() {
     return "ABS,SIGN,IS_INF,IS_NAN,IEEE_DIVIDE,SQRT,POW,POWER,EXP,LN,LOG,LOG10,GREATEST,LEAST,DIV,MOD,ROUND,TRUNC,CEIL,CEILING,FLOOR,COS,COSH,ACOS,ACOSH,SIN,SINH,ASIN,ASINH,TAN,TANH,ATAN,ATANH,ATAN2,FARM_FINGERPRINT,SHA1,SHA256,SHA512";
   }
 
   @Override
-  public String getStringFunctions() throws SQLException {
+  public String getStringFunctions() {
     return "BYTE_LENGTH,CHAR_LENGTH,CHARACTER_LENGTH,CODE_POINTS_TO_BYTES,CODE_POINTS_TO_STRING,CONCAT,ENDS_WITH,FORMAT,FROM_BASE64,FROM_HEX,LENGTH,LPAD,LOWER,LTRIM,REGEXP_CONTAINS,REGEXP_EXTRACT,REGEXP_EXTRACT_ALL,REGEXP_REPLACE,REPLACE,REPEAT,REVERSE,RPAD,RTRIM,SAFE_CONVERT_BYTES_TO_STRING,SPLIT,STARTS_WITH,STRPOS,SUBSTR,TO_BASE64,TO_CODE_POINTS,TO_HEX,TRIM,UPPER,JSON_QUERY,JSON_VALUE";
   }
 
   @Override
-  public String getSystemFunctions() throws SQLException {
+  public String getSystemFunctions() {
     return "";
   }
 
   @Override
-  public String getTimeDateFunctions() throws SQLException {
+  public String getTimeDateFunctions() {
     return "CURRENT_DATE,EXTRACT,DATE,DATE_ADD,DATE_SUB,DATE_DIFF,DATE_TRUNC,DATE_FROM_UNIX_DATE,FORMAT_DATE,PARSE_DATE,UNIX_DATE,CURRENT_TIMESTAMP,STRING,TIMESTAMP,TIMESTAMP_ADD,TIMESTAMP_SUB,TIMESTAMP_DIFF,TIMESTAMP_TRUNC,FORMAT_TIMESTAMP,PARSE_TIMESTAMP,TIMESTAMP_SECONDS,TIMESTAMP_MILLIS,TIMESTAMP_MICROS,UNIX_SECONDS,UNIX_MILLIS,UNIX_MICROS";
   }
 
   @Override
-  public String getSearchStringEscape() throws SQLException {
+  public String getSearchStringEscape() {
     return "\\";
   }
 
   @Override
-  public String getExtraNameCharacters() throws SQLException {
+  public String getExtraNameCharacters() {
     return "";
   }
 
   @Override
-  public boolean supportsAlterTableWithAddColumn() throws SQLException {
+  public boolean supportsAlterTableWithAddColumn() {
     return true;
   }
 
   @Override
-  public boolean supportsAlterTableWithDropColumn() throws SQLException {
+  public boolean supportsAlterTableWithDropColumn() {
     return true;
   }
 
   @Override
-  public boolean supportsColumnAliasing() throws SQLException {
+  public boolean supportsColumnAliasing() {
     return true;
   }
 
   @Override
-  public boolean nullPlusNonNullIsNull() throws SQLException {
+  public boolean nullPlusNonNullIsNull() {
     return true;
   }
 
   @Override
-  public boolean supportsConvert() throws SQLException {
+  public boolean supportsConvert() {
     return false;
   }
 
   @Override
-  public boolean supportsConvert(int fromType, int toType) throws SQLException {
+  public boolean supportsConvert(int fromType, int toType) {
     return false;
   }
 
   @Override
-  public boolean supportsTableCorrelationNames() throws SQLException {
+  public boolean supportsTableCorrelationNames() {
     return true;
   }
 
   @Override
-  public boolean supportsDifferentTableCorrelationNames() throws SQLException {
+  public boolean supportsDifferentTableCorrelationNames() {
     return false;
   }
 
   @Override
-  public boolean supportsExpressionsInOrderBy() throws SQLException {
+  public boolean supportsExpressionsInOrderBy() {
     return true;
   }
 
   @Override
-  public boolean supportsOrderByUnrelated() throws SQLException {
+  public boolean supportsOrderByUnrelated() {
     return true;
   }
 
   @Override
-  public boolean supportsGroupBy() throws SQLException {
+  public boolean supportsGroupBy() {
     return true;
   }
 
   @Override
-  public boolean supportsGroupByUnrelated() throws SQLException {
+  public boolean supportsGroupByUnrelated() {
     return true;
   }
 
   @Override
-  public boolean supportsGroupByBeyondSelect() throws SQLException {
+  public boolean supportsGroupByBeyondSelect() {
     return true;
   }
 
   @Override
-  public boolean supportsLikeEscapeClause() throws SQLException {
+  public boolean supportsLikeEscapeClause() {
     return true;
   }
 
   @Override
-  public boolean supportsMultipleResultSets() throws SQLException {
+  public boolean supportsMultipleResultSets() {
     return true;
   }
 
   @Override
-  public boolean supportsMultipleTransactions() throws SQLException {
+  public boolean supportsMultipleTransactions() {
     return true;
   }
 
   @Override
-  public boolean supportsNonNullableColumns() throws SQLException {
+  public boolean supportsNonNullableColumns() {
     return true;
   }
 
   @Override
-  public boolean supportsMinimumSQLGrammar() throws SQLException {
+  public boolean supportsMinimumSQLGrammar() {
     return false;
   }
 
   @Override
-  public boolean supportsCoreSQLGrammar() throws SQLException {
+  public boolean supportsCoreSQLGrammar() {
     return false;
   }
 
   @Override
-  public boolean supportsExtendedSQLGrammar() throws SQLException {
+  public boolean supportsExtendedSQLGrammar() {
     return false;
   }
 
   @Override
-  public boolean supportsANSI92EntryLevelSQL() throws SQLException {
+  public boolean supportsANSI92EntryLevelSQL() {
     return false;
   }
 
   @Override
-  public boolean supportsANSI92IntermediateSQL() throws SQLException {
+  public boolean supportsANSI92IntermediateSQL() {
     return false;
   }
 
   @Override
-  public boolean supportsANSI92FullSQL() throws SQLException {
+  public boolean supportsANSI92FullSQL() {
     return false;
   }
 
   @Override
-  public boolean supportsIntegrityEnhancementFacility() throws SQLException {
+  public boolean supportsIntegrityEnhancementFacility() {
     return false;
   }
 
   @Override
-  public boolean supportsOuterJoins() throws SQLException {
+  public boolean supportsOuterJoins() {
     return true;
   }
 
   @Override
-  public boolean supportsFullOuterJoins() throws SQLException {
+  public boolean supportsFullOuterJoins() {
     return true;
   }
 
   @Override
-  public boolean supportsLimitedOuterJoins() throws SQLException {
+  public boolean supportsLimitedOuterJoins() {
     return true;
   }
 
   @Override
-  public String getSchemaTerm() throws SQLException {
+  public String getSchemaTerm() {
     return "SCHEMA";
   }
 
   @Override
-  public String getProcedureTerm() throws SQLException {
+  public String getProcedureTerm() {
     return "PROCEDURE";
   }
 
   @Override
-  public String getCatalogTerm() throws SQLException {
+  public String getCatalogTerm() {
     // Spanner does not support catalogs, but the term is included for compatibility with the SQL
     // standard
     return "CATALOG";
   }
 
   @Override
-  public boolean isCatalogAtStart() throws SQLException {
+  public boolean isCatalogAtStart() {
     return false;
   }
 
   @Override
-  public String getCatalogSeparator() throws SQLException {
+  public String getCatalogSeparator() {
     return ".";
   }
 
   @Override
-  public boolean supportsSchemasInDataManipulation() throws SQLException {
+  public boolean supportsSchemasInDataManipulation() {
     return false;
   }
 
   @Override
-  public boolean supportsSchemasInProcedureCalls() throws SQLException {
+  public boolean supportsSchemasInProcedureCalls() {
     return false;
   }
 
   @Override
-  public boolean supportsSchemasInTableDefinitions() throws SQLException {
+  public boolean supportsSchemasInTableDefinitions() {
     return false;
   }
 
   @Override
-  public boolean supportsSchemasInIndexDefinitions() throws SQLException {
+  public boolean supportsSchemasInIndexDefinitions() {
     return false;
   }
 
   @Override
-  public boolean supportsSchemasInPrivilegeDefinitions() throws SQLException {
+  public boolean supportsSchemasInPrivilegeDefinitions() {
     return false;
   }
 
   @Override
-  public boolean supportsCatalogsInDataManipulation() throws SQLException {
+  public boolean supportsCatalogsInDataManipulation() {
     return false;
   }
 
   @Override
-  public boolean supportsCatalogsInProcedureCalls() throws SQLException {
+  public boolean supportsCatalogsInProcedureCalls() {
     return false;
   }
 
   @Override
-  public boolean supportsCatalogsInTableDefinitions() throws SQLException {
+  public boolean supportsCatalogsInTableDefinitions() {
     return false;
   }
 
   @Override
-  public boolean supportsCatalogsInIndexDefinitions() throws SQLException {
+  public boolean supportsCatalogsInIndexDefinitions() {
     return false;
   }
 
   @Override
-  public boolean supportsCatalogsInPrivilegeDefinitions() throws SQLException {
+  public boolean supportsCatalogsInPrivilegeDefinitions() {
     return false;
   }
 
   @Override
-  public boolean supportsPositionedDelete() throws SQLException {
+  public boolean supportsPositionedDelete() {
     return false;
   }
 
   @Override
-  public boolean supportsPositionedUpdate() throws SQLException {
+  public boolean supportsPositionedUpdate() {
     return false;
   }
 
   @Override
-  public boolean supportsSelectForUpdate() throws SQLException {
+  public boolean supportsSelectForUpdate() {
     return false;
   }
 
   @Override
-  public boolean supportsStoredProcedures() throws SQLException {
+  public boolean supportsStoredProcedures() {
     return false;
   }
 
   @Override
-  public boolean supportsSubqueriesInComparisons() throws SQLException {
+  public boolean supportsSubqueriesInComparisons() {
     return true;
   }
 
   @Override
-  public boolean supportsSubqueriesInExists() throws SQLException {
+  public boolean supportsSubqueriesInExists() {
     return true;
   }
 
   @Override
-  public boolean supportsSubqueriesInIns() throws SQLException {
+  public boolean supportsSubqueriesInIns() {
     return true;
   }
 
   @Override
-  public boolean supportsSubqueriesInQuantifieds() throws SQLException {
+  public boolean supportsSubqueriesInQuantifieds() {
     return true;
   }
 
   @Override
-  public boolean supportsCorrelatedSubqueries() throws SQLException {
+  public boolean supportsCorrelatedSubqueries() {
     return true;
   }
 
   @Override
-  public boolean supportsUnion() throws SQLException {
+  public boolean supportsUnion() {
     // Note that Cloud Spanner requires the user to specify 'UNION DISTINCT' or 'UNION ALL' in a
     // query. 'UNION DISTINCT' is equal to the SQL operation 'UNION'.
     return true;
   }
 
   @Override
-  public boolean supportsUnionAll() throws SQLException {
+  public boolean supportsUnionAll() {
     return true;
   }
 
   @Override
-  public boolean supportsOpenCursorsAcrossCommit() throws SQLException {
+  public boolean supportsOpenCursorsAcrossCommit() {
     return false;
   }
 
   @Override
-  public boolean supportsOpenCursorsAcrossRollback() throws SQLException {
+  public boolean supportsOpenCursorsAcrossRollback() {
     return false;
   }
 
   @Override
-  public boolean supportsOpenStatementsAcrossCommit() throws SQLException {
+  public boolean supportsOpenStatementsAcrossCommit() {
     return true;
   }
 
   @Override
-  public boolean supportsOpenStatementsAcrossRollback() throws SQLException {
+  public boolean supportsOpenStatementsAcrossRollback() {
     return true;
   }
 
   @Override
-  public int getMaxBinaryLiteralLength() throws SQLException {
+  public int getMaxBinaryLiteralLength() {
     return 0;
   }
 
   @Override
-  public int getMaxCharLiteralLength() throws SQLException {
+  public int getMaxCharLiteralLength() {
     return 0;
   }
 
   @Override
-  public int getMaxColumnNameLength() throws SQLException {
+  public int getMaxColumnNameLength() {
     return 128;
   }
 
   @Override
-  public int getMaxColumnsInGroupBy() throws SQLException {
+  public int getMaxColumnsInGroupBy() {
     return 1000;
   }
 
   @Override
-  public int getMaxColumnsInIndex() throws SQLException {
+  public int getMaxColumnsInIndex() {
     return 16;
   }
 
   @Override
-  public int getMaxColumnsInOrderBy() throws SQLException {
+  public int getMaxColumnsInOrderBy() {
     return 0;
   }
 
   @Override
-  public int getMaxColumnsInSelect() throws SQLException {
+  public int getMaxColumnsInSelect() {
     return 0;
   }
 
   @Override
-  public int getMaxColumnsInTable() throws SQLException {
+  public int getMaxColumnsInTable() {
     return 1024;
   }
 
   @Override
-  public int getMaxConnections() throws SQLException {
+  public int getMaxConnections() {
     // there is a max number of sessions, but that is not the same as the max number of connections
     return 0;
   }
 
   @Override
-  public int getMaxCursorNameLength() throws SQLException {
+  public int getMaxCursorNameLength() {
     return 0;
   }
 
   @Override
-  public int getMaxIndexLength() throws SQLException {
+  public int getMaxIndexLength() {
     return 8000;
   }
 
   @Override
-  public int getMaxSchemaNameLength() throws SQLException {
+  public int getMaxSchemaNameLength() {
     return 0;
   }
 
   @Override
-  public int getMaxProcedureNameLength() throws SQLException {
+  public int getMaxProcedureNameLength() {
     return 0;
   }
 
   @Override
-  public int getMaxCatalogNameLength() throws SQLException {
+  public int getMaxCatalogNameLength() {
     return 0;
   }
 
   @Override
-  public int getMaxRowSize() throws SQLException {
-    return 1024 * 10000000;
+  public int getMaxRowSize() {
+    // The limit is 1024 columns per table * 10MB per column, which is more than fits in an int.
+    // We therefore return 0 to indicate no limit (or an unknown limit).
+    return 0;
   }
 
   @Override
-  public boolean doesMaxRowSizeIncludeBlobs() throws SQLException {
+  public boolean doesMaxRowSizeIncludeBlobs() {
     return true;
   }
 
   @Override
-  public int getMaxStatementLength() throws SQLException {
+  public int getMaxStatementLength() {
     return 1000000;
   }
 
   @Override
-  public int getMaxStatements() throws SQLException {
+  public int getMaxStatements() {
     return 0;
   }
 
   @Override
-  public int getMaxTableNameLength() throws SQLException {
+  public int getMaxTableNameLength() {
     return 128;
   }
 
   @Override
-  public int getMaxTablesInSelect() throws SQLException {
+  public int getMaxTablesInSelect() {
     return 0;
   }
 
   @Override
-  public int getMaxUserNameLength() throws SQLException {
+  public int getMaxUserNameLength() {
     return 0;
   }
 
   @Override
-  public int getDefaultTransactionIsolation() throws SQLException {
+  public int getDefaultTransactionIsolation() {
     return Connection.TRANSACTION_SERIALIZABLE;
   }
 
   @Override
-  public boolean supportsTransactions() throws SQLException {
+  public boolean supportsTransactions() {
     return true;
   }
 
   @Override
-  public boolean supportsTransactionIsolationLevel(int level) throws SQLException {
+  public boolean supportsTransactionIsolationLevel(int level) {
     return Connection.TRANSACTION_SERIALIZABLE == level;
   }
 
   @Override
-  public boolean supportsDataDefinitionAndDataManipulationTransactions() throws SQLException {
+  public boolean supportsDataDefinitionAndDataManipulationTransactions() {
     return false;
   }
 
   @Override
-  public boolean supportsDataManipulationTransactionsOnly() throws SQLException {
+  public boolean supportsDataManipulationTransactionsOnly() {
     return true;
   }
 
   @Override
-  public boolean dataDefinitionCausesTransactionCommit() throws SQLException {
+  public boolean dataDefinitionCausesTransactionCommit() {
     return false;
   }
 
   @Override
-  public boolean dataDefinitionIgnoredInTransactions() throws SQLException {
+  public boolean dataDefinitionIgnoredInTransactions() {
     return false;
   }
 
   @Override
-  public ResultSet getProcedures(String catalog, String schemaPattern, String procedureNamePattern)
-      throws SQLException {
+  public ResultSet getProcedures(
+      String catalog, String schemaPattern, String procedureNamePattern) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -691,13 +692,12 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("REMARKS", Type.string()),
                 StructField.of("PROCEDURE_TYPE", Type.int64()),
                 StructField.of("SPECIFIC_NAME", Type.string())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
   public ResultSet getProcedureColumns(
-      String catalog, String schemaPattern, String procedureNamePattern, String columnNamePattern)
-      throws SQLException {
+      String catalog, String schemaPattern, String procedureNamePattern, String columnNamePattern) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -721,7 +721,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("ORDINAL_POSITION", Type.int64()),
                 StructField.of("IS_NULLABLE", Type.string()),
                 StructField.of("SPECIFIC_NAME", Type.string())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   private JdbcPreparedStatement prepareStatementReplaceNullWithAnyString(
@@ -768,15 +768,15 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public ResultSet getCatalogs() throws SQLException {
+  public ResultSet getCatalogs() {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(StructField.of("TABLE_CAT", Type.string())),
-            Arrays.asList(Struct.newBuilder().set("TABLE_CAT").to("").build())));
+            Collections.singletonList(Struct.newBuilder().set("TABLE_CAT").to("").build())));
   }
 
   @Override
-  public ResultSet getTableTypes() throws SQLException {
+  public ResultSet getTableTypes() {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(StructField.of("TABLE_TYPE", Type.string())),
@@ -798,7 +798,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
 
   @Override
   public ResultSet getColumnPrivileges(
-      String catalog, String schema, String table, String columnNamePattern) throws SQLException {
+      String catalog, String schema, String table, String columnNamePattern) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -810,12 +810,12 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("GRANTEE", Type.string()),
                 StructField.of("PRIVILEGE", Type.string()),
                 StructField.of("IS_GRANTABLE", Type.string())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
-  public ResultSet getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern)
-      throws SQLException {
+  public ResultSet getTablePrivileges(
+      String catalog, String schemaPattern, String tableNamePattern) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -826,30 +826,21 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("GRANTEE", Type.string()),
                 StructField.of("PRIVILEGE", Type.string()),
                 StructField.of("IS_GRANTABLE", Type.string())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
   public ResultSet getBestRowIdentifier(
-      String catalog, String schema, String table, int scope, boolean nullable)
-      throws SQLException {
-    return JdbcResultSet.of(
-        ResultSets.forRows(
-            Type.struct(
-                StructField.of("SCOPE", Type.int64()),
-                StructField.of("COLUMN_NAME", Type.string()),
-                StructField.of("DATA_TYPE", Type.int64()),
-                StructField.of("TYPE_NAME", Type.string()),
-                StructField.of("COLUMN_SIZE", Type.int64()),
-                StructField.of("BUFFER_LENGTH", Type.int64()),
-                StructField.of("DECIMAL_DIGITS", Type.int64()),
-                StructField.of("PSEUDO_COLUMN", Type.int64())),
-            Collections.<Struct>emptyList()));
+      String catalog, String schema, String table, int scope, boolean nullable) {
+    return getEmptyColumnsResultSet();
   }
 
   @Override
-  public ResultSet getVersionColumns(String catalog, String schema, String table)
-      throws SQLException {
+  public ResultSet getVersionColumns(String catalog, String schema, String table) {
+    return getEmptyColumnsResultSet();
+  }
+
+  private ResultSet getEmptyColumnsResultSet() {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -861,7 +852,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("BUFFER_LENGTH", Type.int64()),
                 StructField.of("DECIMAL_DIGITS", Type.int64()),
                 StructField.of("PSEUDO_COLUMN", Type.int64())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
@@ -916,7 +907,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public ResultSet getTypeInfo() throws SQLException {
+  public ResultSet getTypeInfo() {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -1268,69 +1259,68 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public boolean supportsResultSetType(int type) throws SQLException {
+  public boolean supportsResultSetType(int type) {
     return type == ResultSet.TYPE_FORWARD_ONLY;
   }
 
   @Override
-  public boolean supportsResultSetConcurrency(int type, int concurrency) throws SQLException {
+  public boolean supportsResultSetConcurrency(int type, int concurrency) {
     return type == ResultSet.TYPE_FORWARD_ONLY && concurrency == ResultSet.CONCUR_READ_ONLY;
   }
 
   @Override
-  public boolean ownUpdatesAreVisible(int type) throws SQLException {
+  public boolean ownUpdatesAreVisible(int type) {
     return false;
   }
 
   @Override
-  public boolean ownDeletesAreVisible(int type) throws SQLException {
+  public boolean ownDeletesAreVisible(int type) {
     return false;
   }
 
   @Override
-  public boolean ownInsertsAreVisible(int type) throws SQLException {
+  public boolean ownInsertsAreVisible(int type) {
     return false;
   }
 
   @Override
-  public boolean othersUpdatesAreVisible(int type) throws SQLException {
+  public boolean othersUpdatesAreVisible(int type) {
     return false;
   }
 
   @Override
-  public boolean othersDeletesAreVisible(int type) throws SQLException {
+  public boolean othersDeletesAreVisible(int type) {
     return false;
   }
 
   @Override
-  public boolean othersInsertsAreVisible(int type) throws SQLException {
+  public boolean othersInsertsAreVisible(int type) {
     return false;
   }
 
   @Override
-  public boolean updatesAreDetected(int type) throws SQLException {
+  public boolean updatesAreDetected(int type) {
     return false;
   }
 
   @Override
-  public boolean deletesAreDetected(int type) throws SQLException {
+  public boolean deletesAreDetected(int type) {
     return false;
   }
 
   @Override
-  public boolean insertsAreDetected(int type) throws SQLException {
+  public boolean insertsAreDetected(int type) {
     return false;
   }
 
   @Override
-  public boolean supportsBatchUpdates() throws SQLException {
+  public boolean supportsBatchUpdates() {
     return true;
   }
 
   @Override
   public ResultSet getUDTs(
-      String catalog, String schemaPattern, String typeNamePattern, int[] types)
-      throws SQLException {
+      String catalog, String schemaPattern, String typeNamePattern, int[] types) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -1341,37 +1331,36 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("DATA_TYPE", Type.int64()),
                 StructField.of("REMARKS", Type.string()),
                 StructField.of("BASE_TYPE", Type.int64())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
-  public Connection getConnection() throws SQLException {
+  public Connection getConnection() {
     return connection;
   }
 
   @Override
-  public boolean supportsSavepoints() throws SQLException {
+  public boolean supportsSavepoints() {
     return false;
   }
 
   @Override
-  public boolean supportsNamedParameters() throws SQLException {
+  public boolean supportsNamedParameters() {
     return false;
   }
 
   @Override
-  public boolean supportsMultipleOpenResults() throws SQLException {
+  public boolean supportsMultipleOpenResults() {
     return true;
   }
 
   @Override
-  public boolean supportsGetGeneratedKeys() throws SQLException {
+  public boolean supportsGetGeneratedKeys() {
     return false;
   }
 
   @Override
-  public ResultSet getSuperTypes(String catalog, String schemaPattern, String typeNamePattern)
-      throws SQLException {
+  public ResultSet getSuperTypes(String catalog, String schemaPattern, String typeNamePattern) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -1381,12 +1370,11 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("SUPERTYPE_CAT", Type.string()),
                 StructField.of("SUPERTYPE_SCHEM", Type.string()),
                 StructField.of("SUPERTYPE_NAME", Type.string())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
-  public ResultSet getSuperTables(String catalog, String schemaPattern, String tableNamePattern)
-      throws SQLException {
+  public ResultSet getSuperTables(String catalog, String schemaPattern, String tableNamePattern) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -1394,13 +1382,12 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("TABLE_SCHEM", Type.string()),
                 StructField.of("TABLE_NAME", Type.string()),
                 StructField.of("SUPERTABLE_NAME", Type.string())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
   public ResultSet getAttributes(
-      String catalog, String schemaPattern, String typeNamePattern, String attributeNamePattern)
-      throws SQLException {
+      String catalog, String schemaPattern, String typeNamePattern, String attributeNamePattern) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -1425,56 +1412,56 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("SCOPE_SCHEMA", Type.string()),
                 StructField.of("SCOPE_TABLE", Type.string()),
                 StructField.of("SOURCE_DATA_TYPE", Type.int64())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
-  public boolean supportsResultSetHoldability(int holdability) throws SQLException {
+  public boolean supportsResultSetHoldability(int holdability) {
     return holdability == ResultSet.CLOSE_CURSORS_AT_COMMIT;
   }
 
   @Override
-  public int getResultSetHoldability() throws SQLException {
+  public int getResultSetHoldability() {
     return ResultSet.CLOSE_CURSORS_AT_COMMIT;
   }
 
   @Override
-  public int getDatabaseMajorVersion() throws SQLException {
+  public int getDatabaseMajorVersion() {
     return DATABASE_MAJOR_VERSION;
   }
 
   @Override
-  public int getDatabaseMinorVersion() throws SQLException {
+  public int getDatabaseMinorVersion() {
     return DATABASE_MINOR_VERSION;
   }
 
   @Override
-  public int getJDBCMajorVersion() throws SQLException {
+  public int getJDBCMajorVersion() {
     return JDBC_MAJOR_VERSION;
   }
 
   @Override
-  public int getJDBCMinorVersion() throws SQLException {
+  public int getJDBCMinorVersion() {
     return JDBC_MINOR_VERSION;
   }
 
   @Override
-  public int getSQLStateType() throws SQLException {
+  public int getSQLStateType() {
     return sqlStateSQL;
   }
 
   @Override
-  public boolean locatorsUpdateCopy() throws SQLException {
+  public boolean locatorsUpdateCopy() {
     return true;
   }
 
   @Override
-  public boolean supportsStatementPooling() throws SQLException {
+  public boolean supportsStatementPooling() {
     return false;
   }
 
   @Override
-  public RowIdLifetime getRowIdLifetime() throws SQLException {
+  public RowIdLifetime getRowIdLifetime() {
     return RowIdLifetime.ROWID_UNSUPPORTED;
   }
 
@@ -1487,12 +1474,12 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public boolean supportsStoredFunctionsUsingCallSyntax() throws SQLException {
+  public boolean supportsStoredFunctionsUsingCallSyntax() {
     return false;
   }
 
   @Override
-  public boolean autoCommitFailureClosesAllResultSets() throws SQLException {
+  public boolean autoCommitFailureClosesAllResultSets() {
     return false;
   }
 
@@ -1511,7 +1498,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
     return info;
   }
 
-  private static ResultSet getDefaultClientInfo() throws SQLException {
+  private static ResultSet getDefaultClientInfo() {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -1556,13 +1543,12 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public ResultSet getClientInfoProperties() throws SQLException {
+  public ResultSet getClientInfoProperties() {
     return getDefaultClientInfo();
   }
 
   @Override
-  public ResultSet getFunctions(String catalog, String schemaPattern, String functionNamePattern)
-      throws SQLException {
+  public ResultSet getFunctions(String catalog, String schemaPattern, String functionNamePattern) {
     // TODO: return system functions
     return JdbcResultSet.of(
         ResultSets.forRows(
@@ -1573,13 +1559,12 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("REMARKS", Type.string()),
                 StructField.of("FUNCTION_TYPE", Type.int64()),
                 StructField.of("SPECIFIC_NAME", Type.string())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
   public ResultSet getFunctionColumns(
-      String catalog, String schemaPattern, String functionNamePattern, String columnNamePattern)
-      throws SQLException {
+      String catalog, String schemaPattern, String functionNamePattern, String columnNamePattern) {
     // TODO: return system functions
     return JdbcResultSet.of(
         ResultSets.forRows(
@@ -1601,13 +1586,12 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("ORDINAL_POSITION", Type.int64()),
                 StructField.of("IS_NULLABLE", Type.string()),
                 StructField.of("SPECIFIC_NAME", Type.string())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
   public ResultSet getPseudoColumns(
-      String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern)
-      throws SQLException {
+      String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
@@ -1623,22 +1607,22 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("REMARKS", Type.string()),
                 StructField.of("CHAR_OCTET_LENGTH", Type.int64()),
                 StructField.of("IS_NULLABLE", Type.string())),
-            Collections.<Struct>emptyList()));
+            Collections.emptyList()));
   }
 
   @Override
-  public boolean generatedKeyAlwaysReturned() throws SQLException {
+  public boolean generatedKeyAlwaysReturned() {
     return false;
   }
 
   @Override
-  public long getMaxLogicalLobSize() throws SQLException {
+  public long getMaxLogicalLobSize() {
     // BYTES(MAX)
     return 10485760L;
   }
 
   @Override
-  public boolean supportsRefCursors() throws SQLException {
+  public boolean supportsRefCursors() {
     return false;
   }
 }

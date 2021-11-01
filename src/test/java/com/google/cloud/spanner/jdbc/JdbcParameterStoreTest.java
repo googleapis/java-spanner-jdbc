@@ -53,11 +53,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class JdbcParameterStoreTest {
 
-  /**
-   * Tests setting a {@link Value} as a parameter value.
-   *
-   * @throws SQLException
-   */
+  /** Tests setting a {@link Value} as a parameter value. */
   @Test
   public void testSetValueAsParameter() throws SQLException {
     JdbcParameterStore params = new JdbcParameterStore();
@@ -130,10 +126,10 @@ public class JdbcParameterStoreTest {
     assertEquals(1, ((Long) params.getParameter(1)).longValue());
     verifyParameter(params, Value.int64(1));
     params.setParameter(1, (float) 1, Types.FLOAT);
-    assertEquals(1.0f, ((Float) params.getParameter(1)).floatValue(), 0.0f);
+    assertEquals(1.0f, (Float) params.getParameter(1), 0.0f);
     verifyParameter(params, Value.float64(1));
     params.setParameter(1, (double) 1, Types.DOUBLE);
-    assertEquals(1.0d, ((Double) params.getParameter(1)).doubleValue(), 0.0d);
+    assertEquals(1.0d, (Double) params.getParameter(1), 0.0d);
     verifyParameter(params, Value.float64(1));
     params.setParameter(1, new Date(1970 - 1900, 0, 1), Types.DATE);
     assertEquals(new Date(1970 - 1900, 0, 1), params.getParameter(1));
@@ -208,10 +204,10 @@ public class JdbcParameterStoreTest {
       assertEquals(1, ((Long) params.getParameter(1)).longValue());
       verifyParameter(params, Value.int64(1));
       params.setParameter(1, (float) 1, type);
-      assertEquals(1.0f, ((Float) params.getParameter(1)).floatValue(), 0.0f);
+      assertEquals(1.0f, (Float) params.getParameter(1), 0.0f);
       verifyParameter(params, Value.int64(1));
       params.setParameter(1, (double) 1, type);
-      assertEquals(1.0d, ((Double) params.getParameter(1)).doubleValue(), 0.0d);
+      assertEquals(1.0d, (Double) params.getParameter(1), 0.0d);
       verifyParameter(params, Value.int64(1));
       params.setParameter(1, BigDecimal.ONE, type);
       assertEquals(BigDecimal.ONE, params.getParameter(1));
@@ -233,10 +229,10 @@ public class JdbcParameterStoreTest {
       assertEquals(1, ((Long) params.getParameter(1)).longValue());
       verifyParameter(params, Value.float64(1));
       params.setParameter(1, (float) 1, type);
-      assertEquals(1.0f, ((Float) params.getParameter(1)).floatValue(), 0.0f);
+      assertEquals(1.0f, (Float) params.getParameter(1), 0.0f);
       verifyParameter(params, Value.float64(1));
       params.setParameter(1, (double) 1, type);
-      assertEquals(1.0d, ((Double) params.getParameter(1)).doubleValue(), 0.0d);
+      assertEquals(1.0d, (Double) params.getParameter(1), 0.0d);
       verifyParameter(params, Value.float64(1));
       params.setParameter(1, BigDecimal.ONE, type);
       assertEquals(BigDecimal.ONE, params.getParameter(1));
@@ -332,10 +328,10 @@ public class JdbcParameterStoreTest {
       assertEquals(1, ((Long) params.getParameter(1)).longValue());
       verifyParameter(params, Value.bool(true));
       params.setParameter(1, (float) 1, type);
-      assertEquals(1.0f, ((Float) params.getParameter(1)).floatValue(), 0.0f);
+      assertEquals(1.0f, (Float) params.getParameter(1), 0.0f);
       verifyParameter(params, Value.bool(true));
       params.setParameter(1, (double) 1, type);
-      assertEquals(1.0d, ((Double) params.getParameter(1)).doubleValue(), 0.0d);
+      assertEquals(1.0d, (Double) params.getParameter(1), 0.0d);
       verifyParameter(params, Value.bool(true));
       params.setParameter(1, BigDecimal.ZERO, type);
       assertEquals(BigDecimal.ZERO, params.getParameter(1));
@@ -361,10 +357,10 @@ public class JdbcParameterStoreTest {
       assertEquals(1, ((Long) params.getParameter(1)).longValue());
       verifyParameter(params, Value.numeric(BigDecimal.ONE));
       params.setParameter(1, (float) 1, type);
-      assertEquals(1.0f, ((Float) params.getParameter(1)).floatValue(), 0.0f);
+      assertEquals(1.0f, (Float) params.getParameter(1), 0.0f);
       verifyParameter(params, Value.numeric(BigDecimal.valueOf(1.0)));
       params.setParameter(1, (double) 1, type);
-      assertEquals(1.0d, ((Double) params.getParameter(1)).doubleValue(), 0.0d);
+      assertEquals(1.0d, (Double) params.getParameter(1), 0.0d);
       verifyParameter(params, Value.numeric(BigDecimal.valueOf(1.0)));
     }
   }
@@ -502,10 +498,10 @@ public class JdbcParameterStoreTest {
     assertEquals(1, ((Long) params.getParameter(1)).longValue());
     verifyParameter(params, Value.int64(1));
     params.setParameter(1, (float) 1, (Integer) null);
-    assertEquals(1.0f, ((Float) params.getParameter(1)).floatValue(), 0.0f);
+    assertEquals(1.0f, (Float) params.getParameter(1), 0.0f);
     verifyParameter(params, Value.float64(1));
     params.setParameter(1, (double) 1, (Integer) null);
-    assertEquals(1.0d, ((Double) params.getParameter(1)).doubleValue(), 0.0d);
+    assertEquals(1.0d, (Double) params.getParameter(1), 0.0d);
     verifyParameter(params, Value.float64(1));
     params.setParameter(1, new Date(1970 - 1900, 0, 1), (Integer) null);
     assertEquals(new Date(1970 - 1900, 0, 1), params.getParameter(1));
@@ -618,7 +614,8 @@ public class JdbcParameterStoreTest {
     assertEquals(JdbcArray.createArray("DATE", new Date[] {sqlDate}), params.getParameter(1));
     verifyParameter(
         params,
-        Value.dateArray(Arrays.asList(com.google.cloud.Date.fromYearMonthDay(2018, 12, 14))));
+        Value.dateArray(
+            Collections.singletonList(com.google.cloud.Date.fromYearMonthDay(2018, 12, 14))));
 
     params.setParameter(1, JdbcArray.createArray("DATE", new Date[] {sqlDate, null}), Types.ARRAY);
     assertEquals(JdbcArray.createArray("DATE", new Date[] {sqlDate, null}), params.getParameter(1));
@@ -636,7 +633,9 @@ public class JdbcParameterStoreTest {
     assertEquals(
         JdbcArray.createArray("TIMESTAMP", new Timestamp[] {sqlTimestamp}), params.getParameter(1));
     verifyParameter(
-        params, Value.timestampArray(Arrays.asList(com.google.cloud.Timestamp.of(sqlTimestamp))));
+        params,
+        Value.timestampArray(
+            Collections.singletonList(com.google.cloud.Timestamp.of(sqlTimestamp))));
 
     params.setParameter(
         1, JdbcArray.createArray("TIMESTAMP", new Timestamp[] {sqlTimestamp, null}), Types.ARRAY);

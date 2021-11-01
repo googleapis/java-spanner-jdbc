@@ -40,6 +40,7 @@ import com.google.rpc.Code;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -57,7 +58,7 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class JdbcTypeConverterTest {
-  private static final Charset UTF8 = Charset.forName("UTF8");
+  private static final Charset UTF8 = StandardCharsets.UTF_8;
 
   @Test
   public void testConvertArray() throws SQLException {
@@ -94,14 +95,12 @@ public class JdbcTypeConverterTest {
     Boolean[] testValues = new Boolean[] {Boolean.TRUE, Boolean.FALSE};
     for (Boolean b : testValues) {
       assertThat(convert(b, Type.bool(), Boolean.class)).isEqualTo(b);
-      assertThat(convert(b, Type.bool(), Byte.class))
-          .isEqualTo(Byte.valueOf(b ? (byte) 1 : (byte) 0));
-      assertThat(convert(b, Type.bool(), Short.class))
-          .isEqualTo(Short.valueOf(b ? (short) 1 : (short) 0));
-      assertThat(convert(b, Type.bool(), Integer.class)).isEqualTo(Integer.valueOf(b ? 1 : 0));
-      assertThat(convert(b, Type.bool(), Long.class)).isEqualTo(Long.valueOf(b ? 1L : 0L));
-      assertThat(convert(b, Type.bool(), Float.class)).isEqualTo(Float.valueOf(b ? 1F : 0F));
-      assertThat(convert(b, Type.bool(), Double.class)).isEqualTo(Double.valueOf(b ? 1D : 0D));
+      assertThat(convert(b, Type.bool(), Byte.class)).isEqualTo(b ? (byte) 1 : (byte) 0);
+      assertThat(convert(b, Type.bool(), Short.class)).isEqualTo(b ? (short) 1 : (short) 0);
+      assertThat(convert(b, Type.bool(), Integer.class)).isEqualTo(b ? 1 : 0);
+      assertThat(convert(b, Type.bool(), Long.class)).isEqualTo(b ? 1L : 0L);
+      assertThat(convert(b, Type.bool(), Float.class)).isEqualTo(b ? 1F : 0F);
+      assertThat(convert(b, Type.bool(), Double.class)).isEqualTo(b ? 1D : 0D);
       assertThat(convert(b, Type.bool(), BigInteger.class))
           .isEqualTo(b ? BigInteger.ONE : BigInteger.ZERO);
       assertThat(convert(b, Type.bool(), BigDecimal.class))
@@ -238,18 +237,18 @@ public class JdbcTypeConverterTest {
           1L,
           Long.MIN_VALUE,
           Long.MAX_VALUE,
-          Long.valueOf(Integer.MIN_VALUE),
-          Long.valueOf(Integer.MAX_VALUE),
-          Long.valueOf(Integer.MIN_VALUE - 1),
-          Long.valueOf(Integer.MAX_VALUE + 1),
-          Long.valueOf(Short.MIN_VALUE),
-          Long.valueOf(Short.MAX_VALUE),
-          Long.valueOf(Short.MIN_VALUE - 1),
-          Long.valueOf(Short.MAX_VALUE + 1),
-          Long.valueOf(Byte.MIN_VALUE),
-          Long.valueOf(Byte.MAX_VALUE),
-          Long.valueOf(Byte.MIN_VALUE - 1),
-          Long.valueOf(Byte.MAX_VALUE + 1)
+          (long) Integer.MIN_VALUE,
+          (long) Integer.MAX_VALUE,
+          ((long) Integer.MIN_VALUE - 1),
+          ((long) Integer.MAX_VALUE + 1),
+          (long) Short.MIN_VALUE,
+          (long) Short.MAX_VALUE,
+          (long) (Short.MIN_VALUE - 1),
+          (long) (Short.MAX_VALUE + 1),
+          (long) Byte.MIN_VALUE,
+          (long) Byte.MAX_VALUE,
+          (long) (Byte.MIN_VALUE - 1),
+          (long) (Byte.MAX_VALUE + 1)
         };
     testConvertInt64ToNumber(testValues, Long.class, Long.MIN_VALUE, Long.MAX_VALUE);
     testConvertInt64ToNumber(testValues, Integer.class, Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -260,7 +259,7 @@ public class JdbcTypeConverterTest {
 
     for (Long l : testValues) {
       assertThat(convert(l, Type.int64(), String.class)).isEqualTo(String.valueOf(l));
-      assertThat(convert(l, Type.int64(), Boolean.class)).isEqualTo(Boolean.valueOf(l != 0L));
+      assertThat(convert(l, Type.int64(), Boolean.class)).isEqualTo(l != 0L);
       assertConvertThrows(l, Type.int64(), Double.class, Code.INVALID_ARGUMENT);
       assertConvertThrows(l, Type.int64(), Float.class, Code.INVALID_ARGUMENT);
     }
@@ -288,19 +287,19 @@ public class JdbcTypeConverterTest {
           1D,
           Double.MIN_VALUE,
           Double.MAX_VALUE,
-          Double.valueOf(Float.MIN_VALUE),
-          Double.valueOf(Float.MAX_VALUE),
-          Double.valueOf(Float.MAX_VALUE + 1D)
+          (double) Float.MIN_VALUE,
+          (double) Float.MAX_VALUE,
+          Float.MAX_VALUE + 1D
         };
     for (Double d : testValues) {
       assertThat(convert(d, Type.float64(), Double.class)).isEqualTo(d);
-      if (d > Float.MAX_VALUE || d < -Float.MAX_VALUE) {
+      if (Math.abs(d) > Math.abs(Float.MAX_VALUE)) {
         assertConvertThrows(d, Type.float64(), Float.class, Code.OUT_OF_RANGE);
       } else {
         assertThat(convert(d, Type.float64(), Float.class)).isEqualTo(d.floatValue());
       }
       assertThat(convert(d, Type.float64(), String.class)).isEqualTo(String.valueOf(d));
-      assertThat(convert(d, Type.float64(), Boolean.class)).isEqualTo(Boolean.valueOf(d != 0D));
+      assertThat(convert(d, Type.float64(), Boolean.class)).isEqualTo(d != 0D);
       assertConvertThrows(d, Type.float64(), Long.class, Code.INVALID_ARGUMENT);
       assertConvertThrows(d, Type.float64(), Integer.class, Code.INVALID_ARGUMENT);
       assertConvertThrows(d, Type.float64(), Short.class, Code.INVALID_ARGUMENT);
@@ -328,8 +327,7 @@ public class JdbcTypeConverterTest {
       assertThat(convert(d, Type.numeric(), Double.class)).isEqualTo(d.doubleValue());
       assertThat(convert(d, Type.numeric(), Float.class)).isEqualTo(d.floatValue());
       assertThat(convert(d, Type.numeric(), String.class)).isEqualTo(String.valueOf(d));
-      assertThat(convert(d, Type.numeric(), Boolean.class))
-          .isEqualTo(Boolean.valueOf(!d.equals(BigDecimal.ZERO)));
+      assertThat(convert(d, Type.numeric(), Boolean.class)).isEqualTo(!d.equals(BigDecimal.ZERO));
       if (d.compareTo(BigDecimal.valueOf(Long.MAX_VALUE)) > 0
           || d.compareTo(BigDecimal.valueOf(Long.MIN_VALUE)) < 0
           || d.scale() > 0) {
@@ -446,35 +444,35 @@ public class JdbcTypeConverterTest {
   public void testToSqlDateWithCalendar() {
     for (TimeZone zone : getTestTimeZones()) {
       Calendar cal = Calendar.getInstance(zone);
-      cal.set(2019, 7, 24, 0, 0, 0);
+      cal.set(2019, Calendar.AUGUST, 24, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       assertThat(
               toSqlDate(
                   com.google.cloud.Date.fromYearMonthDay(2019, 8, 24), Calendar.getInstance(zone)))
           .isEqualTo(new Date(cal.getTimeInMillis()));
 
-      cal.set(2019, 0, 1, 0, 0, 0);
+      cal.set(2019, Calendar.JANUARY, 1, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       assertThat(
               toSqlDate(
                   com.google.cloud.Date.fromYearMonthDay(2019, 1, 1), Calendar.getInstance(zone)))
           .isEqualTo(new Date(cal.getTimeInMillis()));
 
-      cal.set(2019, 11, 31, 0, 0, 0);
+      cal.set(2019, Calendar.DECEMBER, 31, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       assertThat(
               toSqlDate(
                   com.google.cloud.Date.fromYearMonthDay(2019, 12, 31), Calendar.getInstance(zone)))
           .isEqualTo(new Date(cal.getTimeInMillis()));
 
-      cal.set(2016, 1, 29, 0, 0, 0);
+      cal.set(2016, Calendar.FEBRUARY, 29, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       assertThat(
               toSqlDate(
                   com.google.cloud.Date.fromYearMonthDay(2016, 2, 29), Calendar.getInstance(zone)))
           .isEqualTo(new Date(cal.getTimeInMillis()));
 
-      cal.set(2000, 1, 29, 0, 0, 0);
+      cal.set(2000, Calendar.FEBRUARY, 29, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       assertThat(
               toSqlDate(
@@ -513,7 +511,7 @@ public class JdbcTypeConverterTest {
 
   @SuppressWarnings("deprecation")
   @Test
-  public void testToSqlTimestamp() throws SQLException {
+  public void testToSqlTimestamp() {
     TimeZone initialDefault = TimeZone.getDefault();
     try {
       for (TimeZone zone : getTestTimeZones()) {
@@ -564,12 +562,12 @@ public class JdbcTypeConverterTest {
   }
 
   @Test
-  public void testGetAsSqlTimestamp() throws SQLException {
+  public void testGetAsSqlTimestamp() {
     for (TimeZone zone : getTestTimeZones()) {
       com.google.cloud.Timestamp gts =
           ReadOnlyStalenessUtil.parseRfc3339("2019-08-24T11:23:01.1998+03:00");
       Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+03:00"));
-      cal.set(2019, 7, 24, 11, 23, 1);
+      cal.set(2019, Calendar.AUGUST, 24, 11, 23, 1);
       cal.set(Calendar.MILLISECOND, 0);
       Timestamp ts = new Timestamp(cal.getTimeInMillis() + zone.getRawOffset());
       ts.setNanos(199800000);
@@ -577,7 +575,7 @@ public class JdbcTypeConverterTest {
 
       gts = ReadOnlyStalenessUtil.parseRfc3339("2019-12-31T23:59:59.999999999-03:00");
       cal = Calendar.getInstance(TimeZone.getTimeZone("GMT-03:00"));
-      cal.set(2019, 11, 31, 23, 59, 59);
+      cal.set(2019, Calendar.DECEMBER, 31, 23, 59, 59);
       cal.set(Calendar.MILLISECOND, 0);
       ts = new Timestamp(cal.getTimeInMillis() + zone.getRawOffset());
       ts.setNanos(999999999);
@@ -585,14 +583,14 @@ public class JdbcTypeConverterTest {
 
       gts = ReadOnlyStalenessUtil.parseRfc3339("2016-02-29T12:00:00Z");
       cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-      cal.set(2016, 1, 29, 12, 0, 0);
+      cal.set(2016, Calendar.FEBRUARY, 29, 12, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       ts = new Timestamp(cal.getTimeInMillis() + zone.getRawOffset());
       assertThat(getAsSqlTimestamp(gts, Calendar.getInstance(zone))).isEqualTo(ts);
 
       gts = ReadOnlyStalenessUtil.parseRfc3339("2000-02-29T00:00:00.000000000-10:00");
       cal = Calendar.getInstance(TimeZone.getTimeZone("GMT-10:00"));
-      cal.set(2000, 1, 29, 0, 0, 0);
+      cal.set(2000, Calendar.FEBRUARY, 29, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       ts = new Timestamp(cal.getTimeInMillis() + zone.getRawOffset());
       assertThat(getAsSqlTimestamp(gts, Calendar.getInstance(zone))).isEqualTo(ts);
@@ -601,10 +599,10 @@ public class JdbcTypeConverterTest {
 
   @SuppressWarnings("deprecation")
   @Test
-  public void testSetTimestampInCalendar() throws SQLException {
+  public void testSetTimestampInCalendar() {
     for (TimeZone zone : getTestTimeZones()) {
       Calendar cal = Calendar.getInstance(zone);
-      cal.set(2019, 7, 24, 11, 23, 1);
+      cal.set(2019, Calendar.AUGUST, 24, 11, 23, 1);
       cal.set(Calendar.MILLISECOND, 0);
       Timestamp ts = new Timestamp(2019 - 1900, 7, 24, 11, 23, 1, 0);
       Timestamp tsInCal = setTimestampInCalendar(ts, Calendar.getInstance(zone));
@@ -612,7 +610,7 @@ public class JdbcTypeConverterTest {
           .isEqualTo(cal.getTimeInMillis() - TimeZone.getDefault().getOffset(ts.getTime()));
 
       cal = Calendar.getInstance(zone);
-      cal.set(2019, 11, 31, 23, 59, 59);
+      cal.set(2019, Calendar.DECEMBER, 31, 23, 59, 59);
       cal.set(Calendar.MILLISECOND, 999);
       ts = new Timestamp(2019 - 1900, 11, 31, 23, 59, 59, 999000000);
       tsInCal = setTimestampInCalendar(ts, Calendar.getInstance(zone));
@@ -620,7 +618,7 @@ public class JdbcTypeConverterTest {
           .isEqualTo(cal.getTimeInMillis() - TimeZone.getDefault().getOffset(ts.getTime()));
 
       cal = Calendar.getInstance(zone);
-      cal.set(2016, 1, 29, 12, 0, 0);
+      cal.set(2016, Calendar.FEBRUARY, 29, 12, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       ts = new Timestamp(2016 - 1900, 1, 29, 12, 0, 0, 0);
       tsInCal = setTimestampInCalendar(ts, Calendar.getInstance(zone));
@@ -628,7 +626,7 @@ public class JdbcTypeConverterTest {
           .isEqualTo(cal.getTimeInMillis() - TimeZone.getDefault().getOffset(ts.getTime()));
 
       cal = Calendar.getInstance(zone);
-      cal.set(2000, 1, 29, 0, 0, 0);
+      cal.set(2000, Calendar.FEBRUARY, 29, 0, 0, 0);
       cal.set(Calendar.MILLISECOND, 0);
       ts = new Timestamp(2000 - 1900, 1, 29, 0, 0, 0, 0);
       tsInCal = setTimestampInCalendar(ts, Calendar.getInstance(zone));

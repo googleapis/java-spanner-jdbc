@@ -67,13 +67,11 @@ class JdbcArray implements Array {
   /**
    * Create a JDBC {@link Array} from the given type name and list.
    *
-   * @param typeName The Google Cloud Spanner type name to be used as the base type of the array.
+   * @param type The Google Cloud Spanner type to be used as the base type of the array.
    * @param elements The elements to store in the array.
    * @return the initialized {@link Array}.
-   * @throws SQLException if the type name is not a valid Cloud Spanner type or if the contents of
-   *     the elements array is not compatible with the base type of the array.
    */
-  static JdbcArray createArray(JdbcDataType type, List<? extends Object> elements) {
+  static JdbcArray createArray(JdbcDataType type, List<?> elements) {
     return new JdbcArray(type, elements);
   }
 
@@ -93,7 +91,7 @@ class JdbcArray implements Array {
     }
   }
 
-  private JdbcArray(JdbcDataType type, List<? extends Object> elements) {
+  private JdbcArray(JdbcDataType type, List<?> elements) {
     this.type = type;
     if (elements != null) {
       this.data = java.lang.reflect.Array.newInstance(type.getJavaClass(), elements.size());
@@ -179,7 +177,7 @@ class JdbcArray implements Array {
         Object value = ((Object[]) data)[index - 1];
         ValueBinder<Struct.Builder> binder =
             Struct.newBuilder().set("INDEX").to(index).set("VALUE");
-        Struct.Builder builder = null;
+        Struct.Builder builder;
         switch (type.getCode()) {
           case BOOL:
             builder = binder.to((Boolean) value);
@@ -237,7 +235,7 @@ class JdbcArray implements Array {
   }
 
   @Override
-  public void free() throws SQLException {
+  public void free() {
     this.freed = true;
     this.data = null;
   }
@@ -257,7 +255,7 @@ class JdbcArray implements Array {
       if (o == null) {
         builder.append("null");
       } else {
-        builder.append(o.toString());
+        builder.append(o);
       }
     }
     builder.append("}");

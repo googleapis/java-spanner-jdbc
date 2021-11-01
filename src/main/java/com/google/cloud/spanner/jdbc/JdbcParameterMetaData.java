@@ -40,19 +40,20 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
   }
 
   @Override
-  public int getParameterCount() throws SQLException {
+  public int getParameterCount() {
     ParametersInfo info = statement.getParametersInfo();
     return info.numberOfParameters;
   }
 
   @Override
-  public int isNullable(int param) throws SQLException {
+  public int isNullable(int param) {
     Integer nullable = statement.getParameters().getNullable(param);
-    return nullable == null ? parameterNullableUnknown : nullable.intValue();
+    //noinspection MagicConstant
+    return nullable == null ? parameterNullableUnknown : nullable;
   }
 
   @Override
-  public boolean isSigned(int param) throws SQLException {
+  public boolean isSigned(int param) {
     int type = getParameterType(param);
     return type == Types.DOUBLE
         || type == Types.FLOAT
@@ -65,20 +66,20 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
   }
 
   @Override
-  public int getPrecision(int param) throws SQLException {
+  public int getPrecision(int param) {
     Integer length = statement.getParameters().getScaleOrLength(param);
-    return length == null ? 0 : length.intValue();
+    return length == null ? 0 : length;
   }
 
   @Override
-  public int getScale(int param) throws SQLException {
+  public int getScale(int param) {
     return 0;
   }
 
   @Override
-  public int getParameterType(int param) throws SQLException {
+  public int getParameterType(int param) {
     Integer type = statement.getParameters().getType(param);
-    if (type != null) return type.intValue();
+    if (type != null) return type;
 
     Object value = statement.getParameters().getParameter(param);
     if (value == null) {
@@ -115,45 +116,41 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
   }
 
   @Override
-  public String getParameterTypeName(int param) throws SQLException {
+  public String getParameterTypeName(int param) {
     return getSpannerTypeName(getParameterType(param));
   }
 
   @Override
-  public String getParameterClassName(int param) throws SQLException {
+  public String getParameterClassName(int param) {
     Object value = statement.getParameters().getParameter(param);
     if (value != null) return value.getClass().getName();
     Integer type = statement.getParameters().getType(param);
-    if (type != null) return getClassName(type.intValue());
+    if (type != null) return getClassName(type);
     return null;
   }
 
   @Override
-  public int getParameterMode(int param) throws SQLException {
+  public int getParameterMode(int param) {
     return parameterModeIn;
   }
 
   @Override
   public String toString() {
     StringBuilder res = new StringBuilder();
-    try {
-      res.append("CloudSpannerPreparedStatementParameterMetaData, parameter count: ")
-          .append(getParameterCount());
-      for (int param = 1; param <= getParameterCount(); param++) {
-        res.append("\nParameter ")
-            .append(param)
-            .append(":\n\t Class name: ")
-            .append(getParameterClassName(param));
-        res.append(",\n\t Parameter type name: ").append(getParameterTypeName(param));
-        res.append(",\n\t Parameter type: ").append(getParameterType(param));
-        res.append(",\n\t Parameter precision: ").append(getPrecision(param));
-        res.append(",\n\t Parameter scale: ").append(getScale(param));
-        res.append(",\n\t Parameter signed: ").append(isSigned(param));
-        res.append(",\n\t Parameter nullable: ").append(isNullable(param));
-        res.append(",\n\t Parameter mode: ").append(getParameterMode(param));
-      }
-    } catch (SQLException e) {
-      res.append("Error while fetching parameter metadata: ").append(e.getMessage());
+    res.append("CloudSpannerPreparedStatementParameterMetaData, parameter count: ")
+        .append(getParameterCount());
+    for (int param = 1; param <= getParameterCount(); param++) {
+      res.append("\nParameter ")
+          .append(param)
+          .append(":\n\t Class name: ")
+          .append(getParameterClassName(param));
+      res.append(",\n\t Parameter type name: ").append(getParameterTypeName(param));
+      res.append(",\n\t Parameter type: ").append(getParameterType(param));
+      res.append(",\n\t Parameter precision: ").append(getPrecision(param));
+      res.append(",\n\t Parameter scale: ").append(getScale(param));
+      res.append(",\n\t Parameter signed: ").append(isSigned(param));
+      res.append(",\n\t Parameter nullable: ").append(isNullable(param));
+      res.append(",\n\t Parameter mode: ").append(getParameterMode(param));
     }
     return res.toString();
   }

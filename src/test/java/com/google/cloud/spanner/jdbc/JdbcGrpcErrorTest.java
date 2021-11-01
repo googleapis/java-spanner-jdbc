@@ -80,10 +80,7 @@ public class JdbcGrpcErrorTest {
       Statement.of("UPDATE NON_EXISING_TABLE SET FOO=1 WHERE BAR=2");
 
   private static MockSpannerServiceImpl mockSpanner;
-  private static MockInstanceAdminImpl mockInstanceAdmin;
-  private static MockDatabaseAdminImpl mockDatabaseAdmin;
   private static Server server;
-  private static InetSocketAddress address;
 
   // FAILED_PRECONDITION is chosen as the test error code as it should never be retryable.
   private final Exception serverException =
@@ -102,9 +99,9 @@ public class JdbcGrpcErrorTest {
         StatementResult.exception(
             INVALID_UPDATE_STATEMENT,
             Status.NOT_FOUND.withDescription("Unknown table name").asRuntimeException()));
-    mockInstanceAdmin = new MockInstanceAdminImpl();
-    mockDatabaseAdmin = new MockDatabaseAdminImpl();
-    address = new InetSocketAddress("localhost", 0);
+    MockInstanceAdminImpl mockInstanceAdmin = new MockInstanceAdminImpl();
+    MockDatabaseAdminImpl mockDatabaseAdmin = new MockDatabaseAdminImpl();
+    InetSocketAddress address = new InetSocketAddress("localhost", 0);
     server =
         NettyServerBuilder.forAddress(address)
             .addService(mockSpanner)

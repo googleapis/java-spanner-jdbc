@@ -44,15 +44,11 @@ import java.net.URL;
 import java.sql.Date;
 import java.sql.JDBCType;
 import java.sql.PreparedStatement;
-import java.sql.Ref;
 import java.sql.ResultSetMetaData;
-import java.sql.RowId;
 import java.sql.SQLException;
-import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.TimeZone;
@@ -149,33 +145,33 @@ public class JdbcPreparedStatementTest {
       ps.setArray(1, connection.createArrayOf("INT64", new Long[] {1L, 2L, 3L}));
       ps.setAsciiStream(2, new ByteArrayInputStream("TEST".getBytes()));
       ps.setAsciiStream(3, new ByteArrayInputStream("TEST".getBytes()), 4);
-      ps.setAsciiStream(4, new ByteArrayInputStream("TEST".getBytes()), 4l);
+      ps.setAsciiStream(4, new ByteArrayInputStream("TEST".getBytes()), 4L);
       ps.setBinaryStream(6, new ByteArrayInputStream("TEST".getBytes()));
       ps.setBinaryStream(7, new ByteArrayInputStream("TEST".getBytes()), 4);
-      ps.setBinaryStream(8, new ByteArrayInputStream("TEST".getBytes()), 4l);
+      ps.setBinaryStream(8, new ByteArrayInputStream("TEST".getBytes()), 4L);
       ps.setBlob(9, connection.createBlob());
       ps.setBlob(10, new ByteArrayInputStream("TEST".getBytes()));
-      ps.setBlob(11, new ByteArrayInputStream("TEST".getBytes()), 4l);
+      ps.setBlob(11, new ByteArrayInputStream("TEST".getBytes()), 4L);
       ps.setBoolean(12, Boolean.TRUE);
       ps.setByte(13, (byte) 1);
       ps.setBytes(14, "TEST".getBytes());
       ps.setCharacterStream(15, new StringReader("TEST"));
       ps.setCharacterStream(16, new StringReader("TEST"), 4);
-      ps.setCharacterStream(17, new StringReader("TEST"), 4l);
+      ps.setCharacterStream(17, new StringReader("TEST"), 4L);
       ps.setClob(18, connection.createClob());
       ps.setClob(19, new StringReader("TEST"));
-      ps.setClob(20, new StringReader("TEST"), 4l);
-      ps.setDate(21, new Date(1000l));
-      ps.setDate(22, new Date(1000l), Calendar.getInstance(TimeZone.getTimeZone("GMT")));
+      ps.setClob(20, new StringReader("TEST"), 4L);
+      ps.setDate(21, new Date(1000L));
+      ps.setDate(22, new Date(1000L), Calendar.getInstance(TimeZone.getTimeZone("GMT")));
       ps.setDouble(23, 1d);
       ps.setFloat(24, 1f);
       ps.setInt(25, 1);
-      ps.setLong(26, 1l);
+      ps.setLong(26, 1L);
       ps.setNCharacterStream(27, new StringReader("TEST"));
-      ps.setNCharacterStream(28, new StringReader("TEST"), 4l);
+      ps.setNCharacterStream(28, new StringReader("TEST"), 4L);
       ps.setNClob(29, connection.createNClob());
       ps.setNClob(30, new StringReader("TEST"));
-      ps.setNClob(31, new StringReader("TEST"), 4l);
+      ps.setNClob(31, new StringReader("TEST"), 4L);
       ps.setNString(32, "TEST");
       ps.setNull(33, Types.BIGINT);
       ps.setNull(34, Types.BIGINT, "INT64");
@@ -184,10 +180,10 @@ public class JdbcPreparedStatementTest {
       ps.setObject(37, "TEST", Types.NVARCHAR, 20);
       ps.setShort(40, (short) 1);
       ps.setString(42, "TEST");
-      ps.setTime(43, new Time(1000l));
-      ps.setTime(44, new Time(1000l), Calendar.getInstance(TimeZone.getTimeZone("GMT")));
-      ps.setTimestamp(45, new Timestamp(1000l));
-      ps.setTimestamp(46, new Timestamp(1000l), Calendar.getInstance(TimeZone.getTimeZone("GMT")));
+      ps.setTime(43, new Time(1000L));
+      ps.setTime(44, new Time(1000L), Calendar.getInstance(TimeZone.getTimeZone("GMT")));
+      ps.setTimestamp(45, new Timestamp(1000L));
+      ps.setTimestamp(46, new Timestamp(1000L), Calendar.getInstance(TimeZone.getTimeZone("GMT")));
       ps.setUnicodeStream(47, new ByteArrayInputStream("TEST".getBytes()), 4);
       ps.setURL(48, new URL("https://spanner.google.com"));
       ps.setObject(49, UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"));
@@ -257,21 +253,21 @@ public class JdbcPreparedStatementTest {
 
   private void testSetUnsupportedTypes(PreparedStatement ps) {
     try {
-      ps.setRef(38, (Ref) null);
+      ps.setRef(38, null);
       fail("missing expected exception");
     } catch (SQLException e) {
       assertTrue(e instanceof JdbcSqlException);
       assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
     try {
-      ps.setRowId(39, (RowId) null);
+      ps.setRowId(39, null);
       fail("missing expected exception");
     } catch (SQLException e) {
       assertTrue(e instanceof JdbcSqlException);
       assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
     try {
-      ps.setSQLXML(41, (SQLXML) null);
+      ps.setSQLXML(41, null);
       fail("missing expected exception");
     } catch (SQLException e) {
       assertTrue(e instanceof JdbcSqlException);
@@ -334,7 +330,7 @@ public class JdbcPreparedStatementTest {
                 StructField.of("ID", Type.int64()),
                 StructField.of("NAME", Type.string()),
                 StructField.of("AMOUNT", Type.float64())),
-            Arrays.asList(
+            Collections.singletonList(
                 Struct.newBuilder()
                     .set("ID")
                     .to(1L)

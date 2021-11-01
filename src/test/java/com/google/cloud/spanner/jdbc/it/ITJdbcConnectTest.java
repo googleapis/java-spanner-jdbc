@@ -25,6 +25,7 @@ import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcDataSource;
+import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
@@ -55,11 +56,11 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
 
   private String createBaseUrl() {
     StringBuilder url = new StringBuilder("jdbc:cloudspanner:");
-    if (env.getTestHelper().isEmulator()) {
+    if (EmulatorSpannerHelper.isUsingEmulator()) {
       url.append("//").append(System.getenv("SPANNER_EMULATOR_HOST"));
     }
     url.append("/").append(getDatabase().getId().getName());
-    if (env.getTestHelper().isEmulator()) {
+    if (EmulatorSpannerHelper.isUsingEmulator()) {
       url.append(";usePlainText=true");
     }
     return url.toString();
@@ -174,7 +175,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   public void testConnectWithDataSourceWithNonDefaultValues() throws SQLException {
     JdbcDataSource ds = new JdbcDataSource();
     ds.setUrl(createBaseUrl());
-    if (hasValidKeyFile() && !env.getTestHelper().isEmulator()) {
+    if (hasValidKeyFile() && !EmulatorSpannerHelper.isUsingEmulator()) {
       ds.setCredentials(getKeyFile());
     }
     ds.setAutocommit(false);

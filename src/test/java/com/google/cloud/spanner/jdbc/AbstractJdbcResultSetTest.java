@@ -62,7 +62,7 @@ public class AbstractJdbcResultSetTest {
   }
 
   @Test
-  public void testFetchSize() throws SQLException {
+  public void testFetchSize() {
     assertEquals(0, rs.getFetchSize());
     for (int size : new int[] {0, 1, 10, 100}) {
       rs.setFetchSize(size);
@@ -71,24 +71,24 @@ public class AbstractJdbcResultSetTest {
   }
 
   @Test
-  public void testGetType() throws SQLException {
+  public void testGetType() {
     assertEquals(ResultSet.TYPE_FORWARD_ONLY, rs.getType());
   }
 
   @Test
-  public void testGetConcurrency() throws SQLException {
+  public void testGetConcurrency() {
     assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
   }
 
   @Test
-  public void testRowInsertedUpdatedDeleted() throws SQLException {
+  public void testRowInsertedUpdatedDeleted() {
     assertFalse(rs.rowInserted());
     assertFalse(rs.rowUpdated());
     assertFalse(rs.rowDeleted());
   }
 
   @Test
-  public void testGetFetchDirection() throws SQLException {
+  public void testGetFetchDirection() {
     assertEquals(ResultSet.FETCH_FORWARD, rs.getFetchDirection());
   }
 

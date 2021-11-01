@@ -21,7 +21,6 @@ import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.SpannerBatchUpdateException;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.Statement;
-import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.connection.StatementParser;
@@ -41,7 +40,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   enum BatchType {
     NONE,
     DML,
-    DDL;
+    DDL
   }
 
   private ResultSet currentResultSet;
@@ -332,7 +331,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   }
 
   @VisibleForTesting
-  void convertUpdateCountsToSuccessNoInfo(long[] updateCounts, long[] res) throws SQLException {
+  void convertUpdateCountsToSuccessNoInfo(long[] updateCounts, long[] res) {
     Preconditions.checkNotNull(updateCounts);
     Preconditions.checkNotNull(res);
     Preconditions.checkArgument(res.length >= updateCounts.length);
@@ -355,7 +354,7 @@ class JdbcStatement extends AbstractJdbcStatement {
             Type.struct(
                 StructField.of("COLUMN_NAME", Type.string()),
                 StructField.of("VALUE", Type.int64())),
-            Collections.<Struct>emptyList());
+            Collections.emptyList());
     return JdbcResultSet.of(rs);
   }
 

@@ -47,12 +47,12 @@ abstract class AbstractJdbcResultSet extends AbstractJdbcWrapper implements Resu
   }
 
   @Override
-  public SQLWarning getWarnings() throws SQLException {
+  public SQLWarning getWarnings() {
     return null;
   }
 
   @Override
-  public void clearWarnings() throws SQLException {}
+  public void clearWarnings() {}
 
   @Override
   public String getCursorName() throws SQLException {
@@ -105,42 +105,42 @@ abstract class AbstractJdbcResultSet extends AbstractJdbcWrapper implements Resu
   }
 
   @Override
-  public int getFetchDirection() throws SQLException {
+  public int getFetchDirection() {
     return FETCH_FORWARD;
   }
 
   @Override
-  public void setFetchSize(int rows) throws SQLException {
+  public void setFetchSize(int rows) {
     this.fetchSize = rows;
   }
 
   @Override
-  public int getFetchSize() throws SQLException {
+  public int getFetchSize() {
     return fetchSize;
   }
 
   @Override
-  public int getType() throws SQLException {
+  public int getType() {
     return TYPE_FORWARD_ONLY;
   }
 
   @Override
-  public int getConcurrency() throws SQLException {
+  public int getConcurrency() {
     return CONCUR_READ_ONLY;
   }
 
   @Override
-  public boolean rowUpdated() throws SQLException {
+  public boolean rowUpdated() {
     return false;
   }
 
   @Override
-  public boolean rowInserted() throws SQLException {
+  public boolean rowInserted() {
     return false;
   }
 
   @Override
-  public boolean rowDeleted() throws SQLException {
+  public boolean rowDeleted() {
     return false;
   }
 

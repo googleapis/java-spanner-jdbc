@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.cloud.spanner.SpannerExceptionFactory;
+import com.google.cloud.spanner.connection.AbstractConnectionImplTest;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnection;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnectionProvider;
 import com.google.cloud.spanner.connection.ConnectionImplTest;
@@ -66,6 +67,6 @@ public class JdbcConnectionGeneratedSqlScriptTest {
   public void testGeneratedScript() throws Exception {
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new TestConnectionProvider());
     verifier.verifyStatementsInFile(
-        "ConnectionImplGeneratedSqlScriptTest.sql", SqlScriptVerifier.class);
+        "ConnectionImplGeneratedSqlScriptTest.sql", SqlScriptVerifier.class, false);
   }
 }

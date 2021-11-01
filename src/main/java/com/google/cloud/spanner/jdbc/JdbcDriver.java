@@ -220,12 +220,12 @@ public class JdbcDriver implements Driver {
   }
 
   @Override
-  public boolean acceptsURL(String url) throws SQLException {
+  public boolean acceptsURL(String url) {
     return URL_PATTERN.matcher(url).matches();
   }
 
   @Override
-  public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
+  public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) {
     String connectionUri = appendPropertiesToUrl(url.substring(5), info);
     DriverPropertyInfo[] res = new DriverPropertyInfo[ConnectionOptions.VALID_PROPERTIES.size()];
     int i = 0;

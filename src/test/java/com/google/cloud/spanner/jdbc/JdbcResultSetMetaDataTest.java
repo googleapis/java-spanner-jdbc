@@ -49,7 +49,6 @@ import org.mockito.internal.stubbing.answers.Returns;
 @RunWith(JUnit4.class)
 public class JdbcResultSetMetaDataTest {
   private JdbcResultSetMetaData subject;
-  private java.sql.Connection connection;
 
   private static class TestColumn {
     private final Type type;
@@ -57,7 +56,7 @@ public class JdbcResultSetMetaDataTest {
     private final int defaultSize;
     private final boolean calculated;
 
-    private TestColumn(Type type, String name, Integer nulls, int size, boolean calculated) {
+    private TestColumn(Type type, String name, Integer nulls, boolean calculated) {
       Preconditions.checkNotNull(type);
       Preconditions.checkNotNull(name);
       Preconditions.checkNotNull(nulls);
@@ -87,7 +86,6 @@ public class JdbcResultSetMetaDataTest {
       private Type type;
       private String name;
       private Integer nulls;
-      private int size = 0;
       private boolean calculated = false;
 
       public static Builder getBuilder() {
@@ -95,7 +93,7 @@ public class JdbcResultSetMetaDataTest {
       }
 
       private TestColumn build() {
-        return new TestColumn(type, name, nulls, size, calculated);
+        return new TestColumn(type, name, nulls, calculated);
       }
 
       private Builder withType(Type type) {
@@ -123,13 +121,8 @@ public class JdbcResultSetMetaDataTest {
         return this;
       }
 
-      private Builder withSize(int size) {
-        this.size = size;
-        return this;
-      }
-
-      private Builder withCalculated(boolean calculated) {
-        this.calculated = calculated;
+      private Builder withCalculated() {
+        this.calculated = true;
         return this;
       }
     }
@@ -139,7 +132,7 @@ public class JdbcResultSetMetaDataTest {
 
   @Before
   public void setup() throws SQLException {
-    connection = mock(java.sql.Connection.class);
+    java.sql.Connection connection = mock(java.sql.Connection.class);
     Statement statement = mock(Statement.class);
     JdbcResultSet resultSet = getFooTestResultSet(statement);
     when(connection.getSchema()).thenReturn("");
@@ -154,25 +147,25 @@ public class JdbcResultSetMetaDataTest {
     int index = 1;
     for (Type type : getAllTypes()) {
       TestColumn.Builder builder = TestColumn.Builder.getBuilder();
-      builder.withName("COL" + index).withType(type).withSize(getDefaultSize(type));
-      if (index % 2 == 1) builder.withNotNull();
-      else builder.withNullable();
+      builder.withName("COL" + index).withType(type);
+      if (index % 2 == 1) {
+        builder.withNotNull();
+      } else {
+        builder.withNullable();
+      }
       res.add(builder.build());
       index++;
     }
     TestColumn.Builder builder = TestColumn.Builder.getBuilder();
-    builder
-        .withName("CALCULATED")
-        .withType(Type.int64())
-        .withNullableUnknown()
-        .withCalculated(true);
-    res.add(builder.build());
+    TestColumn column =
+        builder
+            .withName("CALCULATED")
+            .withType(Type.int64())
+            .withNullableUnknown()
+            .withCalculated()
+            .build();
+    res.add(column);
     return res;
-  }
-
-  private static int getDefaultSize(Type type) {
-    if (type == Type.string()) return 100;
-    return 0;
   }
 
   private static List<Type> getAllTypes() {
@@ -194,7 +187,7 @@ public class JdbcResultSetMetaDataTest {
     return types;
   }
 
-  private JdbcResultSet getFooTestResultSet(Statement statement) throws SQLException {
+  private JdbcResultSet getFooTestResultSet(Statement statement) {
     List<Struct> rows = new ArrayList<>(4);
     for (int row = 1; row <= 4; row++) {
       Struct.Builder builder = Struct.newBuilder();
@@ -254,19 +247,19 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetColumnCount() throws SQLException {
+  public void testGetColumnCount() {
     assertEquals(TEST_COLUMNS.size(), subject.getColumnCount());
   }
 
   @Test
-  public void testIsAutoIncrement() throws SQLException {
+  public void testIsAutoIncrement() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
-      assertEquals(false, subject.isAutoIncrement(i));
+      assertFalse(subject.isAutoIncrement(i));
     }
   }
 
   @Test
-  public void testIsCaseSensitive() throws SQLException {
+  public void testIsCaseSensitive() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       Type type = TEST_COLUMNS.get(i - 1).type;
       assertEquals(
@@ -276,28 +269,28 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testIsSearchable() throws SQLException {
+  public void testIsSearchable() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
-      assertEquals(true, subject.isSearchable(i));
+      assertTrue(subject.isSearchable(i));
     }
   }
 
   @Test
-  public void testIsCurrency() throws SQLException {
+  public void testIsCurrency() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
-      assertEquals(false, subject.isCurrency(i));
+      assertFalse(subject.isCurrency(i));
     }
   }
 
   @Test
-  public void testIsNullable() throws SQLException {
+  public void testIsNullable() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(ResultSetMetaData.columnNullableUnknown, subject.isNullable(i));
     }
   }
 
   @Test
-  public void testIsSigned() throws SQLException {
+  public void testIsSigned() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       Type type = TEST_COLUMNS.get(i - 1).type;
       if (type == Type.int64() || type == Type.float64()) {
@@ -309,14 +302,14 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetColumnDisplaySize() throws SQLException {
+  public void testGetColumnDisplaySize() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(
           getDefaultDisplaySize(TEST_COLUMNS.get(i - 1).type, i), subject.getColumnDisplaySize(i));
     }
   }
 
-  private int getDefaultDisplaySize(Type type, int column) throws SQLException {
+  private int getDefaultDisplaySize(Type type, int column) {
     if (type.getCode() == Code.ARRAY) return 50;
     if (type == Type.bool()) return 5;
     if (type == Type.bytes()) return 50;
@@ -333,14 +326,14 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetColumnLabel() throws SQLException {
+  public void testGetColumnLabel() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(TEST_COLUMNS.get(i - 1).name, subject.getColumnLabel(i));
     }
   }
 
   @Test
-  public void testGetColumnName() throws SQLException {
+  public void testGetColumnName() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(TEST_COLUMNS.get(i - 1).name, subject.getColumnName(i));
     }
@@ -352,7 +345,7 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetPrecision() throws SQLException {
+  public void testGetPrecision() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(getPrecision(TEST_COLUMNS.get(i - 1)), subject.getPrecision(i));
     }
@@ -369,7 +362,7 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetScale() throws SQLException {
+  public void testGetScale() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(getScale(TEST_COLUMNS.get(i - 1)), subject.getScale(i));
     }
@@ -381,7 +374,7 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetTableName() throws SQLException {
+  public void testGetTableName() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals("", subject.getTableName(i));
     }
@@ -393,7 +386,7 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetColumnType() throws SQLException {
+  public void testGetColumnType() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(getSqlType(TEST_COLUMNS.get(i - 1).type), subject.getColumnType(i));
     }
@@ -413,7 +406,7 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void getColumnTypeName() throws SQLException {
+  public void getColumnTypeName() {
     int index = 1;
     for (TestColumn col : TEST_COLUMNS) {
       assertEquals(col.type.getCode().name(), subject.getColumnTypeName(index));
@@ -422,28 +415,28 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testIsReadOnly() throws SQLException {
+  public void testIsReadOnly() {
     for (int i = 0; i < TEST_COLUMNS.size(); i++) {
       assertFalse(subject.isReadOnly(i));
     }
   }
 
   @Test
-  public void testIsWritable() throws SQLException {
+  public void testIsWritable() {
     for (int i = 0; i < TEST_COLUMNS.size(); i++) {
       assertTrue(subject.isWritable(i));
     }
   }
 
   @Test
-  public void testIsDefinitelyWritable() throws SQLException {
+  public void testIsDefinitelyWritable() {
     for (int i = 0; i < TEST_COLUMNS.size(); i++) {
       assertFalse(subject.isDefinitelyWritable(i));
     }
   }
 
   @Test
-  public void testGetColumnClassName() throws SQLException {
+  public void testGetColumnClassName() {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(getTypeClassName(TEST_COLUMNS.get(i - 1).type), subject.getColumnClassName(i));
     }

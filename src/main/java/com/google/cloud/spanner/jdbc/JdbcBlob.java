@@ -63,7 +63,7 @@ class JdbcBlob implements Blob {
   }
 
   @Override
-  public long length() throws SQLException {
+  public long length() {
     return value.length;
   }
 
@@ -84,7 +84,7 @@ class JdbcBlob implements Blob {
   }
 
   @Override
-  public InputStream getBinaryStream() throws SQLException {
+  public InputStream getBinaryStream() {
     return new ByteArrayInputStream(value);
   }
 
@@ -119,7 +119,7 @@ class JdbcBlob implements Blob {
     int totalSize = 0;
     List<byte[]> totalBytes = new ArrayList<>();
     try (InputStream is = pattern.getBinaryStream()) {
-      int bytesRead = 0;
+      int bytesRead;
       while ((bytesRead = is.read(buffer)) > -1) {
         if (bytesRead == buffer.length) {
           totalBytes.add(buffer);
@@ -196,7 +196,7 @@ class JdbcBlob implements Blob {
     }
 
     @Override
-    public void write(int b) throws IOException {
+    public void write(int b) {
       if (currentPos >= buffer.length) {
         byte[] newBuffer = new byte[buffer.length * 2];
         System.arraycopy(buffer, 0, newBuffer, 0, buffer.length);
@@ -239,7 +239,7 @@ class JdbcBlob implements Blob {
   }
 
   @Override
-  public void free() throws SQLException {
+  public void free() {
     setLength(0);
   }
 

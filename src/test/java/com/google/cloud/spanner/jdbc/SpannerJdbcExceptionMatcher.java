@@ -30,7 +30,7 @@ public final class SpannerJdbcExceptionMatcher<T extends JdbcSqlException> exten
       Class<T> exceptionClass, Code errorCode) {
     Preconditions.checkNotNull(exceptionClass);
     Preconditions.checkNotNull(errorCode);
-    return new SpannerJdbcExceptionMatcher<T>(exceptionClass, errorCode, null);
+    return new SpannerJdbcExceptionMatcher<>(exceptionClass, errorCode, null);
   }
 
   public static <T extends JdbcSqlException> SpannerJdbcExceptionMatcher<T> matchCodeAndMessage(
@@ -38,7 +38,7 @@ public final class SpannerJdbcExceptionMatcher<T extends JdbcSqlException> exten
     Preconditions.checkNotNull(exceptionClass);
     Preconditions.checkNotNull(errorCode);
     Preconditions.checkNotNull(message);
-    return new SpannerJdbcExceptionMatcher<T>(exceptionClass, errorCode, message);
+    return new SpannerJdbcExceptionMatcher<>(exceptionClass, errorCode, message);
   }
 
   private SpannerJdbcExceptionMatcher(Class<T> exceptionClass, Code errorCode, String message) {

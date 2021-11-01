@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.AbortedDueToConcurrentModificationException;
 import com.google.cloud.spanner.AbortedException;
 import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.CommitStats;
@@ -53,12 +54,12 @@ public interface CloudSpannerJdbcConnection extends Connection {
    */
   default void setTransactionTag(String tag) throws SQLException {
     throw new UnsupportedOperationException();
-  };
+  }
 
   /** @return The transaction tag of the current transaction. */
   default String getTransactionTag() throws SQLException {
     throw new UnsupportedOperationException();
-  };
+  }
 
   /**
    * Sets the statement tag to use for the next statement that will be executed. The tag is
@@ -70,7 +71,7 @@ public interface CloudSpannerJdbcConnection extends Connection {
    */
   default void setStatementTag(String tag) throws SQLException {
     throw new UnsupportedOperationException();
-  };
+  }
 
   /**
    * @return The statement tag that will be used with the next statement that is executed on this
@@ -78,7 +79,7 @@ public interface CloudSpannerJdbcConnection extends Connection {
    */
   default String getStatementTag() throws SQLException {
     throw new UnsupportedOperationException();
-  };
+  }
 
   /**
    * Sets the transaction mode to use for current transaction. This method may only be called when
@@ -96,10 +97,10 @@ public interface CloudSpannerJdbcConnection extends Connection {
    *           not acquire locks on Cloud Spanner, and read-only transactions never abort.
    *       <li>{@link TransactionMode#READ_WRITE_TRANSACTION} this value is only allowed when the
    *           connection is not in read-only mode and will create a read-write transaction. If
-   *           {@link Connection#isRetryAbortsInternally()} is <code>true</code>, each read/write
-   *           transaction will keep track of a running SHA256 checksum for each {@link ResultSet}
-   *           that is returned in order to be able to retry the transaction in case the transaction
-   *           is aborted by Spanner.
+   *           {@link CloudSpannerJdbcConnection#isRetryAbortsInternally()} is <code>true</code>,
+   *           each read/write transaction will keep track of a running SHA256 checksum for each
+   *           {@link ResultSet} that is returned in order to be able to retry the transaction in
+   *           case the transaction is aborted by Spanner.
    *     </ul>
    */
   void setTransactionMode(TransactionMode transactionMode) throws SQLException;
@@ -175,9 +176,8 @@ public interface CloudSpannerJdbcConnection extends Connection {
   /**
    * @return <code>true</code> if this connection has a transaction (that has not necessarily
    *     started). This method will only return false when the {@link Connection} is in autocommit
-   *     mode and no explicit transaction has been started by calling {@link
-   *     Connection#beginTransaction()}. If the {@link Connection} is not in autocommit mode, there
-   *     will always be a transaction.
+   *     mode and no explicit transaction has been started by executing `BEGIN TRANSACTION`. If the
+   *     {@link Connection} is not in autocommit mode, there will always be a transaction.
    */
   boolean isInTransaction() throws SQLException;
 
@@ -323,7 +323,7 @@ public interface CloudSpannerJdbcConnection extends Connection {
 
   /**
    * @see
-   *     com.google.cloud.spanner.connection.Connection#addTransactionRetryListener(TransactionRetryListener)
+   *     com.google.cloud.spanner.connection.Connection#addTransactionRetryListener(com.google.cloud.spanner.connection.TransactionRetryListener)
    * @throws SQLException if the {@link Connection} is closed.
    */
   void addTransactionRetryListener(
@@ -331,7 +331,8 @@ public interface CloudSpannerJdbcConnection extends Connection {
 
   /**
    * Use {@link
-   * #addTransactionRetryListener(com.google.cloud.spanner.jdbc.TransactionRetryListener)}
+   * #addTransactionRetryListener(com.google.cloud.spanner.connection.TransactionRetryListener)}
+   * instead.
    */
   @Deprecated
   void addTransactionRetryListener(com.google.cloud.spanner.jdbc.TransactionRetryListener listener)
@@ -339,7 +340,7 @@ public interface CloudSpannerJdbcConnection extends Connection {
 
   /**
    * @see
-   *     com.google.cloud.spanner.connection.Connection#removeTransactionRetryListener(TransactionRetryListener)
+   *     com.google.cloud.spanner.connection.Connection#removeTransactionRetryListener(com.google.cloud.spanner.connection.TransactionRetryListener)
    * @throws SQLException if the {@link Connection} is closed.
    */
   boolean removeTransactionRetryListener(
@@ -347,13 +348,14 @@ public interface CloudSpannerJdbcConnection extends Connection {
 
   /**
    * Use {@link
-   * #removeTransactionRetryListener(com.google.cloud.spanner.jdbc.TransactionRetryListener)}
+   * #removeTransactionRetryListener(com.google.cloud.spanner.connection.TransactionRetryListener)}
+   * instead.
    */
   @Deprecated
   boolean removeTransactionRetryListener(
       com.google.cloud.spanner.jdbc.TransactionRetryListener listener) throws SQLException;
 
-  /** Use {@link #getTransactionRetryListenersFromConnection()} */
+  /** Use {@link #getTransactionRetryListenersFromConnection()} instead. */
   @Deprecated
   Iterator<com.google.cloud.spanner.jdbc.TransactionRetryListener> getTransactionRetryListeners()
       throws SQLException;
