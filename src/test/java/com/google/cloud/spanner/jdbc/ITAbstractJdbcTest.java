@@ -76,6 +76,10 @@ public class ITAbstractJdbcTest {
     return getKeyFile() != null && Files.exists(Paths.get(getKeyFile()));
   }
 
+  protected static IntegrationTestEnv getTestEnv() {
+    return env;
+  }
+
   protected static Database getDatabase() {
     return database;
   }
