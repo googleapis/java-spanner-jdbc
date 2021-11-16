@@ -107,7 +107,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   @Test
   public void testConnectWithURLWithNonDefaultValues() throws SQLException {
     String url = createBaseUrl();
-    url = url + ";autocommit=false;readonly=true;retryAbortsInternally=false";
+    url = url + ";autocommit=false;readonly=true;retryAbortsInternally=false;rpcPriority=LOW";
     if (hasValidKeyFile()) {
       url = url + ";credentials=" + getKeyFile();
     }
@@ -138,6 +138,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
     properties.setProperty("autocommit", "false");
     properties.setProperty("readonly", "true");
     properties.setProperty("retryAbortsInternally", "false");
+    properties.setProperty("rpcPriority", "LOW");
     try (Connection connection = DriverManager.getConnection(url, properties)) {
       testNonDefaultConnection(connection);
     }
@@ -146,7 +147,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   @Test
   public void testConnectWithPropertiesWithConflictingValues() throws SQLException {
     String url = createBaseUrl();
-    url = url + ";autocommit=false;readonly=true;retryAbortsInternally=false";
+    url = url + ";autocommit=false;readonly=true;retryAbortsInternally=false;rpcPriority=LOW";
     if (hasValidKeyFile()) {
       url = url + ";credentials=" + getKeyFile();
     }
@@ -154,6 +155,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
     properties.setProperty("autocommit", "true");
     properties.setProperty("readonly", "false");
     properties.setProperty("retryAbortsInternally", "true");
+    properties.setProperty("rpcPriority", "MEDIUM");
     try (Connection connection = DriverManager.getConnection(url, properties)) {
       testNonDefaultConnection(connection);
     }

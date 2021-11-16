@@ -108,6 +108,8 @@ import java.util.regex.Pattern;
  *   <li>maxSessions (int): Sets the maximum number of sessions in the backing session pool.
  *       Defaults to 400.
  *   <li>numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
+ *   <li>rpcPriority (String): Sets the priority for all RPC invocations from this connection.
+ *       Defaults to HIGH.
  * </ul>
  */
 public class JdbcDriver implements Driver {
