@@ -51,6 +51,12 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
         assertThat(rs.getString("OPTIMIZER_STATISTICS_PACKAGE")).isEqualTo("");
         assertThat(rs.next()).isFalse();
       }
+      try (java.sql.ResultSet rs =
+          connection.createStatement().executeQuery("SHOW VARIABLE RPC_PRIORITY")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getString("RPC_PRIORITY")).isEqualTo("PRIORITY_UNSPECIFIED");
+        assertThat(rs.next()).isFalse();
+      }
     }
   }
 
@@ -59,8 +65,8 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
     try (java.sql.Connection connection =
         DriverManager.getConnection(
             String.format(
-                "jdbc:%s;optimizerVersion=%s;optimizerStatisticsPackage=%s",
-                getBaseUrl(), "100", "url_package"))) {
+                "jdbc:%s;optimizerVersion=%s;optimizerStatisticsPackage=%s;rpcPriority=%s",
+                getBaseUrl(), "100", "url_package", "LOW"))) {
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_VERSION")) {
         assertThat(rs.next()).isTrue();
@@ -71,6 +77,12 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
           connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_STATISTICS_PACKAGE")) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getString("OPTIMIZER_STATISTICS_PACKAGE")).isEqualTo("url_package");
+        assertThat(rs.next()).isFalse();
+      }
+      try (java.sql.ResultSet rs =
+          connection.createStatement().executeQuery("SHOW VARIABLE RPC_PRIORITY")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getString("RPC_PRIORITY")).isEqualTo("LOW");
         assertThat(rs.next()).isFalse();
       }
     }
@@ -122,6 +134,28 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
         assertThat(rs.getString("OPTIMIZER_STATISTICS_PACKAGE")).isEqualTo("");
         assertThat(rs.next()).isFalse();
       }
+
+      connection.createStatement().execute("SET RPC_PRIORITY='LOW'");
+      try (java.sql.ResultSet rs =
+          connection.createStatement().executeQuery("SHOW VARIABLE RPC_PRIORITY")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getString("RPC_PRIORITY")).isEqualTo("LOW");
+        assertThat(rs.next()).isFalse();
+      }
+      connection.createStatement().execute("SET RPC_PRIORITY='MEDIUM'");
+      try (java.sql.ResultSet rs =
+          connection.createStatement().executeQuery("SHOW VARIABLE RPC_PRIORITY")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getString("RPC_PRIORITY")).isEqualTo("MEDIUM");
+        assertThat(rs.next()).isFalse();
+      }
+      connection.createStatement().execute("SET RPC_PRIORITY='NULL'");
+      try (java.sql.ResultSet rs =
+          connection.createStatement().executeQuery("SHOW VARIABLE RPC_PRIORITY")) {
+        assertThat(rs.next()).isTrue();
+        assertThat(rs.getString("RPC_PRIORITY")).isEqualTo("PRIORITY_UNSPECIFIED");
+        assertThat(rs.next()).isFalse();
+      }
     }
   }
 
@@ -130,6 +164,7 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
     try (java.sql.Connection connection = createJdbcConnection()) {
       connection.createStatement().execute("SET OPTIMIZER_VERSION='20'");
       connection.createStatement().execute("SET OPTIMIZER_STATISTICS_PACKAGE='20210609'");
+      connection.createStatement().execute("SET RPC_PRIORITY='LOW'");
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery(SELECT_COUNT_STATEMENT.getSql())) {
         assertThat(rs.next()).isTrue();
@@ -140,10 +175,12 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
         ExecuteSqlRequest request = getLastExecuteSqlRequest();
         assertThat(request.getQueryOptions().getOptimizerVersion()).isEqualTo("20");
         assertThat(request.getQueryOptions().getOptimizerStatisticsPackage()).isEqualTo("20210609");
+        assertThat(request.getRequestOptions().getPriority().toString()).isEqualTo("PRIORITY_LOW");
       }
 
       connection.createStatement().execute("SET OPTIMIZER_VERSION='latest'");
       connection.createStatement().execute("SET OPTIMIZER_STATISTICS_PACKAGE='latest'");
+      connection.createStatement().execute("SET RPC_PRIORITY='MEDIUM'");
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery(SELECT_COUNT_STATEMENT.getSql())) {
         assertThat(rs.next()).isTrue();
@@ -152,12 +189,15 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
         ExecuteSqlRequest request = getLastExecuteSqlRequest();
         assertThat(request.getQueryOptions().getOptimizerVersion()).isEqualTo("latest");
         assertThat(request.getQueryOptions().getOptimizerStatisticsPackage()).isEqualTo("latest");
+        assertThat(request.getRequestOptions().getPriority().toString())
+            .isEqualTo("PRIORITY_MEDIUM");
       }
 
       // Set the options to ''. This will do a fallback to the default, meaning that it will be read
       // from the environment variables as we have nothing set on the connection URL.
       connection.createStatement().execute("SET OPTIMIZER_VERSION=''");
       connection.createStatement().execute("SET OPTIMIZER_STATISTICS_PACKAGE=''");
+      connection.createStatement().execute("SET RPC_PRIORITY='NULL'");
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery(SELECT_COUNT_STATEMENT.getSql())) {
         assertThat(rs.next()).isTrue();
@@ -170,6 +210,8 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
             .isEqualTo(MoreObjects.firstNonNull(System.getenv("SPANNER_OPTIMIZER_VERSION"), ""));
         assertThat(request.getQueryOptions().getOptimizerStatisticsPackage())
             .isEqualTo(MoreObjects.firstNonNull(System.getenv("OPTIMIZER_STATISTICS_PACKAGE"), ""));
+        assertThat(request.getRequestOptions().getPriority().toString())
+            .isEqualTo("PRIORITY_UNSPECIFIED");
       }
     }
   }
@@ -179,7 +221,7 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
     try (java.sql.Connection connection =
         DriverManager.getConnection(
             String.format(
-                "jdbc:%s;optimizerVersion=10;optimizerStatisticsPackage=20210609_10_00_00",
+                "jdbc:%s;optimizerVersion=10;optimizerStatisticsPackage=20210609_10_00_00;rpcPriority=LOW",
                 getBaseUrl()))) {
       // Do a query and verify that the version from the connection URL is used.
       try (java.sql.ResultSet rs =
@@ -192,6 +234,7 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
         assertThat(request.getQueryOptions().getOptimizerVersion()).isEqualTo("10");
         assertThat(request.getQueryOptions().getOptimizerStatisticsPackage())
             .isEqualTo("20210609_10_00_00");
+        assertThat(request.getRequestOptions().getPriority().toString()).isEqualTo("PRIORITY_LOW");
       }
     }
   }
