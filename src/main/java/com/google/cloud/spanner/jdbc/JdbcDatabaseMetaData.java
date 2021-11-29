@@ -1526,7 +1526,8 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                     .to("")
                     .set("DESCRIPTION")
                     .to(
-                        "The hostname of the computer the application using the connection is running on.")
+                        "The hostname of the computer the application using the connection is"
+                            + " running on.")
                     .build(),
                 Struct.newBuilder()
                     .set("NAME")
@@ -1537,8 +1538,9 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                     .to("")
                     .set("DESCRIPTION")
                     .to(
-                        "The name of the user that the application using the connection is performing work for. "
-                            + "This may not be the same as the user name that was used in establishing the connection.")
+                        "The name of the user that the application using the connection is"
+                            + " performing work for. This may not be the same as the user name that"
+                            + " was used in establishing the connection.")
                     .build())));
   }
 

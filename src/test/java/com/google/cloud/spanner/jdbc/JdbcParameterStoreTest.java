@@ -778,9 +778,11 @@ public class JdbcParameterStoreTest {
     assertUnclosedLiteral("?'''?it\\'?s \n ?it\\'?s'?");
 
     assertEquals(
-        "select 1, @p1, 'test?test', \"test?test\", foo.* from `foo` where col1=@p2 and col2='test' and col3=@p3 and col4='?' and col5=\"?\" and col6='?''?''?'",
+        "select 1, @p1, 'test?test', \"test?test\", foo.* from `foo` where col1=@p2 and col2='test'"
+            + " and col3=@p3 and col4='?' and col5=\"?\" and col6='?''?''?'",
         convertPositionalParametersToNamedParameters(
-                "select 1, ?, 'test?test', \"test?test\", foo.* from `foo` where col1=? and col2='test' and col3=? and col4='?' and col5=\"?\" and col6='?''?''?'")
+                "select 1, ?, 'test?test', \"test?test\", foo.* from `foo` where col1=? and"
+                    + " col2='test' and col3=? and col4='?' and col5=\"?\" and col6='?''?''?'")
             .sqlWithNamedParameters);
 
     assertEquals(

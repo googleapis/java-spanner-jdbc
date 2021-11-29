@@ -70,7 +70,8 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
   @Test
   public void testPreparedStatement() throws SQLException {
     String sql =
-        "select * from (select 1 as number union all select 2 union all select 3) numbers where number=?";
+        "select * from (select 1 as number union all select 2 union all select 3) numbers where"
+            + " number=?";
     try (Connection connection = createConnection()) {
       try (PreparedStatement ps = connection.prepareStatement(sql)) {
         for (int i = 1; i <= 3; i++) {
@@ -103,7 +104,8 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
           connection
               .createStatement()
               .executeQuery(
-                  "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='' AND TABLE_NAME LIKE 'FOO%'")) {
+                  "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='' AND"
+                      + " TABLE_NAME LIKE 'FOO%'")) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getLong(1)).isEqualTo(2L);
       }
@@ -130,7 +132,8 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
           connection
               .createStatement()
               .executeQuery(
-                  "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='' AND TABLE_NAME LIKE 'FOO%'")) {
+                  "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='' AND"
+                      + " TABLE_NAME LIKE 'FOO%'")) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getLong(1)).isEqualTo(3L);
       }
@@ -138,7 +141,8 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
           connection
               .createStatement()
               .executeQuery(
-                  "SELECT COUNT(*) FROM INFORMATION_SCHEMA.INDEXES WHERE TABLE_SCHEMA='' AND INDEX_NAME='IDX_FOO1_UNIQUE'")) {
+                  "SELECT COUNT(*) FROM INFORMATION_SCHEMA.INDEXES WHERE TABLE_SCHEMA='' AND"
+                      + " INDEX_NAME='IDX_FOO1_UNIQUE'")) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getLong(1)).isEqualTo(0L);
       }
@@ -154,7 +158,8 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
     } catch (SQLException e) {
       assertThat(e.getMessage())
           .contains(
-              "Calling addBatch() is not allowed when a DML or DDL batch has been started on the connection.");
+              "Calling addBatch() is not allowed when a DML or DDL batch has been started on the"
+                  + " connection.");
     }
   }
 

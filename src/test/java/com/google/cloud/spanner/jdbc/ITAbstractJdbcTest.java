@@ -150,7 +150,8 @@ public class ITAbstractJdbcTest {
           connection
               .createStatement()
               .execute(
-                  "CREATE TABLE TEST (ID INT64 NOT NULL, NAME STRING(100) NOT NULL) PRIMARY KEY (ID)");
+                  "CREATE TABLE TEST (ID INT64 NOT NULL, NAME STRING(100) NOT NULL) PRIMARY KEY"
+                      + " (ID)");
           connection.createStatement().execute("RUN BATCH");
         }
       }
@@ -194,7 +195,8 @@ public class ITAbstractJdbcTest {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(index));
     try (PreparedStatement ps =
         connection.prepareStatement(
-            "SELECT INDEX_NAME FROM INFORMATION_SCHEMA.INDEXES WHERE UPPER(TABLE_NAME)=? AND UPPER(INDEX_NAME)=?")) {
+            "SELECT INDEX_NAME FROM INFORMATION_SCHEMA.INDEXES WHERE UPPER(TABLE_NAME)=? AND"
+                + " UPPER(INDEX_NAME)=?")) {
       ps.setString(1, table);
       ps.setString(2, index);
       try (ResultSet rs = ps.executeQuery()) {

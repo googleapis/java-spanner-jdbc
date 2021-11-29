@@ -83,7 +83,8 @@ class JdbcArray implements Array {
         System.arraycopy(elements, 0, this.data, 0, elements.length);
       } catch (Exception e) {
         throw JdbcSqlExceptionFactory.of(
-            "Could not copy array elements. Make sure the supplied array only contains elements of class "
+            "Could not copy array elements. Make sure the supplied array only contains elements of"
+                + " class "
                 + type.getJavaClass().getName(),
             Code.UNKNOWN,
             e);

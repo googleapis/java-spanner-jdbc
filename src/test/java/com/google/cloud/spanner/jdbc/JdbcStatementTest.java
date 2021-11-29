@@ -402,7 +402,8 @@ public class JdbcStatementTest {
       assertThat(
               JdbcExceptionMatcher.matchCodeAndMessage(
                       Code.INVALID_ARGUMENT,
-                      "The statement is not suitable for batching. Only DML and DDL statements are allowed for batching.")
+                      "The statement is not suitable for batching. Only DML and DDL statements are"
+                          + " allowed for batching.")
                   .matches(e))
           .isTrue();
     }

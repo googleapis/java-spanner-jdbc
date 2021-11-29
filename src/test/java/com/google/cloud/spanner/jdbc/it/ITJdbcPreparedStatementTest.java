@@ -277,7 +277,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       connection.setAutoCommit(false);
       try (PreparedStatement ps =
           connection.prepareStatement(
-              "INSERT INTO Singers (SingerId, FirstName, LastName, SingerInfo, BirthDate) values (?,?,?,?,?)")) {
+              "INSERT INTO Singers (SingerId, FirstName, LastName, SingerInfo, BirthDate) values"
+                  + " (?,?,?,?,?)")) {
         assertDefaultParameterMetaData(ps.getParameterMetaData(), 5);
         for (Singer singer : createSingers()) {
           ps.setByte(1, (byte) singer.singerId);
@@ -298,7 +299,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       }
       try (PreparedStatement ps =
           connection.prepareStatement(
-              "INSERT INTO Albums (SingerId, AlbumId, AlbumTitle, MarketingBudget) VALUES (?,?,?,?)")) {
+              "INSERT INTO Albums (SingerId, AlbumId, AlbumTitle, MarketingBudget) VALUES"
+                  + " (?,?,?,?)")) {
         assertDefaultParameterMetaData(ps.getParameterMetaData(), 4);
         for (Album album : createAlbums()) {
           ps.setLong(1, album.singerId);
@@ -313,7 +315,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       }
       try (PreparedStatement ps =
           connection.prepareStatement(
-              "INSERT INTO Songs (SingerId, AlbumId, TrackId, SongName, Duration, SongGenre) VALUES (?,?,?,?,?,?);")) {
+              "INSERT INTO Songs (SingerId, AlbumId, TrackId, SongName, Duration, SongGenre) VALUES"
+                  + " (?,?,?,?,?,?);")) {
         assertDefaultParameterMetaData(ps.getParameterMetaData(), 6);
         for (Song song : createSongs()) {
           ps.setByte(1, (byte) song.singerId);
@@ -330,7 +333,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       }
       try (PreparedStatement ps =
           connection.prepareStatement(
-              "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime, TicketPrices) VALUES (?,?,?,?,?,?);")) {
+              "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime,"
+                  + " TicketPrices) VALUES (?,?,?,?,?,?);")) {
         assertDefaultParameterMetaData(ps.getParameterMetaData(), 6);
         for (Concert concert : createConcerts()) {
           ps.setLong(1, concert.venueId);
@@ -448,7 +452,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         for (Date testDate : testDates) {
           try (PreparedStatement ps =
               connection.prepareStatement(
-                  "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime, TicketPrices) VALUES (?,?,?,?,?,?);")) {
+                  "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime,"
+                      + " TicketPrices) VALUES (?,?,?,?,?,?);")) {
             assertDefaultParameterMetaData(ps.getParameterMetaData(), 6);
             ps.setLong(1, 100);
             ps.setLong(2, 19);
@@ -541,7 +546,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         for (Timestamp testTimestamp : testTimestamps) {
           try (PreparedStatement ps =
               connection.prepareStatement(
-                  "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime, TicketPrices) VALUES (?,?,?,?,?,?);")) {
+                  "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime,"
+                      + " TicketPrices) VALUES (?,?,?,?,?,?);")) {
             assertDefaultParameterMetaData(ps.getParameterMetaData(), 6);
             ps.setLong(1, 100);
             ps.setLong(2, 19);
@@ -727,9 +733,11 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       // The following statements will fail because the primary key values conflict.
       try (Statement statement = con.createStatement()) {
         statement.addBatch(
-            "INSERT INTO Singers (SingerId, FirstName, LastName, SingerInfo, BirthDate) VALUES (9999, 'Test', 'Test', NULL, NULL)");
+            "INSERT INTO Singers (SingerId, FirstName, LastName, SingerInfo, BirthDate) VALUES"
+                + " (9999, 'Test', 'Test', NULL, NULL)");
         statement.addBatch(
-            "INSERT INTO Singers (SingerId, FirstName, LastName, SingerInfo, BirthDate) VALUES (9999, 'Test', 'Test', NULL, NULL)");
+            "INSERT INTO Singers (SingerId, FirstName, LastName, SingerInfo, BirthDate) VALUES"
+                + " (9999, 'Test', 'Test', NULL, NULL)");
         statement.executeBatch();
         fail();
       } catch (BatchUpdateException e) {
@@ -743,16 +751,20 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     String sql;
     if (EmulatorSpannerHelper.isUsingEmulator()) {
       sql =
-          "INSERT INTO TableWithAllColumnTypes ("
-              + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, "
-              + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray"
-              + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          "INSERT INTO TableWithAllColumnTypes (ColInt64, ColFloat64, ColBool, ColString,"
+              + " ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS,"
+              + " ColNumeric, ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray,"
+              + " ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray,"
+              + " ColTimestampArray, ColNumericArray) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,"
+              + " PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     } else {
       sql =
-          "INSERT INTO TableWithAllColumnTypes ("
-              + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
-              + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
-              + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          "INSERT INTO TableWithAllColumnTypes (ColInt64, ColFloat64, ColBool, ColString,"
+              + " ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS,"
+              + " ColNumeric, ColJson, ColInt64Array, ColFloat64Array, ColBoolArray,"
+              + " ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray,"
+              + " ColTimestampArray, ColNumericArray, ColJsonArray) VALUES (?, ?, ?, ?, ?, ?, ?, ?,"
+              + " ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     }
     try (Connection con = createConnection()) {
       try (PreparedStatement ps = con.prepareStatement(sql)) {
@@ -906,16 +918,20 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     String sql;
     if (EmulatorSpannerHelper.isUsingEmulator()) {
       sql =
-          "INSERT INTO TableWithAllColumnTypes ("
-              + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, "
-              + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray"
-              + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          "INSERT INTO TableWithAllColumnTypes (ColInt64, ColFloat64, ColBool, ColString,"
+              + " ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS,"
+              + " ColNumeric, ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray,"
+              + " ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray,"
+              + " ColTimestampArray, ColNumericArray) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,"
+              + " PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     } else {
       sql =
-          "INSERT INTO TableWithAllColumnTypes ("
-              + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
-              + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
-              + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          "INSERT INTO TableWithAllColumnTypes (ColInt64, ColFloat64, ColBool, ColString,"
+              + " ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS,"
+              + " ColNumeric, ColJson, ColInt64Array, ColFloat64Array, ColBoolArray,"
+              + " ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray,"
+              + " ColTimestampArray, ColNumericArray, ColJsonArray) VALUES (?, ?, ?, ?, ?, ?, ?, ?,"
+              + " ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     }
     try (Connection con = createConnection()) {
       try (PreparedStatement ps = con.prepareStatement(sql)) {

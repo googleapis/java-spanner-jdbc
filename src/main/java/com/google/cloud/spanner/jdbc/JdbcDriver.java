@@ -157,7 +157,8 @@ public class JdbcDriver implements Driver {
   static void deregister() throws SQLException {
     if (!isRegistered()) {
       throw new IllegalStateException(
-          "Driver is not registered (or it has not been registered using Driver.register() method)");
+          "Driver is not registered (or it has not been registered using Driver.register()"
+              + " method)");
     }
     ConnectionOptions.closeSpanner();
     DriverManager.deregisterDriver(registeredDriver);

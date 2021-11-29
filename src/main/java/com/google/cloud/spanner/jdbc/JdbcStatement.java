@@ -206,7 +206,8 @@ class JdbcStatement extends AbstractJdbcStatement {
       return BatchType.DML;
     }
     throw JdbcSqlExceptionFactory.of(
-        "The statement is not suitable for batching. Only DML and DDL statements are allowed for batching.",
+        "The statement is not suitable for batching. Only DML and DDL statements are allowed for"
+            + " batching.",
         Code.INVALID_ARGUMENT);
   }
 
@@ -234,7 +235,8 @@ class JdbcStatement extends AbstractJdbcStatement {
     if (getConnection().getSpannerConnection().isDdlBatchActive()
         || getConnection().getSpannerConnection().isDmlBatchActive()) {
       throw JdbcSqlExceptionFactory.of(
-          "Calling addBatch() is not allowed when a DML or DDL batch has been started on the connection.",
+          "Calling addBatch() is not allowed when a DML or DDL batch has been started on the"
+              + " connection.",
           Code.FAILED_PRECONDITION);
     }
   }
