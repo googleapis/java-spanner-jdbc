@@ -37,6 +37,7 @@ branchProtectionRules:
     - "units (11)"
     - "Kokoro - Test: Integration"
     - "cla/google"
+    - OwlBot Post Processor
 
 # Identifies the protection rule pattern. Name of the branch to be protected.
 # Defaults to `main`
