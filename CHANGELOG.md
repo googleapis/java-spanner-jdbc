@@ -1,5 +1,17 @@
 # Changelog
 
+### [2.5.6](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.5.5...v2.5.6) (2021-12-17)
+
+
+### Bug Fixes
+
+* **java:** add -ntp flag to native image testing command ([#1299](https://www.github.com/googleapis/java-spanner-jdbc/issues/1299)) ([#688](https://www.github.com/googleapis/java-spanner-jdbc/issues/688)) ([4438aca](https://www.github.com/googleapis/java-spanner-jdbc/commit/4438aca73b9c8b33fa1edd23f823d87a093a6d59))
+
+
+### Dependencies
+
+* update OpenCensus API to 0.30.0 ([#694](https://www.github.com/googleapis/java-spanner-jdbc/issues/694)) ([345f136](https://www.github.com/googleapis/java-spanner-jdbc/commit/345f1366a7dd96f3b28afd353c5c23ebeff60c6b))
+
 ### [2.5.5](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.5.4...v2.5.5) (2021-12-03)
 
 
