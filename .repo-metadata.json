@@ -3,7 +3,7 @@
   "name_pretty": "Google Cloud Spanner JDBC",
   "product_documentation": "https://cloud.google.com/spanner/docs/use-oss-jdbc",
   "client_documentation": "https://cloud.google.com/java/docs/reference/google-cloud-spanner-jdbc/latest/history",
-  "release_level": "ga",
+  "release_level": "stable",
   "language": "java",
   "min_java_version": 8,
   "repo": "googleapis/java-spanner-jdbc",
