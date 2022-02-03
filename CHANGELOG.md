@@ -1,5 +1,20 @@
 # Changelog
 
+### [2.5.9](https://github.com/googleapis/java-spanner-jdbc/compare/v2.5.8...v2.5.9) (2022-02-03)
+
+
+### Bug Fixes
+
+* **java:** replace excludedGroup with exclude ([#720](https://github.com/googleapis/java-spanner-jdbc/issues/720)) ([7f13c88](https://github.com/googleapis/java-spanner-jdbc/commit/7f13c88f8c9e509de8c82cb788ab9b4964806381))
+
+
+### Dependencies
+
+* **java:** update actions/github-script action to v5 ([#1339](https://github.com/googleapis/java-spanner-jdbc/issues/1339)) ([#725](https://github.com/googleapis/java-spanner-jdbc/issues/725)) ([4f96ec1](https://github.com/googleapis/java-spanner-jdbc/commit/4f96ec1c864b176564ac3200565b5ea524d8adfb))
+* update actions/github-script action to v5 ([#724](https://github.com/googleapis/java-spanner-jdbc/issues/724)) ([5c1d6ff](https://github.com/googleapis/java-spanner-jdbc/commit/5c1d6ff72ba81dac101904f1ebd63e4a09b47c64))
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v2.7.0 ([#728](https://github.com/googleapis/java-spanner-jdbc/issues/728)) ([b0a32d8](https://github.com/googleapis/java-spanner-jdbc/commit/b0a32d807cdf2458b60437ade38fa46511254701))
+* update opencensus.version to v0.31.0 ([#727](https://github.com/googleapis/java-spanner-jdbc/issues/727)) ([fce0770](https://github.com/googleapis/java-spanner-jdbc/commit/fce077056fbf55395a736dc1f58f8ecbc89eb10d))
+
 ### [2.5.8](https://www.github.com/googleapis/java-spanner-jdbc/compare/v2.5.7...v2.5.8) (2022-01-07)
 
 
