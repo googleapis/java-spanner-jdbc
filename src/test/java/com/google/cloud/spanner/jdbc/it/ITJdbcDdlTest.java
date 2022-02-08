@@ -16,23 +16,50 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
-import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
+import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 /** Execute DDL statements using JDBC. */
 @Category(ParallelIntegrationTest.class)
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class ITJdbcDdlTest extends ITAbstractJdbcTest {
+  @Parameters(name = "Dialect = {0}")
+  public static List<DialectTestParameter> data() {
+    List<DialectTestParameter> params = new ArrayList<>();
+    final Map<String, String> googleStandardSqlScripts =
+        ImmutableMap.of("TEST_DDL", "ITDdlTest.sql");
+    final Map<String, String> postgresScripts = ImmutableMap.of("TEST_DDL", "ITPgDdlTest.sql");
+    params.add(
+        new DialectTestParameter(
+            Dialect.GOOGLE_STANDARD_SQL, null, googleStandardSqlScripts, null));
+
+    params.add(new DialectTestParameter(Dialect.POSTGRESQL, null, postgresScripts, null));
+    return params;
+  }
+
+  @Parameter public DialectTestParameter dialect;
+
+  @Override
+  public Dialect getDialect() {
+    return dialect.dialect;
+  }
 
   @Test
   public void testSqlScript() throws Exception {
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
-    verifier.verifyStatementsInFile("ITDdlTest.sql", SqlScriptVerifier.class, false);
+    verifier.verifyStatementsInFile(
+        dialect.executeQueriesFiles.get("TEST_DDL"), ITAbstractJdbcTest.class, false);
   }
 }

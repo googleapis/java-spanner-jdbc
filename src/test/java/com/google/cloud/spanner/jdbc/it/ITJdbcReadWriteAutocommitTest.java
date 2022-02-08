@@ -20,23 +20,49 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.ParallelIntegrationTest;
-import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
+import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.junit.runners.MethodSorters;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 @Category(ParallelIntegrationTest.class)
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
+
+  @Parameters(name = "Dialect = {0}")
+  public static List<DialectTestParameter> data() {
+    List<DialectTestParameter> params = new ArrayList<>();
+    Map<String, String> googleStandardSqlScripts =
+        ImmutableMap.of("TEST_READ_WRITE_AUTO_COMMIT", "ITReadWriteAutocommitSpannerTest.sql");
+    Map<String, String> postgresScripts =
+        ImmutableMap.of("TEST_READ_WRITE_AUTO_COMMIT", "ITPGReadWriteAutocommitSpannerTest.sql");
+    params.add(
+        new DialectTestParameter(Dialect.GOOGLE_STANDARD_SQL, "", googleStandardSqlScripts, null));
+    params.add(new DialectTestParameter(Dialect.POSTGRESQL, "", postgresScripts, null));
+    return params;
+  }
+
+  @Parameter public DialectTestParameter dialect;
+
+  @Override
+  public Dialect getDialect() {
+    return dialect.dialect;
+  }
 
   @Override
   protected void appendConnectionUri(StringBuilder uri) {
@@ -52,12 +78,14 @@ public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
   public void test01_SqlScript() throws Exception {
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
     verifier.verifyStatementsInFile(
-        "ITReadWriteAutocommitSpannerTest.sql", SqlScriptVerifier.class, false);
+        dialect.executeQueriesFiles.get("TEST_READ_WRITE_AUTO_COMMIT"),
+        ITAbstractJdbcTest.class,
+        false);
   }
 
   @Test
   public void test02_WriteMutation() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection()) {
+    try (CloudSpannerJdbcConnection connection = createConnection(getDialect())) {
       connection.write(
           Mutation.newInsertBuilder("TEST").set("ID").to(9999L).set("NAME").to("FOO").build());
       java.sql.Statement statement = connection.createStatement();

@@ -16,12 +16,15 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.jdbc.JdbcConnectionGeneratedSqlScriptTest.TestConnectionProvider;
 import java.sql.Connection;
 import java.sql.Statement;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 /**
  * As JDBC connections store the statement timeout on {@link Statement} objects instead of on the
@@ -30,11 +33,19 @@ import org.junit.runners.JUnit4;
  * timeouts, while the underlying {@link com.google.cloud.spanner.connection.Connection}s use
  * milliseconds. This test script tests a number of special cases regarding this.
  */
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class JdbcTimeoutSqlTest {
+
+  @Parameter public Dialect dialect;
+
+  @Parameters(name = "dialect = {0}")
+  public static Object[] data() {
+    return Dialect.values();
+  }
+
   @Test
   public void testTimeoutScript() throws Exception {
-    JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new TestConnectionProvider());
+    JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new TestConnectionProvider(dialect));
     verifier.verifyStatementsInFile("TimeoutSqlScriptTest.sql", getClass(), false);
   }
 }

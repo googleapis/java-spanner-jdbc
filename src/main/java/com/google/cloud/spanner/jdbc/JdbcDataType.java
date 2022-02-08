@@ -203,6 +203,32 @@ enum JdbcDataType {
       return Type.numeric();
     }
   },
+  PG_NUMERIC {
+    @Override
+    public int getSqlType() {
+      return Types.NUMERIC;
+    }
+
+    @Override
+    public Class<BigDecimal> getJavaClass() {
+      return BigDecimal.class;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.PG_NUMERIC;
+    }
+
+    @Override
+    public List<BigDecimal> getArrayElements(ResultSet rs, int columnIndex) {
+      return rs.getValue(columnIndex).getNumericArray();
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.pgNumeric();
+    }
+  },
   STRING {
     @Override
     public int getSqlType() {

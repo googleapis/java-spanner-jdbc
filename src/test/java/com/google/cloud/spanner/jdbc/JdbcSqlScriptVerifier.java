@@ -19,12 +19,12 @@ package com.google.cloud.spanner.jdbc;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
-import com.google.cloud.spanner.connection.StatementParser;
+import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.StatementResult.ResultType;
 import com.google.rpc.Code;
 import java.sql.Array;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -118,18 +118,18 @@ public class JdbcSqlScriptVerifier extends AbstractSqlScriptVerifier {
   }
 
   public static class JdbcGenericConnection extends GenericConnection {
-    private final Connection connection;
+    private final CloudSpannerJdbcConnection connection;
     /**
      * Use this to strip comments from a statement before the statement is executed. This should
      * only be used when the connection is used in a unit test with a mocked underlying connection.
      */
     private boolean stripCommentsBeforeExecute;
 
-    public static JdbcGenericConnection of(Connection connection) {
+    public static JdbcGenericConnection of(CloudSpannerJdbcConnection connection) {
       return new JdbcGenericConnection(connection);
     }
 
-    private JdbcGenericConnection(Connection connection) {
+    private JdbcGenericConnection(CloudSpannerJdbcConnection connection) {
       this.connection = connection;
     }
 
@@ -137,7 +137,7 @@ public class JdbcSqlScriptVerifier extends AbstractSqlScriptVerifier {
     protected GenericStatementResult execute(String sql) throws SQLException {
       Statement statement = connection.createStatement();
       if (isStripCommentsBeforeExecute()) {
-        sql = StatementParser.removeCommentsAndTrim(sql);
+        sql = AbstractStatementParser.getInstance(getDialect()).removeCommentsAndTrim(sql);
       }
       boolean result = statement.execute(sql);
       return new JdbcGenericStatementResult(statement, result);
@@ -156,6 +156,11 @@ public class JdbcSqlScriptVerifier extends AbstractSqlScriptVerifier {
 
     void setStripCommentsBeforeExecute(boolean stripCommentsBeforeExecute) {
       this.stripCommentsBeforeExecute = stripCommentsBeforeExecute;
+    }
+
+    @Override
+    public Dialect getDialect() {
+      return connection.getDialect();
     }
   }
 

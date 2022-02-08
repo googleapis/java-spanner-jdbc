@@ -24,11 +24,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.SpannerExceptionFactory;
 import com.google.cloud.spanner.Type;
+import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.Connection;
-import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.cloud.spanner.connection.StatementResult.ResultType;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
@@ -42,15 +43,24 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 import org.mockito.stubbing.Answer;
 
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class JdbcStatementTest {
   private static final String SELECT = "SELECT 1";
   private static final String UPDATE = "UPDATE FOO SET BAR=1 WHERE BAZ=2";
   private static final String LARGE_UPDATE = "UPDATE FOO SET BAR=1 WHERE 1=1";
   private static final String DDL = "CREATE INDEX FOO ON BAR(ID)";
+
+  @Parameter public Dialect dialect;
+
+  @Parameters(name = "dialect = {0}")
+  public static Object[] data() {
+    return Dialect.values();
+  }
 
   @SuppressWarnings("unchecked")
   private JdbcStatement createStatement() {
@@ -106,7 +116,8 @@ public class JdbcStatementTest {
                   List<com.google.cloud.spanner.Statement> statements =
                       (List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0];
                   if (statements.isEmpty()
-                      || StatementParser.INSTANCE.isDdlStatement(statements.get(0).getSql())) {
+                      || AbstractStatementParser.getInstance(dialect)
+                          .isDdlStatement(statements.get(0).getSql())) {
                     return new long[0];
                   }
                   long[] res =
@@ -118,6 +129,7 @@ public class JdbcStatementTest {
                 });
 
     JdbcConnection connection = mock(JdbcConnection.class);
+    when(connection.getDialect()).thenReturn(dialect);
     when(connection.getSpannerConnection()).thenReturn(spanner);
     return new JdbcStatement(connection);
   }
@@ -126,6 +138,7 @@ public class JdbcStatementTest {
   public void testQueryTimeout() throws SQLException {
     final String select = "SELECT 1";
     JdbcConnection connection = mock(JdbcConnection.class);
+    when(connection.getDialect()).thenReturn(dialect);
     Connection spanner = mock(Connection.class);
     when(connection.getSpannerConnection()).thenReturn(spanner);
     StatementResult result = mock(StatementResult.class);
@@ -271,6 +284,7 @@ public class JdbcStatementTest {
   @Test
   public void testInternalExecuteUpdate() throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
+    when(connection.getDialect()).thenReturn(dialect);
     Connection spannerConnection = mock(Connection.class);
     when(connection.getSpannerConnection()).thenReturn(spannerConnection);
     com.google.cloud.spanner.Statement updateStatement =
@@ -293,6 +307,7 @@ public class JdbcStatementTest {
   @Test
   public void testInternalExecuteLargeUpdate() throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
+    when(connection.getDialect()).thenReturn(dialect);
     Connection spannerConnection = mock(Connection.class);
     when(connection.getSpannerConnection()).thenReturn(spannerConnection);
     com.google.cloud.spanner.Statement updateStatement =
@@ -436,7 +451,9 @@ public class JdbcStatementTest {
 
   @Test
   public void testConvertUpdateCounts() {
-    try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
+    JdbcConnection connection = mock(JdbcConnection.class);
+    when(connection.getDialect()).thenReturn(dialect);
+    try (JdbcStatement statement = new JdbcStatement(connection)) {
       int[] updateCounts = statement.convertUpdateCounts(new long[] {1L, 2L, 3L});
       assertThat(updateCounts).asList().containsExactly(1, 2, 3);
       updateCounts = statement.convertUpdateCounts(new long[] {0L, 0L, 0L});
@@ -451,7 +468,9 @@ public class JdbcStatementTest {
 
   @Test
   public void testConvertUpdateCountsToSuccessNoInfo() {
-    try (JdbcStatement statement = new JdbcStatement(mock(JdbcConnection.class))) {
+    JdbcConnection connection = mock(JdbcConnection.class);
+    when(connection.getDialect()).thenReturn(dialect);
+    try (JdbcStatement statement = new JdbcStatement(connection)) {
       long[] updateCounts = new long[3];
       statement.convertUpdateCountsToSuccessNoInfo(new long[] {1L, 2L, 3L}, updateCounts);
       assertThat(updateCounts)

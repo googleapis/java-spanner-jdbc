@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
@@ -26,6 +27,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.cloud.ByteArray;
+import com.google.cloud.spanner.Dialect;
+import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.ResultSets;
@@ -34,6 +37,7 @@ import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.Value;
+import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.rpc.Code;
 import java.io.ByteArrayInputStream;
@@ -55,10 +59,19 @@ import java.util.TimeZone;
 import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class JdbcPreparedStatementTest {
+  @Parameter public Dialect dialect;
+
+  @Parameters(name = "dialect = {0}")
+  public static Object[] data() {
+    return Dialect.values();
+  }
+
   private String generateSqlWithParameters(int numberOfParams) {
     StringBuilder sql = new StringBuilder("INSERT INTO FOO (");
     boolean first = true;
@@ -90,6 +103,8 @@ public class JdbcPreparedStatementTest {
 
   private JdbcConnection createMockConnection(Connection spanner) throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
+    when(connection.getDialect()).thenReturn(dialect);
+    when(connection.getParser()).thenReturn(AbstractStatementParser.getInstance(dialect));
     when(connection.getSpannerConnection()).thenReturn(spanner);
     when(connection.createBlob()).thenCallRealMethod();
     when(connection.createClob()).thenCallRealMethod();
@@ -329,7 +344,10 @@ public class JdbcPreparedStatementTest {
             Type.struct(
                 StructField.of("ID", Type.int64()),
                 StructField.of("NAME", Type.string()),
-                StructField.of("AMOUNT", Type.float64())),
+                StructField.of("AMOUNT", Type.float64()),
+                dialect == Dialect.POSTGRESQL
+                    ? StructField.of("PERCENTAGE", Type.pgNumeric())
+                    : StructField.of("PERCENTAGE", Type.numeric())),
             Collections.singletonList(
                 Struct.newBuilder()
                     .set("ID")
@@ -338,18 +356,25 @@ public class JdbcPreparedStatementTest {
                     .to("foo")
                     .set("AMOUNT")
                     .to(Math.PI)
+                    .set("PERCENTAGE")
+                    .to(
+                        dialect == Dialect.POSTGRESQL
+                            ? Value.pgNumeric("1.23")
+                            : Value.numeric(new BigDecimal("1.23")))
                     .build()));
     when(connection.analyzeQuery(Statement.of(sql), QueryAnalyzeMode.PLAN)).thenReturn(rs);
     try (JdbcPreparedStatement ps =
         new JdbcPreparedStatement(createMockConnection(connection), sql)) {
       ResultSetMetaData metadata = ps.getMetaData();
-      assertEquals(3, metadata.getColumnCount());
+      assertEquals(4, metadata.getColumnCount());
       assertEquals("ID", metadata.getColumnLabel(1));
       assertEquals("NAME", metadata.getColumnLabel(2));
       assertEquals("AMOUNT", metadata.getColumnLabel(3));
+      assertEquals("PERCENTAGE", metadata.getColumnLabel(4));
       assertEquals(Types.BIGINT, metadata.getColumnType(1));
       assertEquals(Types.NVARCHAR, metadata.getColumnType(2));
       assertEquals(Types.DOUBLE, metadata.getColumnType(3));
+      assertEquals(Types.NUMERIC, metadata.getColumnType(4));
     }
   }
 
@@ -362,5 +387,18 @@ public class JdbcPreparedStatementTest {
       ResultSetMetaData metadata = ps.getMetaData();
       assertEquals(0, metadata.getColumnCount());
     }
+  }
+
+  @Test
+  public void testInvalidSql() {
+    String sql = "SELECT * FROM Singers WHERE SingerId='";
+    SQLException sqlException =
+        assertThrows(
+            SQLException.class,
+            () -> new JdbcPreparedStatement(createMockConnection(mock(Connection.class)), sql));
+    assertTrue(sqlException instanceof JdbcSqlException);
+    JdbcSqlException jdbcSqlException = (JdbcSqlException) sqlException;
+    assertEquals(
+        ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value(), jdbcSqlException.getErrorCode());
   }
 }

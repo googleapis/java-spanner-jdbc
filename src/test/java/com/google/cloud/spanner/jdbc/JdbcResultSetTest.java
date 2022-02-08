@@ -49,6 +49,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -1728,5 +1732,25 @@ public class JdbcResultSetTest {
     assertEquals(
         Value.timestampArray(TIMESTAMP_ARRAY_VALUE),
         subject.getObject(TIMESTAMP_ARRAY_COL, Value.class));
+  }
+
+  @Test
+  public void testGetLocalDate() throws SQLException {
+    LocalDate localDate = subject.getObject(DATE_COL_NOT_NULL, LocalDate.class);
+    assertEquals(
+        LocalDate.of(DATE_VALUE.getYear(), DATE_VALUE.getMonth(), DATE_VALUE.getDayOfMonth()),
+        localDate);
+    assertFalse(subject.wasNull());
+  }
+
+  @Test
+  public void testGetOffsetDateTime() throws SQLException {
+    OffsetDateTime offsetDateTime = subject.getObject(TIMESTAMP_COL_NOT_NULL, OffsetDateTime.class);
+    assertEquals(
+        OffsetDateTime.ofInstant(
+            Instant.ofEpochSecond(TIMESTAMP_VALUE.getSeconds(), TIMESTAMP_VALUE.getNanos()),
+            ZoneOffset.systemDefault()),
+        offsetDateTime);
+    assertFalse(subject.wasNull());
   }
 }
