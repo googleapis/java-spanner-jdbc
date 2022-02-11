@@ -1,5 +1,12 @@
 # Changelog
 
+### [2.5.11](https://github.com/googleapis/java-spanner-jdbc/compare/v2.5.10...v2.5.11) (2022-02-11)
+
+
+### Dependencies
+
+* update actions/github-script action to v6 ([#745](https://github.com/googleapis/java-spanner-jdbc/issues/745)) ([2ccd5b8](https://github.com/googleapis/java-spanner-jdbc/commit/2ccd5b8ac878c81535c14e404aeaf67e6e41a464))
+
 ### [2.5.10](https://github.com/googleapis/java-spanner-jdbc/compare/v2.5.9...v2.5.10) (2022-02-09)
 
 
