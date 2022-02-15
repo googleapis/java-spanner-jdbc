@@ -50,7 +50,8 @@ public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
     Map<String, String> googleStandardSqlScripts =
         ImmutableMap.of("TEST_READ_WRITE_AUTO_COMMIT", "ITReadWriteAutocommitSpannerTest.sql");
     Map<String, String> postgresScripts =
-        ImmutableMap.of("TEST_READ_WRITE_AUTO_COMMIT", "ITPGReadWriteAutocommitSpannerTest.sql");
+        ImmutableMap.of(
+            "TEST_READ_WRITE_AUTO_COMMIT", "PostgreSQL/ITReadWriteAutocommitSpannerTest.sql");
     params.add(
         new DialectTestParameter(Dialect.GOOGLE_STANDARD_SQL, "", googleStandardSqlScripts, null));
     params.add(new DialectTestParameter(Dialect.POSTGRESQL, "", postgresScripts, null));

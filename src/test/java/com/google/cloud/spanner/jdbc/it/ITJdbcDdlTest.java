@@ -40,7 +40,8 @@ public class ITJdbcDdlTest extends ITAbstractJdbcTest {
     List<DialectTestParameter> params = new ArrayList<>();
     final Map<String, String> googleStandardSqlScripts =
         ImmutableMap.of("TEST_DDL", "ITDdlTest.sql");
-    final Map<String, String> postgresScripts = ImmutableMap.of("TEST_DDL", "ITPgDdlTest.sql");
+    final Map<String, String> postgresScripts =
+        ImmutableMap.of("TEST_DDL", "PostgreSQL/ITDdlTest.sql");
     params.add(
         new DialectTestParameter(
             Dialect.GOOGLE_STANDARD_SQL, null, googleStandardSqlScripts, null));

@@ -79,25 +79,29 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
   private static final String TEST_INVALID_STATEMENTS_SQL =
       "ITSqlScriptTest_TestInvalidStatements.sql";
 
-  private static final String CREATE_TABLES_FILE_PG = "ITPgScriptTest_CreateTables.sql";
-  private static final String INSERT_AND_VERIFY_TEST_DATA_PG = "ITPgScriptTest_InsertTestData.sql";
+  private static final String CREATE_TABLES_FILE_PG = "PostgreSQL/ITScriptTest_CreateTables.sql";
+  private static final String INSERT_AND_VERIFY_TEST_DATA_PG =
+      "PostgreSQL/ITScriptTest_InsertTestData.sql";
   private static final String TEST_GET_READ_TIMESTAMP_PG =
-      "ITPgScriptTest_TestGetReadTimestamp.sql";
+      "PostgreSQL/ITScriptTest_TestGetReadTimestamp.sql";
   private static final String TEST_TEMPORARY_TRANSACTIONS_PG =
-      "ITPgScriptTest_TestTemporaryTransactions.sql";
-  private static final String TEST_TRANSACTION_MODE_PG = "ITPgScriptTest_TestTransactionMode.sql";
+      "PostgreSQL/ITScriptTest_TestTemporaryTransactions.sql";
+  private static final String TEST_TRANSACTION_MODE_PG =
+      "PostgreSQL/ITScriptTest_TestTransactionMode.sql";
   private static final String TEST_TRANSACTION_MODE_READ_ONLY_PG =
-      "ITPgScriptTest_TestTransactionMode_ReadOnly.sql";
+      "PostgreSQL/ITScriptTest_TestTransactionMode_ReadOnly.sql";
   private static final String TEST_READ_ONLY_STALENESS_PG =
-      "ITPgScriptTest_TestReadOnlyStaleness.sql";
+      "PostgreSQL/ITScriptTest_TestReadOnlyStaleness.sql";
   private static final String TEST_AUTOCOMMIT_DML_MODE_PG =
-      "ITPgScriptTest_TestAutocommitDmlMode.sql";
+      "PostgreSQL/ITScriptTest_TestAutocommitDmlMode.sql";
   private static final String TEST_AUTOCOMMIT_READ_ONLY_PG =
-      "ITPgScriptTest_TestAutocommitReadOnly.sql";
-  private static final String TEST_QUERY_OPTIONS_PG = "ITPgScriptTest_TestQueryOptions.sql";
-  private static final String TEST_SET_STATEMENTS_PG = "ITPgScriptTest_TestSetStatements.sql";
+      "PostgreSQL/ITScriptTest_TestAutocommitReadOnly.sql";
+  private static final String TEST_QUERY_OPTIONS_PG =
+      "PostgreSQL/ITScriptTest_TestQueryOptions.sql";
+  private static final String TEST_SET_STATEMENTS_PG =
+      "PostgreSQL/ITScriptTest_TestSetStatements.sql";
   private static final String TEST_INVALID_STATEMENTS_PG =
-      "ITPgScriptTest_TestInvalidStatements.sql";
+      "PostgreSQL/ITScriptTest_TestInvalidStatements.sql";
 
   private final JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier();
 

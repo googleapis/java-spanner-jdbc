@@ -26,6 +26,7 @@ import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
+import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.common.io.ByteSource;
 import com.google.protobuf.ListValue;
@@ -116,6 +117,7 @@ public class PgNumericResultSetTest {
 
   @AfterClass
   public static void afterClass() throws Exception {
+    SpannerPool.closeSpannerPool();
     server.shutdown();
     server.awaitTermination();
   }
@@ -206,9 +208,9 @@ public class PgNumericResultSetTest {
   @Test
   public void testGetByte() throws Exception {
     final String minValue = Byte.MIN_VALUE + "";
-    final String underflow = BigDecimal.valueOf(Byte.MIN_VALUE).subtract(BigDecimal.ONE).toString();
+    final String underflow = String.valueOf((int) Byte.MIN_VALUE - 1);
     final String maxValue = Byte.MAX_VALUE + "";
-    final String overflow = BigDecimal.valueOf(Byte.MAX_VALUE).add(BigDecimal.ONE).toString();
+    final String overflow = String.valueOf((int) Short.MAX_VALUE + 1);
 
     mockScalarResults(minValue, maxValue, "1.23", null, "NaN", underflow, overflow);
 
@@ -234,10 +236,9 @@ public class PgNumericResultSetTest {
   @Test
   public void testGetShort() throws Exception {
     final String minValue = Short.MIN_VALUE + "";
-    final String underflow =
-        BigDecimal.valueOf(Short.MIN_VALUE).subtract(BigDecimal.ONE).toString();
+    final String underflow = String.valueOf((int) Short.MIN_VALUE - 1);
     final String maxValue = Short.MAX_VALUE + "";
-    final String overflow = BigDecimal.valueOf(Short.MAX_VALUE).add(BigDecimal.ONE).toString();
+    final String overflow = String.valueOf((int) Short.MAX_VALUE + 1);
 
     mockScalarResults(minValue, maxValue, "1.23", null, "NaN", underflow, overflow);
 
@@ -263,10 +264,9 @@ public class PgNumericResultSetTest {
   @Test
   public void testGetInt() throws Exception {
     final String minValue = Integer.MIN_VALUE + "";
-    final String underflow =
-        BigDecimal.valueOf(Integer.MIN_VALUE).subtract(BigDecimal.ONE).toString();
+    final String underflow = String.valueOf((long) Integer.MIN_VALUE - 1L);
     final String maxValue = Integer.MAX_VALUE + "";
-    final String overflow = BigDecimal.valueOf(Integer.MAX_VALUE).add(BigDecimal.ONE).toString();
+    final String overflow = String.valueOf((long) Integer.MAX_VALUE + 1L);
 
     mockScalarResults(minValue, maxValue, "1.23", null, "NaN", underflow, overflow);
 

@@ -333,7 +333,9 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
   }
 
   @Test
-  public void verifyGoogleSql() throws SQLException {
+  public void verifyGoogleSqlHeaderIsCorrectlyParsed() {
+    // Verify that the `/*GSQL*/` header is kept in the SQL statement without comments if the
+    // dialect is PostgreSQL, and that it is removed if the dialect is Google_Standard_Sql.
     if (dialect == Dialect.POSTGRESQL) {
       assertThat(
               isGoogleSql(

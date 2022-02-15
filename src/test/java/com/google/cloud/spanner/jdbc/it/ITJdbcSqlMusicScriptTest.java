@@ -42,7 +42,7 @@ public class ITJdbcSqlMusicScriptTest extends ITAbstractJdbcTest {
     Map<String, String> googleStandardSqlScripts =
         ImmutableMap.of("TEST_SQL_MUSIC_SCRIPT", "ITSqlMusicScriptTest.sql");
     Map<String, String> postgresScripts =
-        ImmutableMap.of("TEST_SQL_MUSIC_SCRIPT", "ITPGSqlMusicScriptTest.sql");
+        ImmutableMap.of("TEST_SQL_MUSIC_SCRIPT", "PostgreSQL/ITSqlMusicScriptTest.sql");
     params.add(
         new DialectTestParameter(Dialect.GOOGLE_STANDARD_SQL, "", googleStandardSqlScripts, null));
     params.add(new DialectTestParameter(Dialect.POSTGRESQL, "", postgresScripts, null));

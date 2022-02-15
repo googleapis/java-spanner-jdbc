@@ -57,7 +57,7 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
     final Map<String, String> googleStandardSqlScripts =
         ImmutableMap.of("TEST_READ_ONLY", "ITReadOnlySpannerTest.sql");
     final Map<String, String> postgresScripts =
-        ImmutableMap.of("TEST_READ_ONLY", "ITPgReadOnlySpannerTest.sql");
+        ImmutableMap.of("TEST_READ_ONLY", "PostgreSQL/ITReadOnlySpannerTest.sql");
     params.add(
         new DialectTestParameter(
             Dialect.GOOGLE_STANDARD_SQL,
@@ -67,7 +67,7 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
     params.add(
         new DialectTestParameter(
             Dialect.POSTGRESQL,
-            "ITPgReadOnlySpannerTest_CreateTables.sql",
+            "PostgreSQL/ITReadOnlySpannerTest_CreateTables.sql",
             postgresScripts,
             new String[] {"SELECT * FROM PRIME_NUMBERS", "SELECT * FROM NUMBERS"}));
     return params;
