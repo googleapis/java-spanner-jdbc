@@ -60,10 +60,10 @@ public class JdbcConnectionGeneratedSqlScriptTest {
     @Override
     public GenericConnection getConnection() {
       ConnectionOptions options = mock(ConnectionOptions.class);
-      when(options.getDialect()).thenReturn(dialect);
       when(options.getUri()).thenReturn(ConnectionImplTest.URI);
       com.google.cloud.spanner.connection.Connection spannerConnection =
           ConnectionImplTest.createConnection(options);
+      when(spannerConnection.getDialect()).thenReturn(dialect);
       when(options.getConnection()).thenReturn(spannerConnection);
       try {
         JdbcConnection connection =

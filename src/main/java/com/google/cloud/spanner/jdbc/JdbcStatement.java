@@ -48,7 +48,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   private BatchType currentBatchType = BatchType.NONE;
   final List<Statement> batchedStatements = new ArrayList<>();
 
-  JdbcStatement(JdbcConnection connection) {
+  JdbcStatement(JdbcConnection connection) throws SQLException {
     super(connection);
   }
 

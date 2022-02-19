@@ -18,9 +18,11 @@ package com.google.cloud.spanner.jdbc;
 
 import static org.junit.Assert.assertEquals;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
 import com.google.cloud.spanner.Statement;
+import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ListValue;
 import com.google.protobuf.NullValue;
@@ -63,6 +65,7 @@ public class PgNumericPreparedStatementTest {
   public static void beforeClass() throws Exception {
     mockSpanner = new MockSpannerServiceImpl();
     mockSpanner.setAbortProbability(0.0D);
+    mockSpanner.putStatementResult(StatementResult.detectDialectResult(Dialect.POSTGRESQL));
 
     address = new InetSocketAddress("localhost", 0);
     server = NettyServerBuilder.forAddress(address).addService(mockSpanner).build().start();
@@ -70,6 +73,7 @@ public class PgNumericPreparedStatementTest {
 
   @AfterClass
   public static void afterClass() throws Exception {
+    SpannerPool.closeSpannerPool();
     server.shutdown();
     server.awaitTermination();
   }

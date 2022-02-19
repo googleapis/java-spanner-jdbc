@@ -75,9 +75,9 @@ public class JdbcConnectionTest {
   }
 
   private JdbcConnection createConnection(ConnectionOptions options) throws SQLException {
-    when(options.getDialect()).thenReturn(dialect);
     com.google.cloud.spanner.connection.Connection spannerConnection =
         ConnectionImplTest.createConnection(options);
+    when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
     return new JdbcConnection(
         "jdbc:cloudspanner://localhost/projects/project/instances/instance/databases/database;credentialsUrl=url",
@@ -85,9 +85,7 @@ public class JdbcConnectionTest {
   }
 
   private ConnectionOptions mockOptions() {
-    ConnectionOptions options = mock(ConnectionOptions.class);
-    when(options.getDialect()).thenReturn(dialect);
-    return options;
+    return mock(ConnectionOptions.class);
   }
 
   @Test
@@ -498,6 +496,7 @@ public class JdbcConnectionTest {
     ConnectionOptions options = mockOptions();
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
+    when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
     Statement statement = Statement.of(JdbcConnection.IS_VALID_QUERY);
 

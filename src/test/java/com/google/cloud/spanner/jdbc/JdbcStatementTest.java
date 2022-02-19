@@ -63,8 +63,9 @@ public class JdbcStatementTest {
   }
 
   @SuppressWarnings("unchecked")
-  private JdbcStatement createStatement() {
+  private JdbcStatement createStatement() throws SQLException {
     Connection spanner = mock(Connection.class);
+    when(spanner.getDialect()).thenReturn(dialect);
 
     com.google.cloud.spanner.ResultSet resultSet = mock(com.google.cloud.spanner.ResultSet.class);
     when(resultSet.next()).thenReturn(true, false);
@@ -130,6 +131,7 @@ public class JdbcStatementTest {
 
     JdbcConnection connection = mock(JdbcConnection.class);
     when(connection.getDialect()).thenReturn(dialect);
+    when(connection.getParser()).thenReturn(AbstractStatementParser.getInstance(dialect));
     when(connection.getSpannerConnection()).thenReturn(spanner);
     return new JdbcStatement(connection);
   }
@@ -243,8 +245,8 @@ public class JdbcStatementTest {
 
   @Test
   public void testExecuteQueryWithUpdateStatement() {
-    Statement statement = createStatement();
     try {
+      Statement statement = createStatement();
       statement.executeQuery(UPDATE);
       fail("missing expected exception");
     } catch (SQLException e) {
@@ -257,8 +259,8 @@ public class JdbcStatementTest {
 
   @Test
   public void testExecuteQueryWithDdlStatement() {
-    Statement statement = createStatement();
     try {
+      Statement statement = createStatement();
       statement.executeQuery(DDL);
       fail("missing expected exception");
     } catch (SQLException e) {
@@ -344,8 +346,8 @@ public class JdbcStatementTest {
 
   @Test
   public void testExecuteUpdateWithSelectStatement() {
-    Statement statement = createStatement();
     try {
+      Statement statement = createStatement();
       statement.executeUpdate(SELECT);
       fail("missing expected exception");
     } catch (SQLException e) {
@@ -467,7 +469,7 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testConvertUpdateCountsToSuccessNoInfo() {
+  public void testConvertUpdateCountsToSuccessNoInfo() throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
     when(connection.getDialect()).thenReturn(dialect);
     try (JdbcStatement statement = new JdbcStatement(connection)) {

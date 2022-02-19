@@ -44,7 +44,7 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
       "This method may not be called on a PreparedStatement";
   private final JdbcParameterStore parameters;
 
-  AbstractJdbcPreparedStatement(JdbcConnection connection) {
+  AbstractJdbcPreparedStatement(JdbcConnection connection) throws SQLException {
     super(connection);
     parameters = new JdbcParameterStore(connection.getDialect());
   }

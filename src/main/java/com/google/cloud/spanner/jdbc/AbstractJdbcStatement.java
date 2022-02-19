@@ -43,9 +43,9 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   private final JdbcConnection connection;
   private int queryTimeout;
 
-  AbstractJdbcStatement(JdbcConnection connection) {
+  AbstractJdbcStatement(JdbcConnection connection) throws SQLException {
     this.connection = connection;
-    this.parser = AbstractStatementParser.getInstance(connection.getDialect());
+    this.parser = connection.getParser();
   }
 
   @Override

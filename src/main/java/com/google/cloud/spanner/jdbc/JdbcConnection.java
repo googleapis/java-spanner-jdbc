@@ -71,8 +71,8 @@ class JdbcConnection extends AbstractJdbcConnection {
   @Override
   public String nativeSQL(String sql) throws SQLException {
     checkClosed();
-    return parser.convertPositionalParametersToNamedParameters(
-            '?', parser.removeCommentsAndTrim(sql))
+    return getParser()
+        .convertPositionalParametersToNamedParameters('?', getParser().removeCommentsAndTrim(sql))
         .sqlWithNamedParameters;
   }
 
