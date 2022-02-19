@@ -20,6 +20,7 @@ import com.google.cloud.spanner.AbortedDueToConcurrentModificationException;
 import com.google.cloud.spanner.AbortedException;
 import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.CommitStats;
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.TimestampBound;
@@ -320,6 +321,11 @@ public interface CloudSpannerJdbcConnection extends Connection {
    *     that is returned.
    */
   String getConnectionUrl();
+
+  /** @return The {@link Dialect} that is used by this connection. */
+  default Dialect getDialect() {
+    return Dialect.GOOGLE_STANDARD_SQL;
+  }
 
   /**
    * @see

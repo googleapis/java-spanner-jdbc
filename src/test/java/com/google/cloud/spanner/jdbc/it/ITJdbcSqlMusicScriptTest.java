@@ -16,28 +16,55 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
-import com.google.cloud.spanner.connection.SqlScriptVerifier;
+import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
-import java.sql.Connection;
+import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 @Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 public class ITJdbcSqlMusicScriptTest extends ITAbstractJdbcTest {
-  private static final String SCRIPT_FILE = "ITSqlMusicScriptTest.sql";
+  @Parameters(name = "Dialect = {0}")
+  public static List<DialectTestParameter> data() {
+    List<DialectTestParameter> params = new ArrayList<>();
+    Map<String, String> googleStandardSqlScripts =
+        ImmutableMap.of("TEST_SQL_MUSIC_SCRIPT", "ITSqlMusicScriptTest.sql");
+    Map<String, String> postgresScripts =
+        ImmutableMap.of("TEST_SQL_MUSIC_SCRIPT", "PostgreSQL/ITSqlMusicScriptTest.sql");
+    params.add(
+        new DialectTestParameter(Dialect.GOOGLE_STANDARD_SQL, "", googleStandardSqlScripts, null));
+    params.add(new DialectTestParameter(Dialect.POSTGRESQL, "", postgresScripts, null));
+    return params;
+  }
+
+  @Parameter public DialectTestParameter dialect;
+
+  @Override
+  public Dialect getDialect() {
+    return dialect.dialect;
+  }
 
   @Test
   public void testRunScript() throws Exception {
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier();
-    try (Connection connection = createConnection()) {
+    try (CloudSpannerJdbcConnection connection = createConnection(getDialect())) {
       verifier.verifyStatementsInFile(
-          JdbcGenericConnection.of(connection), SCRIPT_FILE, SqlScriptVerifier.class, false);
+          JdbcGenericConnection.of(connection),
+          dialect.executeQueriesFiles.get("TEST_SQL_MUSIC_SCRIPT"),
+          ITAbstractJdbcTest.class,
+          false);
     }
   }
 }

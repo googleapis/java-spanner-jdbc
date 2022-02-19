@@ -47,6 +47,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     if (type.equals(Type.float64())) return Types.DOUBLE;
     if (type.equals(Type.int64())) return Types.BIGINT;
     if (type.equals(Type.numeric())) return Types.NUMERIC;
+    if (type.equals(Type.pgNumeric())) return Types.NUMERIC;
     if (type.equals(Type.string())) return Types.NVARCHAR;
     if (type.equals(Type.json())) return Types.NVARCHAR;
     if (type.equals(Type.timestamp())) return Types.TIMESTAMP;
@@ -106,6 +107,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     if (type == Type.float64()) return Double.class.getName();
     if (type == Type.int64()) return Long.class.getName();
     if (type == Type.numeric()) return BigDecimal.class.getName();
+    if (type == Type.pgNumeric()) return BigDecimal.class.getName();
     if (type == Type.string()) return String.class.getName();
     if (type == Type.json()) return String.class.getName();
     if (type == Type.timestamp()) return Timestamp.class.getName();
@@ -116,6 +118,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
       if (type.getArrayElementType() == Type.float64()) return Double[].class.getName();
       if (type.getArrayElementType() == Type.int64()) return Long[].class.getName();
       if (type.getArrayElementType() == Type.numeric()) return BigDecimal[].class.getName();
+      if (type.getArrayElementType() == Type.pgNumeric()) return BigDecimal[].class.getName();
       if (type.getArrayElementType() == Type.string()) return String[].class.getName();
       if (type.getArrayElementType() == Type.json()) return String[].class.getName();
       if (type.getArrayElementType() == Type.timestamp()) return Timestamp[].class.getName();
@@ -146,6 +149,16 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   }
 
   /** Cast value and throw {@link SQLException} if out-of-range. */
+  static byte checkedCastToByte(BigInteger val) throws SQLException {
+    try {
+      return val.byteValueExact();
+    } catch (ArithmeticException e) {
+      throw JdbcSqlExceptionFactory.of(
+          String.format(OUT_OF_RANGE_MSG, "byte", val), com.google.rpc.Code.OUT_OF_RANGE);
+    }
+  }
+
+  /** Cast value and throw {@link SQLException} if out-of-range. */
   static short checkedCastToShort(long val) throws SQLException {
     if (val > Short.MAX_VALUE || val < Short.MIN_VALUE) {
       throw JdbcSqlExceptionFactory.of(
@@ -165,6 +178,16 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   }
 
   /** Cast value and throw {@link SQLException} if out-of-range. */
+  static short checkedCastToShort(BigInteger val) throws SQLException {
+    try {
+      return val.shortValueExact();
+    } catch (ArithmeticException e) {
+      throw JdbcSqlExceptionFactory.of(
+          String.format(OUT_OF_RANGE_MSG, "short", val), com.google.rpc.Code.OUT_OF_RANGE);
+    }
+  }
+
+  /** Cast value and throw {@link SQLException} if out-of-range. */
   static int checkedCastToInt(long val) throws SQLException {
     if (val > Integer.MAX_VALUE || val < Integer.MIN_VALUE) {
       throw JdbcSqlExceptionFactory.of(
@@ -175,6 +198,16 @@ abstract class AbstractJdbcWrapper implements Wrapper {
 
   /** Cast value and throw {@link SQLException} if out-of-range. */
   static int checkedCastToInt(BigDecimal val) throws SQLException {
+    try {
+      return val.intValueExact();
+    } catch (ArithmeticException e) {
+      throw JdbcSqlExceptionFactory.of(
+          String.format(OUT_OF_RANGE_MSG, "int", val), com.google.rpc.Code.OUT_OF_RANGE);
+    }
+  }
+
+  /** Cast value and throw {@link SQLException} if out-of-range. */
+  static int checkedCastToInt(BigInteger val) throws SQLException {
     try {
       return val.intValueExact();
     } catch (ArithmeticException e) {
@@ -226,6 +259,16 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     }
   }
 
+  /** Cast value and throw {@link SQLException} if out-of-range. */
+  static long checkedCastToLong(BigInteger val) throws SQLException {
+    try {
+      return val.longValueExact();
+    } catch (ArithmeticException e) {
+      throw JdbcSqlExceptionFactory.of(
+          String.format(OUT_OF_RANGE_MSG, "long", val), com.google.rpc.Code.OUT_OF_RANGE);
+    }
+  }
+
   /**
    * Parses the given string value as a double. Throws {@link SQLException} if the string is not a
    * valid double value.
@@ -234,6 +277,20 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     Preconditions.checkNotNull(val);
     try {
       return Double.parseDouble(val);
+    } catch (NumberFormatException e) {
+      throw JdbcSqlExceptionFactory.of(
+          String.format("%s is not a valid number", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
+    }
+  }
+
+  /**
+   * Parses the given string value as a float. Throws {@link SQLException} if the string is not a
+   * valid float value.
+   */
+  static float parseFloat(String val) throws SQLException {
+    Preconditions.checkNotNull(val);
+    try {
+      return Float.parseFloat(val);
     } catch (NumberFormatException e) {
       throw JdbcSqlExceptionFactory.of(
           String.format("%s is not a valid number", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
@@ -329,6 +386,20 @@ abstract class AbstractJdbcWrapper implements Wrapper {
           String.format("%s is not a valid timestamp", val),
           com.google.rpc.Code.INVALID_ARGUMENT,
           e);
+    }
+  }
+
+  /**
+   * Parses the given string value as a {@link BigDecimal} value. Throws {@link SQLException} if the
+   * string is not a valid {@link BigDecimal} value.
+   */
+  static BigDecimal parseBigDecimal(String val) throws SQLException {
+    Preconditions.checkNotNull(val);
+    try {
+      return new BigDecimal(val);
+    } catch (NumberFormatException e) {
+      throw JdbcSqlExceptionFactory.of(
+          String.format("%s is not a valid number", val), com.google.rpc.Code.INVALID_ARGUMENT, e);
     }
   }
 

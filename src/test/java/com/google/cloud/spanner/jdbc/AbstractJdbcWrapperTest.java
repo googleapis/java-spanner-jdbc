@@ -17,10 +17,15 @@
 package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.cloud.Timestamp;
 import com.google.rpc.Code;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Time;
@@ -67,10 +72,22 @@ public class AbstractJdbcWrapperTest {
     assertThat(unwrapSucceeds(subject, getClass())).isFalse();
   }
 
-  private static final class CheckedCastToByteChecker {
-    public boolean cast(Long val) {
+  @FunctionalInterface
+  private interface SqlFunction<T, R> {
+    R apply(T value) throws SQLException;
+  }
+
+  private static final class CheckedCastChecker<T> {
+
+    private final SqlFunction<T, ?> checker;
+
+    public CheckedCastChecker(SqlFunction<T, ?> checker) {
+      this.checker = checker;
+    }
+
+    public boolean cast(T value) {
       try {
-        AbstractJdbcWrapper.checkedCastToByte(val);
+        checker.apply(value);
         return true;
       } catch (SQLException e) {
         return false;
@@ -80,7 +97,8 @@ public class AbstractJdbcWrapperTest {
 
   @Test
   public void testCheckedCastToByte() {
-    CheckedCastToByteChecker checker = new CheckedCastToByteChecker();
+    final CheckedCastChecker<Long> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToByte);
     assertThat(checker.cast(0L)).isTrue();
     assertThat(checker.cast(1L)).isTrue();
     assertThat(checker.cast((long) Byte.MAX_VALUE)).isTrue();
@@ -92,20 +110,38 @@ public class AbstractJdbcWrapperTest {
     assertThat(checker.cast(Long.MIN_VALUE)).isFalse();
   }
 
-  private static final class CheckedCastToShortChecker {
-    public boolean cast(Long val) {
-      try {
-        AbstractJdbcWrapper.checkedCastToShort(val);
-        return true;
-      } catch (SQLException e) {
-        return false;
-      }
-    }
+  @Test
+  public void testCheckedCastFromBigDecimalToByte() {
+    final CheckedCastChecker<BigDecimal> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToByte);
+    assertTrue(checker.cast(BigDecimal.ZERO));
+    assertTrue(checker.cast(BigDecimal.ONE));
+    assertTrue(checker.cast(BigDecimal.valueOf(-1)));
+    assertTrue(checker.cast(BigDecimal.valueOf(Byte.MIN_VALUE)));
+    assertTrue(checker.cast(BigDecimal.valueOf(Byte.MAX_VALUE)));
+
+    assertFalse(checker.cast(BigDecimal.valueOf(Byte.MAX_VALUE).add(BigDecimal.ONE)));
+    assertFalse(checker.cast(BigDecimal.valueOf(Byte.MIN_VALUE).subtract(BigDecimal.ONE)));
+  }
+
+  @Test
+  public void testCheckedCastFromBigIntegerToByte() {
+    final CheckedCastChecker<BigInteger> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToByte);
+    assertTrue(checker.cast(BigInteger.ZERO));
+    assertTrue(checker.cast(BigInteger.ONE));
+    assertTrue(checker.cast(BigInteger.valueOf(-1)));
+    assertTrue(checker.cast(BigInteger.valueOf(Byte.MIN_VALUE)));
+    assertTrue(checker.cast(BigInteger.valueOf(Byte.MAX_VALUE)));
+
+    assertFalse(checker.cast(BigInteger.valueOf(Byte.MAX_VALUE).add(BigInteger.ONE)));
+    assertFalse(checker.cast(BigInteger.valueOf(Byte.MIN_VALUE).subtract(BigInteger.ONE)));
   }
 
   @Test
   public void testCheckedCastToShort() {
-    CheckedCastToShortChecker checker = new CheckedCastToShortChecker();
+    final CheckedCastChecker<Long> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToShort);
     assertThat(checker.cast(0L)).isTrue();
     assertThat(checker.cast(1L)).isTrue();
     assertThat(checker.cast((long) Short.MAX_VALUE)).isTrue();
@@ -117,20 +153,38 @@ public class AbstractJdbcWrapperTest {
     assertThat(checker.cast(Long.MIN_VALUE)).isFalse();
   }
 
-  private static final class CheckedCastToIntChecker {
-    public boolean cast(Long val) {
-      try {
-        AbstractJdbcWrapper.checkedCastToInt(val);
-        return true;
-      } catch (SQLException e) {
-        return false;
-      }
-    }
+  @Test
+  public void testCheckedCastFromBigDecimalToShort() {
+    final CheckedCastChecker<BigDecimal> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToShort);
+    assertTrue(checker.cast(BigDecimal.ZERO));
+    assertTrue(checker.cast(BigDecimal.ONE));
+    assertTrue(checker.cast(BigDecimal.valueOf(-1)));
+    assertTrue(checker.cast(BigDecimal.valueOf(Short.MIN_VALUE)));
+    assertTrue(checker.cast(BigDecimal.valueOf(Short.MAX_VALUE)));
+
+    assertFalse(checker.cast(BigDecimal.valueOf(Short.MAX_VALUE).add(BigDecimal.ONE)));
+    assertFalse(checker.cast(BigDecimal.valueOf(Short.MIN_VALUE).subtract(BigDecimal.ONE)));
+  }
+
+  @Test
+  public void testCheckedCastFromBigIntegerToShort() {
+    final CheckedCastChecker<BigInteger> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToShort);
+    assertTrue(checker.cast(BigInteger.ZERO));
+    assertTrue(checker.cast(BigInteger.ONE));
+    assertTrue(checker.cast(BigInteger.valueOf(-1)));
+    assertTrue(checker.cast(BigInteger.valueOf(Short.MIN_VALUE)));
+    assertTrue(checker.cast(BigInteger.valueOf(Short.MAX_VALUE)));
+
+    assertFalse(checker.cast(BigInteger.valueOf(Short.MAX_VALUE).add(BigInteger.ONE)));
+    assertFalse(checker.cast(BigInteger.valueOf(Short.MIN_VALUE).subtract(BigInteger.ONE)));
   }
 
   @Test
   public void testCheckedCastToInt() {
-    CheckedCastToIntChecker checker = new CheckedCastToIntChecker();
+    final CheckedCastChecker<Long> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToInt);
     assertThat(checker.cast(0L)).isTrue();
     assertThat(checker.cast(1L)).isTrue();
     assertThat(checker.cast((long) Integer.MAX_VALUE)).isTrue();
@@ -142,20 +196,66 @@ public class AbstractJdbcWrapperTest {
     assertThat(checker.cast(Long.MIN_VALUE)).isFalse();
   }
 
-  private static final class CheckedCastToFloatChecker {
-    public boolean cast(Double val) {
-      try {
-        AbstractJdbcWrapper.checkedCastToFloat(val);
-        return true;
-      } catch (SQLException e) {
-        return false;
-      }
-    }
+  @Test
+  public void testCheckedCastFromBigDecimalToInt() {
+    final CheckedCastChecker<BigDecimal> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToInt);
+    assertTrue(checker.cast(BigDecimal.ZERO));
+    assertTrue(checker.cast(BigDecimal.ONE));
+    assertTrue(checker.cast(BigDecimal.valueOf(-1)));
+    assertTrue(checker.cast(BigDecimal.valueOf(Integer.MIN_VALUE)));
+    assertTrue(checker.cast(BigDecimal.valueOf(Integer.MAX_VALUE)));
+
+    assertFalse(checker.cast(BigDecimal.valueOf(Integer.MAX_VALUE).add(BigDecimal.ONE)));
+    assertFalse(checker.cast(BigDecimal.valueOf(Integer.MIN_VALUE).subtract(BigDecimal.ONE)));
+  }
+
+  @Test
+  public void testCheckedCastFromBigIntegerToInt() {
+    final CheckedCastChecker<BigInteger> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToInt);
+    assertTrue(checker.cast(BigInteger.ZERO));
+    assertTrue(checker.cast(BigInteger.ONE));
+    assertTrue(checker.cast(BigInteger.valueOf(-1)));
+    assertTrue(checker.cast(BigInteger.valueOf(Integer.MIN_VALUE)));
+    assertTrue(checker.cast(BigInteger.valueOf(Integer.MAX_VALUE)));
+
+    assertFalse(checker.cast(BigInteger.valueOf(Integer.MAX_VALUE).add(BigInteger.ONE)));
+    assertFalse(checker.cast(BigInteger.valueOf(Integer.MIN_VALUE).subtract(BigInteger.ONE)));
+  }
+
+  @Test
+  public void testCheckedCastFromBigDecimalToLong() {
+    final CheckedCastChecker<BigDecimal> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToLong);
+    assertTrue(checker.cast(BigDecimal.ZERO));
+    assertTrue(checker.cast(BigDecimal.ONE));
+    assertTrue(checker.cast(BigDecimal.valueOf(-1)));
+    assertTrue(checker.cast(BigDecimal.valueOf(Long.MIN_VALUE)));
+    assertTrue(checker.cast(BigDecimal.valueOf(Long.MAX_VALUE)));
+
+    assertFalse(checker.cast(BigDecimal.valueOf(Long.MAX_VALUE).add(BigDecimal.ONE)));
+    assertFalse(checker.cast(BigDecimal.valueOf(Long.MIN_VALUE).subtract(BigDecimal.ONE)));
+  }
+
+  @Test
+  public void testCheckedCastFromBigIntegerToLong() {
+    final CheckedCastChecker<BigInteger> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToLong);
+    assertTrue(checker.cast(BigInteger.ZERO));
+    assertTrue(checker.cast(BigInteger.ONE));
+    assertTrue(checker.cast(BigInteger.valueOf(-1)));
+    assertTrue(checker.cast(BigInteger.valueOf(Long.MIN_VALUE)));
+    assertTrue(checker.cast(BigInteger.valueOf(Long.MAX_VALUE)));
+
+    assertFalse(checker.cast(BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE)));
+    assertFalse(checker.cast(BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.ONE)));
   }
 
   @Test
   public void testCheckedCastToFloat() {
-    CheckedCastToFloatChecker checker = new CheckedCastToFloatChecker();
+    final CheckedCastChecker<Double> checker =
+        new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToFloat);
     assertThat(checker.cast(0D)).isTrue();
     assertThat(checker.cast(1D)).isTrue();
     assertThat(checker.cast((double) Float.MAX_VALUE)).isTrue();
@@ -165,6 +265,30 @@ public class AbstractJdbcWrapperTest {
     assertThat(checker.cast((double) Float.MIN_VALUE)).isTrue();
     assertThat(checker.cast(-Float.MAX_VALUE * 2d)).isFalse();
     assertThat(checker.cast(-Double.MAX_VALUE)).isFalse();
+  }
+
+  @Test
+  public void testParseBigDecimal() throws SQLException {
+    assertEquals(BigDecimal.valueOf(123, 2), AbstractJdbcWrapper.parseBigDecimal("1.23"));
+    try {
+      AbstractJdbcWrapper.parseBigDecimal("NaN");
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT.getNumber(), e.getErrorCode());
+    }
+  }
+
+  @Test
+  public void testParseFloat() throws SQLException {
+    assertEquals(3.14F, AbstractJdbcWrapper.parseFloat("3.14"), 0.001F);
+    try {
+      AbstractJdbcWrapper.parseFloat("invalid number");
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT.getNumber(), e.getErrorCode());
+    }
   }
 
   private boolean unwrapSucceeds(AbstractJdbcWrapper subject, Class<?> iface) {

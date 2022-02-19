@@ -20,6 +20,7 @@ import com.google.cloud.spanner.Options;
 import com.google.cloud.spanner.Options.QueryOption;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.SpannerException;
+import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.cloud.spanner.connection.StatementResult.ClientSideStatementType;
@@ -35,14 +36,16 @@ import java.util.concurrent.TimeUnit;
 abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Statement {
   private static final String CURSORS_NOT_SUPPORTED = "Cursors are not supported";
   private static final String ONLY_FETCH_FORWARD_SUPPORTED = "Only fetch_forward is supported";
+  final AbstractStatementParser parser;
   private boolean closed;
   private boolean closeOnCompletion;
   private boolean poolable;
   private final JdbcConnection connection;
   private int queryTimeout;
 
-  AbstractJdbcStatement(JdbcConnection connection) {
+  AbstractJdbcStatement(JdbcConnection connection) throws SQLException {
     this.connection = connection;
+    this.parser = connection.getParser();
   }
 
   @Override

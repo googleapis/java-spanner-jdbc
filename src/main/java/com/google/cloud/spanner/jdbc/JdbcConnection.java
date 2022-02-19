@@ -23,7 +23,6 @@ import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
 import com.google.cloud.spanner.connection.ConnectionOptions;
-import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.connection.TransactionMode;
 import com.google.common.collect.Iterators;
 import java.sql.Array;
@@ -72,8 +71,8 @@ class JdbcConnection extends AbstractJdbcConnection {
   @Override
   public String nativeSQL(String sql) throws SQLException {
     checkClosed();
-    return JdbcParameterStore.convertPositionalParametersToNamedParameters(
-            StatementParser.removeCommentsAndTrim(sql))
+    return getParser()
+        .convertPositionalParametersToNamedParameters('?', getParser().removeCommentsAndTrim(sql))
         .sqlWithNamedParameters;
   }
 

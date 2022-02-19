@@ -137,6 +137,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
       case Types.DOUBLE:
         return 14;
       case Types.BIGINT:
+      case Types.INTEGER:
         return 10;
       case Types.NUMERIC:
         return 14;

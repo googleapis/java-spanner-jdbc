@@ -42,10 +42,11 @@ import java.util.Calendar;
 abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements PreparedStatement {
   private static final String METHOD_NOT_ON_PREPARED_STATEMENT =
       "This method may not be called on a PreparedStatement";
-  private final JdbcParameterStore parameters = new JdbcParameterStore();
+  private final JdbcParameterStore parameters;
 
-  AbstractJdbcPreparedStatement(JdbcConnection connection) {
+  AbstractJdbcPreparedStatement(JdbcConnection connection) throws SQLException {
     super(connection);
+    parameters = new JdbcParameterStore(connection.getDialect());
   }
 
   JdbcParameterStore getParameters() {

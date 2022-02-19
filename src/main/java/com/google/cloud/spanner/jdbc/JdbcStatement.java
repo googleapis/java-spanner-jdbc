@@ -23,7 +23,6 @@ import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
-import com.google.cloud.spanner.connection.StatementParser;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -49,7 +48,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   private BatchType currentBatchType = BatchType.NONE;
   final List<Statement> batchedStatements = new ArrayList<>();
 
-  JdbcStatement(JdbcConnection connection) {
+  JdbcStatement(JdbcConnection connection) throws SQLException {
     super(connection);
   }
 
@@ -199,10 +198,10 @@ class JdbcStatement extends AbstractJdbcStatement {
    * @throws SQLException if the sql statement is not allowed for batching.
    */
   private BatchType determineStatementBatchType(String sql) throws SQLException {
-    String sqlWithoutComments = StatementParser.removeCommentsAndTrim(sql);
-    if (StatementParser.INSTANCE.isDdlStatement(sqlWithoutComments)) {
+    String sqlWithoutComments = parser.removeCommentsAndTrim(sql);
+    if (parser.isDdlStatement(sqlWithoutComments)) {
       return BatchType.DDL;
-    } else if (StatementParser.INSTANCE.isUpdateStatement(sqlWithoutComments)) {
+    } else if (parser.isUpdateStatement(sqlWithoutComments)) {
       return BatchType.DML;
     }
     throw JdbcSqlExceptionFactory.of(

@@ -19,6 +19,7 @@ package com.google.cloud.spanner.jdbc;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.SpannerExceptionFactory;
 import com.google.cloud.spanner.connection.AbstractConnectionImplTest;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnection;
@@ -30,7 +31,9 @@ import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection
 import java.sql.SQLException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 /**
  * This test executes a SQL script that has been generated from the log of all the subclasses of
@@ -38,16 +41,29 @@ import org.junit.runners.JUnit4;
  * connection reacts correctly in all possible states (i.e. DML statements should not be allowed
  * when the connection is in read-only mode, or when a read-only transaction has started etc.)
  */
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class JdbcConnectionGeneratedSqlScriptTest {
+  @Parameter public Dialect dialect;
+
+  @Parameters(name = "dialect = {0}")
+  public static Object[] data() {
+    return Dialect.values();
+  }
 
   static class TestConnectionProvider implements GenericConnectionProvider {
+    private final Dialect dialect;
+
+    TestConnectionProvider(Dialect dialect) {
+      this.dialect = dialect;
+    }
+
     @Override
     public GenericConnection getConnection() {
       ConnectionOptions options = mock(ConnectionOptions.class);
       when(options.getUri()).thenReturn(ConnectionImplTest.URI);
       com.google.cloud.spanner.connection.Connection spannerConnection =
           ConnectionImplTest.createConnection(options);
+      when(spannerConnection.getDialect()).thenReturn(dialect);
       when(options.getConnection()).thenReturn(spannerConnection);
       try {
         JdbcConnection connection =
@@ -65,7 +81,7 @@ public class JdbcConnectionGeneratedSqlScriptTest {
 
   @Test
   public void testGeneratedScript() throws Exception {
-    JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new TestConnectionProvider());
+    JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new TestConnectionProvider(dialect));
     verifier.verifyStatementsInFile(
         "ConnectionImplGeneratedSqlScriptTest.sql", SqlScriptVerifier.class, false);
   }

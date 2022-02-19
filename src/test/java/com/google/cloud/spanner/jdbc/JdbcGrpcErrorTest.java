@@ -19,9 +19,11 @@ package com.google.cloud.spanner.jdbc;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
+import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.MockSpannerServiceImpl.SimulatedExecutionTime;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
+import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.admin.database.v1.MockDatabaseAdminImpl;
 import com.google.cloud.spanner.admin.instance.v1.MockInstanceAdminImpl;
@@ -113,7 +115,6 @@ public class JdbcGrpcErrorTest {
 
   @AfterClass
   public static void stopServer() throws Exception {
-    SpannerPool.closeSpannerPool();
     server.shutdown();
     server.awaitTermination();
   }
@@ -122,7 +123,20 @@ public class JdbcGrpcErrorTest {
   public void reset() {
     // Close Spanner pool to prevent reusage of the same Spanner instance (and thereby the same
     // session pool).
-    SpannerPool.closeSpannerPool();
+    try {
+      SpannerPool.closeSpannerPool();
+    } catch (SpannerException e) {
+      // Ignore leaked session errors that can be caused by the internal dialect auto-detection that
+      // is executed at startup. This query can still be running when an error is caused by tests in
+      // this class, and that will be registered as a session leak as that session has not yet been
+      // checked in to the pool.
+      if (!(e.getErrorCode() == ErrorCode.FAILED_PRECONDITION
+          && e.getMessage()
+              .contains(
+                  "There is/are 1 connection(s) still open. Close all connections before calling closeSpanner()"))) {
+        throw e;
+      }
+    }
     mockSpanner.removeAllExecutionTimes();
     mockSpanner.reset();
   }
@@ -205,7 +219,13 @@ public class JdbcGrpcErrorTest {
   }
 
   @Test
-  public void autocommitPDMLExecuteSql() {
+  public void autocommitPDMLExecuteSql() throws SQLException {
+    // Make sure the dialect auto-detection has finished before we instruct the RPC to always return
+    // an error.
+    try (java.sql.Connection connection = createConnection()) {
+      connection.unwrap(CloudSpannerJdbcConnection.class).getDialect();
+    }
+
     mockSpanner.setExecuteStreamingSqlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
@@ -316,7 +336,13 @@ public class JdbcGrpcErrorTest {
   }
 
   @Test
-  public void autocommitExecuteStreamingSql() {
+  public void autocommitExecuteStreamingSql() throws SQLException {
+    // Make sure the dialect auto-detection has finished before we instruct the RPC to always return
+    // an error.
+    try (java.sql.Connection connection = createConnection()) {
+      connection.unwrap(CloudSpannerJdbcConnection.class).getDialect();
+    }
+
     mockSpanner.setExecuteStreamingSqlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {

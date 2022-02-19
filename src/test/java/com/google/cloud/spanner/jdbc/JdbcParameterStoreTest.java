@@ -16,18 +16,20 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static com.google.cloud.spanner.jdbc.JdbcParameterStore.convertPositionalParametersToNamedParameters;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import com.google.cloud.ByteArray;
+import com.google.cloud.spanner.Dialect;
+import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Value;
+import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.common.io.CharStreams;
-import com.google.common.truth.Truth;
 import com.google.rpc.Code;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -43,20 +45,39 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class JdbcParameterStoreTest {
+  @Parameters(name = "dialect = {0}")
+  public static Object[] parameters() {
+    return Dialect.values();
+  }
+
+  @Parameter public Dialect dialect;
+
+  private AbstractStatementParser parser;
+
+  @Before
+  public void setUp() {
+    parser = AbstractStatementParser.getInstance(dialect);
+  }
 
   /** Tests setting a {@link Value} as a parameter value. */
   @Test
   public void testSetValueAsParameter() throws SQLException {
-    JdbcParameterStore params = new JdbcParameterStore();
+    JdbcParameterStore params = new JdbcParameterStore(dialect);
     params.setParameter(1, Value.bool(true));
     verifyParameter(params, Value.bool(true));
     params.setParameter(1, Value.bytes(ByteArray.copyFrom("test")));
@@ -108,7 +129,7 @@ public class JdbcParameterStoreTest {
   @SuppressWarnings("deprecation")
   @Test
   public void testSetParameterWithType() throws SQLException, IOException {
-    JdbcParameterStore params = new JdbcParameterStore();
+    JdbcParameterStore params = new JdbcParameterStore(dialect);
     // test the valid default combinations
     params.setParameter(1, true, Types.BOOLEAN);
     assertTrue((Boolean) params.getParameter(1));
@@ -150,6 +171,24 @@ public class JdbcParameterStoreTest {
     assertEquals(new Timestamp(0L), params.getParameter(1));
     verifyParameter(
         params, Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(0L, 0)));
+    OffsetDateTime offsetDateTime =
+        OffsetDateTime.of(2021, 9, 24, 12, 27, 59, 42457, ZoneOffset.ofHours(2));
+    params.setParameter(1, offsetDateTime, Types.TIMESTAMP_WITH_TIMEZONE);
+    assertEquals(offsetDateTime, params.getParameter(1));
+    verifyParameter(
+        params,
+        Value.timestamp(
+            com.google.cloud.Timestamp.ofTimeSecondsAndNanos(
+                offsetDateTime.toEpochSecond(), offsetDateTime.getNano())));
+    LocalDate localDate = LocalDate.of(2021, 9, 24);
+    params.setParameter(1, localDate, Types.DATE);
+    assertEquals(localDate, params.getParameter(1));
+    verifyParameter(
+        params,
+        Value.date(
+            com.google.cloud.Date.fromYearMonthDay(
+                localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth())));
+
     params.setParameter(1, new byte[] {1, 2, 3}, Types.BINARY);
     assertArrayEquals(new byte[] {1, 2, 3}, (byte[]) params.getParameter(1));
     verifyParameter(params, Value.bytes(ByteArray.copyFrom(new byte[] {1, 2, 3})));
@@ -187,7 +226,11 @@ public class JdbcParameterStoreTest {
     verifyParameter(params, Value.json(jsonString));
 
     params.setParameter(1, BigDecimal.ONE, Types.DECIMAL);
-    verifyParameter(params, Value.numeric(BigDecimal.ONE));
+    if (dialect == Dialect.POSTGRESQL) {
+      verifyParameter(params, Value.pgNumeric(BigDecimal.ONE.toString()));
+    } else {
+      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+    }
 
     // types that should lead to int64
     for (int type : new int[] {Types.TINYINT, Types.SMALLINT, Types.INTEGER, Types.BIGINT}) {
@@ -340,34 +383,41 @@ public class JdbcParameterStoreTest {
 
     // types that should lead to numeric
     for (int type : new int[] {Types.DECIMAL, Types.NUMERIC}) {
+      final Value expectedIntegralNumeric =
+          dialect == Dialect.POSTGRESQL ? Value.pgNumeric("1") : Value.numeric(BigDecimal.ONE);
+      final Value expectedRationalNumeric =
+          dialect == Dialect.POSTGRESQL
+              ? Value.pgNumeric("1.0")
+              : Value.numeric(BigDecimal.valueOf(1.0));
+
       params.setParameter(1, BigDecimal.ONE, type);
       assertEquals(BigDecimal.ONE, params.getParameter(1));
-      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+      verifyParameter(params, expectedIntegralNumeric);
 
       params.setParameter(1, (byte) 1, type);
       assertEquals(1, ((Byte) params.getParameter(1)).byteValue());
-      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+      verifyParameter(params, expectedIntegralNumeric);
       params.setParameter(1, (short) 1, type);
       assertEquals(1, ((Short) params.getParameter(1)).shortValue());
-      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+      verifyParameter(params, expectedIntegralNumeric);
       params.setParameter(1, 1, type);
       assertEquals(1, ((Integer) params.getParameter(1)).intValue());
-      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+      verifyParameter(params, expectedIntegralNumeric);
       params.setParameter(1, 1L, type);
       assertEquals(1, ((Long) params.getParameter(1)).longValue());
-      verifyParameter(params, Value.numeric(BigDecimal.ONE));
+      verifyParameter(params, expectedIntegralNumeric);
       params.setParameter(1, (float) 1, type);
       assertEquals(1.0f, (Float) params.getParameter(1), 0.0f);
-      verifyParameter(params, Value.numeric(BigDecimal.valueOf(1.0)));
+      verifyParameter(params, expectedRationalNumeric);
       params.setParameter(1, (double) 1, type);
       assertEquals(1.0d, (Double) params.getParameter(1), 0.0d);
-      verifyParameter(params, Value.numeric(BigDecimal.valueOf(1.0)));
+      verifyParameter(params, expectedRationalNumeric);
     }
   }
 
   @Test
   public void testSetInvalidParameterWithType() throws SQLException, IOException {
-    JdbcParameterStore params = new JdbcParameterStore();
+    JdbcParameterStore params = new JdbcParameterStore(dialect);
 
     // types that should lead to int64, but with invalid values.
     for (int type : new int[] {Types.TINYINT, Types.SMALLINT, Types.INTEGER, Types.BIGINT}) {
@@ -484,7 +534,7 @@ public class JdbcParameterStoreTest {
   @SuppressWarnings("deprecation")
   @Test
   public void testSetParameterWithoutType() throws SQLException {
-    JdbcParameterStore params = new JdbcParameterStore();
+    JdbcParameterStore params = new JdbcParameterStore(dialect);
     params.setParameter(1, (byte) 1, (Integer) null);
     assertEquals(1, ((Byte) params.getParameter(1)).byteValue());
     verifyParameter(params, Value.int64(1));
@@ -563,7 +613,7 @@ public class JdbcParameterStoreTest {
   /** Tests setting array types of parameters */
   @Test
   public void testSetArrayParameter() throws SQLException {
-    JdbcParameterStore params = new JdbcParameterStore();
+    JdbcParameterStore params = new JdbcParameterStore(dialect);
     params.setParameter(
         1, JdbcArray.createArray("BOOL", new Boolean[] {true, false, true}), Types.ARRAY);
     assertEquals(
@@ -737,40 +787,47 @@ public class JdbcParameterStoreTest {
   }
 
   @Test
-  public void testConvertPositionalParametersToNamedParameters() throws SQLException {
+  public void testGoogleStandardSQLDialectConvertPositionalParametersToNamedParameters() {
+    assumeTrue(dialect == Dialect.GOOGLE_STANDARD_SQL);
     assertEquals(
         "select * from foo where name=@p1",
-        convertPositionalParametersToNamedParameters("select * from foo where name=?")
+        parser.convertPositionalParametersToNamedParameters('?', "select * from foo where name=?")
             .sqlWithNamedParameters);
     assertEquals(
         "@p1'?test?\"?test?\"?'@p2",
-        convertPositionalParametersToNamedParameters("?'?test?\"?test?\"?'?")
+        parser.convertPositionalParametersToNamedParameters('?', "?'?test?\"?test?\"?'?")
             .sqlWithNamedParameters);
     assertEquals(
         "@p1'?it\\'?s'@p2",
-        convertPositionalParametersToNamedParameters("?'?it\\'?s'?").sqlWithNamedParameters);
+        parser.convertPositionalParametersToNamedParameters('?', "?'?it\\'?s'?")
+            .sqlWithNamedParameters);
     assertEquals(
         "@p1'?it\\\"?s'@p2",
-        convertPositionalParametersToNamedParameters("?'?it\\\"?s'?").sqlWithNamedParameters);
+        parser.convertPositionalParametersToNamedParameters('?', "?'?it\\\"?s'?")
+            .sqlWithNamedParameters);
     assertEquals(
         "@p1\"?it\\\"?s\"@p2",
-        convertPositionalParametersToNamedParameters("?\"?it\\\"?s\"?").sqlWithNamedParameters);
+        parser.convertPositionalParametersToNamedParameters('?', "?\"?it\\\"?s\"?")
+            .sqlWithNamedParameters);
     assertEquals(
         "@p1`?it\\`?s`@p2",
-        convertPositionalParametersToNamedParameters("?`?it\\`?s`?").sqlWithNamedParameters);
+        parser.convertPositionalParametersToNamedParameters('?', "?`?it\\`?s`?")
+            .sqlWithNamedParameters);
     assertEquals(
         "@p1'''?it\\'?s'''@p2",
-        convertPositionalParametersToNamedParameters("?'''?it\\'?s'''?").sqlWithNamedParameters);
+        parser.convertPositionalParametersToNamedParameters('?', "?'''?it\\'?s'''?")
+            .sqlWithNamedParameters);
     assertEquals(
         "@p1\"\"\"?it\\\"?s\"\"\"@p2",
-        convertPositionalParametersToNamedParameters("?\"\"\"?it\\\"?s\"\"\"?")
+        parser.convertPositionalParametersToNamedParameters('?', "?\"\"\"?it\\\"?s\"\"\"?")
             .sqlWithNamedParameters);
     assertEquals(
         "@p1```?it\\`?s```@p2",
-        convertPositionalParametersToNamedParameters("?```?it\\`?s```?").sqlWithNamedParameters);
+        parser.convertPositionalParametersToNamedParameters('?', "?```?it\\`?s```?")
+            .sqlWithNamedParameters);
     assertEquals(
         "@p1'''?it\\'?s \n ?it\\'?s'''@p2",
-        convertPositionalParametersToNamedParameters("?'''?it\\'?s \n ?it\\'?s'''?")
+        parser.convertPositionalParametersToNamedParameters('?', "?'''?it\\'?s \n ?it\\'?s'''?")
             .sqlWithNamedParameters);
 
     assertUnclosedLiteral("?'?it\\'?s \n ?it\\'?s'?");
@@ -779,23 +836,26 @@ public class JdbcParameterStoreTest {
 
     assertEquals(
         "select 1, @p1, 'test?test', \"test?test\", foo.* from `foo` where col1=@p2 and col2='test' and col3=@p3 and col4='?' and col5=\"?\" and col6='?''?''?'",
-        convertPositionalParametersToNamedParameters(
+        parser.convertPositionalParametersToNamedParameters(
+                '?',
                 "select 1, ?, 'test?test', \"test?test\", foo.* from `foo` where col1=? and col2='test' and col3=? and col4='?' and col5=\"?\" and col6='?''?''?'")
             .sqlWithNamedParameters);
 
     assertEquals(
         "select * " + "from foo " + "where name=@p1 " + "and col2 like @p2 " + "and col3 > @p3",
-        convertPositionalParametersToNamedParameters(
+        parser.convertPositionalParametersToNamedParameters(
+                '?',
                 "select * " + "from foo " + "where name=? " + "and col2 like ? " + "and col3 > ?")
             .sqlWithNamedParameters);
     assertEquals(
         "select * " + "from foo " + "where id between @p1 and @p2",
-        convertPositionalParametersToNamedParameters(
-                "select * " + "from foo " + "where id between ? and ?")
+        parser.convertPositionalParametersToNamedParameters(
+                '?', "select * " + "from foo " + "where id between ? and ?")
             .sqlWithNamedParameters);
     assertEquals(
         "select * " + "from foo " + "limit @p1 offset @p2",
-        convertPositionalParametersToNamedParameters("select * " + "from foo " + "limit ? offset ?")
+        parser.convertPositionalParametersToNamedParameters(
+                '?', "select * " + "from foo " + "limit ? offset ?")
             .sqlWithNamedParameters);
     assertEquals(
         "select * "
@@ -808,7 +868,93 @@ public class JdbcParameterStoreTest {
             + "and col6 not in (@p6, @p7, @p8) "
             + "and col7 in (@p9, @p10, @p11) "
             + "and col8 between @p12 and @p13",
-        convertPositionalParametersToNamedParameters(
+        parser.convertPositionalParametersToNamedParameters(
+                '?',
+                "select * "
+                    + "from foo "
+                    + "where col1=? "
+                    + "and col2 like ? "
+                    + "and col3 > ? "
+                    + "and col4 < ? "
+                    + "and col5 != ? "
+                    + "and col6 not in (?, ?, ?) "
+                    + "and col7 in (?, ?, ?) "
+                    + "and col8 between ? and ?")
+            .sqlWithNamedParameters);
+  }
+
+  @Test
+  public void testPostgresDialectConvertPositionalParametersToNamedParameters() {
+    assumeTrue(dialect == Dialect.POSTGRESQL);
+    assertEquals(
+        "select * from foo where name=$1",
+        parser.convertPositionalParametersToNamedParameters('?', "select * from foo where name=?")
+            .sqlWithNamedParameters);
+    assertEquals(
+        "$1'?test?\"?test?\"?'$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?'?test?\"?test?\"?'?")
+            .sqlWithNamedParameters);
+    assertEquals(
+        "$1'?it\\'?s'$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?'?it\\'?s'?")
+            .sqlWithNamedParameters);
+    assertEquals(
+        "$1'?it\\\"?s'$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?'?it\\\"?s'?")
+            .sqlWithNamedParameters);
+    assertEquals(
+        "$1\"?it\\\"?s\"$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?\"?it\\\"?s\"?")
+            .sqlWithNamedParameters);
+    assertEquals(
+        "$1'''?it\\'?s'''$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?'''?it\\'?s'''?")
+            .sqlWithNamedParameters);
+    assertEquals(
+        "$1\"\"\"?it\\\"?s\"\"\"$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?\"\"\"?it\\\"?s\"\"\"?")
+            .sqlWithNamedParameters);
+
+    assertUnclosedLiteral("?'?it\\'?s \n ?it\\'?s'?");
+    assertUnclosedLiteral("?'?it\\'?s \n ?it\\'?s?");
+    assertUnclosedLiteral("?'''?it\\'?s \n ?it\\'?s'?");
+
+    assertEquals(
+        "select 1, $1, 'test?test', \"test?test\", foo.* from `foo` where col1=$2 and col2='test' and col3=$3 and col4='?' and col5=\"?\" and col6='?''?''?'",
+        parser.convertPositionalParametersToNamedParameters(
+                '?',
+                "select 1, ?, 'test?test', \"test?test\", foo.* from `foo` where col1=? and col2='test' and col3=? and col4='?' and col5=\"?\" and col6='?''?''?'")
+            .sqlWithNamedParameters);
+
+    assertEquals(
+        "select * " + "from foo " + "where name=$1 " + "and col2 like $2 " + "and col3 > $3",
+        parser.convertPositionalParametersToNamedParameters(
+                '?',
+                "select * " + "from foo " + "where name=? " + "and col2 like ? " + "and col3 > ?")
+            .sqlWithNamedParameters);
+    assertEquals(
+        "select * " + "from foo " + "where id between $1 and $2",
+        parser.convertPositionalParametersToNamedParameters(
+                '?', "select * " + "from foo " + "where id between ? and ?")
+            .sqlWithNamedParameters);
+    assertEquals(
+        "select * " + "from foo " + "limit $1 offset $2",
+        parser.convertPositionalParametersToNamedParameters(
+                '?', "select * " + "from foo " + "limit ? offset ?")
+            .sqlWithNamedParameters);
+    assertEquals(
+        "select * "
+            + "from foo "
+            + "where col1=$1 "
+            + "and col2 like $2 "
+            + "and col3 > $3 "
+            + "and col4 < $4 "
+            + "and col5 != $5 "
+            + "and col6 not in ($6, $7, $8) "
+            + "and col7 in ($9, $10, $11) "
+            + "and col8 between $12 and $13",
+        parser.convertPositionalParametersToNamedParameters(
+                '?',
                 "select * "
                     + "from foo "
                     + "where col1=? "
@@ -824,17 +970,16 @@ public class JdbcParameterStoreTest {
 
   private void assertUnclosedLiteral(String sql) {
     try {
-      convertPositionalParametersToNamedParameters(sql);
+      parser.convertPositionalParametersToNamedParameters('?', sql);
       fail("missing expected exception");
-    } catch (SQLException t) {
-      Truth.assertThat((Throwable) t).isInstanceOf(JdbcSqlException.class);
-      JdbcSqlException e = (JdbcSqlException) t;
-      Truth.assertThat(e.getCode()).isSameInstanceAs(Code.INVALID_ARGUMENT);
-      Truth.assertThat(e.getMessage())
-          .startsWith(
-              Code.INVALID_ARGUMENT.name()
-                  + ": SQL statement contains an unclosed literal: "
-                  + sql);
+    } catch (SpannerException e) {
+      assertEquals(Code.INVALID_ARGUMENT.getNumber(), e.getCode());
+      assertTrue(
+          e.getMessage()
+              .startsWith(
+                  Code.INVALID_ARGUMENT.name()
+                      + ": SQL statement contains an unclosed literal: "
+                      + sql));
     }
   }
 }

@@ -18,16 +18,21 @@ package com.google.cloud.spanner.jdbc.it;
 
 import static org.junit.Assert.assertTrue;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
-import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
+import com.google.common.collect.ImmutableMap;
 import java.math.BigInteger;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -36,13 +41,44 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 /** This test class runs a SQL script for testing a connection in read-only mode. */
 @Category(ParallelIntegrationTest.class)
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
   private static final long TEST_ROWS_COUNT = 1000L;
+
+  @Parameters(name = "Dialect = {0}")
+  public static List<DialectTestParameter> data() {
+    List<DialectTestParameter> params = new ArrayList<>();
+    final Map<String, String> googleStandardSqlScripts =
+        ImmutableMap.of("TEST_READ_ONLY", "ITReadOnlySpannerTest.sql");
+    final Map<String, String> postgresScripts =
+        ImmutableMap.of("TEST_READ_ONLY", "PostgreSQL/ITReadOnlySpannerTest.sql");
+    params.add(
+        new DialectTestParameter(
+            Dialect.GOOGLE_STANDARD_SQL,
+            "ITReadOnlySpannerTest_CreateTables.sql",
+            googleStandardSqlScripts,
+            new String[] {"SELECT * FROM PRIME_NUMBERS", "SELECT * FROM NUMBERS"}));
+    params.add(
+        new DialectTestParameter(
+            Dialect.POSTGRESQL,
+            "PostgreSQL/ITReadOnlySpannerTest_CreateTables.sql",
+            postgresScripts,
+            new String[] {"SELECT * FROM PRIME_NUMBERS", "SELECT * FROM NUMBERS"}));
+    return params;
+  }
+
+  @Parameter public DialectTestParameter dialect;
+
+  @Override
+  public Dialect getDialect() {
+    return dialect.dialect;
+  }
 
   @Override
   protected void appendConnectionUri(StringBuilder url) {
@@ -51,12 +87,11 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
 
   @Before
   public void createTestTables() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection()) {
+    try (CloudSpannerJdbcConnection connection = createConnection(getDialect())) {
       if (!(tableExists(connection, "NUMBERS") && tableExists(connection, "PRIME_NUMBERS"))) {
         // create tables
         JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
-        verifier.verifyStatementsInFile(
-            "ITReadOnlySpannerTest_CreateTables.sql", SqlScriptVerifier.class, false);
+        verifier.verifyStatementsInFile(dialect.createTableFile, ITAbstractJdbcTest.class, false);
 
         // fill tables with data
         connection.setAutoCommit(false);
@@ -96,41 +131,39 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
     // Wait 100ms to ensure that staleness tests in the script succeed.
     Thread.sleep(100L);
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
-    verifier.verifyStatementsInFile("ITReadOnlySpannerTest.sql", SqlScriptVerifier.class, false);
+    verifier.verifyStatementsInFile(
+        dialect.executeQueriesFiles.get("TEST_READ_ONLY"), ITAbstractJdbcTest.class, false);
   }
 
   @Test
   public void testMultipleOpenResultSets() throws InterruptedException, SQLException {
-    try (Connection connection = createConnection()) {
-      final java.sql.ResultSet rs1 =
-          connection.createStatement().executeQuery("SELECT * FROM PRIME_NUMBERS");
-      final java.sql.ResultSet rs2 =
-          connection.createStatement().executeQuery("SELECT * FROM NUMBERS");
+    try (Connection connection = createConnection(getDialect())) {
+      List<ResultSet> resultSets = new ArrayList<ResultSet>();
       ExecutorService exec = Executors.newFixedThreadPool(2);
-      exec.submit(
-          () -> {
-            try {
-              while (rs1.next()) {
-                assertTrue(rs1.getInt(1) > 0);
+      for (String query : dialect.queries) {
+        final java.sql.ResultSet rs = connection.createStatement().executeQuery(query);
+        exec.submit(
+            () -> {
+              try {
+                while (rs.next()) {
+                  assertTrue(rs.getInt(1) > 0);
+                }
+              } catch (SQLException e) {
+                throw new RuntimeException(e);
               }
-            } catch (SQLException e) {
-              throw new RuntimeException(e);
-            }
-          });
-      exec.submit(
-          () -> {
-            try {
-              while (rs2.next()) {
-                assertTrue(rs2.getInt(1) > 0);
-              }
-            } catch (SQLException e) {
-              throw new RuntimeException(e);
-            }
-          });
+            });
+        resultSets.add(rs);
+      }
       exec.shutdown();
       assertTrue(exec.awaitTermination(1000L, TimeUnit.SECONDS));
-      rs1.close();
-      rs2.close();
+      resultSets.forEach(
+          resultSet -> {
+            try {
+              resultSet.close();
+            } catch (SQLException e) {
+              throw new RuntimeException(e);
+            }
+          });
     }
   }
 }

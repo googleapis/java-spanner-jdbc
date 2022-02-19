@@ -16,8 +16,11 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.cloud.spanner.Type.Code.PG_NUMERIC;
+
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
+import com.google.cloud.spanner.Value;
 import com.google.common.base.Preconditions;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -121,6 +124,12 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         com.google.rpc.Code.INVALID_ARGUMENT);
   }
 
+  SQLException createCastException(String sqlType, Object value) {
+    return JdbcSqlExceptionFactory.of(
+        String.format("Cannot cast to %s: %s", sqlType, value),
+        com.google.rpc.Code.INVALID_ARGUMENT);
+  }
+
   @Override
   public String getString(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
@@ -140,6 +149,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? null : Long.toString(spanner.getLong(spannerIndex));
       case NUMERIC:
         return isNull ? null : spanner.getBigDecimal(spannerIndex).toString();
+      case PG_NUMERIC:
+        return isNull ? null : spanner.getString(spannerIndex);
       case STRING:
         return isNull ? null : spanner.getString(spannerIndex);
       case JSON:
@@ -168,6 +179,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return !isNull && spanner.getLong(spannerIndex) != 0L;
       case NUMERIC:
         return !isNull && !spanner.getBigDecimal(spannerIndex).equals(BigDecimal.ZERO);
+      case PG_NUMERIC:
+        return !isNull && !spanner.getString(spannerIndex).equals("0");
       case STRING:
         return !isNull && Boolean.parseBoolean(spanner.getString(spannerIndex));
       case BYTES:
@@ -198,6 +211,10 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? (byte) 0 : checkedCastToByte(spanner.getLong(spannerIndex));
       case NUMERIC:
         return isNull ? (byte) 0 : checkedCastToByte(spanner.getBigDecimal(spannerIndex));
+      case PG_NUMERIC:
+        return isNull
+            ? (byte) 0
+            : checkedCastToByte(parseBigDecimal(spanner.getString(spannerIndex)).toBigInteger());
       case STRING:
         return isNull ? (byte) 0 : checkedCastToByte(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
@@ -228,6 +245,10 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0 : checkedCastToShort(spanner.getLong(spannerIndex));
       case NUMERIC:
         return isNull ? 0 : checkedCastToShort(spanner.getBigDecimal(spannerIndex));
+      case PG_NUMERIC:
+        return isNull
+            ? 0
+            : checkedCastToShort(parseBigDecimal(spanner.getString(spannerIndex)).toBigInteger());
       case STRING:
         return isNull ? 0 : checkedCastToShort(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
@@ -258,6 +279,10 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0 : checkedCastToInt(spanner.getLong(spannerIndex));
       case NUMERIC:
         return isNull ? 0 : checkedCastToInt(spanner.getBigDecimal(spannerIndex));
+      case PG_NUMERIC:
+        return isNull
+            ? 0
+            : checkedCastToInt(parseBigDecimal(spanner.getString(spannerIndex)).toBigInteger());
       case STRING:
         return isNull ? 0 : checkedCastToInt(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
@@ -285,7 +310,11 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case INT64:
         return isNull ? 0L : spanner.getLong(spannerIndex);
       case NUMERIC:
-        return isNull ? 0L : checkedCastToLong(spanner.getBigDecimal(spannerIndex));
+        return isNull ? 0 : checkedCastToLong(parseBigDecimal(spanner.getString(spannerIndex)));
+      case PG_NUMERIC:
+        return isNull
+            ? 0L
+            : checkedCastToLong(parseBigDecimal(spanner.getString(spannerIndex)).toBigInteger());
       case STRING:
         return isNull ? 0L : parseLong(spanner.getString(spannerIndex));
       case BYTES:
@@ -314,6 +343,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0 : checkedCastToFloat(spanner.getLong(spannerIndex));
       case NUMERIC:
         return isNull ? 0 : spanner.getBigDecimal(spannerIndex).floatValue();
+      case PG_NUMERIC:
+        return isNull ? 0 : parseFloat(spanner.getString(spannerIndex));
       case STRING:
         return isNull ? 0 : checkedCastToFloat(parseDouble(spanner.getString(spannerIndex)));
       case BYTES:
@@ -342,6 +373,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0 : spanner.getLong(spannerIndex);
       case NUMERIC:
         return isNull ? 0 : spanner.getBigDecimal(spannerIndex).doubleValue();
+      case PG_NUMERIC:
+        return isNull ? 0 : parseDouble(spanner.getString(spannerIndex));
       case STRING:
         return isNull ? 0 : parseDouble(spanner.getString(spannerIndex));
       case BYTES:
@@ -358,7 +391,9 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   @Override
   public byte[] getBytes(int columnIndex) throws SQLException {
     checkClosedAndValidRow();
-    return isNull(columnIndex) ? null : spanner.getBytes(columnIndex - 1).toByteArray();
+    final boolean isNull = isNull(columnIndex);
+    final int spannerIndex = columnIndex - 1;
+    return isNull ? null : spanner.getBytes(spannerIndex).toByteArray();
   }
 
   @Override
@@ -380,6 +415,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case FLOAT64:
       case INT64:
       case NUMERIC:
+      case PG_NUMERIC:
       case BYTES:
       case JSON:
       case STRUCT:
@@ -405,6 +441,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case FLOAT64:
       case INT64:
       case NUMERIC:
+      case PG_NUMERIC:
       case BYTES:
       case JSON:
       case STRUCT:
@@ -431,6 +468,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case FLOAT64:
       case INT64:
       case NUMERIC:
+      case PG_NUMERIC:
       case BYTES:
       case JSON:
       case STRUCT:
@@ -587,6 +625,14 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     if (type == Type.float64()) return getDouble(columnIndex);
     if (type == Type.int64()) return getLong(columnIndex);
     if (type == Type.numeric()) return getBigDecimal(columnIndex);
+    if (type == Type.pgNumeric()) {
+      final String value = getString(columnIndex);
+      try {
+        return parseBigDecimal(value);
+      } catch (Exception e) {
+        return parseDouble(value);
+      }
+    }
     if (type == Type.string()) return getString(columnIndex);
     if (type == Type.json()) return getString(columnIndex);
     if (type == Type.timestamp()) return getTimestamp(columnIndex);
@@ -665,6 +711,9 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case NUMERIC:
         res = isNull ? null : spanner.getBigDecimal(spannerIndex);
         break;
+      case PG_NUMERIC:
+        res = isNull ? null : parseBigDecimal(spanner.getString(spannerIndex));
+        break;
       case STRING:
         try {
           res = isNull ? null : new BigDecimal(spanner.getString(spannerIndex));
@@ -735,10 +784,16 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       throw JdbcSqlExceptionFactory.of(
           "Column with index " + columnIndex + " does not contain an array",
           com.google.rpc.Code.INVALID_ARGUMENT);
-    JdbcDataType dataType = JdbcDataType.getType(type.getArrayElementType().getCode());
-    List<?> elements = dataType.getArrayElements(spanner, columnIndex - 1);
-
-    return JdbcArray.createArray(dataType, elements);
+    final Code elementCode = type.getArrayElementType().getCode();
+    final JdbcDataType dataType = JdbcDataType.getType(elementCode);
+    try {
+      List<?> elements = dataType.getArrayElements(spanner, columnIndex - 1);
+      return JdbcArray.createArray(dataType, elements);
+    } catch (NumberFormatException e) {
+      final String sqlType = "ARRAY<" + type.getArrayElementType() + ">";
+      final Value value = spanner.getValue(columnIndex - 1);
+      throw createCastException(sqlType, value);
+    }
   }
 
   @Override

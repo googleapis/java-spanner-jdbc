@@ -29,15 +29,17 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.threeten.bp.Instant;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZonedDateTime;
-import org.threeten.bp.format.DateTimeFormatter;
 
 /** Convenience class for converting values between Java, JDBC and Cloud Spanner. */
 class JdbcTypeConverter {
@@ -144,8 +146,21 @@ class JdbcTypeConverter {
       if (targetType.equals(java.sql.Date.class)) {
         if (type.getCode() == Code.DATE) return value;
       }
+      if (targetType.equals(LocalDate.class)) {
+        if (type.getCode() == Code.DATE) {
+          return ((java.sql.Date) value).toLocalDate();
+        }
+      }
       if (targetType.equals(java.sql.Timestamp.class)) {
         if (type.getCode() == Code.TIMESTAMP) return value;
+      }
+      if (targetType.equals(OffsetDateTime.class)) {
+        if (type.getCode() == Code.TIMESTAMP) {
+          Timestamp timestamp = Timestamp.of((java.sql.Timestamp) value);
+          return OffsetDateTime.ofInstant(
+              Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos()),
+              ZoneId.systemDefault());
+        }
       }
       if (targetType.equals(java.sql.Array.class)) {
         if (type.getCode() == Code.ARRAY) return value;
@@ -182,6 +197,9 @@ class JdbcTypeConverter {
           case NUMERIC:
             return Value.numericArray(
                 Arrays.asList((BigDecimal[]) ((java.sql.Array) value).getArray()));
+          case PG_NUMERIC:
+            return Value.pgNumericArray(
+                Arrays.asList((String[]) ((java.sql.Array) value).getArray()));
           case STRING:
             return Value.stringArray(Arrays.asList((String[]) ((java.sql.Array) value).getArray()));
           case TIMESTAMP:
@@ -206,6 +224,8 @@ class JdbcTypeConverter {
         return Value.int64((Long) value);
       case NUMERIC:
         return Value.numeric((BigDecimal) value);
+      case PG_NUMERIC:
+        return Value.pgNumeric(value == null ? null : value.toString());
       case STRING:
         return Value.string((String) value);
       case TIMESTAMP:

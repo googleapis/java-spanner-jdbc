@@ -26,6 +26,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.SpannerExceptionFactory;
@@ -53,28 +54,43 @@ import java.util.Properties;
 import java.util.concurrent.Executor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mockito;
 
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class JdbcConnectionTest {
-  private static final com.google.cloud.spanner.ResultSet SELECT1_RESULTSET =
-      ResultSets.forRows(
-          Type.struct(StructField.of("", Type.int64())),
-          Collections.singletonList(Struct.newBuilder().set("").to(1L).build()));
+  @Parameter public Dialect dialect;
+
+  @Parameters(name = "dialect = {0}")
+  public static Object[] data() {
+    return Dialect.values();
+  }
+
+  private com.google.cloud.spanner.ResultSet createSelect1ResultSet() {
+    return ResultSets.forRows(
+        Type.struct(StructField.of("", Type.int64())),
+        Collections.singletonList(Struct.newBuilder().set("").to(1L).build()));
+  }
 
   private JdbcConnection createConnection(ConnectionOptions options) throws SQLException {
     com.google.cloud.spanner.connection.Connection spannerConnection =
         ConnectionImplTest.createConnection(options);
+    when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
     return new JdbcConnection(
         "jdbc:cloudspanner://localhost/projects/project/instances/instance/databases/database;credentialsUrl=url",
         options);
   }
 
+  private ConnectionOptions mockOptions() {
+    return mock(ConnectionOptions.class);
+  }
+
   @Test
   public void testAutoCommit() throws SQLException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     when(options.isAutocommit()).thenReturn(true);
     try (Connection connection = createConnection(options)) {
       assertThat(connection.getAutoCommit()).isTrue();
@@ -90,7 +106,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testReadOnly() {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     when(options.isAutocommit()).thenReturn(true);
     when(options.isReadOnly()).thenReturn(true);
     try (Connection connection = createConnection(options)) {
@@ -109,7 +125,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testCommit() throws SQLException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     try (JdbcConnection connection = createConnection(options)) {
       // verify that there is no transaction started
       assertThat(connection.getSpannerConnection().isTransactionStarted()).isFalse();
@@ -128,7 +144,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testRollback() throws SQLException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     try (JdbcConnection connection = createConnection(options)) {
       // verify that there is no transaction started
       assertThat(connection.getSpannerConnection().isTransactionStarted()).isFalse();
@@ -302,7 +318,7 @@ public class JdbcConnectionTest {
 
   private void testInvokeMethodOnClosedConnection(Method method, Object... args)
       throws SQLException, IllegalAccessException, IllegalArgumentException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     JdbcConnection connection = createConnection(options);
     connection.close();
     boolean valid = false;
@@ -323,7 +339,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testTransactionIsolation() throws SQLException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     try (JdbcConnection connection = createConnection(options)) {
       assertThat(connection.getTransactionIsolation())
           .isEqualTo(Connection.TRANSACTION_SERIALIZABLE);
@@ -359,7 +375,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testHoldability() throws SQLException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     try (JdbcConnection connection = createConnection(options)) {
       assertThat(connection.getHoldability()).isEqualTo(ResultSet.CLOSE_CURSORS_AT_COMMIT);
       // assert that setting it to this value is ok.
@@ -388,7 +404,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testWarnings() throws SQLException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     try (JdbcConnection connection = createConnection(options)) {
       assertThat((Object) connection.getWarnings()).isNull();
 
@@ -413,7 +429,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void getDefaultClientInfo() throws SQLException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     try (JdbcConnection connection = createConnection(options)) {
       Properties defaultProperties = connection.getClientInfo();
       assertThat(defaultProperties.stringPropertyNames())
@@ -423,7 +439,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testSetInvalidClientInfo() throws SQLException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     try (JdbcConnection connection = createConnection(options)) {
       assertThat((Object) connection.getWarnings()).isNull();
       connection.setClientInfo("test", "foo");
@@ -445,7 +461,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testSetClientInfo() throws SQLException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     try (JdbcConnection connection = createConnection(options)) {
       try (ResultSet validProperties = connection.getMetaData().getClientInfoProperties()) {
         while (validProperties.next()) {
@@ -477,15 +493,16 @@ public class JdbcConnectionTest {
   @Test
   public void testIsValid() throws SQLException {
     // Setup.
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
+    when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
     Statement statement = Statement.of(JdbcConnection.IS_VALID_QUERY);
 
     // Verify that an opened connection that returns a result set is valid.
     try (JdbcConnection connection = new JdbcConnection("url", options)) {
-      when(spannerConnection.executeQuery(statement)).thenReturn(SELECT1_RESULTSET);
+      when(spannerConnection.executeQuery(statement)).thenReturn(createSelect1ResultSet());
       assertThat(connection.isValid(1)).isTrue();
       try {
         // Invalid timeout value.
@@ -506,14 +523,14 @@ public class JdbcConnectionTest {
 
   @Test
   public void testIsValidOnClosedConnection() throws SQLException {
-    Connection connection = createConnection(mock(ConnectionOptions.class));
+    Connection connection = createConnection(mockOptions());
     connection.close();
     assertThat(connection.isValid(1)).isFalse();
   }
 
   @Test
   public void testCreateStatement() throws SQLException {
-    try (JdbcConnection connection = createConnection(mock(ConnectionOptions.class))) {
+    try (JdbcConnection connection = createConnection(mockOptions())) {
       for (int resultSetType :
           new int[] {
             ResultSet.TYPE_FORWARD_ONLY,
@@ -587,7 +604,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testPrepareStatement() throws SQLException {
-    try (JdbcConnection connection = createConnection(mock(ConnectionOptions.class))) {
+    try (JdbcConnection connection = createConnection(mockOptions())) {
       for (int resultSetType :
           new int[] {
             ResultSet.TYPE_FORWARD_ONLY,
@@ -663,7 +680,7 @@ public class JdbcConnectionTest {
   @Test
   public void testPrepareStatementWithAutoGeneratedKeys() throws SQLException {
     String sql = "INSERT INTO FOO (COL1) VALUES (?)";
-    try (JdbcConnection connection = createConnection(mock(ConnectionOptions.class))) {
+    try (JdbcConnection connection = createConnection(mockOptions())) {
       PreparedStatement statement =
           connection.prepareStatement(sql, java.sql.Statement.NO_GENERATED_KEYS);
       ResultSet rs = statement.getGeneratedKeys();
@@ -679,7 +696,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testCatalog() throws SQLException {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     when(options.getDatabaseName()).thenReturn("test");
     try (JdbcConnection connection = createConnection(options)) {
       // The connection should always return the empty string as the current catalog, as no other
@@ -699,7 +716,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testSchema() throws SQLException {
-    try (JdbcConnection connection = createConnection(mock(ConnectionOptions.class))) {
+    try (JdbcConnection connection = createConnection(mockOptions())) {
       assertThat(connection.getSchema()).isEqualTo("");
       // This should be allowed.
       connection.setSchema("");
@@ -715,7 +732,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testIsReturnCommitStats() throws SQLException {
-    try (JdbcConnection connection = createConnection(mock(ConnectionOptions.class))) {
+    try (JdbcConnection connection = createConnection(mockOptions())) {
       assertFalse(connection.isReturnCommitStats());
       connection.setReturnCommitStats(true);
       assertTrue(connection.isReturnCommitStats());
@@ -724,7 +741,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testIsReturnCommitStats_throwsSqlException() {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
     when(options.getConnection()).thenReturn(spannerConnection);
@@ -746,7 +763,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testSetReturnCommitStats_throwsSqlException() {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
     when(options.getConnection()).thenReturn(spannerConnection);
@@ -769,7 +786,7 @@ public class JdbcConnectionTest {
 
   @Test
   public void testGetCommitResponse_throwsSqlException() {
-    ConnectionOptions options = mock(ConnectionOptions.class);
+    ConnectionOptions options = mockOptions();
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
     when(options.getConnection()).thenReturn(spannerConnection);

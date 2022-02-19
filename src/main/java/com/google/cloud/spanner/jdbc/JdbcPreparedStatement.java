@@ -19,10 +19,10 @@ package com.google.cloud.spanner.jdbc;
 import com.google.cloud.spanner.Options.QueryOption;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSets;
+import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Type;
-import com.google.cloud.spanner.connection.StatementParser;
-import com.google.cloud.spanner.jdbc.JdbcParameterStore.ParametersInfo;
+import com.google.cloud.spanner.connection.AbstractStatementParser.ParametersInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import java.sql.PreparedStatement;
@@ -32,6 +32,7 @@ import java.sql.SQLException;
 
 /** Implementation of {@link PreparedStatement} for Cloud Spanner. */
 class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
+  private static final char POS_PARAM_CHAR = '?';
   private final String sql;
   private final String sqlWithoutComments;
   private final ParametersInfo parameters;
@@ -39,9 +40,13 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
   JdbcPreparedStatement(JdbcConnection connection, String sql) throws SQLException {
     super(connection);
     this.sql = sql;
-    this.sqlWithoutComments = StatementParser.removeCommentsAndTrim(this.sql);
-    this.parameters =
-        JdbcParameterStore.convertPositionalParametersToNamedParameters(sqlWithoutComments);
+    try {
+      this.sqlWithoutComments = parser.removeCommentsAndTrim(this.sql);
+      this.parameters =
+          parser.convertPositionalParametersToNamedParameters(POS_PARAM_CHAR, sqlWithoutComments);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
   }
 
   ParametersInfo getParametersInfo() {
@@ -102,7 +107,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
   @Override
   public ResultSetMetaData getMetaData() throws SQLException {
     checkClosed();
-    if (StatementParser.INSTANCE.isUpdateStatement(sql)) {
+    if (getConnection().getParser().isUpdateStatement(sql)) {
       // Return metadata for an empty result set as DML statements do not return any results (as a
       // result set).
       com.google.cloud.spanner.ResultSet resultSet =

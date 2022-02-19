@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.Database;
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.GceTestEnvConfig;
 import com.google.cloud.spanner.IntegrationTestEnv;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
@@ -33,6 +34,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -48,7 +50,7 @@ public class ITAbstractJdbcTest {
     @Override
     public JdbcGenericConnection getConnection() {
       try {
-        return JdbcGenericConnection.of(createConnection());
+        return JdbcGenericConnection.of(createConnection(getDialect()));
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
@@ -66,7 +68,8 @@ public class ITAbstractJdbcTest {
       };
 
   private static final String DEFAULT_KEY_FILE = null;
-  private static Database database;
+  private static Database googleStandardSqlDatabase;
+  private static Database postgresDatabase;
 
   protected static String getKeyFile() {
     return System.getProperty(GceTestEnvConfig.GCE_CREDENTIALS_FILE, DEFAULT_KEY_FILE);
@@ -81,12 +84,20 @@ public class ITAbstractJdbcTest {
   }
 
   protected static Database getDatabase() {
-    return database;
+    return getDatabase(Dialect.GOOGLE_STANDARD_SQL);
+  }
+
+  protected static Database getDatabase(Dialect dialect) {
+    if (dialect == Dialect.POSTGRESQL) {
+      return postgresDatabase;
+    }
+    return googleStandardSqlDatabase;
   }
 
   @BeforeClass
   public static void setup() {
-    database = env.getTestHelper().createTestDatabase();
+    googleStandardSqlDatabase = env.getTestHelper().createTestDatabase();
+    postgresDatabase = env.getTestHelper().createTestDatabase(Dialect.POSTGRESQL, Arrays.asList());
   }
 
   @AfterClass
@@ -101,10 +112,11 @@ public class ITAbstractJdbcTest {
    *
    * @return The newly opened JDBC connection.
    */
-  public CloudSpannerJdbcConnection createConnection() throws SQLException {
+  public CloudSpannerJdbcConnection createConnection(Dialect dialect) throws SQLException {
     // Create a connection URL for the generic connection API.
     StringBuilder url =
-        ITAbstractSpannerTest.extractConnectionUrl(env.getTestHelper().getOptions(), getDatabase());
+        ITAbstractSpannerTest.extractConnectionUrl(
+            env.getTestHelper().getOptions(), getDatabase(dialect));
     // Prepend it with 'jdbc:' to make it a valid JDBC connection URL.
     url.insert(0, "jdbc:");
     if (hasValidKeyFile()) {
@@ -112,7 +124,12 @@ public class ITAbstractJdbcTest {
     }
     appendConnectionUri(url);
 
-    return DriverManager.getConnection(url.toString()).unwrap(CloudSpannerJdbcConnection.class);
+    return DriverManager.getConnection(url.toString() + ";dialect=" + dialect.name())
+        .unwrap(CloudSpannerJdbcConnection.class);
+  }
+
+  public CloudSpannerJdbcConnection createConnection() throws SQLException {
+    return createConnection(Dialect.GOOGLE_STANDARD_SQL);
   }
 
   protected void appendConnectionUri(StringBuilder uri) {}
@@ -142,32 +159,42 @@ public class ITAbstractJdbcTest {
   @Before
   public void createTestTable() throws SQLException {
     if (doCreateDefaultTestTable()) {
-      try (Connection connection = createConnection()) {
+      try (Connection connection = createConnection(getDialect())) {
         connection.setAutoCommit(true);
         if (!tableExists(connection, "TEST")) {
           connection.setAutoCommit(false);
+          String createTableDdl;
+          if (getDialect() == Dialect.GOOGLE_STANDARD_SQL) {
+            createTableDdl =
+                "CREATE TABLE TEST (ID INT64 NOT NULL, NAME STRING(100) NOT NULL) PRIMARY KEY (ID)";
+          } else {
+            createTableDdl =
+                "CREATE TABLE TEST (ID BIGINT PRIMARY KEY, NAME VARCHAR(100) NOT NULL)";
+          }
           connection.createStatement().execute("START BATCH DDL");
-          connection
-              .createStatement()
-              .execute(
-                  "CREATE TABLE TEST (ID INT64 NOT NULL, NAME STRING(100) NOT NULL) PRIMARY KEY (ID)");
+          connection.createStatement().execute(createTableDdl);
           connection.createStatement().execute("RUN BATCH");
         }
       }
     }
   }
 
+  public Dialect getDialect() {
+    return Dialect.GOOGLE_STANDARD_SQL;
+  }
+
   @Before
   public void createMusicTables() throws SQLException {
     if (doCreateMusicTables()) {
-      try (Connection connection = createConnection()) {
+      try (Connection connection = createConnection(getDialect())) {
         connection.setAutoCommit(true);
         if (!tableExists(connection, "Singers")) {
-          String scriptFile;
+          String scriptFile = "CreateMusicTables.sql";
+          if (getDialect() == Dialect.POSTGRESQL) {
+            scriptFile = "CreateMusicTables_PG.sql";
+          }
           if (EmulatorSpannerHelper.isUsingEmulator()) {
             scriptFile = "CreateMusicTables_Emulator.sql";
-          } else {
-            scriptFile = "CreateMusicTables.sql";
           }
           for (String statement :
               AbstractSqlScriptVerifier.readStatementsFromFile(scriptFile, getClass())) {

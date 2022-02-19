@@ -17,12 +17,12 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.ByteArray;
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Statement.Builder;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.ValueBinder;
-import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.common.io.CharStreams;
 import com.google.rpc.Code;
 import java.io.IOException;
@@ -45,10 +45,13 @@ import java.sql.SQLType;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /** This class handles the parameters of a {@link PreparedStatement}. */
 class JdbcParameterStore {
@@ -78,7 +81,11 @@ class JdbcParameterStore {
    */
   private int highestIndex = 0;
 
-  JdbcParameterStore() {}
+  private final Dialect dialect;
+
+  JdbcParameterStore(Dialect dialect) {
+    this.dialect = dialect;
+  }
 
   void clearParameters() {
     parametersList = new ArrayList<>(INITIAL_PARAMETERS_ARRAY_SIZE);
@@ -300,11 +307,18 @@ class JdbcParameterStore {
             || value instanceof Reader
             || value instanceof URL;
       case Types.DATE:
+        return value instanceof Date
+            || value instanceof Time
+            || value instanceof Timestamp
+            || value instanceof LocalDate;
       case Types.TIME:
       case Types.TIME_WITH_TIMEZONE:
       case Types.TIMESTAMP:
       case Types.TIMESTAMP_WITH_TIMEZONE:
-        return value instanceof Date || value instanceof Time || value instanceof Timestamp;
+        return value instanceof Date
+            || value instanceof Time
+            || value instanceof Timestamp
+            || value instanceof OffsetDateTime;
       case Types.BINARY:
       case Types.VARBINARY:
       case Types.LONGVARBINARY:
@@ -363,102 +377,6 @@ class JdbcParameterStore {
       }
     }
     return -1;
-  }
-
-  /** Parameter information with positional parameters translated to named parameters. */
-  static class ParametersInfo {
-    final int numberOfParameters;
-    final String sqlWithNamedParameters;
-
-    private ParametersInfo(int numberOfParameters, String sqlWithNamedParameters) {
-      this.numberOfParameters = numberOfParameters;
-      this.sqlWithNamedParameters = sqlWithNamedParameters;
-    }
-  }
-
-  /**
-   * Converts all positional parameters (?) in the given sql string into named parameters. The
-   * parameters are named @p1, @p2, etc. This method is used when converting a JDBC statement that
-   * uses positional parameters to a Cloud Spanner {@link Statement} instance that requires named
-   * parameters. The input SQL string may not contain any comments.
-   *
-   * @param sql The sql string without comments that should be converted
-   * @return A {@link ParametersInfo} object containing a string with named parameters instead of
-   *     positional parameters and the number of parameters.
-   * @throws JdbcSqlExceptionImpl If the input sql string contains an unclosed string/byte literal.
-   */
-  static ParametersInfo convertPositionalParametersToNamedParameters(String sql)
-      throws SQLException {
-    final char POS_PARAM = '?';
-    final char SINGLE_QUOTE = '\'';
-    final char DOUBLE_QUOTE = '"';
-    final char BACKTICK_QUOTE = '`';
-    boolean isInQuoted = false;
-    char startQuote = 0;
-    boolean lastCharWasEscapeChar = false;
-    boolean isTripleQuoted = false;
-    int paramIndex = 1;
-    StringBuilder named = new StringBuilder(sql.length() + countOccurrencesOf(POS_PARAM, sql));
-    for (int index = 0; index < sql.length(); index++) {
-      char c = sql.charAt(index);
-      if (isInQuoted) {
-        if ((c == '\n' || c == '\r') && !isTripleQuoted) {
-          throw JdbcSqlExceptionFactory.of(
-              "SQL statement contains an unclosed literal: " + sql, Code.INVALID_ARGUMENT);
-        } else if (c == startQuote) {
-          if (lastCharWasEscapeChar) {
-            lastCharWasEscapeChar = false;
-          } else if (isTripleQuoted) {
-            if (sql.length() > index + 2
-                && sql.charAt(index + 1) == startQuote
-                && sql.charAt(index + 2) == startQuote) {
-              isInQuoted = false;
-              startQuote = 0;
-              isTripleQuoted = false;
-            }
-          } else {
-            isInQuoted = false;
-            startQuote = 0;
-          }
-        } else {
-          lastCharWasEscapeChar = (c == '\\');
-        }
-        named.append(c);
-      } else {
-        if (c == POS_PARAM) {
-          named.append("@p").append(paramIndex);
-          paramIndex++;
-        } else {
-          if (c == SINGLE_QUOTE || c == DOUBLE_QUOTE || c == BACKTICK_QUOTE) {
-            isInQuoted = true;
-            startQuote = c;
-            // check whether it is a triple-quote
-            if (sql.length() > index + 2
-                && sql.charAt(index + 1) == startQuote
-                && sql.charAt(index + 2) == startQuote) {
-              isTripleQuoted = true;
-            }
-          }
-          named.append(c);
-        }
-      }
-    }
-    if (isInQuoted) {
-      throw JdbcSqlExceptionFactory.of(
-          "SQL statement contains an unclosed literal: " + sql, Code.INVALID_ARGUMENT);
-    }
-    return new ParametersInfo(paramIndex - 1, named.toString());
-  }
-
-  /** Convenience method that is used to estimate the number of parameters in a SQL statement. */
-  private static int countOccurrencesOf(char c, String string) {
-    int res = 0;
-    for (int i = 0; i < string.length(); i++) {
-      if (string.charAt(i) == c) {
-        res++;
-      }
-    }
-    return res;
   }
 
   /** Bind a JDBC parameter to a parameter on a Spanner {@link Statement}. */
@@ -531,18 +449,25 @@ class JdbcParameterStore {
         throw JdbcSqlExceptionFactory.of(value + " is not a valid double", Code.INVALID_ARGUMENT);
       case Types.NUMERIC:
       case Types.DECIMAL:
-        if (value instanceof Number) {
-          if (value instanceof BigDecimal) {
-            return binder.to((BigDecimal) value);
+        if (dialect == Dialect.POSTGRESQL) {
+          if (value instanceof Number) {
+            return binder.to(Value.pgNumeric(value.toString()));
           }
-          try {
-            return binder.to(new BigDecimal(value.toString()));
-          } catch (NumberFormatException e) {
-            // ignore and fall through to the exception.
+          throw JdbcSqlExceptionFactory.of(value + " is not a valid Number", Code.INVALID_ARGUMENT);
+        } else {
+          if (value instanceof Number) {
+            if (value instanceof BigDecimal) {
+              return binder.to((BigDecimal) value);
+            }
+            try {
+              return binder.to(new BigDecimal(value.toString()));
+            } catch (NumberFormatException e) {
+              // ignore and fall through to the exception.
+            }
           }
+          throw JdbcSqlExceptionFactory.of(
+              value + " is not a valid BigDecimal", Code.INVALID_ARGUMENT);
         }
-        throw JdbcSqlExceptionFactory.of(
-            value + " is not a valid BigDecimal", Code.INVALID_ARGUMENT);
       case Types.CHAR:
       case Types.VARCHAR:
       case Types.LONGVARCHAR:
@@ -584,6 +509,11 @@ class JdbcParameterStore {
           return binder.to(JdbcTypeConverter.toGoogleDate((Time) value));
         } else if (value instanceof Timestamp) {
           return binder.to(JdbcTypeConverter.toGoogleDate((Timestamp) value));
+        } else if (value instanceof LocalDate) {
+          LocalDate localDate = (LocalDate) value;
+          return binder.to(
+              com.google.cloud.Date.fromYearMonthDay(
+                  localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth()));
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid date", Code.INVALID_ARGUMENT);
       case Types.TIME:
@@ -596,6 +526,11 @@ class JdbcParameterStore {
           return binder.to(JdbcTypeConverter.toGoogleTimestamp((Time) value));
         } else if (value instanceof Timestamp) {
           return binder.to(JdbcTypeConverter.toGoogleTimestamp((Timestamp) value));
+        } else if (value instanceof OffsetDateTime) {
+          OffsetDateTime offsetDateTime = (OffsetDateTime) value;
+          return binder.to(
+              com.google.cloud.Timestamp.ofTimeSecondsAndNanos(
+                  offsetDateTime.toEpochSecond(), offsetDateTime.getNano()));
         }
         throw JdbcSqlExceptionFactory.of(
             value + " is not a valid timestamp", Code.INVALID_ARGUMENT);
@@ -698,12 +633,26 @@ class JdbcParameterStore {
     } else if (Double.class.isAssignableFrom(value.getClass())) {
       return binder.to(((Double) value).doubleValue());
     } else if (BigDecimal.class.isAssignableFrom(value.getClass())) {
-      return binder.to((BigDecimal) value);
+      if (dialect == Dialect.POSTGRESQL) {
+        return binder.to(Value.pgNumeric(value.toString()));
+      } else {
+        return binder.to((BigDecimal) value);
+      }
     } else if (Date.class.isAssignableFrom(value.getClass())) {
       Date dateValue = (Date) value;
       return binder.to(JdbcTypeConverter.toGoogleDate(dateValue));
+    } else if (LocalDate.class.isAssignableFrom(value.getClass())) {
+      LocalDate localDate = (LocalDate) value;
+      return binder.to(
+          com.google.cloud.Date.fromYearMonthDay(
+              localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth()));
     } else if (Timestamp.class.isAssignableFrom(value.getClass())) {
       return binder.to(JdbcTypeConverter.toGoogleTimestamp((Timestamp) value));
+    } else if (OffsetDateTime.class.isAssignableFrom(value.getClass())) {
+      OffsetDateTime offsetDateTime = (OffsetDateTime) value;
+      return binder.to(
+          com.google.cloud.Timestamp.ofTimeSecondsAndNanos(
+              offsetDateTime.toEpochSecond(), offsetDateTime.getNano()));
     } else if (Time.class.isAssignableFrom(value.getClass())) {
       Time timeValue = (Time) value;
       return binder.to(JdbcTypeConverter.toGoogleTimestamp(new Timestamp(timeValue.getTime())));
@@ -785,7 +734,11 @@ class JdbcParameterStore {
           return binder.toFloat64Array((double[]) null);
         case Types.NUMERIC:
         case Types.DECIMAL:
-          return binder.toNumericArray(null);
+          if (dialect == Dialect.POSTGRESQL) {
+            return binder.toPgNumericArray(null);
+          } else {
+            return binder.toNumericArray(null);
+          }
         case Types.CHAR:
         case Types.VARCHAR:
         case Types.LONGVARCHAR:
@@ -850,7 +803,14 @@ class JdbcParameterStore {
     } else if (Double[].class.isAssignableFrom(value.getClass())) {
       return binder.toFloat64Array(toDoubleList((Double[]) value));
     } else if (BigDecimal[].class.isAssignableFrom(value.getClass())) {
-      return binder.toNumericArray(Arrays.asList((BigDecimal[]) value));
+      if (dialect == Dialect.POSTGRESQL) {
+        return binder.toPgNumericArray(
+            Arrays.stream((BigDecimal[]) value)
+                .map(bigDecimal -> bigDecimal == null ? null : bigDecimal.toString())
+                .collect(Collectors.toList()));
+      } else {
+        return binder.toNumericArray(Arrays.asList((BigDecimal[]) value));
+      }
     } else if (Date[].class.isAssignableFrom(value.getClass())) {
       return binder.toDateArray(JdbcTypeConverter.toGoogleDates((Date[]) value));
     } else if (Timestamp[].class.isAssignableFrom(value.getClass())) {
@@ -908,7 +868,11 @@ class JdbcParameterStore {
         return binder.to((com.google.cloud.Date) null);
       case Types.NUMERIC:
       case Types.DECIMAL:
-        return binder.to((BigDecimal) null);
+        if (dialect == Dialect.POSTGRESQL) {
+          return binder.to(Value.pgNumeric(null));
+        } else {
+          return binder.to((BigDecimal) null);
+        }
       case Types.DOUBLE:
         return binder.to((Double) null);
       case Types.FLOAT:

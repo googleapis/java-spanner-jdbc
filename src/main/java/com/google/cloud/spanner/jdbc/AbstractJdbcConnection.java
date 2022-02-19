@@ -16,6 +16,9 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.Dialect;
+import com.google.cloud.spanner.SpannerException;
+import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.rpc.Code;
@@ -51,6 +54,7 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
   private final ConnectionOptions options;
   private final com.google.cloud.spanner.connection.Connection spanner;
   private final Properties clientInfo;
+  private AbstractStatementParser parser;
 
   private SQLWarning firstWarning = null;
   private SQLWarning lastWarning = null;
@@ -74,6 +78,22 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
 
   ConnectionOptions getConnectionOptions() {
     return options;
+  }
+
+  @Override
+  public Dialect getDialect() {
+    return spanner.getDialect();
+  }
+
+  protected AbstractStatementParser getParser() throws SQLException {
+    if (parser == null) {
+      try {
+        parser = AbstractStatementParser.getInstance(spanner.getDialect());
+      } catch (SpannerException e) {
+        throw JdbcSqlExceptionFactory.of(e);
+      }
+    }
+    return parser;
   }
 
   @Override

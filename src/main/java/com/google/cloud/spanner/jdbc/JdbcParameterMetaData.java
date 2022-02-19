@@ -16,7 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import com.google.cloud.spanner.jdbc.JdbcParameterStore.ParametersInfo;
+import com.google.cloud.spanner.connection.AbstractStatementParser.ParametersInfo;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ParameterMetaData;
