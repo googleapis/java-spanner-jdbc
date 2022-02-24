@@ -129,7 +129,7 @@ public class ITAbstractJdbcTest {
   }
 
   public CloudSpannerJdbcConnection createConnection() throws SQLException {
-    return createConnection(Dialect.GOOGLE_STANDARD_SQL);
+    return createConnection(Dialect.POSTGRESQL);
   }
 
   protected void appendConnectionUri(StringBuilder uri) {}
@@ -183,6 +183,20 @@ public class ITAbstractJdbcTest {
     return Dialect.GOOGLE_STANDARD_SQL;
   }
 
+  public String getDefaultCatalog() {
+    if (getDialect() == Dialect.POSTGRESQL) {
+      return getDatabase(Dialect.POSTGRESQL).getId().getDatabase();
+    }
+    return "";
+  }
+
+  public String getDefaultSchema() {
+    if (getDialect() == Dialect.POSTGRESQL) {
+      return "public";
+    }
+    return "";
+  }
+
   @Before
   public void createMusicTables() throws SQLException {
     if (doCreateMusicTables()) {
@@ -206,7 +220,8 @@ public class ITAbstractJdbcTest {
   }
 
   protected boolean tableExists(Connection connection, String table) throws SQLException {
-    try (ResultSet rs = connection.getMetaData().getTables("", "", table, null)) {
+    try (ResultSet rs =
+        connection.getMetaData().getTables(getDefaultCatalog(), getDefaultSchema(), table, null)) {
       if (rs.next()) {
         if (rs.getString("TABLE_NAME").equalsIgnoreCase(table)) {
           return true;

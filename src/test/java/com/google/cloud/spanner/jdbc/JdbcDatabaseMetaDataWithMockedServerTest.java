@@ -16,7 +16,6 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static com.google.common.truth.Truth.assertThat;
 
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
@@ -72,13 +71,6 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
           .setMetadata(RESULTSET_METADATA)
           .build();
 
-  private static final String GSQL_STATEMENT = "/*GSQL*/";
-
-  /* Checks if the SQL statement starts with /*GSQL*/
-  private boolean isGoogleSql(String sql) {
-    return sql.startsWith(GSQL_STATEMENT);
-  }
-
   @Parameter public Dialect dialect;
 
   @Parameters(name = "dialect = {0}")
@@ -133,7 +125,7 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
   public void getTablesInDdlBatch() throws SQLException {
     String sql =
         parser.removeCommentsAndTrim(
-            JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetTables.sql"));
+            JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetTables.sql", dialect));
     ParametersInfo params = parser.convertPositionalParametersToNamedParameters('?', sql);
     mockSpanner.putStatementResult(
         StatementResult.query(
@@ -167,7 +159,7 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
   public void getColumnsInDdlBatch() throws SQLException {
     String sql =
         parser.removeCommentsAndTrim(
-            JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetColumns.sql"));
+            JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetColumns.sql", dialect));
     ParametersInfo params = parser.convertPositionalParametersToNamedParameters('?', sql);
     mockSpanner.putStatementResult(
         StatementResult.query(
@@ -201,7 +193,8 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
           "DatabaseMetaData_GetImportedKeys.sql",
           "DatabaseMetaData_GetExportedKeys.sql"
         }) {
-      String sql = parser.removeCommentsAndTrim(JdbcDatabaseMetaData.readSqlFromFile(fileName));
+      String sql =
+          parser.removeCommentsAndTrim(JdbcDatabaseMetaData.readSqlFromFile(fileName, dialect));
       ParametersInfo params = parser.convertPositionalParametersToNamedParameters('?', sql);
       mockSpanner.putStatementResult(
           StatementResult.query(
@@ -238,7 +231,8 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
   public void getCrossReferencesInDdlBatch() throws SQLException {
     String sql =
         parser.removeCommentsAndTrim(
-            JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetCrossReferences.sql"));
+            JdbcDatabaseMetaData.readSqlFromFile(
+                "DatabaseMetaData_GetCrossReferences.sql", dialect));
     ParametersInfo params = parser.convertPositionalParametersToNamedParameters('?', sql);
     mockSpanner.putStatementResult(
         StatementResult.query(
@@ -273,7 +267,7 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
   public void getIndexInfoInDdlBatch() throws SQLException {
     String sql =
         parser.removeCommentsAndTrim(
-            JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetIndexInfo.sql"));
+            JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetIndexInfo.sql", dialect));
     ParametersInfo params = parser.convertPositionalParametersToNamedParameters('?', sql);
     mockSpanner.putStatementResult(
         StatementResult.query(
@@ -306,7 +300,7 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
   public void getSchemasInDdlBatch() throws SQLException {
     String sql =
         parser.removeCommentsAndTrim(
-            JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetSchemas.sql"));
+            JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetSchemas.sql", dialect));
     ParametersInfo params = parser.convertPositionalParametersToNamedParameters('?', sql);
     mockSpanner.putStatementResult(
         StatementResult.query(
@@ -329,101 +323,6 @@ public class JdbcDatabaseMetaDataWithMockedServerTest {
       }
       connection.createStatement().execute("CREATE TABLE FOO");
       connection.createStatement().execute("ABORT BATCH");
-    }
-  }
-
-  @Test
-  public void verifyGoogleSqlHeaderIsCorrectlyParsed() {
-    // Verify that the `/*GSQL*/` header is kept in the SQL statement without comments if the
-    // dialect is PostgreSQL, and that it is removed if the dialect is Google_Standard_Sql.
-    if (dialect == Dialect.POSTGRESQL) {
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile(
-                          "DatabaseMetaData_GetCrossReferences.sql"))))
-          .isTrue();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile(
-                          "DatabaseMetaData_GetImportedKeys.sql"))))
-          .isTrue();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetPrimaryKeys.sql"))))
-          .isTrue();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetTables.sql"))))
-          .isTrue();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetColumns.sql"))))
-          .isTrue();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile(
-                          "DatabaseMetaData_GetExportedKeys.sql"))))
-          .isTrue();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetIndexInfo.sql"))))
-          .isTrue();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetSchemas.sql"))))
-          .isTrue();
-    } else {
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile(
-                          "DatabaseMetaData_GetCrossReferences.sql"))))
-          .isFalse();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile(
-                          "DatabaseMetaData_GetImportedKeys.sql"))))
-          .isFalse();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetPrimaryKeys.sql"))))
-          .isFalse();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetTables.sql"))))
-          .isFalse();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetColumns.sql"))))
-          .isFalse();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile(
-                          "DatabaseMetaData_GetExportedKeys.sql"))))
-          .isFalse();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetIndexInfo.sql"))))
-          .isFalse();
-      assertThat(
-              isGoogleSql(
-                  parser.removeCommentsAndTrim(
-                      JdbcDatabaseMetaData.readSqlFromFile("DatabaseMetaData_GetSchemas.sql"))))
-          .isFalse();
     }
   }
 }

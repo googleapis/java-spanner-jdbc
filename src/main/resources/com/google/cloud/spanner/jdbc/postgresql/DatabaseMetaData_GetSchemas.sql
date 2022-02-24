@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google LLC
+ * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-SELECT SCHEMA_NAME AS TABLE_SCHEM, CATALOG_NAME AS TABLE_CATALOG
+SELECT SCHEMA_NAME AS "TABLE_SCHEM", CATALOG_NAME AS "TABLE_CATALOG"
 FROM INFORMATION_SCHEMA.SCHEMATA
 WHERE UPPER(CATALOG_NAME) LIKE ?
   AND UPPER(SCHEMA_NAME) LIKE ?
