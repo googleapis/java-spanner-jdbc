@@ -16,7 +16,6 @@
 
 package com.google.cloud.spanner.jdbc;
 
-
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
