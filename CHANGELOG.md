@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.6.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.5.11...v2.6.0) (2022-02-24)
+
+
+### Features
+
+* add support for PostgreSQL dialect ([#739](https://github.com/googleapis/java-spanner-jdbc/issues/739)) ([f9daa19](https://github.com/googleapis/java-spanner-jdbc/commit/f9daa19453b33252bf61160ff9cde1c37284ca2b))
+
+
+### Bug Fixes
+
+* create specific metadata queries for PG ([#759](https://github.com/googleapis/java-spanner-jdbc/issues/759)) ([caffda0](https://github.com/googleapis/java-spanner-jdbc/commit/caffda03e528da6a3c2c17b7058eb5d29f5086f9))
+
+
+### Dependencies
+
+* update dependency com.google.cloud:google-cloud-spanner-bom to v6.20.0 ([#758](https://github.com/googleapis/java-spanner-jdbc/issues/758)) ([311d1ca](https://github.com/googleapis/java-spanner-jdbc/commit/311d1cabff7e7e2f5cf2cdcdda90ba536eadfa68))
+
 ### [2.5.11](https://github.com/googleapis/java-spanner-jdbc/compare/v2.5.10...v2.5.11) (2022-02-11)
 
 
