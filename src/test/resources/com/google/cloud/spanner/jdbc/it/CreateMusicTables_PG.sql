@@ -17,35 +17,35 @@
 START BATCH DDL;
 
 CREATE TABLE Singers (
-                         SingerId   BIGINT PRIMARY KEY,
-                         FirstName  VARCHAR(1024),
-                         LastName   VARCHAR(1024),
-                         SingerInfo BYTEA,
-                         BirthDate  VARCHAR
+    SingerId   BIGINT PRIMARY KEY,
+    FirstName  VARCHAR(1024),
+    LastName   VARCHAR(1024),
+    SingerInfo BYTEA,
+    BirthDate  VARCHAR
 );
 
 CREATE INDEX SingersByFirstLastName ON Singers(FirstName, LastName);
 
 CREATE TABLE Albums (
-                        SingerId  BIGINT NOT NULL,
-                        AlbumId   BIGINT NOT NULL,
-                        AlbumTitle VARCHAR,
-                        MarketingBudget BIGINT,
-                        PRIMARY KEY(SingerId, AlbumId),
-                        FOREIGN KEY(SingerId) REFERENCES Singers(SingerID)
+    SingerId  BIGINT NOT NULL,
+    AlbumId   BIGINT NOT NULL,
+    AlbumTitle VARCHAR,
+    MarketingBudget BIGINT,
+    PRIMARY KEY(SingerId, AlbumId),
+    FOREIGN KEY(SingerId) REFERENCES Singers(SingerID)
 );
 
 CREATE INDEX AlbumsByAlbumTitle ON Albums(AlbumTitle);
 
 CREATE TABLE Songs (
-                       SingerId  BIGINT NOT NULL,
-                       AlbumId   BIGINT NOT NULL,
-                       TrackId   BIGINT NOT NULL,
-                       SongName  VARCHAR,
-                       Duration  BIGINT,
-                       SongGenre VARCHAR(25),
-                       PRIMARY KEY(SingerId, AlbumId, TrackId),
-                       FOREIGN KEY(AlbumId) REFERENCES Albums(AlbumId)
+    SingerId  BIGINT NOT NULL,
+    AlbumId   BIGINT NOT NULL,
+    TrackId   BIGINT NOT NULL,
+    SongName  VARCHAR,
+    Duration  BIGINT,
+    SongGenre VARCHAR(25),
+    PRIMARY KEY(SingerId, AlbumId, TrackId),
+    FOREIGN KEY(SingerId, AlbumId) REFERENCES Albums(SingerId, AlbumId)
 );
 
 CREATE UNIQUE INDEX SongsBySingerAlbumSongNameDesc ON Songs(SingerId, AlbumId, SongName DESC);
@@ -53,21 +53,33 @@ CREATE UNIQUE INDEX SongsBySingerAlbumSongNameDesc ON Songs(SingerId, AlbumId, S
 CREATE INDEX SongsBySongName ON Songs(SongName);
 
 CREATE TABLE Concerts (
-                          VenueId      BIGINT NOT NULL,
-                          SingerId     BIGINT NOT NULL,
-                          ConcertDate  VARCHAR NOT NULL,
-                          BeginTime    VARCHAR,
-                          EndTime      VARCHAR,
-                          PRIMARY KEY(VenueId, SingerId, ConcertDate)
+    VenueId      BIGINT NOT NULL,
+    SingerId     BIGINT NOT NULL,
+    ConcertDate  VARCHAR NOT NULL,
+    BeginTime    VARCHAR,
+    EndTime      VARCHAR,
+    PRIMARY KEY(VenueId, SingerId, ConcertDate),
+    FOREIGN KEY(SingerId) REFERENCES Singers(SingerId)
 );
 
 CREATE TABLE TableWithAllColumnTypes (
-                                         ColInt64	 BIGINT PRIMARY KEY,
-                                         ColFloat8	 FLOAT8		NOT NULL,
-                                         ColBool		 BOOL		NOT NULL,
-                                         ColString	 VARCHAR(100) NOT NULL,
-                                         ColBytes	BYTEA	NOT NULL,
-                                         ColNumeric	NUMERIC		NOT NULL
+    ColInt64     BIGINT PRIMARY KEY,
+    ColFloat64   FLOAT8 NOT NULL,
+    ColBool      BOOL NOT NULL,
+    ColString    VARCHAR(100) NOT NULL,
+    ColStringMax TEXT,
+    ColBytes     BYTEA NOT NULL,
+    ColTimestamp TIMESTAMP WITH TIME ZONE,
+    ColNumeric   NUMERIC NOT NULL
+);
+
+CREATE TABLE TableWithRef (
+    Id          BIGINT NOT NULL PRIMARY KEY,
+    RefFloat    FLOAT8 NOT NULL,
+    RefString   VARCHAR(100) NOT NULL,
+    CONSTRAINT Fk_TableWithRef_TableWithAllColumnTypes
+        FOREIGN KEY (RefFloat, RefString)
+        REFERENCES TableWithAllColumnTypes (ColFloat64, ColString)
 );
 
 RUN BATCH;
