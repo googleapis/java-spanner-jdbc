@@ -233,7 +233,7 @@
               com.google.cloud.spanner.GceTestEnvConfig
             </spanner.testenv.config.class>
             <spanner.testenv.instance>
-              projects/gcloud-devel/instances/spanner-testing-east1
+              projects/java-docs-samples-testing/instances/spanner-testing-east1
             </spanner.testenv.instance>
           </systemPropertyVariables>
           <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
