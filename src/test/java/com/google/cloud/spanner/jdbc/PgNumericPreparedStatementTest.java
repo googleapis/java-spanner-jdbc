@@ -86,7 +86,7 @@ public class PgNumericPreparedStatementTest {
             "jdbc:cloudspanner://%s/projects/%s/instances/%s/databases/%s?usePlainText=true;dialect=POSTGRESQL",
             endpoint, PROJECT, INSTANCE, DATABASE);
     connection = DriverManager.getConnection(url);
-    mockSpanner.reset();
+    mockSpanner.clearRequests();
   }
 
   @After
