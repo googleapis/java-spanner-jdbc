@@ -915,9 +915,16 @@ public class JdbcParameterStoreTest {
         parser.convertPositionalParametersToNamedParameters('?', "?\"\"\"?it\\\"?s\"\"\"?")
             .sqlWithNamedParameters);
 
-    assertUnclosedLiteral("?'?it\\'?s \n ?it\\'?s'?");
+    // PostgreSQL allows newlines inside string literals.
+    assertEquals(
+        "$1'?it\\'?s \n ?it\\'?s'$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?'?it\\'?s \n ?it\\'?s'?")
+            .sqlWithNamedParameters);
     assertUnclosedLiteral("?'?it\\'?s \n ?it\\'?s?");
-    assertUnclosedLiteral("?'''?it\\'?s \n ?it\\'?s'?");
+    assertEquals(
+        "$1'''?it\\'?s \n ?it\\'?s'$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?'''?it\\'?s \n ?it\\'?s'?")
+            .sqlWithNamedParameters);
 
     assertEquals(
         "select 1, $1, 'test?test', \"test?test\", foo.* from `foo` where col1=$2 and col2='test' and col3=$3 and col4='?' and col5=\"?\" and col6='?''?''?'",
