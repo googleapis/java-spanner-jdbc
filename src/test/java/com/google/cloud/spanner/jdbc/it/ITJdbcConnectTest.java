@@ -54,6 +54,10 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ITJdbcConnectTest extends ITAbstractJdbcTest {
 
+  static {
+    System.out.println("TESTING");
+  }
+
   private String createBaseUrl() {
     StringBuilder url = new StringBuilder("jdbc:cloudspanner:");
     if (EmulatorSpannerHelper.isUsingEmulator()) {
