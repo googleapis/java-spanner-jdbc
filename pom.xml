@@ -222,7 +222,19 @@
         <configuration>
           <exclude>com.google.cloud.spanner.IntegrationTest</exclude>
           <reportNameSuffix>sponge_log</reportNameSuffix>
-        </configuration>
+
+          <!-- These configurations are only needed for native tests. The native profile
+          in shared-config uses maven-surefire to run both unit tests and integration tests-->
+          <systemPropertyVariables>
+            <spanner.testenv.config.class>
+              com.google.cloud.spanner.GceTestEnvConfig
+            </spanner.testenv.config.class>
+            <spanner.testenv.instance>
+              projects/gcloud-devel/instances/spanner-testing-east1
+            </spanner.testenv.instance>
+          </systemPropertyVariables>
+          </configuration>
+
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
