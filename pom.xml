@@ -222,16 +222,7 @@
         <configuration>
           <exclude>com.google.cloud.spanner.IntegrationTest</exclude>
           <reportNameSuffix>sponge_log</reportNameSuffix>
-
-          <!-- These configurations are only needed for native tests. The native profile
-          in shared-config uses maven-surefire to run both unit tests and integration tests-->
-          <systemPropertyVariables>
-            <spanner.testenv.config.class>com.google.cloud.spanner.GceTestEnvConfig</spanner.testenv.config.class>
-            <spanner.testenv.instance>projects/gcloud-devel/instances/spanner-testing-east1</spanner.testenv.instance>
-          </systemPropertyVariables>
-          <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
           </configuration>
-
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -276,6 +267,21 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-surefire-plugin</artifactId>
+      <configuration>
+        <systemPropertyVariables>
+          <spanner.testenv.config.class>
+            com.google.cloud.spanner.GceTestEnvConfig
+          </spanner.testenv.config.class>
+          <spanner.testenv.instance>
+            projects/gcloud-devel/instances/spanner-testing-east1
+          </spanner.testenv.instance>
+        </systemPropertyVariables>
+        <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
+      </configuration>
+    </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
