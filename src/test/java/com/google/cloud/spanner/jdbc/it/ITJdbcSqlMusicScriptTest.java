@@ -53,6 +53,8 @@ public class ITJdbcSqlMusicScriptTest extends ITAbstractJdbcTest {
 
   @Override
   public Dialect getDialect() {
+    System.out.println("*****DIALECT*****");
+    System.out.println(dialect);
     return dialect.dialect;
   }
 

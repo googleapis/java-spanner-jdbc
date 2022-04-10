@@ -613,6 +613,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
             ps.setTimestamp(4, testTimestamp);
             ps.setTimestamp(5, testTimestamp, testCalendar);
             ps.setArray(6, connection.createArrayOf("INT64", new Long[] {}));
+            System.out.println("TIMEESTAMPS BEFORE EXECUTE STATEMENT");
             ps.executeUpdate();
           }
 
