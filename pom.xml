@@ -282,7 +282,6 @@
           </spanner.testenv.instance>
         </systemPropertyVariables>
         <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
-        <groups>com.google.cloud.spanner.IntegrationTest</groups>
         <excludedGroups>
           com.google.cloud.spanner.FlakyTest,com.google.cloud.spanner.ParallelIntegrationTest
         </excludedGroups>
