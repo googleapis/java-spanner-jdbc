@@ -185,8 +185,7 @@ public class ITAbstractJdbcTest {
 
   public String getDefaultCatalog() {
     if (getDialect() == Dialect.POSTGRESQL) {
-      return null;
-      // return getDatabase(Dialect.POSTGRESQL).getId().getDatabase();
+      return getDatabase(Dialect.POSTGRESQL).getId().getDatabase();
     }
     return "";
   }
