@@ -129,7 +129,7 @@ public class ITAbstractJdbcTest {
   }
 
   public CloudSpannerJdbcConnection createConnection() throws SQLException {
-    return createConnection(Dialect.POSTGRESQL);
+    return createConnection(getDialect());
   }
 
   protected void appendConnectionUri(StringBuilder uri) {}
@@ -185,7 +185,8 @@ public class ITAbstractJdbcTest {
 
   public String getDefaultCatalog() {
     if (getDialect() == Dialect.POSTGRESQL) {
-      return getDatabase(Dialect.POSTGRESQL).getId().getDatabase();
+      return null;
+      // return getDatabase(Dialect.POSTGRESQL).getId().getDatabase();
     }
     return "";
   }
