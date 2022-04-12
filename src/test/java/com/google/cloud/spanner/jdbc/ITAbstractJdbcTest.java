@@ -171,9 +171,19 @@ public class ITAbstractJdbcTest {
     return false;
   }
 
+  private boolean canCreateTablesForDialect() {
+    switch (getDialect()) {
+      case POSTGRESQL:
+        return postgresDatabase != null;
+      case GOOGLE_STANDARD_SQL:
+      default:
+        return googleStandardSqlDatabase != null;
+    }
+  }
+
   @Before
   public void createTestTable() throws SQLException {
-    if (doCreateDefaultTestTable()) {
+    if (canCreateTablesForDialect() && doCreateDefaultTestTable()) {
       try (Connection connection = createConnection(getDialect())) {
         connection.setAutoCommit(true);
         if (!tableExists(connection, "TEST")) {
@@ -214,7 +224,7 @@ public class ITAbstractJdbcTest {
 
   @Before
   public void createMusicTables() throws SQLException {
-    if (doCreateMusicTables()) {
+    if (canCreateTablesForDialect() && doCreateMusicTables()) {
       try (Connection connection = createConnection(getDialect())) {
         connection.setAutoCommit(true);
         if (!tableExists(connection, "Singers")) {
