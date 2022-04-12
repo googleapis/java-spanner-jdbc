@@ -62,6 +62,16 @@ public class ITAbstractJdbcTest {
   public static IntegrationTestEnv env =
       new IntegrationTestEnv() {
         @Override
+        protected void initializeConfig()
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+          if (EmulatorSpannerHelper.isUsingEmulator()) {
+            // Make sure that we use an owned instance on the emulator.
+            System.setProperty(TEST_INSTANCE_PROPERTY, "");
+          }
+          super.initializeConfig();
+        }
+
+        @Override
         protected void after() {
           super.after();
           ConnectionOptions.closeSpanner();
@@ -141,8 +151,7 @@ public class ITAbstractJdbcTest {
     }
     appendConnectionUri(url);
 
-    return DriverManager.getConnection(url.toString() + ";dialect=" + dialect.name())
-        .unwrap(CloudSpannerJdbcConnection.class);
+    return DriverManager.getConnection(url.toString()).unwrap(CloudSpannerJdbcConnection.class);
   }
 
   public CloudSpannerJdbcConnection createConnection() throws SQLException {
