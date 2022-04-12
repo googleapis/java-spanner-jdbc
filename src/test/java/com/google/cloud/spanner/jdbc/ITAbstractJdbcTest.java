@@ -34,10 +34,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.Collections;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 /** Base class for all JDBC integration tests. */
@@ -94,10 +93,21 @@ public class ITAbstractJdbcTest {
     return googleStandardSqlDatabase;
   }
 
-  @BeforeClass
-  public static void setup() {
-    googleStandardSqlDatabase = env.getTestHelper().createTestDatabase();
-    postgresDatabase = env.getTestHelper().createTestDatabase(Dialect.POSTGRESQL, Arrays.asList());
+  @Before
+  public void createDatabase() {
+    switch (getDialect()) {
+      case POSTGRESQL:
+        if (postgresDatabase == null) {
+          postgresDatabase =
+              env.getTestHelper().createTestDatabase(Dialect.POSTGRESQL, Collections.emptyList());
+        }
+        break;
+      case GOOGLE_STANDARD_SQL:
+      default:
+        if (googleStandardSqlDatabase == null) {
+          googleStandardSqlDatabase = env.getTestHelper().createTestDatabase();
+        }
+    }
   }
 
   @AfterClass
