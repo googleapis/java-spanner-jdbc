@@ -96,7 +96,7 @@ public class ITAbstractJdbcTest {
   }
 
   @Before
-  public void createDatabase() {
+  public void createDatabase() throws SQLException {
     assumeFalse(
         "PostgreSQL dialect is not yet supported for the emulator",
         getDialect() == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
@@ -113,6 +113,8 @@ public class ITAbstractJdbcTest {
           googleStandardSqlDatabase = env.getTestHelper().createTestDatabase();
         }
     }
+    createTestTable();
+    createMusicTables();
   }
 
   @AfterClass
@@ -181,8 +183,7 @@ public class ITAbstractJdbcTest {
     }
   }
 
-  @Before
-  public void createTestTable() throws SQLException {
+  private void createTestTable() throws SQLException {
     if (canCreateTablesForDialect() && doCreateDefaultTestTable()) {
       try (Connection connection = createConnection(getDialect())) {
         connection.setAutoCommit(true);
@@ -222,8 +223,7 @@ public class ITAbstractJdbcTest {
     return "";
   }
 
-  @Before
-  public void createMusicTables() throws SQLException {
+  private void createMusicTables() throws SQLException {
     if (canCreateTablesForDialect() && doCreateMusicTables()) {
       try (Connection connection = createConnection(getDialect())) {
         connection.setAutoCommit(true);

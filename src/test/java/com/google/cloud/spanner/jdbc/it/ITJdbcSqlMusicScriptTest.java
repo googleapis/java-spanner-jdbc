@@ -29,12 +29,12 @@ import java.util.Map;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 @Category(ParallelIntegrationTest.class)
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class ITJdbcSqlMusicScriptTest extends ITAbstractJdbcTest {
   @Parameters(name = "Dialect = {0}")
   public static List<DialectTestParameter> data() {
