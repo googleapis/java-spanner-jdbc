@@ -16,6 +16,8 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static org.junit.Assume.assumeFalse;
+
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.GceTestEnvConfig;
@@ -95,6 +97,9 @@ public class ITAbstractJdbcTest {
 
   @Before
   public void createDatabase() {
+    assumeFalse(
+        "PostgreSQL dialect is not yet supported for the emulator",
+        getDialect() == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
     switch (getDialect()) {
       case POSTGRESQL:
         if (postgresDatabase == null) {
