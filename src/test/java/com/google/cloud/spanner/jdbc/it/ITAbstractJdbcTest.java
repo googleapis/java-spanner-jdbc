@@ -131,7 +131,9 @@ public class ITAbstractJdbcTest {
 
   public String getDefaultCatalog(Database database) {
     if (getDialect() == Dialect.POSTGRESQL) {
-      return database.getId().getDatabase();
+      // TODO: Re-enable when the backend fills the catalog column.
+      // return database.getId().getDatabase();
+      return null;
     }
     return "";
   }
