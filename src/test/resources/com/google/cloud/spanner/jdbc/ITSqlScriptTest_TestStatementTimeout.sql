@@ -202,7 +202,6 @@ FROM (
 ) RES
 ;
 -- We need to rollback the transaction as it is no longer usable.
-@EXPECT EXCEPTION DEADLINE_EXCEEDED
 ROLLBACK;
 
 -- Try to execute an update that should also timeout
