@@ -237,7 +237,7 @@
             </spanner.testenv.instance>
           </systemPropertyVariables>
           <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
-          <forkCount>2</forkCount>
+          <forkCount>8</forkCount>
           <reuseForks>true</reuseForks>
         </configuration>
       </plugin>
