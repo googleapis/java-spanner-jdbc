@@ -16,8 +16,6 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import static org.junit.Assume.assumeFalse;
-
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.GceTestEnvConfig;
@@ -72,25 +70,6 @@ public class ITAbstractJdbcTest {
     return getKeyFile() != null && Files.exists(Paths.get(getKeyFile()));
   }
 
-  protected Database createDatabase(JdbcIntegrationTestEnv env) throws SQLException {
-    assumeFalse(
-        "PostgreSQL dialect is not yet supported for the emulator",
-        getDialect() == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
-    Database database;
-    switch (getDialect()) {
-      case POSTGRESQL:
-        database =
-            env.getTestHelper().createTestDatabase(Dialect.POSTGRESQL, Collections.emptyList());
-      case GOOGLE_STANDARD_SQL:
-      default:
-        database = env.getTestHelper().createTestDatabase();
-    }
-    createTestTable(env, database);
-    createMusicTables(env, database);
-
-    return database;
-  }
-
   /**
    * Creates a new default JDBC connection to a test database. Use the method {@link
    * ITAbstractJdbcTest#appendConnectionUri(StringBuilder)} to append additional connection options
@@ -115,28 +94,6 @@ public class ITAbstractJdbcTest {
 
   protected void appendConnectionUri(StringBuilder uri) {}
 
-  /**
-   * Override this method to instruct the test to create a default test table in the form:
-   *
-   * <pre>
-   * CREATE TABLE TEST (ID INT64 NOT NULL, NAME STRING(100) NOT NULL) PRIMARY KEY (ID)
-   * </pre>
-   *
-   * Note that the table is not re-created for each test case, but is preserved between test cases.
-   * It is the responsibility of the test class to either empty the table at the end of each test
-   * case, or keep track of the state of the test table and execute the test cases in a specific
-   * order.
-   *
-   * @return true if the default test table should be created.
-   */
-  protected boolean doCreateDefaultTestTable() {
-    return false;
-  }
-
-  protected boolean doCreateMusicTables() {
-    return false;
-  }
-
   static Collection<String> getTestTableDdl(Dialect dialect) {
     switch (dialect) {
       case POSTGRESQL:
@@ -153,11 +110,11 @@ public class ITAbstractJdbcTest {
     String scriptFile;
     switch (dialect) {
       case POSTGRESQL:
-        scriptFile = "CreateMusicTables.sql";
+        scriptFile = "CreateMusicTables_PG.sql";
         break;
       case GOOGLE_STANDARD_SQL:
       default:
-        scriptFile = "CreateMusicTables_PG.sql";
+        scriptFile = "CreateMusicTables.sql";
     }
     if (EmulatorSpannerHelper.isUsingEmulator()) {
       scriptFile = "CreateMusicTables_Emulator.sql";
@@ -166,50 +123,6 @@ public class ITAbstractJdbcTest {
         .stream()
         .filter(sql -> !(sql.contains("START BATCH") || sql.contains("RUN BATCH")))
         .collect(Collectors.toList());
-  }
-
-  private void createTestTable(JdbcIntegrationTestEnv env, Database database) throws SQLException {
-    if (doCreateDefaultTestTable()) {
-      try (Connection connection = createConnection(env, database)) {
-        connection.setAutoCommit(true);
-        if (!tableExists(connection, "TEST")) {
-          connection.setAutoCommit(false);
-          String createTableDdl;
-          if (getDialect() == Dialect.GOOGLE_STANDARD_SQL) {
-            createTableDdl =
-                "CREATE TABLE TEST (ID INT64 NOT NULL, NAME STRING(100) NOT NULL) PRIMARY KEY (ID)";
-          } else {
-            createTableDdl =
-                "CREATE TABLE TEST (ID BIGINT PRIMARY KEY, NAME VARCHAR(100) NOT NULL)";
-          }
-          connection.createStatement().execute("START BATCH DDL");
-          connection.createStatement().execute(createTableDdl);
-          connection.createStatement().execute("RUN BATCH");
-        }
-      }
-    }
-  }
-
-  private void createMusicTables(JdbcIntegrationTestEnv env, Database database)
-      throws SQLException {
-    if (doCreateMusicTables()) {
-      try (Connection connection = createConnection(env, database)) {
-        connection.setAutoCommit(true);
-        if (!tableExists(connection, "Singers")) {
-          String scriptFile = "CreateMusicTables.sql";
-          if (getDialect() == Dialect.POSTGRESQL) {
-            scriptFile = "CreateMusicTables_PG.sql";
-          }
-          if (EmulatorSpannerHelper.isUsingEmulator()) {
-            scriptFile = "CreateMusicTables_Emulator.sql";
-          }
-          for (String statement :
-              AbstractSqlScriptVerifier.readStatementsFromFile(scriptFile, getClass())) {
-            connection.createStatement().execute(statement);
-          }
-        }
-      }
-    }
   }
 
   public Dialect getDialect() {
