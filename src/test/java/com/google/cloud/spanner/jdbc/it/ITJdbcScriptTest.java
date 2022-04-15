@@ -22,21 +22,25 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assume.assumeFalse;
 
+import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
-import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
+import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -54,6 +58,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITJdbcScriptTest extends ITAbstractJdbcTest {
+  @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
+
   private static final String CREATE_TABLES_FILE_SQL = "ITSqlScriptTest_CreateTables.sql";
   private static final String INSERT_AND_VERIFY_TEST_DATA_SQL =
       "ITSqlScriptTest_InsertTestData.sql";
@@ -153,14 +159,24 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
   @Parameterized.Parameter(0)
   public DialectTestParameter dialect;
 
+  private Database database;
+
+  @Before
+  public void setup() {
+    assumeFalse(
+        "Emulator does not support PostgreSQL",
+        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
+    database = env.getOrCreateDatabase(getDialect(), Collections.emptyList());
+  }
+
   /** Create test tables and verify their existence */
   @Test
   public void test01_CreateTables() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.createTableFile,
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }
@@ -168,11 +184,11 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
   /** Insert some test data */
   @Test
   public void test02_InsertTestData() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("INSERT_AND_VERIFY_TEST_DATA"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     } catch (SQLException e) {
       if (env.getTestHelper().isEmulator()
@@ -190,11 +206,11 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
 
   @Test
   public void test03_TestGetReadTimestamp() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_GET_READ_TIMESTAMP"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }
@@ -203,11 +219,11 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
   public void test04_TestGetCommitTimestamp() throws Exception {
     // Skipping test as Commit Timestamp not supported in POSTGRES
     assumeFalse(dialect.dialect == Dialect.POSTGRESQL);
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_GET_COMMIT_TIMESTAMP"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     } catch (SQLException e) {
       if (env.getTestHelper().isEmulator()
@@ -224,66 +240,66 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
 
   @Test
   public void test05_TestTemporaryTransactions() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_TEMPORARY_TRANSACTIONS"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }
 
   @Test
   public void test06_TestTransactionMode() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_TRANSACTION_MODE"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }
 
   @Test
   public void test07_TestTransactionModeReadOnly() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_TRANSACTION_MODE_READ_ONLY"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }
 
   @Test
   public void test08_TestReadOnlyStaleness() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_READ_ONLY_STALENESS"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }
 
   @Test
   public void test09_TestAutocommitDmlMode() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_AUTOCOMMIT_DML_MODE"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }
 
   @Test
   public void test10_TestAutocommitReadOnly() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_AUTOCOMMIT_READ_ONLY"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }
@@ -292,14 +308,17 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
   public void test11_TestStatementTimeout() throws Exception {
     // Statements with set operations in subqueries are not supported
     assumeFalse(dialect.dialect == Dialect.POSTGRESQL);
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    assumeFalse(
+        "The emulator is too quick for timeouts to be reliable",
+        EmulatorSpannerHelper.isUsingEmulator());
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_STATEMENT_TIMEOUT"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
-    try (Connection connection = createConnection(dialect.dialect)) {
+    try (Connection connection = createConnection(env, database)) {
       // Create a statement with a query timeout, but do not set a statement timeout on the
       // connection. SHOW STATEMENT_TIMEOUT should then return a null value.
       Statement statement = connection.createStatement();
@@ -333,33 +352,33 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
 
   @Test
   public void test12_TestSetStatements() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_SET_STATEMENTS"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }
 
   @Test
   public void test13_TestInvalidStatements() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_INVALID_STATEMENTS"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }
 
   @Test
   public void test14_TestQueryOptions() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(dialect.dialect)) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_QUERY_OPTIONS"),
-          ITAbstractJdbcTest.class,
+          JdbcSqlScriptVerifier.class,
           false);
     }
   }

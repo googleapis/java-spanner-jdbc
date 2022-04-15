@@ -27,8 +27,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
+import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.ParallelIntegrationTest;
-import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -37,7 +37,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -56,15 +57,13 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
   private static final String TABLE_WITH_ALL_COLS = "TableWithAllColumnTypes";
   private static final String TABLE_WITH_REF = "TableWithRef";
 
-  @BeforeClass
-  public static void skipOnEmulator() {
-    assumeFalse(
-        "foreign keys are not supported on the emulator", EmulatorSpannerHelper.isUsingEmulator());
-  }
+  @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
 
-  @Override
-  protected boolean doCreateMusicTables() {
-    return true;
+  private Database database;
+
+  @Before
+  public void setup() {
+    database = env.getOrCreateDatabase(getDialect(), getMusicTablesDdl(getDialect()));
   }
 
   private static final class Column {
@@ -171,7 +170,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetColumns() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
@@ -241,7 +240,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetCrossReferences() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
@@ -517,7 +516,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetIndexInfo() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
@@ -557,7 +556,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetExportedKeys() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
@@ -573,7 +572,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetImportedKeys() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
@@ -772,7 +771,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetPrimaryKeys() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection.getMetaData().getPrimaryKeys(DEFAULT_CATALOG, DEFAULT_SCHEMA, SINGERS_TABLE)) {
         assertThat(rs.next(), is(true));
@@ -807,7 +806,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetViews() throws SQLException {
-    try (Connection connection = createConnection()) {
+    assumeFalse("Emulator does not yet support views", EmulatorSpannerHelper.isUsingEmulator());
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs = connection.getMetaData().getTables("", "", null, new String[] {"VIEW"})) {
         assertTrue(rs.next());
         assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));
@@ -820,7 +820,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetSchemas() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs = connection.getMetaData().getSchemas()) {
         assertThat(rs.next(), is(true));
         assertThat(rs.getString("TABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
@@ -828,9 +828,12 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
         assertThat(rs.next(), is(true));
         assertThat(rs.getString("TABLE_SCHEM"), is(equalTo("INFORMATION_SCHEMA")));
         assertThat(rs.getString("TABLE_CATALOG"), is(equalTo(DEFAULT_CATALOG)));
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getString("TABLE_SCHEM"), is(equalTo("SPANNER_SYS")));
-        assertThat(rs.getString("TABLE_CATALOG"), is(equalTo(DEFAULT_CATALOG)));
+        if (!EmulatorSpannerHelper.isUsingEmulator()) {
+          assertThat(rs.next(), is(true));
+          assertThat(rs.getString("TABLE_SCHEM"), is(equalTo("SPANNER_SYS")));
+          assertThat(rs.getString("TABLE_CATALOG"), is(equalTo(DEFAULT_CATALOG)));
+        }
+        assertFalse(rs.next());
       }
     }
   }
@@ -861,10 +864,13 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetTables() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection.getMetaData().getTables(DEFAULT_CATALOG, DEFAULT_SCHEMA, null, null)) {
         for (Table table : EXPECTED_TABLES) {
+          if (EmulatorSpannerHelper.isUsingEmulator() && table.name.equals("SingersView")) {
+            continue;
+          }
           assertTrue(rs.next());
           assertEquals(DEFAULT_CATALOG, rs.getString("TABLE_CAT"));
           assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));

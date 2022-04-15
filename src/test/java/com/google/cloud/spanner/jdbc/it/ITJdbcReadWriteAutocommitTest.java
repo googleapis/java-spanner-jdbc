@@ -19,17 +19,21 @@ package com.google.cloud.spanner.jdbc.it;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assume.assumeFalse;
 
+import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
-import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
+import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -43,6 +47,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
+  @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
 
   @Parameters(name = "Dialect = {0}")
   public static List<DialectTestParameter> data() {
@@ -60,6 +65,16 @@ public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
 
   @Parameter public DialectTestParameter dialect;
 
+  private Database database;
+
+  @Before
+  public void setup() {
+    assumeFalse(
+        "Emulator does not support PostgreSQL",
+        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
+    database = env.getOrCreateDatabase(getDialect(), getTestTableDdl(getDialect()));
+  }
+
   @Override
   public Dialect getDialect() {
     return dialect.dialect;
@@ -70,23 +85,19 @@ public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
     uri.append(";autocommit=true");
   }
 
-  @Override
-  public boolean doCreateDefaultTestTable() {
-    return true;
-  }
-
   @Test
   public void test01_SqlScript() throws Exception {
-    JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
+    JdbcSqlScriptVerifier verifier =
+        new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider(env, database));
     verifier.verifyStatementsInFile(
         dialect.executeQueriesFiles.get("TEST_READ_WRITE_AUTO_COMMIT"),
-        ITAbstractJdbcTest.class,
+        JdbcSqlScriptVerifier.class,
         false);
   }
 
   @Test
   public void test02_WriteMutation() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(getDialect())) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       connection.write(
           Mutation.newInsertBuilder("TEST").set("ID").to(9999L).set("NAME").to("FOO").build());
       java.sql.Statement statement = connection.createStatement();

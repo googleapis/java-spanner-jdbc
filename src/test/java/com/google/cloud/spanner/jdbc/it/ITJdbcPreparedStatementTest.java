@@ -27,10 +27,10 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.ByteArray;
+import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.Value;
-import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JsonType;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.base.Strings;
@@ -58,6 +58,8 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.TimeZone;
 import java.util.UUID;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -72,6 +74,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
+  @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
 
   @Parameters(name = "Dialect = {0}")
   public static List<DialectTestParameter> data() {
@@ -82,6 +85,16 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   @Parameter public DialectTestParameter dialect;
+
+  private Database database;
+
+  @Before
+  public void setup() {
+    assumeFalse(
+        "Emulator does not support PostgreSQL",
+        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
+    database = env.getOrCreateDatabase(getDialect(), getMusicTablesDdl(getDialect()));
+  }
 
   @Override
   public Dialect getDialect() {
@@ -327,14 +340,9 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     return 6;
   }
 
-  @Override
-  protected boolean doCreateMusicTables() {
-    return true;
-  }
-
   @Test
   public void test01_InsertTestData() throws SQLException {
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       connection.setAutoCommit(false);
       try (PreparedStatement ps =
           connection.prepareStatement(
@@ -402,7 +410,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
 
   @Test
   public void test02_VerifyTestData() throws SQLException {
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection.createStatement().executeQuery("SELECT COUNT(*) FROM Singers")) {
         assertTrue(rs.next());
@@ -502,7 +510,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     calendars.add(Calendar.getInstance(TimeZone.getTimeZone("CET")));
     calendars.add(Calendar.getInstance(TimeZone.getTimeZone("PST")));
 
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       for (Calendar testCalendar : calendars) {
         int index = 0;
         for (Date testDate : testDates) {
@@ -599,7 +607,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     calendars.add(Calendar.getInstance(TimeZone.getTimeZone("CET")));
     calendars.add(Calendar.getInstance(TimeZone.getTimeZone("PST")));
 
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       for (Calendar testCalendar : calendars) {
         for (Timestamp testTimestamp : testTimestamps) {
           try (PreparedStatement ps =
@@ -664,8 +672,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   @Test
   public void test05_BatchUpdates() throws SQLException {
     for (boolean autocommit : new boolean[] {true, false}) {
-      try (Connection con1 = createConnection(getDialect());
-          Connection con2 = createConnection(getDialect())) {
+      try (Connection con1 = createConnection(env, database);
+          Connection con2 = createConnection(env, database)) {
         con1.setAutoCommit(autocommit);
         int[] updateCounts;
         String[] params = new String[] {"A%", "B%", "C%"};
@@ -723,8 +731,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   @Test
   public void test06_BatchUpdatesWithException() throws SQLException {
     for (boolean autocommit : new boolean[] {true, false}) {
-      try (Connection con1 = createConnection(getDialect());
-          Connection con2 = createConnection(getDialect())) {
+      try (Connection con1 = createConnection(env, database);
+          Connection con2 = createConnection(env, database)) {
         con1.setAutoCommit(autocommit);
         String[] params = new String[] {"A%", "B%", "C%", "D%"};
         // Statement number three will fail because the value is too long for the column.
@@ -756,7 +764,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
 
   @Test
   public void test07_StatementBatchUpdateWithException() throws SQLException {
-    try (Connection con = createConnection(getDialect())) {
+    try (Connection con = createConnection(env, database)) {
       // The following statements will fail because the value is too long.
       try (Statement statement = con.createStatement()) {
         statement.addBatch(
@@ -806,21 +814,12 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     assumeFalse(
         "TableWithAllColumnTypes type is not supported on POSTGRESQL dialect",
         dialect.dialect == Dialect.POSTGRESQL);
-    String sql;
-    if (EmulatorSpannerHelper.isUsingEmulator()) {
-      sql =
-          "INSERT INTO TableWithAllColumnTypes ("
-              + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, "
-              + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray"
-              + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    } else {
-      sql =
-          "INSERT INTO TableWithAllColumnTypes ("
-              + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
-              + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
-              + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    }
-    try (Connection con = createConnection()) {
+    String sql =
+        "INSERT INTO TableWithAllColumnTypes ("
+            + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
+            + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
+            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    try (Connection con = createConnection(env, database)) {
       try (PreparedStatement ps = con.prepareStatement(sql)) {
         int index = 0;
         ps.setLong(++index, 1L);
@@ -833,9 +832,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         ps.setDate(++index, new Date(System.currentTimeMillis()));
         ps.setTimestamp(++index, new Timestamp(System.currentTimeMillis()));
         ps.setBigDecimal(++index, BigDecimal.TEN);
-        if (!EmulatorSpannerHelper.isUsingEmulator()) {
-          ps.setObject(++index, "{\"test_value\": \"foo\"}", JsonType.INSTANCE);
-        }
+        ps.setObject(++index, "{\"test_value\": \"foo\"}", JsonType.INSTANCE);
+
         ps.setArray(++index, con.createArrayOf("INT64", new Long[] {1L, 2L, 3L}));
         ps.setArray(++index, con.createArrayOf("FLOAT64", new Double[] {1.1D, 2.2D, 3.3D}));
         ps.setArray(
@@ -864,12 +862,10 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         ps.setArray(
             ++index,
             con.createArrayOf("NUMERIC", new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN}));
-        if (!EmulatorSpannerHelper.isUsingEmulator()) {
-          ps.setArray(
-              ++index,
-              con.createArrayOf(
-                  "JSON", new String[] {"{\"test_value\": \"foo\"}", "{}", "[]", null}));
-        }
+        ps.setArray(
+            ++index,
+            con.createArrayOf(
+                "JSON", new String[] {"{\"test_value\": \"foo\"}", "{}", "[]", null}));
         assertEquals(1, ps.executeUpdate());
       }
       try (ResultSet rs =
@@ -887,9 +883,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertNotNull(rs.getTimestamp(++index));
         assertNotNull(rs.getTime(++index)); // Commit timestamp
         assertEquals(BigDecimal.TEN, rs.getBigDecimal(++index));
-        if (!EmulatorSpannerHelper.isUsingEmulator()) {
-          assertEquals("{\"test_value\":\"foo\"}", rs.getString(++index));
-        }
+        assertEquals("{\"test_value\":\"foo\"}", rs.getString(++index));
+
         assertArrayEquals(new Long[] {1L, 2L, 3L}, (Long[]) rs.getArray(++index).getArray());
         assertArrayEquals(
             new Double[] {1.1D, 2.2D, 3.3D}, (Double[]) rs.getArray(++index).getArray());
@@ -908,11 +903,9 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertArrayEquals(
             new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN},
             (BigDecimal[]) rs.getArray(++index).getArray());
-        if (!EmulatorSpannerHelper.isUsingEmulator()) {
-          assertArrayEquals(
-              new String[] {"{\"test_value\":\"foo\"}", "{}", "[]", null},
-              (String[]) rs.getArray(++index).getArray());
-        }
+        assertArrayEquals(
+            new String[] {"{\"test_value\":\"foo\"}", "{}", "[]", null},
+            (String[]) rs.getArray(++index).getArray());
         assertFalse(rs.next());
       }
     }
@@ -924,7 +917,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         "TableWithAllColumnTypes type is not supported on POSTGRESQL dialect",
         dialect.dialect == Dialect.POSTGRESQL);
     assumeFalse("The emulator does not support PLAN mode", isUsingEmulator());
-    try (Connection con = createConnection()) {
+    try (Connection con = createConnection(env, database)) {
       try (PreparedStatement ps =
           con.prepareStatement("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=?")) {
         ResultSetMetaData metadata = ps.getMetaData();
@@ -963,7 +956,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     assumeFalse(
         "TableWithAllColumnTypes type is not supported on POSTGRESQL dialect",
         dialect.dialect == Dialect.POSTGRESQL);
-    try (Connection con = createConnection()) {
+    try (Connection con = createConnection(env, database)) {
       try (PreparedStatement ps =
           con.prepareStatement(
               "UPDATE TableWithAllColumnTypes SET ColBool=FALSE WHERE ColInt64=?")) {
@@ -978,21 +971,12 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     assumeFalse(
         "TableWithAllColumnTypes type is not supported on POSTGRESQL dialect",
         dialect.dialect == Dialect.POSTGRESQL);
-    String sql;
-    if (EmulatorSpannerHelper.isUsingEmulator()) {
-      sql =
-          "INSERT INTO TableWithAllColumnTypes ("
-              + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, "
-              + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray"
-              + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    } else {
-      sql =
-          "INSERT INTO TableWithAllColumnTypes ("
-              + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
-              + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
-              + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    }
-    try (Connection con = createConnection()) {
+    String sql =
+        "INSERT INTO TableWithAllColumnTypes ("
+            + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
+            + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
+            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    try (Connection con = createConnection(env, database)) {
       try (PreparedStatement ps = con.prepareStatement(sql)) {
         int index = 1;
         ps.setObject(index++, Value.int64(2L));
@@ -1006,9 +990,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         ps.setObject(
             index++, Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(99999L, 99)));
         ps.setObject(index++, Value.numeric(BigDecimal.TEN));
-        if (!EmulatorSpannerHelper.isUsingEmulator()) {
-          ps.setObject(index++, Value.json("{\"test_value\": \"foo\"}"));
-        }
+        ps.setObject(index++, Value.json("{\"test_value\": \"foo\"}"));
+
         ps.setObject(index++, Value.int64Array(new long[] {1L, 2L, 3L}));
         ps.setObject(index++, Value.float64Array(new double[] {1.1D, 2.2D, 3.3D}));
         ps.setObject(index++, Value.boolArray(Arrays.asList(Boolean.TRUE, null, Boolean.FALSE)));
@@ -1036,11 +1019,9 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                 Arrays.asList(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(99999L, 99), null)));
         ps.setObject(
             index++, Value.numericArray(Arrays.asList(BigDecimal.ONE, null, BigDecimal.TEN)));
-        if (!EmulatorSpannerHelper.isUsingEmulator()) {
-          ps.setObject(
-              index++,
-              Value.jsonArray(Arrays.asList("{\"key1\": \"val1\"}", null, "{\"key2\": \"val2\"}")));
-        }
+        ps.setObject(
+            index++,
+            Value.jsonArray(Arrays.asList("{\"key1\": \"val1\"}", null, "{\"key2\": \"val2\"}")));
         assertEquals(1, ps.executeUpdate());
       }
       try (ResultSet rs =
@@ -1066,9 +1047,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
             rs.getObject(index++, Value.class));
         assertNotNull(rs.getObject(index++, Value.class)); // Commit timestamp
         assertEquals(Value.numeric(BigDecimal.TEN), rs.getObject(index++, Value.class));
-        if (!EmulatorSpannerHelper.isUsingEmulator()) {
-          assertEquals(Value.json("{\"test_value\":\"foo\"}"), rs.getObject(index++, Value.class));
-        }
+        assertEquals(Value.json("{\"test_value\":\"foo\"}"), rs.getObject(index++, Value.class));
+
         assertEquals(Value.int64Array(new long[] {1L, 2L, 3L}), rs.getObject(index++, Value.class));
         assertEquals(
             Value.float64Array(new double[] {1.1D, 2.2D, 3.3D}),
@@ -1102,11 +1082,9 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertEquals(
             Value.numericArray(Arrays.asList(BigDecimal.ONE, null, BigDecimal.TEN)),
             rs.getObject(index++, Value.class));
-        if (!EmulatorSpannerHelper.isUsingEmulator()) {
-          assertEquals(
-              Value.jsonArray(Arrays.asList("{\"key1\":\"val1\"}", null, "{\"key2\":\"val2\"}")),
-              rs.getObject(index++, Value.class));
-        }
+        assertEquals(
+            Value.jsonArray(Arrays.asList("{\"key1\":\"val1\"}", null, "{\"key2\":\"val2\"}")),
+            rs.getObject(index++, Value.class));
         assertFalse(rs.next());
       }
     }

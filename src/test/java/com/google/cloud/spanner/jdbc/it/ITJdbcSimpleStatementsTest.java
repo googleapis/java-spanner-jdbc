@@ -24,11 +24,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
+import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Value;
-import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
+import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,7 +38,10 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -49,6 +53,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 @Category(ParallelIntegrationTest.class)
 public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
+  @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
+
   @Parameters(name = "Dialect = {0}")
   public static List<DialectTestParameter> data() {
     List<DialectTestParameter> params = new ArrayList<>();
@@ -59,6 +65,16 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
 
   @Parameter public DialectTestParameter dialect;
 
+  private Database database;
+
+  @Before
+  public void setup() {
+    assumeFalse(
+        "Emulator does not support PostgreSQL",
+        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
+    database = env.getOrCreateDatabase(getDialect(), Collections.emptyList());
+  }
+
   @Override
   public Dialect getDialect() {
     return dialect.dialect;
@@ -66,7 +82,7 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
 
   @Test
   public void testSelect1() throws SQLException {
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs = connection.createStatement().executeQuery("select 1")) {
         assertThat(rs.next()).isTrue();
         assertThat(rs.getInt(1)).isEqualTo(1);
@@ -77,7 +93,7 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
 
   @Test
   public void testSelect1PreparedStatement() throws SQLException {
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       try (PreparedStatement ps = connection.prepareStatement("select 1")) {
         try (ResultSet rs = ps.executeQuery()) {
           assertThat(rs.next()).isTrue();
@@ -98,7 +114,7 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
         dialect.dialect == Dialect.POSTGRESQL);
     String sql =
         "select * from (select 1 as number union all select 2 union all select 3) numbers where number=?";
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       try (PreparedStatement ps = connection.prepareStatement(sql)) {
         for (int i = 1; i <= 3; i++) {
           ps.setInt(1, i);
@@ -129,7 +145,7 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
       countTable = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME LIKE 'foo%'";
     }
     // Execute a successful batch of DDL statements.
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       try (Statement statement = connection.createStatement()) {
         statement.addBatch(createTableFoo1);
         statement.addBatch(createTableFoo2);
@@ -144,7 +160,7 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
       }
     }
     // Execute a batch of DDL statements that contains a statement that will fail.
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       // First create a couple of test records that will cause the index creation to fail.
       try (Statement statement = connection.createStatement()) {
         statement.executeUpdate("INSERT INTO FOO1 (ID, NAME) VALUES (1,'TEST')");
@@ -177,7 +193,7 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
 
   @Test
   public void testAddBatchWhenAlreadyInBatch() {
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       connection.createStatement().execute("START BATCH DML");
       connection.createStatement().addBatch("INSERT INTO Singers (SingerId) VALUES (-1)");
       fail("missing expected exception");
@@ -207,7 +223,7 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
             + "  SELECT STRUCT(point)\n"
             + "  FROM points)\n"
             + "  AS coordinates";
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet resultSet = connection.createStatement().executeQuery(sql)) {
         assertTrue(resultSet.next());
         assertEquals(resultSet.getMetaData().getColumnCount(), 1);

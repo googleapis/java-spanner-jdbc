@@ -23,11 +23,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
+import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.connection.SpannerPool;
-import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlException;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.rpc.Code;
@@ -36,10 +36,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -62,6 +64,8 @@ import org.junit.runners.Parameterized.Parameters;
 @Category(ParallelIntegrationTest.class)
 @RunWith(Parameterized.class)
 public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
+  @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
+
   private String connectionUriSuffix;
 
   @Before
@@ -91,6 +95,16 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
 
   @Parameter public DialectTestParameter dialect;
 
+  private Database database;
+
+  @Before
+  public void setup() {
+    assumeFalse(
+        "Emulator does not support PostgreSQL",
+        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
+    database = env.getOrCreateDatabase(getDialect(), Collections.emptyList());
+  }
+
   @Override
   public Dialect getDialect() {
     return dialect.dialect;
@@ -109,7 +123,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
   @Test
   public void connectionUrl() throws SQLException {
     this.connectionUriSuffix = ";optimizerVersion=1";
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       verifyOptimizerVersion(connection, "1");
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
         assertThat(rs.next()).isTrue();
@@ -124,7 +138,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
     assumeFalse(
         "optimizer version is ignored on emulator", EmulatorSpannerHelper.isUsingEmulator());
     this.connectionUriSuffix = ";optimizerVersion=9999999";
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
         fail("missing expected exception");
       } catch (SQLException e) {
@@ -137,7 +151,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
 
   @Test
   public void setOptimizerVersion() throws SQLException {
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       verifyOptimizerVersion(connection, "");
       connection.createStatement().execute("SET OPTIMIZER_VERSION='1'");
       verifyOptimizerVersion(connection, "1");
@@ -151,7 +165,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
 
   @Test
   public void setLatestOptimizerVersion() throws SQLException {
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       verifyOptimizerVersion(connection, "");
       connection.createStatement().execute("SET OPTIMIZER_VERSION='LATEST'");
       verifyOptimizerVersion(connection, "LATEST");
@@ -167,7 +181,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
   public void setInvalidOptimizerVersion() throws SQLException {
     assumeFalse(
         "optimizer version is ignored on emulator", EmulatorSpannerHelper.isUsingEmulator());
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       connection.createStatement().execute("SET OPTIMIZER_VERSION='9999999'");
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
         fail("missing expected exception");
@@ -187,7 +201,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
     assumeFalse(
         "optimizer version in query hint is not supported on POSTGRESQL",
         getDialect() == Dialect.POSTGRESQL);
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       verifyOptimizerVersion(connection, "");
       try (ResultSet rs =
           connection.createStatement().executeQuery("@{optimizer_version=1} SELECT 1")) {
@@ -223,7 +237,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
               return "latest";
             }
           });
-      try (Connection connection = createConnection(getDialect())) {
+      try (Connection connection = createConnection(env, database)) {
         // Environment query options are not visible to the connection.
         verifyOptimizerVersion(connection, "");
         try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
@@ -250,7 +264,7 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
               return "latest";
             }
           });
-      try (Connection connection = createConnection(getDialect())) {
+      try (Connection connection = createConnection(env, database)) {
         SQLException e =
             assertThrows(
                 SQLException.class, () -> connection.createStatement().executeQuery("SELECT 1"));

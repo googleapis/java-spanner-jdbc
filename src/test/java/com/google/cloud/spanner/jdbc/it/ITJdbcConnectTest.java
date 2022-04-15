@@ -20,10 +20,11 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.spanner.Database;
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
-import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcDataSource;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.io.FileInputStream;
@@ -32,8 +33,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Properties;
 import javax.sql.DataSource;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -53,13 +57,21 @@ import org.junit.runners.JUnit4;
 @Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 public class ITJdbcConnectTest extends ITAbstractJdbcTest {
+  @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
+
+  private Database database;
+
+  @Before
+  public void setup() {
+    database = env.getOrCreateDatabase(Dialect.GOOGLE_STANDARD_SQL, Collections.emptyList());
+  }
 
   private String createBaseUrl() {
     StringBuilder url = new StringBuilder("jdbc:cloudspanner:");
     if (EmulatorSpannerHelper.isUsingEmulator()) {
       url.append("//").append(System.getenv("SPANNER_EMULATOR_HOST"));
     }
-    url.append("/").append(getDatabase().getId().getName());
+    url.append("/").append(database.getId().getName());
     if (EmulatorSpannerHelper.isUsingEmulator()) {
       url.append(";usePlainText=true");
     }

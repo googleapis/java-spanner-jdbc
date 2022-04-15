@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package com.google.cloud.spanner.jdbc;
+package com.google.cloud.spanner.jdbc.it;
 
 import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.GceTestEnvConfig;
-import com.google.cloud.spanner.IntegrationTestEnv;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
-import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ITAbstractSpannerTest;
+import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.base.Preconditions;
@@ -36,51 +35,34 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Collections;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.ClassRule;
+import java.util.stream.Collectors;
 
 /** Base class for all JDBC integration tests. */
 public class ITAbstractJdbcTest {
   protected class ITJdbcConnectionProvider
       implements com.google.cloud.spanner.connection.AbstractSqlScriptVerifier
           .GenericConnectionProvider {
-    public ITJdbcConnectionProvider() {}
+    private final JdbcIntegrationTestEnv env;
+    private final Database database;
+
+    public ITJdbcConnectionProvider(JdbcIntegrationTestEnv env, Database database) {
+      this.env = env;
+      this.database = database;
+    }
 
     @Override
     public JdbcGenericConnection getConnection() {
       try {
-        return JdbcGenericConnection.of(createConnection(getDialect()));
+        return JdbcGenericConnection.of(createConnection(env, database));
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
     }
   }
 
-  @ClassRule
-  public static IntegrationTestEnv env =
-      new IntegrationTestEnv() {
-        @Override
-        protected void initializeConfig()
-            throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-          if (EmulatorSpannerHelper.isUsingEmulator()) {
-            // Make sure that we use an owned instance on the emulator.
-            System.setProperty(TEST_INSTANCE_PROPERTY, "");
-          }
-          super.initializeConfig();
-        }
-
-        @Override
-        protected void after() {
-          super.after();
-          ConnectionOptions.closeSpanner();
-        }
-      };
-
   private static final String DEFAULT_KEY_FILE = null;
-  private static Database googleStandardSqlDatabase;
-  private static Database postgresDatabase;
 
   protected static String getKeyFile() {
     return System.getProperty(GceTestEnvConfig.GCE_CREDENTIALS_FILE, DEFAULT_KEY_FILE);
@@ -90,46 +72,23 @@ public class ITAbstractJdbcTest {
     return getKeyFile() != null && Files.exists(Paths.get(getKeyFile()));
   }
 
-  protected static IntegrationTestEnv getTestEnv() {
-    return env;
-  }
-
-  protected static Database getDatabase() {
-    return getDatabase(Dialect.GOOGLE_STANDARD_SQL);
-  }
-
-  protected static Database getDatabase(Dialect dialect) {
-    if (dialect == Dialect.POSTGRESQL) {
-      return postgresDatabase;
-    }
-    return googleStandardSqlDatabase;
-  }
-
-  @Before
-  public void createDatabase() throws SQLException {
+  protected Database createDatabase(JdbcIntegrationTestEnv env) throws SQLException {
     assumeFalse(
         "PostgreSQL dialect is not yet supported for the emulator",
         getDialect() == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
+    Database database;
     switch (getDialect()) {
       case POSTGRESQL:
-        if (postgresDatabase == null) {
-          postgresDatabase =
-              env.getTestHelper().createTestDatabase(Dialect.POSTGRESQL, Collections.emptyList());
-        }
-        break;
+        database =
+            env.getTestHelper().createTestDatabase(Dialect.POSTGRESQL, Collections.emptyList());
       case GOOGLE_STANDARD_SQL:
       default:
-        if (googleStandardSqlDatabase == null) {
-          googleStandardSqlDatabase = env.getTestHelper().createTestDatabase();
-        }
+        database = env.getTestHelper().createTestDatabase();
     }
-    createTestTable();
-    createMusicTables();
-  }
+    createTestTable(env, database);
+    createMusicTables(env, database);
 
-  @AfterClass
-  public static void teardown() {
-    ConnectionOptions.closeSpanner();
+    return database;
   }
 
   /**
@@ -139,11 +98,11 @@ public class ITAbstractJdbcTest {
    *
    * @return The newly opened JDBC connection.
    */
-  public CloudSpannerJdbcConnection createConnection(Dialect dialect) throws SQLException {
+  public CloudSpannerJdbcConnection createConnection(JdbcIntegrationTestEnv env, Database database)
+      throws SQLException {
     // Create a connection URL for the generic connection API.
     StringBuilder url =
-        ITAbstractSpannerTest.extractConnectionUrl(
-            env.getTestHelper().getOptions(), getDatabase(dialect));
+        ITAbstractSpannerTest.extractConnectionUrl(env.getTestHelper().getOptions(), database);
     // Prepend it with 'jdbc:' to make it a valid JDBC connection URL.
     url.insert(0, "jdbc:");
     if (hasValidKeyFile()) {
@@ -152,10 +111,6 @@ public class ITAbstractJdbcTest {
     appendConnectionUri(url);
 
     return DriverManager.getConnection(url.toString()).unwrap(CloudSpannerJdbcConnection.class);
-  }
-
-  public CloudSpannerJdbcConnection createConnection() throws SQLException {
-    return createConnection(getDialect());
   }
 
   protected void appendConnectionUri(StringBuilder uri) {}
@@ -182,19 +137,40 @@ public class ITAbstractJdbcTest {
     return false;
   }
 
-  private boolean canCreateTablesForDialect() {
-    switch (getDialect()) {
+  static Collection<String> getTestTableDdl(Dialect dialect) {
+    switch (dialect) {
       case POSTGRESQL:
-        return postgresDatabase != null;
+        return Collections.singleton(
+            "CREATE TABLE TEST (ID BIGINT PRIMARY KEY, NAME VARCHAR(100) NOT NULL)");
       case GOOGLE_STANDARD_SQL:
       default:
-        return googleStandardSqlDatabase != null;
+        return Collections.singleton(
+            "CREATE TABLE TEST (ID INT64 NOT NULL, NAME STRING(100) NOT NULL) PRIMARY KEY (ID)");
     }
   }
 
-  private void createTestTable() throws SQLException {
-    if (canCreateTablesForDialect() && doCreateDefaultTestTable()) {
-      try (Connection connection = createConnection(getDialect())) {
+  static Collection<String> getMusicTablesDdl(Dialect dialect) {
+    String scriptFile;
+    switch (dialect) {
+      case POSTGRESQL:
+        scriptFile = "CreateMusicTables.sql";
+        break;
+      case GOOGLE_STANDARD_SQL:
+      default:
+        scriptFile = "CreateMusicTables_PG.sql";
+    }
+    if (EmulatorSpannerHelper.isUsingEmulator()) {
+      scriptFile = "CreateMusicTables_Emulator.sql";
+    }
+    return AbstractSqlScriptVerifier.readStatementsFromFile(scriptFile, ITAbstractJdbcTest.class)
+        .stream()
+        .filter(sql -> !(sql.contains("START BATCH") || sql.contains("RUN BATCH")))
+        .collect(Collectors.toList());
+  }
+
+  private void createTestTable(JdbcIntegrationTestEnv env, Database database) throws SQLException {
+    if (doCreateDefaultTestTable()) {
+      try (Connection connection = createConnection(env, database)) {
         connection.setAutoCommit(true);
         if (!tableExists(connection, "TEST")) {
           connection.setAutoCommit(false);
@@ -214,27 +190,10 @@ public class ITAbstractJdbcTest {
     }
   }
 
-  public Dialect getDialect() {
-    return Dialect.GOOGLE_STANDARD_SQL;
-  }
-
-  public String getDefaultCatalog() {
-    if (getDialect() == Dialect.POSTGRESQL) {
-      return getDatabase(Dialect.POSTGRESQL).getId().getDatabase();
-    }
-    return "";
-  }
-
-  public String getDefaultSchema() {
-    if (getDialect() == Dialect.POSTGRESQL) {
-      return "public";
-    }
-    return "";
-  }
-
-  private void createMusicTables() throws SQLException {
-    if (canCreateTablesForDialect() && doCreateMusicTables()) {
-      try (Connection connection = createConnection(getDialect())) {
+  private void createMusicTables(JdbcIntegrationTestEnv env, Database database)
+      throws SQLException {
+    if (doCreateMusicTables()) {
+      try (Connection connection = createConnection(env, database)) {
         connection.setAutoCommit(true);
         if (!tableExists(connection, "Singers")) {
           String scriptFile = "CreateMusicTables.sql";
@@ -253,9 +212,26 @@ public class ITAbstractJdbcTest {
     }
   }
 
+  public Dialect getDialect() {
+    return Dialect.GOOGLE_STANDARD_SQL;
+  }
+
+  public String getDefaultCatalog(Database database) {
+    if (getDialect() == Dialect.POSTGRESQL) {
+      return database.getId().getDatabase();
+    }
+    return "";
+  }
+
+  public String getDefaultSchema() {
+    if (getDialect() == Dialect.POSTGRESQL) {
+      return "public";
+    }
+    return "";
+  }
+
   protected boolean tableExists(Connection connection, String table) throws SQLException {
-    try (ResultSet rs =
-        connection.getMetaData().getTables(getDefaultCatalog(), getDefaultSchema(), table, null)) {
+    try (ResultSet rs = connection.getMetaData().getTables(null, getDefaultSchema(), table, null)) {
       if (rs.next()) {
         if (rs.getString("TABLE_NAME").equalsIgnoreCase(table)) {
           return true;

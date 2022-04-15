@@ -74,6 +74,7 @@ CREATE TABLE TableWithAllColumnTypes (
   ColTimestamp	TIMESTAMP	NOT NULL,
   ColCommitTS	TIMESTAMP	NOT NULL OPTIONS (allow_commit_timestamp=true),
   ColNumeric	NUMERIC		NOT NULL,
+  ColJson		JSON		NOT NULL,
 
   ColInt64Array		ARRAY<INT64>,
   ColFloat64Array	ARRAY<FLOAT64>,
@@ -85,6 +86,7 @@ CREATE TABLE TableWithAllColumnTypes (
   ColDateArray		ARRAY<DATE>,
   ColTimestampArray	ARRAY<TIMESTAMP>,
   ColNumericArray	ARRAY<NUMERIC>,
+  ColJsonArray		ARRAY<JSON>,
 
   ColComputed STRING(MAX) AS (CONCAT(COALESCE(ColString, ''), ' ', COALESCE(ColStringMax, ''))) STORED,
 ) PRIMARY KEY (ColInt64)

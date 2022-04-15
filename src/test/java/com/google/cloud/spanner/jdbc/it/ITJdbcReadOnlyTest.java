@@ -17,20 +17,23 @@
 package com.google.cloud.spanner.jdbc.it;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 
+import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
-import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
+import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.collect.ImmutableMap;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -38,6 +41,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -50,6 +54,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
   private static final long TEST_ROWS_COUNT = 1000L;
+
+  @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
 
   @Parameters(name = "Dialect = {0}")
   public static List<DialectTestParameter> data() {
@@ -75,6 +81,16 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
 
   @Parameter public DialectTestParameter dialect;
 
+  private Database database;
+
+  @Before
+  public void setup() {
+    assumeFalse(
+        "Emulator does not support PostgreSQL",
+        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
+    database = env.getOrCreateDatabase(getDialect(), Collections.emptyList());
+  }
+
   @Override
   public Dialect getDialect() {
     return dialect.dialect;
@@ -87,11 +103,13 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
 
   @Before
   public void createTestTables() throws Exception {
-    try (CloudSpannerJdbcConnection connection = createConnection(getDialect())) {
+    try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       if (!(tableExists(connection, "NUMBERS") && tableExists(connection, "PRIME_NUMBERS"))) {
         // create tables
-        JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
-        verifier.verifyStatementsInFile(dialect.createTableFile, ITAbstractJdbcTest.class, false);
+        JdbcSqlScriptVerifier verifier =
+            new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider(env, database));
+        verifier.verifyStatementsInFile(
+            dialect.createTableFile, JdbcSqlScriptVerifier.class, false);
 
         // fill tables with data
         connection.setAutoCommit(false);
@@ -130,14 +148,15 @@ public class ITJdbcReadOnlyTest extends ITAbstractJdbcTest {
   public void testSqlScript() throws Exception {
     // Wait 100ms to ensure that staleness tests in the script succeed.
     Thread.sleep(100L);
-    JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider());
+    JdbcSqlScriptVerifier verifier =
+        new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider(env, database));
     verifier.verifyStatementsInFile(
-        dialect.executeQueriesFiles.get("TEST_READ_ONLY"), ITAbstractJdbcTest.class, false);
+        dialect.executeQueriesFiles.get("TEST_READ_ONLY"), JdbcSqlScriptVerifier.class, false);
   }
 
   @Test
   public void testMultipleOpenResultSets() throws InterruptedException, SQLException {
-    try (Connection connection = createConnection(getDialect())) {
+    try (Connection connection = createConnection(env, database)) {
       List<ResultSet> resultSets = new ArrayList<ResultSet>();
       ExecutorService exec = Executors.newFixedThreadPool(2);
       for (String query : dialect.queries) {
