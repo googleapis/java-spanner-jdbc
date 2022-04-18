@@ -35,6 +35,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import javax.annotation.Nullable;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -112,7 +113,8 @@ public class ITAbstractJdbcTest {
    *
    * @return The newly opened JDBC connection.
    */
-  public CloudSpannerJdbcConnection createConnection(Dialect dialect) throws SQLException {
+  public CloudSpannerJdbcConnection createConnection(Dialect dialect, @Nullable String creatorRole)
+      throws SQLException {
     // Create a connection URL for the generic connection API.
     StringBuilder url =
         ITAbstractSpannerTest.extractConnectionUrl(
@@ -122,10 +124,18 @@ public class ITAbstractJdbcTest {
     if (hasValidKeyFile()) {
       url.append(";credentials=").append(getKeyFile());
     }
+    // Append creator role to connection url.
+    if (creatorRole != null && !creatorRole.isEmpty()) {
+      url.append(";creatorRole=").append(creatorRole);
+    }
     appendConnectionUri(url);
 
     return DriverManager.getConnection(url.toString() + ";dialect=" + dialect.name())
         .unwrap(CloudSpannerJdbcConnection.class);
+  }
+
+  public CloudSpannerJdbcConnection createConnection(Dialect dialect) throws SQLException {
+    return createConnection(dialect, /* creatorRole= */ null);
   }
 
   public CloudSpannerJdbcConnection createConnection() throws SQLException {
