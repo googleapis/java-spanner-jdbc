@@ -222,6 +222,14 @@
         <configuration>
           <exclude>com.google.cloud.spanner.IntegrationTest</exclude>
           <reportNameSuffix>sponge_log</reportNameSuffix>
+          <systemPropertyVariables>
+            <spanner.testenv.config.class>
+              com.google.cloud.spanner.GceTestEnvConfig
+            </spanner.testenv.config.class>
+            <spanner.testenv.instance>
+              projects/gcloud-devel/instances/spanner-testing-east1
+            </spanner.testenv.instance>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
       <plugin>
