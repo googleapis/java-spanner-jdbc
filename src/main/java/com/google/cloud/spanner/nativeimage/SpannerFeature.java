@@ -49,7 +49,7 @@ final class SpannerFeature implements Feature {
   private static final String STATEMENT_PARSER =
       "com.google.cloud.spanner.connection.SpannerStatementParser";
   private static final String POSTGRESQL_STATEMENT_PARSER =
-          "com.google.cloud.spanner.connection.PostgreSQLStatementParser";
+      "com.google.cloud.spanner.connection.PostgreSQLStatementParser";
   private static final String DIALECT = "com.google.cloud.spanner.Dialect";
 
   @Override
