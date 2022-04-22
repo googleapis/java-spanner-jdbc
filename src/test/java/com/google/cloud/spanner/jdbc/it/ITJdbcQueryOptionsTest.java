@@ -114,6 +114,8 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
       throws SQLException {
     try (ResultSet rs =
         connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_VERSION")) {
+      System.out.println("*****************" + rs);
+      System.out.println("*****************" + connection);
       assertThat(rs.next()).isTrue();
       assertThat(rs.getString("OPTIMIZER_VERSION")).isEqualTo(expectedVersion);
       assertThat(rs.next()).isFalse();

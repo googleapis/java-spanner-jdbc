@@ -87,6 +87,32 @@ final class SpannerFeature implements Feature {
       NativeImageUtils.registerConstructorsForReflection(access, POSTGRESQL_STATEMENT_PARSER);
     }
 
+    // JDBC Classes
+    if (access.findClassByName("com.google.cloud.spanner.Statement") != null) {
+      NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.Statement");
+    }
+    if (access.findClassByName("com.google.spanner.v1.ExecuteSqlRequest.QueryOptions") != null) {
+      NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.spanner.v1.ExecuteSqlRequest.QueryOptions");
+    }
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.JdbcConnection" != null) {
+      NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.jdbc.JdbcConnection");
+    }
+    if (access.findClassByName("com.google.cloud.spanner.Options") != null) {
+      NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.Options");
+    }
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.ClientsideStatementValueConverters") != null) {
+      NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.jdbc.ClientsideStatementValueConverters");
+    }
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.ConnectionStatementExecutorImpl") != null) {
+      NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.jdbc.ConnectionStatementExecutorImpl");
+    }
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.StatementParser" != null) {
+      NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.jdbc.StatementParser");
+    }
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.StatementResult" != null) {
+      NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.jdbc.StatementResult");
+    }
+
     Class<?> spannerClass = access.findClassByName(SPANNER_CLASS);
     if (spannerClass != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
