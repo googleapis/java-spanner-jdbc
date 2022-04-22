@@ -83,6 +83,16 @@
         <artifactId>opencensus-contrib-grpc-util</artifactId>
         <version>${opencensus.version}</version>
       </dependency>
+
+      <!-- Native Image dependencies-->
+      <dependency>
+        <groupId>org.graalvm.nativeimage</groupId>
+        <artifactId>svm</artifactId>
+        <version>22.0.0.2</version>
+        <scope>provided</scope>
+      </dependency>
+      <!-- Native Image dependencies-->
+
     </dependencies>
   </dependencyManagement>
   <dependencies>
