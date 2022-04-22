@@ -151,7 +151,7 @@
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-spanner-v1</artifactId>
     </dependency>
-    
+
     <!-- Native Image dependencies-->
     <dependency>
       <groupId>org.graalvm.nativeimage</groupId>

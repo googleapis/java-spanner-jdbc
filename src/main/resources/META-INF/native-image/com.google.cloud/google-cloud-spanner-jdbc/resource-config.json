@@ -1,16 +1,7 @@
 {
   "resources":{
     "includes":[
-      {
-        "pattern":"\\Qcom/google/cloud/spanner/jdbc/DatabaseMetaData_GetColumns.sql\\E"
-      },
-      { "pattern":"\\Qcom/google/cloud/spanner/jdbc/DatabaseMetaData_GetCrossReferences.sql\\E"},
-      {"pattern":"\\Qcom/google/cloud/spanner/jdbc/DatabaseMetaData_GetExportedKeys.sql\\E"},
-      {"pattern":"\\Qcom/google/cloud/spanner/jdbc/DatabaseMetaData_GetImported.sql\\E"},
-      {"pattern":"\\Qcom/google/cloud/spanner/jdbc/DatabaseMetaData_GetIndexInfo.sql\\E"},
-      {"pattern":"\\Qcom/google/cloud/spanner/jdbc/DatabaseMetaData_GetPrimaryKeys.sql\\E"},
-      {"pattern":"\\Qcom/google/cloud/spanner/jdbc/DatabaseMetaData_GetSchemas.sql\\E"},
-      {"pattern":"\\Qcom/google/cloud/spanner/jdbc/DatabaseMetaData_GetTables.sql\\E"}
-    ]},
-  "bundles":[]
+      {"pattern":".*.sql"}
+    ]
+  }
 }
