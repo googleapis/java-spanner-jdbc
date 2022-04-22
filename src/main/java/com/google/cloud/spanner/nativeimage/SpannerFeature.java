@@ -94,7 +94,7 @@ final class SpannerFeature implements Feature {
     if (access.findClassByName("com.google.spanner.v1.ExecuteSqlRequest.QueryOptions") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.spanner.v1.ExecuteSqlRequest.QueryOptions");
     }
-    if (access.findClassByName("com.google.cloud.spanner.jdbc.JdbcConnection" != null) {
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.JdbcConnection") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.jdbc.JdbcConnection");
     }
     if (access.findClassByName("com.google.cloud.spanner.Options") != null) {
@@ -106,10 +106,10 @@ final class SpannerFeature implements Feature {
     if (access.findClassByName("com.google.cloud.spanner.jdbc.ConnectionStatementExecutorImpl") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.jdbc.ConnectionStatementExecutorImpl");
     }
-    if (access.findClassByName("com.google.cloud.spanner.jdbc.StatementParser" != null) {
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.StatementParser") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.jdbc.StatementParser");
     }
-    if (access.findClassByName("com.google.cloud.spanner.jdbc.StatementResult" != null) {
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.StatementResult") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(access, "com.google.cloud.spanner.jdbc.StatementResult");
     }
 
