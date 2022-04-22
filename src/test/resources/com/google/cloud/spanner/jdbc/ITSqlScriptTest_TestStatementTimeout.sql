@@ -70,7 +70,7 @@ SET STATEMENT_TIMEOUT='1ns';
 SHOW VARIABLE STATEMENT_TIMEOUT;
 
 -- Do a somewhat complex query that should now timeout
-@EXPECT EXCEPTION DEADLINE_EXCEEDED 'DEADLINE_EXCEEDED: Statement execution timeout occurred'
+@EXPECT EXCEPTION DEADLINE_EXCEEDED
 SELECT COUNT(*) AS ACTUAL, 0 AS EXPECTED
 FROM (
 	SELECT *
@@ -97,7 +97,7 @@ FROM (
 ;
 
 -- Try to execute an update that should also timeout
-@EXPECT EXCEPTION DEADLINE_EXCEEDED 'DEADLINE_EXCEEDED: Statement execution timeout occurred'
+@EXPECT EXCEPTION DEADLINE_EXCEEDED
 UPDATE Singers SET LastName='Some Other Last Name' /* It used to be 'Last 1' */
 WHERE SingerId=1
 OR LastName IN (
@@ -176,7 +176,7 @@ SET STATEMENT_TIMEOUT='1ns';
 SHOW VARIABLE STATEMENT_TIMEOUT;
 
 -- Do a somewhat complex query that should now timeout
-@EXPECT EXCEPTION DEADLINE_EXCEEDED 'DEADLINE_EXCEEDED: Statement execution timeout occurred'
+@EXPECT EXCEPTION DEADLINE_EXCEEDED
 SELECT COUNT(*) AS ACTUAL, 0 AS EXPECTED
 FROM (
 	SELECT *
@@ -202,11 +202,10 @@ FROM (
 ) RES
 ;
 -- We need to rollback the transaction as it is no longer usable.
-@EXPECT EXCEPTION DEADLINE_EXCEEDED 'DEADLINE_EXCEEDED: Statement execution timeout occurred'
 ROLLBACK;
 
 -- Try to execute an update that should also timeout
-@EXPECT EXCEPTION DEADLINE_EXCEEDED 'DEADLINE_EXCEEDED: Statement execution timeout occurred'
+@EXPECT EXCEPTION DEADLINE_EXCEEDED
 UPDATE Singers SET LastName='Some Other Last Name' /* It used to be 'Last 1' */
 WHERE SingerId=1
 OR LastName IN (

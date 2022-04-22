@@ -23,9 +23,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
+import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
-import com.google.cloud.spanner.jdbc.ITAbstractJdbcTest;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -34,7 +34,9 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -45,6 +47,8 @@ import org.junit.runners.JUnit4;
 @Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
+  @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
+
   private static final String DEFAULT_SCHEMA = "public";
   private static final String SINGERS_TABLE = "Singers";
   private static final String ALBUMS_TABLE = "Albums";
@@ -60,9 +64,15 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
         EmulatorSpannerHelper.isUsingEmulator());
   }
 
-  @Override
-  protected boolean doCreateMusicTables() {
-    return true;
+  private Database database;
+
+  @Before
+  public void setup() {
+    database = env.getOrCreateDatabase(getDialect(), getMusicTablesDdl(getDialect()));
+  }
+
+  public Dialect getDialect() {
+    return Dialect.POSTGRESQL;
   }
 
   private static final class Column {
@@ -130,21 +140,17 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
               null),
           new Column("colnumeric", Types.NUMERIC, "numeric", 15, 16383, 10, false, null));
 
-  public Dialect getDialect() {
-    return Dialect.POSTGRESQL;
-  }
-
   @Test
   public void testGetColumns() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getColumns(getDefaultCatalog(), DEFAULT_SCHEMA, TABLE_WITH_ALL_COLS, null)) {
+              .getColumns(getDefaultCatalog(database), DEFAULT_SCHEMA, TABLE_WITH_ALL_COLS, null)) {
         int pos = 1;
         for (Column col : EXPECTED_COLUMNS) {
           assertTrue(rs.next());
-          assertEquals(getDefaultCatalog(), rs.getString("TABLE_CAT"));
+          assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CAT"));
           assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));
           assertEquals("tablewithallcolumntypes", rs.getString("TABLE_NAME"));
           assertEquals(col.name, rs.getString("COLUMN_NAME"));
@@ -205,24 +211,24 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetCrossReferences() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
               .getCrossReference(
-                  getDefaultCatalog(),
+                  getDefaultCatalog(database),
                   DEFAULT_SCHEMA,
                   SINGERS_TABLE,
-                  getDefaultCatalog(),
+                  getDefaultCatalog(database),
                   DEFAULT_SCHEMA,
                   ALBUMS_TABLE)) {
         assertTrue(rs.next());
 
-        assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
         assertEquals("singers", rs.getString("PKTABLE_NAME"));
         assertEquals("singerid", rs.getString("PKCOLUMN_NAME"));
-        assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
         assertEquals("albums", rs.getString("FKTABLE_NAME"));
         assertEquals("singerid", rs.getString("FKCOLUMN_NAME"));
@@ -238,18 +244,18 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
           connection
               .getMetaData()
               .getCrossReference(
-                  getDefaultCatalog(),
+                  getDefaultCatalog(database),
                   DEFAULT_SCHEMA,
                   ALBUMS_TABLE,
-                  getDefaultCatalog(),
+                  getDefaultCatalog(database),
                   DEFAULT_SCHEMA,
                   SONGS_TABLE)) {
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
         assertEquals("albums", rs.getString("PKTABLE_NAME"));
         assertEquals("singerid", rs.getString("PKCOLUMN_NAME"));
-        assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
         assertEquals("songs", rs.getString("FKTABLE_NAME"));
         assertEquals("singerid", rs.getString("FKCOLUMN_NAME"));
@@ -262,11 +268,11 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
             (short) DatabaseMetaData.importedKeyNotDeferrable, rs.getShort("DEFERRABILITY"));
 
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
         assertEquals("albums", rs.getString("PKTABLE_NAME"));
         assertEquals("albumid", rs.getString("PKCOLUMN_NAME"));
-        assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
         assertEquals("songs", rs.getString("FKTABLE_NAME"));
         assertEquals("albumid", rs.getString("FKCOLUMN_NAME"));
@@ -285,18 +291,18 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
           connection
               .getMetaData()
               .getCrossReference(
-                  getDefaultCatalog(),
+                  getDefaultCatalog(database),
                   DEFAULT_SCHEMA,
                   SINGERS_TABLE,
-                  getDefaultCatalog(),
+                  getDefaultCatalog(database),
                   DEFAULT_SCHEMA,
                   CONCERTS_TABLE)) {
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
         assertEquals("singers", rs.getString("PKTABLE_NAME"));
         assertEquals("singerid", rs.getString("PKCOLUMN_NAME"));
-        assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
         assertEquals("concerts", rs.getString("FKTABLE_NAME"));
         assertEquals("singerid", rs.getString("FKCOLUMN_NAME"));
@@ -315,19 +321,19 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
           connection
               .getMetaData()
               .getCrossReference(
-                  getDefaultCatalog(),
+                  getDefaultCatalog(database),
                   DEFAULT_SCHEMA,
                   TABLE_WITH_ALL_COLS,
-                  getDefaultCatalog(),
+                  getDefaultCatalog(database),
                   DEFAULT_SCHEMA,
                   TABLE_WITH_REF)) {
 
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
         assertEquals("tablewithallcolumntypes", rs.getString("PKTABLE_NAME"));
         assertEquals("colfloat64", rs.getString("PKCOLUMN_NAME"));
-        assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
         assertEquals("tablewithref", rs.getString("FKTABLE_NAME"));
         assertEquals("reffloat", rs.getString("FKCOLUMN_NAME"));
@@ -339,11 +345,11 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
             (short) DatabaseMetaData.importedKeyNotDeferrable, rs.getShort("DEFERRABILITY"));
 
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
         assertEquals("tablewithallcolumntypes", rs.getString("PKTABLE_NAME"));
         assertEquals("colstring", rs.getString("PKCOLUMN_NAME"));
-        assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
         assertEquals("tablewithref", rs.getString("FKTABLE_NAME"));
         assertEquals("refstring", rs.getString("FKCOLUMN_NAME"));
@@ -361,10 +367,10 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
           connection
               .getMetaData()
               .getCrossReference(
-                  getDefaultCatalog(),
+                  getDefaultCatalog(database),
                   DEFAULT_SCHEMA,
                   ALBUMS_TABLE,
-                  getDefaultCatalog(),
+                  getDefaultCatalog(database),
                   DEFAULT_SCHEMA,
                   ALBUMS_TABLE)) {
         assertFalse(rs.next());
@@ -439,19 +445,19 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetIndexInfo() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getIndexInfo(getDefaultCatalog(), DEFAULT_SCHEMA, null, false, false)) {
+              .getIndexInfo(getDefaultCatalog(database), DEFAULT_SCHEMA, null, false, false)) {
 
         for (IndexInfo index : EXPECTED_INDICES) {
           assertTrue(rs.next());
-          assertEquals(getDefaultCatalog(), rs.getString("TABLE_CAT"));
+          assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CAT"));
           assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));
           assertEquals(index.tableName, rs.getString("TABLE_NAME"));
           assertEquals(index.nonUnique, rs.getBoolean("NON_UNIQUE"));
-          assertEquals(getDefaultCatalog(), rs.getString("INDEX_QUALIFIER"));
+          assertEquals(getDefaultCatalog(database), rs.getString("INDEX_QUALIFIER"));
 
           // Foreign key index names are automatically generated.
           if (!"FOREIGN_KEY".equals(index.indexName) && !"GENERATED".equals(index.indexName)) {
@@ -476,17 +482,17 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetExportedKeys() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getExportedKeys(getDefaultCatalog(), DEFAULT_SCHEMA, SINGERS_TABLE)) {
+              .getExportedKeys(getDefaultCatalog(database), DEFAULT_SCHEMA, SINGERS_TABLE)) {
         assertExportedKeysSingers(rs);
       }
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getExportedKeys(getDefaultCatalog(), DEFAULT_SCHEMA, ALBUMS_TABLE)) {
+              .getExportedKeys(getDefaultCatalog(database), DEFAULT_SCHEMA, ALBUMS_TABLE)) {
         assertKeysAlbumsSongs(rs);
       }
     }
@@ -494,35 +500,35 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetImportedKeys() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getImportedKeys(getDefaultCatalog(), DEFAULT_SCHEMA, SINGERS_TABLE)) {
+              .getImportedKeys(getDefaultCatalog(database), DEFAULT_SCHEMA, SINGERS_TABLE)) {
         assertImportedKeysSingers(rs);
       }
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getImportedKeys(getDefaultCatalog(), DEFAULT_SCHEMA, ALBUMS_TABLE)) {
+              .getImportedKeys(getDefaultCatalog(database), DEFAULT_SCHEMA, ALBUMS_TABLE)) {
         assertImportedKeysAlbums(rs);
       }
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getImportedKeys(getDefaultCatalog(), DEFAULT_SCHEMA, CONCERTS_TABLE)) {
+              .getImportedKeys(getDefaultCatalog(database), DEFAULT_SCHEMA, CONCERTS_TABLE)) {
         assertImportedKeysConcerts(rs);
       }
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getImportedKeys(getDefaultCatalog(), DEFAULT_SCHEMA, SONGS_TABLE)) {
+              .getImportedKeys(getDefaultCatalog(database), DEFAULT_SCHEMA, SONGS_TABLE)) {
         assertKeysAlbumsSongs(rs);
       }
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getImportedKeys(getDefaultCatalog(), DEFAULT_SCHEMA, TABLE_WITH_REF)) {
+              .getImportedKeys(getDefaultCatalog(database), DEFAULT_SCHEMA, TABLE_WITH_REF)) {
         assertImportedKeysTableWithRef(rs);
       }
     }
@@ -534,11 +540,11 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   private void assertImportedKeysTableWithRef(ResultSet rs) throws SQLException {
     assertTrue(rs.next());
-    assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
     assertEquals("tablewithallcolumntypes", rs.getString("PKTABLE_NAME"));
     assertEquals("colfloat64", rs.getString("PKCOLUMN_NAME"));
-    assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
     assertEquals("tablewithref", rs.getString("FKTABLE_NAME"));
     assertEquals("reffloat", rs.getString("FKCOLUMN_NAME"));
@@ -550,11 +556,11 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
     assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getInt("DEFERRABILITY"));
 
     assertTrue(rs.next());
-    assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
     assertEquals("tablewithallcolumntypes", rs.getString("PKTABLE_NAME"));
     assertEquals("colstring", rs.getString("PKCOLUMN_NAME"));
-    assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
     assertEquals("tablewithref", rs.getString("FKTABLE_NAME"));
     assertEquals("refstring", rs.getString("FKCOLUMN_NAME"));
@@ -570,11 +576,11 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   private void assertImportedKeysAlbums(ResultSet rs) throws SQLException {
     assertTrue(rs.next());
-    assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
     assertEquals("singers", rs.getString("PKTABLE_NAME"));
     assertEquals("singerid", rs.getString("PKCOLUMN_NAME"));
-    assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
     assertEquals("albums", rs.getString("FKTABLE_NAME"));
     assertEquals("singerid", rs.getString("FKCOLUMN_NAME"));
@@ -590,11 +596,11 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   private void assertImportedKeysConcerts(ResultSet rs) throws SQLException {
     assertTrue(rs.next());
-    assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
     assertEquals("singers", rs.getString("PKTABLE_NAME"));
     assertEquals("singerid", rs.getString("PKCOLUMN_NAME"));
-    assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
     assertEquals("concerts", rs.getString("FKTABLE_NAME"));
     assertEquals("singerid", rs.getString("FKCOLUMN_NAME"));
@@ -609,11 +615,11 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   private void assertExportedKeysSingers(ResultSet rs) throws SQLException {
     assertTrue(rs.next());
-    assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
     assertEquals("singers", rs.getString("PKTABLE_NAME"));
     assertEquals("singerid", rs.getString("PKCOLUMN_NAME"));
-    assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
     assertEquals("albums", rs.getString("FKTABLE_NAME"));
     assertEquals("singerid", rs.getString("FKCOLUMN_NAME"));
@@ -625,11 +631,11 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
     assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getInt("DEFERRABILITY"));
 
     assertTrue(rs.next());
-    assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
     assertEquals("singers", rs.getString("PKTABLE_NAME"));
     assertEquals("singerid", rs.getString("PKCOLUMN_NAME"));
-    assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
     assertEquals("concerts", rs.getString("FKTABLE_NAME"));
     assertEquals("singerid", rs.getString("FKCOLUMN_NAME"));
@@ -645,11 +651,11 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   private void assertKeysAlbumsSongs(ResultSet rs) throws SQLException {
     assertTrue(rs.next());
-    assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
     assertEquals("albums", rs.getString("PKTABLE_NAME"));
     assertEquals("singerid", rs.getString("PKCOLUMN_NAME"));
-    assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
     assertEquals("songs", rs.getString("FKTABLE_NAME"));
     assertEquals("singerid", rs.getString("FKCOLUMN_NAME"));
@@ -661,11 +667,11 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
     assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getInt("DEFERRABILITY"));
 
     assertTrue(rs.next());
-    assertEquals(getDefaultCatalog(), rs.getString("PKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("PKTABLE_SCHEM"));
     assertEquals("albums", rs.getString("PKTABLE_NAME"));
     assertEquals("albumid", rs.getString("PKCOLUMN_NAME"));
-    assertEquals(getDefaultCatalog(), rs.getString("FKTABLE_CAT"));
+    assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
     assertEquals(DEFAULT_SCHEMA, rs.getString("FKTABLE_SCHEM"));
     assertEquals("songs", rs.getString("FKTABLE_NAME"));
     assertEquals("albumid", rs.getString("FKCOLUMN_NAME"));
@@ -681,13 +687,13 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetPrimaryKeys() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getPrimaryKeys(getDefaultCatalog(), DEFAULT_SCHEMA, SINGERS_TABLE)) {
+              .getPrimaryKeys(getDefaultCatalog(database), DEFAULT_SCHEMA, SINGERS_TABLE)) {
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("TABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));
         assertEquals("singers", rs.getString("TABLE_NAME"));
         assertEquals("singerid", rs.getString("COLUMN_NAME"));
@@ -699,16 +705,16 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getPrimaryKeys(getDefaultCatalog(), DEFAULT_SCHEMA, ALBUMS_TABLE)) {
+              .getPrimaryKeys(getDefaultCatalog(database), DEFAULT_SCHEMA, ALBUMS_TABLE)) {
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("TABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));
         assertEquals("albums", rs.getString("TABLE_NAME"));
         assertEquals("singerid", rs.getString("COLUMN_NAME"));
         assertEquals(1, rs.getInt("KEY_SEQ"));
         assertEquals("PRIMARY_KEY", rs.getString("PK_NAME"));
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("TABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));
         assertEquals("albums", rs.getString("TABLE_NAME"));
         assertEquals("albumid", rs.getString("COLUMN_NAME"));
@@ -723,13 +729,14 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
   @Ignore("Views are not yet supported for PostgreSQL")
   @Test
   public void testGetViews() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
           connection
               .getMetaData()
-              .getTables(getDefaultCatalog(), DEFAULT_SCHEMA, null, new String[] {"VIEW"})) {
+              .getTables(
+                  getDefaultCatalog(database), DEFAULT_SCHEMA, null, new String[] {"VIEW"})) {
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("TABLE_CAT"));
+        assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CAT"));
         assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));
         assertEquals("SingersView", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());
@@ -739,18 +746,18 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetSchemas() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs = connection.getMetaData().getSchemas()) {
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("TABLE_CATALOG"));
+        assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CATALOG"));
         assertEquals("information_schema", rs.getString("TABLE_SCHEM"));
 
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("TABLE_CATALOG"));
+        assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CATALOG"));
         assertEquals("public", rs.getString("TABLE_SCHEM"));
 
         assertTrue(rs.next());
-        assertEquals(getDefaultCatalog(), rs.getString("TABLE_CATALOG"));
+        assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CATALOG"));
         assertEquals("spanner_sys", rs.getString("TABLE_SCHEM"));
 
         assertFalse(rs.next());
@@ -785,12 +792,14 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @Test
   public void testGetTables() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createConnection(env, database)) {
       try (ResultSet rs =
-          connection.getMetaData().getTables(getDefaultCatalog(), DEFAULT_SCHEMA, null, null)) {
+          connection
+              .getMetaData()
+              .getTables(getDefaultCatalog(database), DEFAULT_SCHEMA, null, null)) {
         for (Table table : EXPECTED_TABLES) {
           assertTrue(rs.next());
-          assertEquals(getDefaultCatalog(), rs.getString("TABLE_CAT"));
+          assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CAT"));
           assertEquals(DEFAULT_SCHEMA, rs.getString("TABLE_SCHEM"));
           assertEquals(table.name, rs.getString("TABLE_NAME"));
           assertEquals(table.type, rs.getString("TABLE_TYPE"));

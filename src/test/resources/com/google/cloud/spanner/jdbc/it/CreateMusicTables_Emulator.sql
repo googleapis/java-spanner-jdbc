@@ -63,17 +63,18 @@ CREATE TABLE Concerts (
 ) PRIMARY KEY(VenueId, SingerId, ConcertDate);
 
 CREATE TABLE TableWithAllColumnTypes (
-  ColInt64		INT64		NOT NULL,
-  ColFloat64	FLOAT64		NOT NULL,
-  ColBool		BOOL		NOT NULL,
-  ColString		STRING(100) NOT NULL,
-  ColStringMax	STRING(MAX)	NOT NULL,
-  ColBytes		BYTES(100)	NOT NULL,
-  ColBytesMax	BYTES(MAX)	NOT NULL,
-  ColDate		DATE		NOT NULL,
-  ColTimestamp	TIMESTAMP	NOT NULL,
-  ColCommitTS	TIMESTAMP	NOT NULL OPTIONS (allow_commit_timestamp=true),
-  ColNumeric	NUMERIC		NOT NULL,
+  ColInt64      INT64       NOT NULL,
+  ColFloat64    FLOAT64     NOT NULL,
+  ColBool       BOOL        NOT NULL,
+  ColString     STRING(100) NOT NULL,
+  ColStringMax  STRING(MAX) NOT NULL,
+  ColBytes      BYTES(100)  NOT NULL,
+  ColBytesMax   BYTES(MAX)  NOT NULL,
+  ColDate       DATE        NOT NULL,
+  ColTimestamp  TIMESTAMP   NOT NULL,
+  ColCommitTS   TIMESTAMP   NOT NULL OPTIONS (allow_commit_timestamp=true),
+  ColNumeric    NUMERIC     NOT NULL,
+  ColJson       JSON        NOT NULL,
 
   ColInt64Array		ARRAY<INT64>,
   ColFloat64Array	ARRAY<FLOAT64>,
@@ -85,6 +86,7 @@ CREATE TABLE TableWithAllColumnTypes (
   ColDateArray		ARRAY<DATE>,
   ColTimestampArray	ARRAY<TIMESTAMP>,
   ColNumericArray	ARRAY<NUMERIC>,
+  ColJsonArray		ARRAY<JSON>,
 
   ColComputed STRING(MAX) AS (CONCAT(COALESCE(ColString, ''), ' ', COALESCE(ColStringMax, ''))) STORED,
 ) PRIMARY KEY (ColInt64)

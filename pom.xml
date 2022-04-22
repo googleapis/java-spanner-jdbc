@@ -237,35 +237,9 @@
             </spanner.testenv.instance>
           </systemPropertyVariables>
           <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
+          <forkCount>8</forkCount>
+          <reuseForks>true</reuseForks>
         </configuration>
-        <executions>
-          <execution>
-            <id>default</id>
-            <goals>
-              <goal>integration-test</goal>
-            </goals>
-            <configuration>
-              <groups>com.google.cloud.spanner.IntegrationTest</groups>
-              <excludedGroups>
-                com.google.cloud.spanner.FlakyTest,com.google.cloud.spanner.ParallelIntegrationTest
-              </excludedGroups>
-            </configuration>
-          </execution>
-          <execution>
-            <id>parallel-integration-test</id>
-            <goals>
-              <goal>integration-test</goal>
-            </goals>
-            <configuration>
-              <groups>com.google.cloud.spanner.ParallelIntegrationTest</groups>
-              <excludedGroups>
-                com.google.cloud.spanner.FlakyTest,com.google.cloud.spanner.IntegrationTest
-              </excludedGroups>
-              <forkCount>8</forkCount>
-              <reuseForks>true</reuseForks>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
