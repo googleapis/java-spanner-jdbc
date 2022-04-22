@@ -151,6 +151,7 @@
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-spanner-v1</artifactId>
     </dependency>
+    
     <!-- Native Image dependencies-->
     <dependency>
       <groupId>org.graalvm.nativeimage</groupId>
@@ -335,6 +336,8 @@
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-instance-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-database-v1</ignoredDependency>
+              <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-database-v1</ignoredDependency>
+              <ignoredDependency>org.graalvm.sdk:graal-sdk</ignoredDependency>
             </ignoredUnusedDeclaredDependencies>
           </configuration>
         </plugin>
