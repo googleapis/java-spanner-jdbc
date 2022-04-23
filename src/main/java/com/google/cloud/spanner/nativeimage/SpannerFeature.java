@@ -143,6 +143,10 @@ final class SpannerFeature implements Feature {
       NativeImageUtils.registerClassHierarchyForReflection(
               access, "com.google.cloud.spanner.jdbc.Connection");
     }
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.ConnectionImpl") != null) {
+      NativeImageUtils.registerClassHierarchyForReflection(
+              access, "com.google.cloud.spanner.jdbc.ConnectionImpl");
+    }
     if (access.findClassByName("com.google.cloud.spanner.jdbc.JdbcDriver") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
               access, "com.google.cloud.spanner.jdbc.JdbcDriver");
