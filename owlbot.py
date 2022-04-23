@@ -21,5 +21,6 @@ java.common_templates(excludes=[
     '.github/release-please.yml',
     '.github/sync-repo-settings.yaml',
     '.github/blunderbuss.yml',
+    '.kokoro/build.sh'
     '.kokoro/nightly/integration.cfg'
 ])
