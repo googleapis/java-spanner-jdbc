@@ -141,7 +141,7 @@ final class SpannerFeature implements Feature {
     }
     if (access.findClassByName("com.google.cloud.spanner.jdbc.Connection") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
-              access, "com.google.cloud.spanner.jdbc.Connection");
+          access, "com.google.cloud.spanner.jdbc.Connection");
     }
     if (access.findClassByName("com.google.cloud.spanner.jdbc.ConnectionImpl") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
@@ -149,9 +149,8 @@ final class SpannerFeature implements Feature {
     }
     if (access.findClassByName("com.google.cloud.spanner.jdbc.JdbcDriver") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
-              access, "com.google.cloud.spanner.jdbc.JdbcDriver");
+          access, "com.google.cloud.spanner.jdbc.JdbcDriver");
     }
-
 
     Class<?> spannerClass = access.findClassByName(SPANNER_CLASS);
     if (spannerClass != null) {
@@ -184,14 +183,14 @@ final class SpannerFeature implements Feature {
           ConfigurationCondition.alwaysTrue(),
           "\\Qcom/google/cloud/spanner/jdbc/PostgreSQL/ITSqlScriptTest_TestQueryOptions.sql\\E");
       resourcesRegistry.addResources(
-              ConfigurationCondition.alwaysTrue(),
-              "\\Qcom/google/cloud/spanner/jdbc/ClientSideStatements.json\\E");
+          ConfigurationCondition.alwaysTrue(),
+          "\\Qcom/google/cloud/spanner/jdbc/ClientSideStatements.json\\E");
       resourcesRegistry.addResources(
-              ConfigurationCondition.alwaysTrue(),
-              "\\Qcom/google/cloud/spanner/jdbc/ClientSideStatementsTest.sql\\E");
+          ConfigurationCondition.alwaysTrue(),
+          "\\Qcom/google/cloud/spanner/jdbc/ClientSideStatementsTest.sql\\E");
       resourcesRegistry.addResources(
-              ConfigurationCondition.alwaysTrue(),
-              "\\Qcom/google/cloud/spanner/jdbc/ConnectionImplGeneratedSqlScriptTest.sql\\E");
+          ConfigurationCondition.alwaysTrue(),
+          "\\Qcom/google/cloud/spanner/jdbc/ConnectionImplGeneratedSqlScriptTest.sql\\E");
     }
   }
 
