@@ -124,19 +124,20 @@ final class SpannerFeature implements Feature {
     }
     if (access.findClassByName("com.google.cloud.spanner.jdbc.AbstractJdbcStatement") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
-              access, "com.google.cloud.spanner.jdbc.AbstractJdbcStatement");
+          access, "com.google.cloud.spanner.jdbc.AbstractJdbcStatement");
     }
-    if (access.findClassByName("com.google.cloud.spanner.jdbc.AbstractJdbcPreparedStatement") != null) {
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.AbstractJdbcPreparedStatement")
+        != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
-              access, "com.google.cloud.spanner.jdbc.AbstractJdbcPreparedStatement");
+          access, "com.google.cloud.spanner.jdbc.AbstractJdbcPreparedStatement");
     }
     if (access.findClassByName("com.google.cloud.spanner.jdbc.JdbcStatement") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
-              access, "com.google.cloud.spanner.jdbc.JdbcStatement");
+          access, "com.google.cloud.spanner.jdbc.JdbcStatement");
     }
     if (access.findClassByName("com.google.cloud.spanner.jdbc.JdbcSqlException") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
-              access, "com.google.cloud.spanner.jdbc.JdbcSqlException");
+          access, "com.google.cloud.spanner.jdbc.JdbcSqlException");
     }
 
     Class<?> spannerClass = access.findClassByName(SPANNER_CLASS);
