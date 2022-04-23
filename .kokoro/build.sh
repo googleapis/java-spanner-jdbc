@@ -71,7 +71,7 @@ integration)
     ;;
 graalvm)
     # Run Unit and Integration Tests with Native Image
-    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Dtest=com.google.cloud.spanner.jdbc.it.ITJdbcQueryOptionsTest -Pnative -Penable-integration-tests test
+    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative -Penable-integration-tests test
     RETURN_CODE=$?
     ;;
 samples)
