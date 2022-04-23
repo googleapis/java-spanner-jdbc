@@ -139,6 +139,7 @@ final class SpannerFeature implements Feature {
               access, "com.google.cloud.spanner.jdbc.JdbcSqlException");
     }
 
+
     Class<?> spannerClass = access.findClassByName(SPANNER_CLASS);
     if (spannerClass != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
@@ -161,6 +162,14 @@ final class SpannerFeature implements Feature {
       resourcesRegistry.addResources(
           ConfigurationCondition.alwaysTrue(),
           "\\Qcom/google/cloud/spanner/connection/ITSqlScriptTest_TestQueryOptions.sql\\E");
+
+      // JDBC Resource
+      resourcesRegistry.addResources(
+              ConfigurationCondition.alwaysTrue(),
+              "\\Qcom/google/cloud/spanner/jdbc/ITSqlScriptTest_TestQueryOptions.sql\\E");
+      resourcesRegistry.addResources(
+              ConfigurationCondition.alwaysTrue(),
+              "\\Qcom/google/cloud/spanner/jdbc/PostgreSQL/ITSqlScriptTest_TestQueryOptions.sql\\E");
     }
   }
 
