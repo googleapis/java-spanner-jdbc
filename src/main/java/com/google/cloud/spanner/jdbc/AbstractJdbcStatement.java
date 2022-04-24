@@ -204,7 +204,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       }
       return JdbcResultSet.of(this, resultSet);
     } catch (SpannerException e) {
-      System.out.println("ABSTRACTJDBCSTATEMENT ********SPANNER EXCEPTION****")
+      System.out.println("ABSTRACTJDBCSTATEMENT ********SPANNER EXCEPTION****");
       throw JdbcSqlExceptionFactory.of(e);
     } finally {
       resetStatementTimeout(originalTimeout);
