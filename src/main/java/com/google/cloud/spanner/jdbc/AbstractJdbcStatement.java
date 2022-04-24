@@ -54,11 +54,15 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   private Options.QueryOption[] getQueryOptions(QueryOption... options) throws SQLException {
+    System.out.println("***** GET OPTIONS : BEFORE res = *****");
     QueryOption[] res = options == null ? new QueryOption[0] : options;
-    System.out.println("***** GET OPTIONS *****");
+    System.out.println("***** GET OPTIONS: AFTER res = *****");
     if (getFetchSize() > 0) {
+      System.out.println("****** INSTIDE GET OPTIONS: GETFETCH SIZE ******");
+      System.out.println(getFetchSize());
       res = Arrays.copyOf(res, res.length + 1);
       res[res.length - 1] = Options.prefetchChunks(getFetchSize());
+      System.out.println("****** AFTER OPTIONS.prefetchChunks ******");
     }
     return res;
   }
@@ -200,6 +204,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       }
       return JdbcResultSet.of(this, resultSet);
     } catch (SpannerException e) {
+      System.out.println("ABSTRACTJDBCSTATEMENT ********SPANNER EXCEPTION****")
       throw JdbcSqlExceptionFactory.of(e);
     } finally {
       resetStatementTimeout(originalTimeout);
