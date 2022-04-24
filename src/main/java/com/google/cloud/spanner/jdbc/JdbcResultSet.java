@@ -57,6 +57,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   static JdbcResultSet of(Statement statement, com.google.cloud.spanner.ResultSet resultSet) {
     Preconditions.checkNotNull(statement);
     Preconditions.checkNotNull(resultSet);
+    System.out.println("******* JDBCRESULTSET.OF() ********");
     return new JdbcResultSet(statement, resultSet);
   }
 

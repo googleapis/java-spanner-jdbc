@@ -55,6 +55,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
 
   private Options.QueryOption[] getQueryOptions(QueryOption... options) throws SQLException {
     QueryOption[] res = options == null ? new QueryOption[0] : options;
+    System.out.println("***** GET OPTIONS *****");
     if (getFetchSize() > 0) {
       res = Arrays.copyOf(res, res.length + 1);
       res[res.length - 1] = Options.prefetchChunks(getFetchSize());
@@ -188,10 +189,14 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
     try {
       com.google.cloud.spanner.ResultSet resultSet;
       if (analyzeMode == null) {
+        System.out.println("ABSTRACTJDBCSTATEMENT **** BEFORE RESULT SET EXECUTE QUERY ****");
         resultSet =
             connection.getSpannerConnection().executeQuery(statement, getQueryOptions(options));
+        System.out.println("ABSTRACTJDBCSTATEMENT **** AFTER RESULT SET EXECUTE QUERY ****");
       } else {
+        System.out.println("ABSTRACTJDBCSTATEMENT **** BEFORE RESULTSET ANALYZE QUERY****");
         resultSet = connection.getSpannerConnection().analyzeQuery(statement, analyzeMode);
+        System.out.println("ABSTRACTJDBCSTATEMENT **** AFTER RESULTSET ANALYZE QUERY****");
       }
       return JdbcResultSet.of(this, resultSet);
     } catch (SpannerException e) {
