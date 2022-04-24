@@ -153,17 +153,16 @@ final class SpannerFeature implements Feature {
     }
     if (access.findClassByName("com.google.cloud.spanner.jdbc.ConnectionOptions") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
-              access, "com.google.cloud.spanner.jdbc.ConnectionOptions");
+          access, "com.google.cloud.spanner.jdbc.ConnectionOptions");
     }
     if (access.findClassByName("com.google.cloud.spanner.jdbc.it.DialectTestParameter") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
-              access, "com.google.cloud.spanner.jdbc.it.DialectTestParameter");
+          access, "com.google.cloud.spanner.jdbc.it.DialectTestParameter");
     }
     if (access.findClassByName("com.google.cloud.spanner.jdbc.it.SpannerTestHost") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
-              access, "com.google.cloud.spanner.jdbc.it.SpannerTestHost");
+          access, "com.google.cloud.spanner.jdbc.it.SpannerTestHost");
     }
-
 
     Class<?> spannerClass = access.findClassByName(SPANNER_CLASS);
     if (spannerClass != null) {
