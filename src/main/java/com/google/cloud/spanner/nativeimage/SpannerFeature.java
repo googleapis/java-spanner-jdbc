@@ -158,9 +158,10 @@ final class SpannerFeature implements Feature {
     if (access.findClassByName("com.google.cloud.spanner.jdbc.it.DialectTestParameter") != null) {
       NativeImageUtils.registerClassHierarchyForReflection(
               access, "com.google.cloud.spanner.jdbc.it.DialectTestParameter");
-      if (access.findClassByName("com.google.cloud.spanner.jdbc.it.SpannerTestHost") != null) {
-        NativeImageUtils.registerClassHierarchyForReflection(
-                access, "com.google.cloud.spanner.jdbc.it.SpannerTestHost");
+    }
+    if (access.findClassByName("com.google.cloud.spanner.jdbc.it.SpannerTestHost") != null) {
+      NativeImageUtils.registerClassHierarchyForReflection(
+              access, "com.google.cloud.spanner.jdbc.it.SpannerTestHost");
     }
 
 
