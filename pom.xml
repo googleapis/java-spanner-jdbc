@@ -337,7 +337,7 @@
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-instance-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-database-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-database-v1</ignoredDependency>
-              <ignoredDependency>org.graalvm.sdk:graal-sdk</ignoredDependency>
+              <ignoredUnusedDeclaredDependency>org.graalvm.sdk:graal-sdk</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
           </configuration>
         </plugin>
