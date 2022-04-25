@@ -86,8 +86,10 @@ final class SpannerFeature implements Feature {
     if (access.findClassByName(POSTGRESQL_STATEMENT_PARSER) != null) {
       NativeImageUtils.registerConstructorsForReflection(access, POSTGRESQL_STATEMENT_PARSER);
     }
-    if (access.findClassByName("com.google.cloud.spanner.connection.StatementResult$ResultType") != null) {
-      NativeImageUtils.registerClassForReflection(access, "com.google.cloud.spanner.connection.StatementResult$ResultType");
+    if (access.findClassByName("com.google.cloud.spanner.connection.StatementResult$ResultType")
+        != null) {
+      NativeImageUtils.registerClassForReflection(
+          access, "com.google.cloud.spanner.connection.StatementResult$ResultType");
     }
 
     Class<?> spannerClass = access.findClassByName(SPANNER_CLASS);
