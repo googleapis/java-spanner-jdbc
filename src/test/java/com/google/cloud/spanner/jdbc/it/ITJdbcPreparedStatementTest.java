@@ -37,6 +37,8 @@ import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.BatchUpdateException;
@@ -1106,14 +1108,14 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private List<String> readValuesFromFile(String filename) {
-    File file = new File(Objects.requireNonNull(getClass().getResource(filename)).getFile());
     StringBuilder builder = new StringBuilder();
-    try (Scanner scanner = new Scanner(file)) {
+    try (InputStream stream = ITJdbcPreparedStatementTest.class.getResourceAsStream(filename)) {
+      Scanner scanner = new Scanner(stream);
       while (scanner.hasNextLine()) {
         String line = scanner.nextLine();
         builder.append(line).append("\n");
       }
-    } catch (FileNotFoundException e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
     String[] array = builder.toString().split(";");
