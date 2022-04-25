@@ -754,6 +754,10 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
         assertTrue(rs.next());
         assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CATALOG"));
+        assertEquals("pg_catalog", rs.getString("TABLE_SCHEM"));
+
+        assertTrue(rs.next());
+        assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CATALOG"));
         assertEquals("public", rs.getString("TABLE_SCHEM"));
 
         assertTrue(rs.next());
