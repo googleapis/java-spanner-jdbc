@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.cloud.spanner.nativeimage;
+package com.google.cloud.spanner.jdbc.nativeimage;
 
 import com.google.api.gax.nativeimage.NativeImageUtils;
 import com.oracle.svm.core.annotate.AutomaticFeature;

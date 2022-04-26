@@ -188,8 +188,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
     try {
       com.google.cloud.spanner.ResultSet resultSet;
       if (analyzeMode == null) {
-        Options.QueryOption[] options1 = getQueryOptions(options);
-        resultSet = connection.getSpannerConnection().executeQuery(statement, options1);
+        resultSet = connection.getSpannerConnection().executeQuery(statement, getQueryOptions(options));
       } else {
         resultSet = connection.getSpannerConnection().analyzeQuery(statement, analyzeMode);
       }
