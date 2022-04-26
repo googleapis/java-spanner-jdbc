@@ -51,7 +51,8 @@ final class SpannerFeature implements Feature {
   private static final String POSTGRESQL_STATEMENT_PARSER =
       "com.google.cloud.spanner.connection.PostgreSQLStatementParser";
   private static final String DIALECT = "com.google.cloud.spanner.Dialect";
-  private static final String STATEMENT_RESULT = "com.google.cloud.spanner.connection.StatementResult$ResultType";
+  private static final String STATEMENT_RESULT =
+      "com.google.cloud.spanner.connection.StatementResult$ResultType";
 
   @Override
   public void beforeAnalysis(BeforeAnalysisAccess access) {
@@ -88,8 +89,7 @@ final class SpannerFeature implements Feature {
       NativeImageUtils.registerConstructorsForReflection(access, POSTGRESQL_STATEMENT_PARSER);
     }
     if (access.findClassByName(STATEMENT_RESULT) != null) {
-      NativeImageUtils.registerClassForReflection(
-          access, STATEMENT_RESULT);
+      NativeImageUtils.registerClassForReflection(access, STATEMENT_RESULT);
     }
 
     Class<?> spannerClass = access.findClassByName(SPANNER_CLASS);
