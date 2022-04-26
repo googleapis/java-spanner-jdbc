@@ -194,6 +194,7 @@ public class JdbcDriver implements Driver {
           String connectionUri = appendPropertiesToUrl(url.substring(5), info);
           ConnectionOptions options = ConnectionOptions.newBuilder().setUri(connectionUri).build();
           JdbcConnection connection = new JdbcConnection(url, options);
+          System.out.println("*********JDBC DRIVER CONNECT METHOD******");
           if (options.getWarnings() != null) {
             connection.pushWarning(new SQLWarning(options.getWarnings()));
           }

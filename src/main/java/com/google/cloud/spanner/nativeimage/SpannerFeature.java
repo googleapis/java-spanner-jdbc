@@ -51,6 +51,7 @@ final class SpannerFeature implements Feature {
   private static final String POSTGRESQL_STATEMENT_PARSER =
       "com.google.cloud.spanner.connection.PostgreSQLStatementParser";
   private static final String DIALECT = "com.google.cloud.spanner.Dialect";
+  private static final String STATEMENT_RESULT = "com.google.cloud.spanner.connection.StatementResult$ResultType";
 
   @Override
   public void beforeAnalysis(BeforeAnalysisAccess access) {
@@ -78,7 +79,7 @@ final class SpannerFeature implements Feature {
     }
     if (access.findClassByName(ABSTRACT_STATEMENT_PARSER) != null) {
       NativeImageUtils.registerClassHierarchyForReflection(access, ABSTRACT_STATEMENT_PARSER);
-      NativeImageUtils.registerClassForReflection(access, "com.google.cloud.spanner.Dialect");
+      NativeImageUtils.registerClassForReflection(access, DIALECT);
     }
     if (access.findClassByName(STATEMENT_PARSER) != null) {
       NativeImageUtils.registerConstructorsForReflection(access, STATEMENT_PARSER);
@@ -86,10 +87,9 @@ final class SpannerFeature implements Feature {
     if (access.findClassByName(POSTGRESQL_STATEMENT_PARSER) != null) {
       NativeImageUtils.registerConstructorsForReflection(access, POSTGRESQL_STATEMENT_PARSER);
     }
-    if (access.findClassByName("com.google.cloud.spanner.connection.StatementResult$ResultType")
-        != null) {
+    if (access.findClassByName(STATEMENT_RESULT) != null) {
       NativeImageUtils.registerClassForReflection(
-          access, "com.google.cloud.spanner.connection.StatementResult$ResultType");
+          access, STATEMENT_RESULT);
     }
 
     Class<?> spannerClass = access.findClassByName(SPANNER_CLASS);
@@ -114,23 +114,6 @@ final class SpannerFeature implements Feature {
       resourcesRegistry.addResources(
           ConfigurationCondition.alwaysTrue(),
           "\\Qcom/google/cloud/spanner/connection/ITSqlScriptTest_TestQueryOptions.sql\\E");
-
-      // JDBC Resource
-      // resourcesRegistry.addResources(
-      //     ConfigurationCondition.alwaysTrue(),
-      //     "\\Qcom/google/cloud/spanner/jdbc/ITSqlScriptTest_TestQueryOptions.sql\\E");
-      // resourcesRegistry.addResources(
-      //     ConfigurationCondition.alwaysTrue(),
-      //     "\\Qcom/google/cloud/spanner/jdbc/PostgreSQL/ITSqlScriptTest_TestQueryOptions.sql\\E");
-      // resourcesRegistry.addResources(
-      //     ConfigurationCondition.alwaysTrue(),
-      //     "\\Qcom/google/cloud/spanner/jdbc/ClientSideStatements.json\\E");
-      // resourcesRegistry.addResources(
-      //     ConfigurationCondition.alwaysTrue(),
-      //     "\\Qcom/google/cloud/spanner/jdbc/ClientSideStatementsTest.sql\\E");
-      // resourcesRegistry.addResources(
-      //     ConfigurationCondition.alwaysTrue(),
-      //     "\\Qcom/google/cloud/spanner/jdbc/ConnectionImplGeneratedSqlScriptTest.sql\\E");
     }
   }
 
