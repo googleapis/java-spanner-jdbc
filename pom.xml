@@ -328,11 +328,7 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
           <configuration>
-            <ignoredUsedUndeclaredDependencies>
-              org.graalvm.sdk:graal-sdk,
-              com.google.api.grpc:grpc-google-cloud-spanner-v1,
-              com.google.api.grpc:proto-google-cloud-spanner-admin-instance-v1,
-              com.google.api.grpc:proto-google-cloud-spanner-admin-database-v1</ignoredUsedUndeclaredDependencies>
+            <ignoredUsedUndeclaredDependencies>org.graalvm.sdk:graal-sdk,com.google.api.grpc:grpc-google-cloud-spanner-v1,com.google.api.grpc:proto-google-cloud-spanner-admin-instance-v1,com.google.api.grpc:proto-google-cloud-spanner-admin-database-v1</ignoredUsedUndeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>org.graalvm.sdk:graal-sdk</ignoredUsedUndeclaredDependencies>
             <ignoredUnusedDeclaredDependencies>
               <!-- TODO: Remove grpc-alts from ignored list once it has been removed from java-spanner -->
