@@ -18,7 +18,7 @@ NEW_CONNECTION;
 
 -- Test a couple of count queries to ensure the presence of the data
 @EXPECT RESULT_SET 'READONLY',true
-SHOW VARIABLE READONLY;
+SHOW VARIABLE SPANNER.READONLY;
 
 -- Check initial contents.
 @EXPECT RESULT_SET
@@ -35,7 +35,7 @@ SHOW VARIABLE READ_TIMESTAMP;
 NEW_CONNECTION;
 -- Test two selects in one temporary transaction
 @EXPECT RESULT_SET 'READONLY',true
-SHOW VARIABLE READONLY;
+SHOW VARIABLE SPANNER.READONLY;
 
 BEGIN;
 

@@ -19,7 +19,7 @@
  */
 
 SET AUTOCOMMIT = TRUE;
-SET READONLY = FALSE;
+SET SPANNER.READONLY = FALSE;
 
 -- Insert a new singer in a temporary transaction and commit
 BEGIN;

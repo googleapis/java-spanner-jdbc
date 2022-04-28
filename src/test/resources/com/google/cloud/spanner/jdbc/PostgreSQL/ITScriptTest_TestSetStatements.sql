@@ -20,34 +20,34 @@
 
 @EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for AUTOCOMMIT: on'
 set autocommit = on;
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for READONLY: on'
-set readonly = on;
+@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for spanner.readonly: on'
+set spanner.readonly = on;
 
 SET AUTOCOMMIT = TRUE;
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for AUTOCOMMIT_DML_MODE: 'non_atomic''
-set autocommit_dml_mode='non_atomic';
+@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for spanner.autocommit_dml_mode: 'non_atomic''
+set spanner.autocommit_dml_mode='non_atomic';
 
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for READ_ONLY_STALENESS: 'weak''
-set read_only_staleness='weak';
+@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for spanner.read_only_staleness: 'weak''
+set spanner.read_only_staleness='weak';
 
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for READ_ONLY_STALENESS: 'strong 2018-11-15T13:09:25Z''
-set read_only_staleness='strong 2018-11-15T13:09:25Z';
+@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for spanner.read_only_staleness: 'strong 2018-11-15T13:09:25Z''
+set spanner.read_only_staleness='strong 2018-11-15T13:09:25Z';
 
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for READ_ONLY_STALENESS: 'MIN_READ_TIMESTAMP''
-set read_only_staleness='MIN_READ_TIMESTAMP';
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for READ_ONLY_STALENESS: 'MIN_READ_TIMESTAMP 10s''
-set read_only_staleness='MIN_READ_TIMESTAMP 10s';
+@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for spanner.read_only_staleness: 'MIN_READ_TIMESTAMP''
+set spanner.read_only_staleness='MIN_READ_TIMESTAMP';
+@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for spanner.read_only_staleness: 'MIN_READ_TIMESTAMP 10s''
+set spanner.read_only_staleness='MIN_READ_TIMESTAMP 10s';
 -- Missing timezone in timestamp
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for READ_ONLY_STALENESS: 'MIN_READ_TIMESTAMP 2018-11-15T13:09:25''
-set read_only_staleness='MIN_READ_TIMESTAMP 2018-11-15T13:09:25';
+@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for spanner.read_only_staleness: 'MIN_READ_TIMESTAMP 2018-11-15T13:09:25''
+set spanner.read_only_staleness='MIN_READ_TIMESTAMP 2018-11-15T13:09:25';
 
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for READ_ONLY_STALENESS: 'MAX_STALENESS''
-set read_only_staleness='MAX_STALENESS';
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for READ_ONLY_STALENESS: 'MAX_STALENESS 2018-11-15T13:09:25Z''
-set read_only_staleness='MAX_STALENESS 2018-11-15T13:09:25Z';
+@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for spanner.read_only_staleness: 'MAX_STALENESS''
+set spanner.read_only_staleness='MAX_STALENESS';
+@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for spanner.read_only_staleness: 'MAX_STALENESS 2018-11-15T13:09:25Z''
+set spanner.read_only_staleness='MAX_STALENESS 2018-11-15T13:09:25Z';
 -- Missing time unit
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for READ_ONLY_STALENESS: 'MAX_STALENESS 10''
-set read_only_staleness='MAX_STALENESS 10';
+@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for spanner.read_only_staleness: 'MAX_STALENESS 10''
+set spanner.read_only_staleness='MAX_STALENESS 10';
 
 @EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown value for STATEMENT_TIMEOUT: -1'
 set statement_timeout=-1;
