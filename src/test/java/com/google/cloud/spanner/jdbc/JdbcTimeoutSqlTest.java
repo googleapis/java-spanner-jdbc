@@ -46,6 +46,7 @@ public class JdbcTimeoutSqlTest {
   @Test
   public void testTimeoutScript() throws Exception {
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new TestConnectionProvider(dialect));
-    verifier.verifyStatementsInFile("TimeoutSqlScriptTest.sql", getClass(), false);
+    String prefix = dialect == Dialect.POSTGRESQL ? "PostgreSQL/" : "";
+    verifier.verifyStatementsInFile(prefix + "TimeoutSqlScriptTest.sql", getClass(), false);
   }
 }
