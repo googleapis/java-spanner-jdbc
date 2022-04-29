@@ -110,12 +110,19 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
     return dialect.dialect;
   }
 
+  private String getNamespace() {
+    return getDialect() == Dialect.POSTGRESQL ? "SPANNER." : "";
+  }
+
   private void verifyOptimizerVersion(Connection connection, String expectedVersion)
       throws SQLException {
     try (ResultSet rs =
-        connection.createStatement().executeQuery("SHOW VARIABLE OPTIMIZER_VERSION")) {
+        connection
+            .createStatement()
+            .executeQuery(String.format("SHOW VARIABLE %sOPTIMIZER_VERSION", getNamespace()))) {
       assertThat(rs.next()).isTrue();
-      assertThat(rs.getString("OPTIMIZER_VERSION")).isEqualTo(expectedVersion);
+      assertThat(rs.getString(String.format("%sOPTIMIZER_VERSION", getNamespace())))
+          .isEqualTo(expectedVersion);
       assertThat(rs.next()).isFalse();
     }
   }
@@ -153,7 +160,9 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
   public void setOptimizerVersion() throws SQLException {
     try (Connection connection = createConnection(env, database)) {
       verifyOptimizerVersion(connection, "");
-      connection.createStatement().execute("SET OPTIMIZER_VERSION='1'");
+      connection
+          .createStatement()
+          .execute(String.format("SET %sOPTIMIZER_VERSION='1'", getNamespace()));
       verifyOptimizerVersion(connection, "1");
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
         assertThat(rs.next()).isTrue();
@@ -167,7 +176,9 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
   public void setLatestOptimizerVersion() throws SQLException {
     try (Connection connection = createConnection(env, database)) {
       verifyOptimizerVersion(connection, "");
-      connection.createStatement().execute("SET OPTIMIZER_VERSION='LATEST'");
+      connection
+          .createStatement()
+          .execute(String.format("SET %sOPTIMIZER_VERSION='LATEST'", getNamespace()));
       verifyOptimizerVersion(connection, "LATEST");
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
         assertThat(rs.next()).isTrue();
@@ -182,7 +193,9 @@ public class ITJdbcQueryOptionsTest extends ITAbstractJdbcTest {
     assumeFalse(
         "optimizer version is ignored on emulator", EmulatorSpannerHelper.isUsingEmulator());
     try (Connection connection = createConnection(env, database)) {
-      connection.createStatement().execute("SET OPTIMIZER_VERSION='9999999'");
+      connection
+          .createStatement()
+          .execute(String.format("SET %sOPTIMIZER_VERSION='9999999'", getNamespace()));
       try (ResultSet rs = connection.createStatement().executeQuery("SELECT 1")) {
         fail("missing expected exception");
       } catch (SQLException e) {

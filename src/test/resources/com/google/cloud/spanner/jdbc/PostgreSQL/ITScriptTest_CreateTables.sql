@@ -27,7 +27,7 @@ SHOW VARIABLE AUTOCOMMIT;
 -- Turn off readonly (and verify)
 @EXPECT NO_RESULT
 SET SPANNER.READONLY = FALSE;
-@EXPECT RESULT_SET 'READONLY',false
+@EXPECT RESULT_SET 'SPANNER.READONLY',false
 SHOW VARIABLE SPANNER.READONLY;
 
 -- Start a DDL batch to execute a number of DDL statements as one operation.

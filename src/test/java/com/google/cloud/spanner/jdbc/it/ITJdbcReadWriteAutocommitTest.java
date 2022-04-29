@@ -101,7 +101,10 @@ public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
       connection.write(
           Mutation.newInsertBuilder("TEST").set("ID").to(9999L).set("NAME").to("FOO").build());
       java.sql.Statement statement = connection.createStatement();
-      statement.execute("SHOW VARIABLE COMMIT_TIMESTAMP");
+      statement.execute(
+          String.format(
+              "SHOW VARIABLE %sCOMMIT_TIMESTAMP",
+              getDialect() == Dialect.POSTGRESQL ? "SPANNER." : ""));
       try (java.sql.ResultSet rs = statement.getResultSet()) {
         assertThat(rs.next(), is(true));
         assertThat(rs.getTimestamp(1), is(notNullValue()));
