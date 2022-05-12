@@ -14,7 +14,7 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>google-cloud-shared-config</artifactId>
-    <version>1.3.3</version>
+    <version>1.4.0</version>
   </parent>
   <developers>
     <developer>
@@ -254,7 +254,7 @@
             </spanner.testenv.instance>
           </systemPropertyVariables>
           <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
-          <forkCount>8</forkCount>
+          <forkCount>4</forkCount>
           <reuseForks>true</reuseForks>
         </configuration>
       </plugin>
@@ -397,7 +397,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.2.2</version>
+        <version>3.3.0</version>
         <reportSets>
           <reportSet>
             <reports>
