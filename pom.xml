@@ -220,7 +220,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <exclude>com.google.cloud.spanner.IntegrationTest</exclude>
+          <excludes>
+            <exclude>com.google.cloud.spanner.jdbc.it.**</exclude>
+            <exclude>com.google.cloud.spanner.jdbc.JdbcStatementTimeoutTest</exclude>
+          </excludes>
           <reportNameSuffix>sponge_log</reportNameSuffix>
         </configuration>
       </plugin>

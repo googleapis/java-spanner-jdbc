@@ -104,7 +104,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    * specified for a JDBC statement, and then after executing the JDBC statement setting the timeout
    * on the Spanner {@link Connection} again.
    */
-  private static class StatementTimeout {
+  static class StatementTimeout {
     private final long timeout;
     private final TimeUnit unit;
 
@@ -123,7 +123,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    * {@link Statement} and returns the original timeout of the Spanner {@link Connection} so it can
    * be reset after the execution of a statement
    */
-  private StatementTimeout setTemporaryStatementTimeout() throws SQLException {
+  StatementTimeout setTemporaryStatementTimeout() throws SQLException {
     StatementTimeout originalTimeout = null;
     if (getQueryTimeout() > 0) {
       if (connection.getSpannerConnection().hasStatementTimeout()) {
@@ -140,7 +140,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    * Resets the statement timeout of the Spanner {@link Connection} after a JDBC {@link Statement}
    * has been executed.
    */
-  private void resetStatementTimeout(StatementTimeout originalTimeout) throws SQLException {
+  void resetStatementTimeout(StatementTimeout originalTimeout) throws SQLException {
     if (getQueryTimeout() > 0) {
       if (originalTimeout == null) {
         connection.getSpannerConnection().clearStatementTimeout();

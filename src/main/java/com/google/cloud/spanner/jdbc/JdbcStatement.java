@@ -265,6 +265,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   private long[] executeBatch(boolean large) throws SQLException {
     checkClosed();
     checkConnectionHasNoActiveBatch();
+    StatementTimeout originalTimeout = setTemporaryStatementTimeout();
     try {
       switch (this.currentBatchType) {
         case DML:
@@ -310,6 +311,7 @@ class JdbcStatement extends AbstractJdbcStatement {
               String.format("Unknown batch type: %s", this.currentBatchType.name()));
       }
     } finally {
+      resetStatementTimeout(originalTimeout);
       batchedStatements.clear();
       this.currentBatchType = BatchType.NONE;
     }
