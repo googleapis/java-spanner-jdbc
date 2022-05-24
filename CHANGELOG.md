@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.7.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.6.4...v2.7.0) (2022-05-24)
+
+
+### Features
+
+* add build scripts for native image testing in Java 17 ([#1440](https://github.com/googleapis/java-spanner-jdbc/issues/1440)) ([#875](https://github.com/googleapis/java-spanner-jdbc/issues/875)) ([600e401](https://github.com/googleapis/java-spanner-jdbc/commit/600e4017e0b2e52e7a2f42ffca88b1326be03a31))
+
+
+### Dependencies
+
+* bump Spanner to 6.23.3 ([#862](https://github.com/googleapis/java-spanner-jdbc/issues/862)) ([b7b8efa](https://github.com/googleapis/java-spanner-jdbc/commit/b7b8efa80cdef9a827c85d469176463001c14b94)), closes [#788](https://github.com/googleapis/java-spanner-jdbc/issues/788)
+* update dependency com.google.cloud:google-cloud-shared-dependencies to v2.12.0 ([#874](https://github.com/googleapis/java-spanner-jdbc/issues/874)) ([d403f54](https://github.com/googleapis/java-spanner-jdbc/commit/d403f5414cf593e239140f5bbf89b06608167fbf))
+* update opencensus.version to v0.31.1 ([#865](https://github.com/googleapis/java-spanner-jdbc/issues/865)) ([61ba9be](https://github.com/googleapis/java-spanner-jdbc/commit/61ba9be15018c198a00d8f2e69121470c3da2ce0))
+
 ### [2.6.4](https://github.com/googleapis/java-spanner-jdbc/compare/v2.6.3...v2.6.4) (2022-04-21)
 
 
