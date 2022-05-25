@@ -18,7 +18,6 @@ package com.google.cloud.spanner.jdbc.nativeimage;
 
 import com.google.api.gax.nativeimage.NativeImageUtils;
 import org.graalvm.nativeimage.hosted.Feature;
-import org.graalvm.nativeimage.impl.ConfigurationCondition;
 
 /** Registers Spanner library classes for reflection. */
 final class SpannerFeature implements Feature {
