@@ -26,7 +26,6 @@ import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConn
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnectionProvider;
 import com.google.cloud.spanner.connection.ConnectionImplTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
-import com.google.cloud.spanner.connection.SqlScriptVerifier;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
 import java.sql.SQLException;
 import org.junit.Test;
@@ -62,7 +61,7 @@ public class JdbcConnectionGeneratedSqlScriptTest {
       ConnectionOptions options = mock(ConnectionOptions.class);
       when(options.getUri()).thenReturn(ConnectionImplTest.URI);
       com.google.cloud.spanner.connection.Connection spannerConnection =
-          ConnectionImplTest.createConnection(options);
+          ConnectionImplTest.createConnection(options, dialect);
       when(spannerConnection.getDialect()).thenReturn(dialect);
       when(options.getConnection()).thenReturn(spannerConnection);
       try {
@@ -82,7 +81,8 @@ public class JdbcConnectionGeneratedSqlScriptTest {
   @Test
   public void testGeneratedScript() throws Exception {
     JdbcSqlScriptVerifier verifier = new JdbcSqlScriptVerifier(new TestConnectionProvider(dialect));
+    String prefix = dialect == Dialect.POSTGRESQL ? "PostgreSQL/" : "";
     verifier.verifyStatementsInFile(
-        "ConnectionImplGeneratedSqlScriptTest.sql", SqlScriptVerifier.class, false);
+        prefix + "ConnectionImplGeneratedSqlScriptTest.sql", getClass(), false);
   }
 }

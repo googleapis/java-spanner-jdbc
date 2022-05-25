@@ -19,7 +19,7 @@
  */
 
 SET AUTOCOMMIT = FALSE;
-SET READONLY = TRUE;
+SET SPANNER.READONLY = TRUE;
 
 -- Verify that trying to insert a test record will fail
 @EXPECT EXCEPTION FAILED_PRECONDITION 'FAILED_PRECONDITION: Update statements are not allowed for read-only transactions'
@@ -40,15 +40,15 @@ WHERE SingerId=1;
 UPDATE Singers SET FirstName='New First Name' WHERE SingerId=9999;
 
 -- We are in a read-only transaction that has returned a query, so there should be a read-timestamp
-@EXPECT RESULT_SET 'READ_TIMESTAMP'
-SHOW VARIABLE READ_TIMESTAMP;
+@EXPECT RESULT_SET 'SPANNER.READ_TIMESTAMP'
+SHOW VARIABLE SPANNER.READ_TIMESTAMP;
 
 -- Finish the transaction with a rollback. This removes the read timestamp
 ROLLBACK;
 
 -- Read timestamp from the previous transaction should no longer be available as it rolled back
-@EXPECT RESULT_SET 'READ_TIMESTAMP',null
-SHOW VARIABLE READ_TIMESTAMP;
+@EXPECT RESULT_SET 'SPANNER.READ_TIMESTAMP',null
+SHOW VARIABLE SPANNER.READ_TIMESTAMP;
 
 -- Start a new read only transaction and SHOW VARIABLE the read timestamp after a commit
 SET TRANSACTION READ ONLY;
@@ -60,8 +60,8 @@ WHERE SingerId=1;
 
 COMMIT;
 
-@EXPECT RESULT_SET 'READ_TIMESTAMP'
-SHOW VARIABLE READ_TIMESTAMP;
+@EXPECT RESULT_SET 'SPANNER.READ_TIMESTAMP'
+SHOW VARIABLE SPANNER.READ_TIMESTAMP;
 
 -- Try to execute DDL in a read-only transaction
 SET TRANSACTION READ ONLY;

@@ -19,11 +19,11 @@
  */
 
 SET AUTOCOMMIT = TRUE;
-SET READONLY = TRUE;
+SET SPANNER.READONLY = TRUE;
 
 -- First verify that the autocommit dml mode cannot be set when in read-only mode
 @EXPECT EXCEPTION FAILED_PRECONDITION 'FAILED_PRECONDITION: Cannot set autocommit DML mode for a read-only connection'
-SET AUTOCOMMIT_DML_MODE = 'PARTITIONED_NON_ATOMIC';
+SET SPANNER.AUTOCOMMIT_DML_MODE = 'PARTITIONED_NON_ATOMIC';
 
 -- Verify that executing an update statement fails
 @EXPECT EXCEPTION FAILED_PRECONDITION 'FAILED_PRECONDITION: Update statements are not allowed in read-only mode'

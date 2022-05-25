@@ -26,9 +26,9 @@ SHOW VARIABLE AUTOCOMMIT;
 
 -- Turn off readonly (and verify)
 @EXPECT NO_RESULT
-SET READONLY = FALSE;
-@EXPECT RESULT_SET 'READONLY',false
-SHOW VARIABLE READONLY;
+SET SPANNER.READONLY = FALSE;
+@EXPECT RESULT_SET 'SPANNER.READONLY',false
+SHOW VARIABLE SPANNER.READONLY;
 
 -- Start a DDL batch to execute a number of DDL statements as one operation.
 @EXPECT NO_RESULT
@@ -61,7 +61,7 @@ CREATE INDEX AlbumsByAlbumTitle ON Albums(AlbumTitle);
 RUN BATCH;
 
 -- Reset the statement timeout
-SET STATEMENT_TIMEOUT=null;
+SET STATEMENT_TIMEOUT=default;
 
 /*
  * Verify that the test tables have been created
@@ -69,7 +69,7 @@ SET STATEMENT_TIMEOUT=null;
 @EXPECT NO_RESULT
 SET AUTOCOMMIT = TRUE;
 @EXPECT NO_RESULT
-SET READONLY = TRUE;
+SET SPANNER.READONLY = TRUE;
 
 -- Check that the table has been created
 @EXPECT RESULT_SET

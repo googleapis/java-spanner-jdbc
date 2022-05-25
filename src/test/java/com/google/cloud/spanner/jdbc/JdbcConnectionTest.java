@@ -76,7 +76,7 @@ public class JdbcConnectionTest {
 
   private JdbcConnection createConnection(ConnectionOptions options) throws SQLException {
     com.google.cloud.spanner.connection.Connection spannerConnection =
-        ConnectionImplTest.createConnection(options);
+        ConnectionImplTest.createConnection(options, dialect);
     when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
     return new JdbcConnection(
@@ -157,10 +157,13 @@ public class JdbcConnectionTest {
       // verify that there is no transaction started anymore
       assertThat(connection.getSpannerConnection().isTransactionStarted()).isFalse();
       // verify that there is no commit timestamp
-      try (ResultSet rs =
-          connection.createStatement().executeQuery("show variable commit_timestamp")) {
+      String showCommitTimestamp =
+          dialect == Dialect.POSTGRESQL
+              ? "show spanner.commit_timestamp"
+              : "show variable commit_timestamp";
+      try (ResultSet rs = connection.createStatement().executeQuery(showCommitTimestamp)) {
         assertThat(rs.next()).isTrue();
-        assertThat(rs.getTimestamp("COMMIT_TIMESTAMP")).isNull();
+        assertThat(rs.getTimestamp(1)).isNull();
       }
     }
   }
