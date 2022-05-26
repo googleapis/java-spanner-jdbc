@@ -135,6 +135,7 @@ public class JdbcDriverTest {
       assertThat(e.getMessage())
           .contains(
               "Specify only one of credentialsUrl, encodedCredentials, credentialsProvider and OAuth token");
+    }
   }
 
   @Test
