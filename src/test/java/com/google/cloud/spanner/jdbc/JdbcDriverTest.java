@@ -132,7 +132,9 @@ public class JdbcDriverTest {
                 server.getPort(), TEST_KEY_PATH, "some-token"))) {
       fail("missing expected exception");
     } catch (SQLException e) {
-      assertThat(e.getMessage()).contains("Cannot specify both credentials and an OAuth token");
+      assertThat(e.getMessage())
+          .contains(
+              "Specify only one of credentialsUrl, encodedCredentials, credentialsProvider and OAuth token");
     }
   }
 
