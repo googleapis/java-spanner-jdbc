@@ -1,0 +1,8 @@
+[
+  {
+    "name": "com.google.cloud.spanner.connection.ClientSideStatementExplainExecutor",
+    "queryAllDeclaredMethods":true,
+    "allDeclaredFields": true,
+    "queryAllDeclaredConstructors":true
+  }
+]
