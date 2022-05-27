@@ -17,16 +17,6 @@
 /*
  * Script for testing invalid/unrecognized statements
  */
--- EXPLAIN statement
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown statement: EXPLAIN'
-EXPLAIN SELECT *
-        FROM Singers;
-
--- EXPLAIN ANALYZE statement
-@EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown statement: EXPLAIN ANALYZE'
-EXPLAIN ANALYZE SELECT *
-                FROM Singers;
-
 -- SET unknown property
 @EXPECT EXCEPTION INVALID_ARGUMENT 'INVALID_ARGUMENT: Unknown statement: SET some_property'
 SET some_property='value';
