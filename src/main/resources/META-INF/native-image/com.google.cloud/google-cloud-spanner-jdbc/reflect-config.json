@@ -3,6 +3,6 @@
     "name": "com.google.cloud.spanner.connection.ClientSideStatementExplainExecutor",
     "queryAllDeclaredMethods":true,
     "allDeclaredFields": true,
-    "methods":[{"name":"<init>","parameterTypes":[] }]
+    "methods":[{"name":"<init>","parameterTypes":["com.google.cloud.spanner.connection.ClientSideStatementImpl"] }]
   }
 ]
