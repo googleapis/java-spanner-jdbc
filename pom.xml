@@ -157,15 +157,6 @@
       <artifactId>proto-google-cloud-spanner-v1</artifactId>
     </dependency>
 
-    <!-- Native Image dependencies-->
-    <dependency>
-      <groupId>org.graalvm.sdk</groupId>
-      <artifactId>graal-sdk</artifactId>
-      <version>22.1.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <!-- Native Image dependencies-->
-
     <!-- Test dependencies -->
     <dependency>
       <groupId>com.google.cloud</groupId>
