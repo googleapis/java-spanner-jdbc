@@ -230,6 +230,14 @@
             <exclude>com.google.cloud.spanner.jdbc.JdbcStatementTimeoutTest</exclude>
           </excludes>
           <reportNameSuffix>sponge_log</reportNameSuffix>
+          <systemPropertyVariables>
+            <spanner.testenv.config.class>
+              com.google.cloud.spanner.GceTestEnvConfig
+            </spanner.testenv.config.class>
+            <spanner.testenv.instance>
+              projects/gcloud-devel/instances/spanner-testing-east1
+            </spanner.testenv.instance>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
       <plugin>
@@ -319,6 +327,12 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
           <configuration>
+            <ignoredUsedUndeclaredDependencies>
+              <ignoredUsedUndeclaredDependency>org.graalvm.sdk:graal-sdk</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>com.google.api.grpc:proto-google-cloud-spanner-admin-instance-v1</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>com.google.api.grpc:proto-google-cloud-spanner-admin-database-v1</ignoredUsedUndeclaredDependency>
+            </ignoredUsedUndeclaredDependencies>
             <ignoredUnusedDeclaredDependencies>
               <!-- TODO: Remove grpc-alts from ignored list once it has been removed from java-spanner -->
               <ignoredDependency>io.grpc:grpc-alts</ignoredDependency>
