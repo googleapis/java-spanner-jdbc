@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.2...v2.7.3) (2022-05-31)
+
+
+### Bug Fixes
+
+* **java:** adding resource and reflection configurations for native image testing ([#809](https://github.com/googleapis/java-spanner-jdbc/issues/809)) ([6126d4f](https://github.com/googleapis/java-spanner-jdbc/commit/6126d4f55dde76c8b945999008bbee78203a1b75))
+
 ## [2.7.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.1...v2.7.2) (2022-05-31)
 
 
