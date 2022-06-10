@@ -228,13 +228,18 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    * @throws SQLException if a database error occurs
    */
   long executeLargeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
-    StatementTimeout originalTimeout = setTemporaryStatementTimeout();
-    try {
-      return connection.getSpannerConnection().executeUpdate(statement);
-    } catch (SpannerException e) {
-      throw JdbcSqlExceptionFactory.of(e);
-    } finally {
-      resetStatementTimeout(originalTimeout);
+    StatementResult result = execute(statement);
+    switch (result.getResultType()) {
+      case RESULT_SET:
+        throw JdbcSqlExceptionFactory.of(
+            "The statement is not an update or DDL statement", Code.INVALID_ARGUMENT);
+      case UPDATE_COUNT:
+        return result.getUpdateCount();
+      case NO_RESULT:
+        return 0L;
+      default:
+        throw JdbcSqlExceptionFactory.of(
+            "unknown result: " + result.getResultType(), Code.FAILED_PRECONDITION);
     }
   }
 
