@@ -71,12 +71,12 @@ integration)
     ;;
 graalvm)
     # Run Unit and Integration Tests with Native Image
-    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
+    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Ptest-native -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
     RETURN_CODE=$?
     ;;
 graalvm17)
     # Run Unit and Integration Tests with Native Image
-    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
+    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Ptest-native -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
     RETURN_CODE=$?
     ;;
 samples)
