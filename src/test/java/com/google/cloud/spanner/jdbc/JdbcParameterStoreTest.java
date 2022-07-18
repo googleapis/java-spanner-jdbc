@@ -895,35 +895,35 @@ public class JdbcParameterStoreTest {
         parser.convertPositionalParametersToNamedParameters('?', "?'?test?\"?test?\"?'?")
             .sqlWithNamedParameters);
     assertEquals(
-        "$1'?it\\'?s'$2",
-        parser.convertPositionalParametersToNamedParameters('?', "?'?it\\'?s'?")
+        "$1'?it''?s'$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?'?it''?s'?")
             .sqlWithNamedParameters);
     assertEquals(
         "$1'?it\\\"?s'$2",
         parser.convertPositionalParametersToNamedParameters('?', "?'?it\\\"?s'?")
             .sqlWithNamedParameters);
     assertEquals(
-        "$1\"?it\\\"?s\"$2",
-        parser.convertPositionalParametersToNamedParameters('?', "?\"?it\\\"?s\"?")
+        "$1\"?it\"\"?s\"$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?\"?it\"\"?s\"?")
             .sqlWithNamedParameters);
     assertEquals(
-        "$1'''?it\\'?s'''$2",
-        parser.convertPositionalParametersToNamedParameters('?', "?'''?it\\'?s'''?")
+        "$1'''?it''?s'''$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?'''?it''?s'''?")
             .sqlWithNamedParameters);
     assertEquals(
-        "$1\"\"\"?it\\\"?s\"\"\"$2",
-        parser.convertPositionalParametersToNamedParameters('?', "?\"\"\"?it\\\"?s\"\"\"?")
+        "$1\"\"\"?it\"\"?s\"\"\"$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?\"\"\"?it\"\"?s\"\"\"?")
             .sqlWithNamedParameters);
 
     // PostgreSQL allows newlines inside string literals.
     assertEquals(
-        "$1'?it\\'?s \n ?it\\'?s'$2",
-        parser.convertPositionalParametersToNamedParameters('?', "?'?it\\'?s \n ?it\\'?s'?")
+        "$1'?it''?s \n ?it''?s'$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?'?it''?s \n ?it''?s'?")
             .sqlWithNamedParameters);
     assertUnclosedLiteral("?'?it\\'?s \n ?it\\'?s?");
     assertEquals(
-        "$1'''?it\\'?s \n ?it\\'?s'$2",
-        parser.convertPositionalParametersToNamedParameters('?', "?'''?it\\'?s \n ?it\\'?s'?")
+        "$1'''?it''?s \n ?it''?s'$2",
+        parser.convertPositionalParametersToNamedParameters('?', "?'''?it''?s \n ?it''?s'?")
             .sqlWithNamedParameters);
 
     assertEquals(
