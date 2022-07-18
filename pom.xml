@@ -88,6 +88,11 @@
         <artifactId>perfmark-api</artifactId>
         <version>0.25.0</version>
       </dependency>
+      <dependency>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <version>0.9.13</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
