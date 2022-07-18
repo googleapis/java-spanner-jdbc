@@ -29,6 +29,10 @@ import com.google.protobuf.NullValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import com.google.spanner.v1.ExecuteSqlRequest;
+import com.google.spanner.v1.ResultSet;
+import com.google.spanner.v1.ResultSetMetadata;
+import com.google.spanner.v1.ResultSetStats;
+import com.google.spanner.v1.StructType;
 import com.google.spanner.v1.Type;
 import com.google.spanner.v1.TypeAnnotationCode;
 import com.google.spanner.v1.TypeCode;
@@ -60,6 +64,11 @@ public class PgNumericPreparedStatementTest {
   private static InetSocketAddress address;
   private static Server server;
   private Connection connection;
+  private static final com.google.spanner.v1.ResultSet UPDATE1_RESULTSET =
+      com.google.spanner.v1.ResultSet.newBuilder()
+          .setStats(ResultSetStats.newBuilder().setRowCountExact(1))
+          .setMetadata(ResultSetMetadata.getDefaultInstance().toBuilder().setRowType(StructType.getDefaultInstance()))
+          .build();
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -260,22 +269,22 @@ public class PgNumericPreparedStatementTest {
 
   private void mockScalarUpdateWithParam(String value) {
     mockSpanner.putStatementResult(
-        StatementResult.update(
+        StatementResult.query(
             Statement.newBuilder(REWRITTEN_QUERY)
                 .bind("p1")
                 .to(com.google.cloud.spanner.Value.pgNumeric(value))
                 .build(),
-            1));
+            UPDATE1_RESULTSET));
   }
 
   private void mockArrayUpdateWithParam(Iterable<String> value) {
     mockSpanner.putStatementResult(
-        StatementResult.update(
+        StatementResult.query(
             Statement.newBuilder(REWRITTEN_QUERY)
                 .bind("p1")
                 .to(com.google.cloud.spanner.Value.pgNumericArray(value))
                 .build(),
-            1));
+            UPDATE1_RESULTSET));
   }
 
   private void assertRequestWithScalar(String value) {

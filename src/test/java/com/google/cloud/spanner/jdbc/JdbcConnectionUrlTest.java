@@ -19,8 +19,26 @@ package com.google.cloud.spanner.jdbc;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import com.google.cloud.spanner.MockSpannerServiceImpl;
+import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
+import com.google.cloud.spanner.admin.database.v1.MockDatabaseAdminImpl;
+import com.google.cloud.spanner.admin.instance.v1.MockInstanceAdminImpl;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
+import com.google.common.util.concurrent.AbstractFuture;
+import com.google.longrunning.GetOperationRequest;
+import com.google.longrunning.Operation;
+import com.google.longrunning.OperationsGrpc.OperationsImplBase;
+import com.google.protobuf.Any;
+import com.google.protobuf.Empty;
 import com.google.spanner.v1.BatchCreateSessionsRequest;
+import com.google.spanner.v1.ResultSetMetadata;
+import com.google.spanner.v1.ResultSetStats;
+import com.google.spanner.v1.StructType;
+import io.grpc.internal.LogExceptionRunnable;
+import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
+import io.grpc.stub.StreamObserver;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
@@ -30,7 +48,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -61,6 +81,16 @@ public class JdbcConnectionUrlTest {
   }
 
   public static class ConnectionMaxSessionsTest extends AbstractMockServerTest {
+    private static final com.google.spanner.v1.ResultSet UPDATE1_RESULTSET =
+        com.google.spanner.v1.ResultSet.newBuilder()
+            .setStats(ResultSetStats.newBuilder().setRowCountExact(1))
+            .setMetadata(ResultSetMetadata.getDefaultInstance().toBuilder().setRowType(StructType.getDefaultInstance()))
+            .build();
+
+    @BeforeClass
+    public static void setMockSpanner() {
+      mockSpanner.putStatementResult(StatementResult.query(INSERT_STATEMENT, UPDATE1_RESULTSET));
+    }
 
     @AfterClass
     public static void reset() {

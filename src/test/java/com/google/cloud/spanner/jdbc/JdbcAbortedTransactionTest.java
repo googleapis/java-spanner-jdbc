@@ -34,6 +34,7 @@ import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcAbortedExceptio
 import com.google.protobuf.ListValue;
 import com.google.protobuf.Value;
 import com.google.spanner.v1.ResultSetMetadata;
+import com.google.spanner.v1.ResultSetStats;
 import com.google.spanner.v1.StructType;
 import com.google.spanner.v1.StructType.Field;
 import com.google.spanner.v1.Type;
@@ -49,8 +50,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -93,10 +96,15 @@ public class JdbcAbortedTransactionTest {
                   .build())
           .setMetadata(SELECT1_METADATA)
           .build();
+  private static final int UPDATE_COUNT = 1;
+  private static final com.google.spanner.v1.ResultSet UPDATE1_RESULTSET =
+      com.google.spanner.v1.ResultSet.newBuilder()
+          .setStats(ResultSetStats.newBuilder().setRowCountExact(UPDATE_COUNT))
+          .setMetadata(ResultSetMetadata.getDefaultInstance().toBuilder().setRowType(StructType.getDefaultInstance()))
+          .build();
   private static final Statement SELECT_RANDOM = Statement.of("SELECT * FROM RANDOM");
   private static final Statement UPDATE_STATEMENT =
       Statement.of("UPDATE FOO SET BAR=1 WHERE BAZ=2");
-  private static final int UPDATE_COUNT = 1;
 
   private static MockSpannerServiceImpl mockSpanner;
   private static Server server;
@@ -116,7 +124,7 @@ public class JdbcAbortedTransactionTest {
     mockSpanner = new MockSpannerServiceImpl();
     mockSpanner.setAbortProbability(0.0D); // We don't want any unpredictable aborted transactions.
     mockSpanner.putStatementResult(StatementResult.query(SELECT1, SELECT1_RESULTSET));
-    mockSpanner.putStatementResult(StatementResult.update(UPDATE_STATEMENT, UPDATE_COUNT));
+    mockSpanner.putStatementResult(StatementResult.query(UPDATE_STATEMENT, UPDATE1_RESULTSET));
     MockInstanceAdminImpl mockInstanceAdmin = new MockInstanceAdminImpl();
     MockDatabaseAdminImpl mockDatabaseAdmin = new MockDatabaseAdminImpl();
     InetSocketAddress address = new InetSocketAddress("localhost", 0);
@@ -127,6 +135,12 @@ public class JdbcAbortedTransactionTest {
             .addService(mockDatabaseAdmin)
             .build()
             .start();
+  }
+
+  @Before
+  public void setupMockSpannerResults() {
+    mockSpanner.putStatementResult(StatementResult.query(SELECT1, SELECT1_RESULTSET));
+    mockSpanner.putStatementResult(StatementResult.query(UPDATE_STATEMENT, UPDATE1_RESULTSET));
   }
 
   @AfterClass
@@ -192,6 +206,8 @@ public class JdbcAbortedTransactionTest {
   public void testAutocommitBatchUpdateAborted() throws SQLException {
     try (java.sql.Connection connection = createConnection()) {
       mockSpanner.abortNextStatement();
+      mockSpanner.putStatementResult(
+          MockSpannerServiceImpl.StatementResult.update(UPDATE_STATEMENT, UPDATE_COUNT));
       try (java.sql.Statement statement = connection.createStatement()) {
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.addBatch(UPDATE_STATEMENT.getSql());
@@ -206,6 +222,8 @@ public class JdbcAbortedTransactionTest {
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       mockSpanner.abortNextStatement();
+      mockSpanner.putStatementResult(
+          MockSpannerServiceImpl.StatementResult.update(UPDATE_STATEMENT, UPDATE_COUNT));
       try (java.sql.Statement statement = connection.createStatement()) {
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.addBatch(UPDATE_STATEMENT.getSql());
@@ -317,7 +335,7 @@ public class JdbcAbortedTransactionTest {
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       // Set a normal response to the update statement.
-      mockSpanner.putStatementResult(StatementResult.update(Statement.of(sql), 1L));
+      mockSpanner.putStatementResult(StatementResult.query(Statement.of(sql), UPDATE1_RESULTSET));
       connection.createStatement().executeUpdate(sql);
       // Set an error as response for the same update statement that will be used during the retry.
       // This will cause the retry to fail.
@@ -332,7 +350,7 @@ public class JdbcAbortedTransactionTest {
       assertThat(retryAbortsInternally).isTrue();
       assertThat(e.getDatabaseErrorDuringRetry().getErrorCode())
           .isEqualTo(ErrorCode.INVALID_ARGUMENT);
-      assertThat(e.getDatabaseErrorDuringRetry().getMessage()).endsWith("test");
+      assertThat(e.getDatabaseErrorDuringRetry().getMessage()).contains("test");
     } catch (JdbcAbortedException e) {
       assertThat(retryAbortsInternally).isFalse();
     }

@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /** Implementation of {@link java.sql.Statement} for Google Cloud Spanner. */
 class JdbcStatement extends AbstractJdbcStatement {
@@ -83,18 +84,10 @@ class JdbcStatement extends AbstractJdbcStatement {
   public long executeLargeUpdate(String sql) throws SQLException {
     checkClosed();
     Statement statement = Statement.of(sql);
-    StatementResult result = execute(statement);
-    switch (result.getResultType()) {
-      case RESULT_SET:
-        throw JdbcSqlExceptionFactory.of(
-            "The statement is not an update or DDL statement", Code.INVALID_ARGUMENT);
-      case UPDATE_COUNT:
-        return result.getUpdateCount();
-      case NO_RESULT:
-        return 0L;
-      default:
-        throw JdbcSqlExceptionFactory.of(
-            "unknown result: " + result.getResultType(), Code.FAILED_PRECONDITION);
+    try {
+      return getConnection().getSpannerConnection().executeUpdate(statement);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e.getMessage(), Code.forNumber(e.getCode()));
     }
   }
 

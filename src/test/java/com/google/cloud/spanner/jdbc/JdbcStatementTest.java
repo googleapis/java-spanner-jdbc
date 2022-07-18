@@ -101,14 +101,12 @@ public class JdbcStatementTest {
             SpannerExceptionFactory.newSpannerException(ErrorCode.INVALID_ARGUMENT, "not a query"));
 
     when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(UPDATE))).thenReturn(1L);
+    when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(LARGE_UPDATE))).thenReturn(Integer.MAX_VALUE + 1L);
     when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(SELECT)))
         .thenThrow(
             SpannerExceptionFactory.newSpannerException(
-                ErrorCode.INVALID_ARGUMENT, "not an update"));
-    when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(DDL)))
-        .thenThrow(
-            SpannerExceptionFactory.newSpannerException(
-                ErrorCode.INVALID_ARGUMENT, "not an update"));
+                ErrorCode.INVALID_ARGUMENT, "The statement is not an update or DDL statement"));
+    when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(DDL))).thenReturn(0L);
 
     when(spanner.executeBatchUpdate(anyList()))
         .thenAnswer(
@@ -118,13 +116,13 @@ public class JdbcStatementTest {
                       (List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0];
                   if (statements.isEmpty()
                       || AbstractStatementParser.getInstance(dialect)
-                          .isDdlStatement(statements.get(0).getSql())) {
+                      .isDdlStatement(statements.get(0).getSql())) {
                     return new long[0];
                   }
                   long[] res =
                       new long
                           [((List<com.google.cloud.spanner.Statement>) invocation.getArguments()[0])
-                              .size()];
+                          .size()];
                   Arrays.fill(res, 1L);
                   return res;
                 });
@@ -251,8 +249,8 @@ public class JdbcStatementTest {
       fail("missing expected exception");
     } catch (SQLException e) {
       assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query")
-                  .matches(e))
+          JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query")
+              .matches(e))
           .isTrue();
     }
   }
@@ -265,8 +263,8 @@ public class JdbcStatementTest {
       fail("missing expected exception");
     } catch (SQLException e) {
       assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query")
-                  .matches(e))
+          JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query")
+              .matches(e))
           .isTrue();
     }
   }
@@ -351,11 +349,8 @@ public class JdbcStatementTest {
       statement.executeUpdate(SELECT);
       fail("missing expected exception");
     } catch (SQLException e) {
-      assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(
-                      Code.INVALID_ARGUMENT, "The statement is not an update or DDL statement")
-                  .matches(e))
-          .isTrue();
+      assertThat(e.getErrorCode()).isEqualTo(Code.INVALID_ARGUMENT.getNumber());
+      assertThat(e.getMessage()).contains("The statement is not an update or DDL statement");
     }
   }
 
@@ -403,10 +398,10 @@ public class JdbcStatementTest {
       fail("missing expected exception");
     } catch (SQLException e) {
       assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(
-                      Code.INVALID_ARGUMENT,
-                      "Mixing DML and DDL statements in a batch is not allowed.")
-                  .matches(e))
+          JdbcExceptionMatcher.matchCodeAndMessage(
+                  Code.INVALID_ARGUMENT,
+                  "Mixing DML and DDL statements in a batch is not allowed.")
+              .matches(e))
           .isTrue();
     }
   }
@@ -417,10 +412,10 @@ public class JdbcStatementTest {
       statement.addBatch("SELECT * FROM FOO");
     } catch (SQLException e) {
       assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(
-                      Code.INVALID_ARGUMENT,
-                      "The statement is not suitable for batching. Only DML and DDL statements are allowed for batching.")
-                  .matches(e))
+          JdbcExceptionMatcher.matchCodeAndMessage(
+                  Code.INVALID_ARGUMENT,
+                  "The statement is not suitable for batching. Only DML and DDL statements are allowed for batching.")
+              .matches(e))
           .isTrue();
     }
   }

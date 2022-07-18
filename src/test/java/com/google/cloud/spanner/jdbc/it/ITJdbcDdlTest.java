@@ -21,9 +21,12 @@ import static org.junit.Assume.assumeFalse;
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
+import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.collect.ImmutableMap;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -81,5 +84,22 @@ public class ITJdbcDdlTest extends ITAbstractJdbcTest {
         new JdbcSqlScriptVerifier(new ITJdbcConnectionProvider(env, database));
     verifier.verifyStatementsInFile(
         dialect.executeQueriesFiles.get("TEST_DDL"), JdbcSqlScriptVerifier.class, false);
+  }
+
+  @Test
+  public void testExecuteUpdateDDL() throws Exception {
+    try(Connection connection = createConnection(env, database)) {
+      Statement stmt = connection.createStatement();
+      int rs = stmt.executeUpdate("CREATE TABLE Venues ("
+          + "  VenueId         INT64 NOT NULL,"
+          + "  VenueName       STRING(100),"
+          + "  Capacity        INT64,"
+          + "  LastContactDate DATE,"
+          + "  OutdoorVenue    BOOL, "
+          + "  PopularityScore FLOAT64, "
+          + "  Revenue         NUMERIC, "
+          + ") PRIMARY KEY (VenueId)");
+      System.out.println(rs);
+    }
   }
 }
