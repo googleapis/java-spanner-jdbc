@@ -62,7 +62,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>6.25.5</version>
+        <version>6.26.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -114,6 +114,7 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>
+      <version>6.26.0</version>
     </dependency>
     <!-- TODO: Remove grpc-alts from here once it has been removed as a runtime dependency from java-spanner -->
     <dependency>
@@ -155,6 +156,7 @@
     <dependency>
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-spanner-v1</artifactId>
+      <version>6.26.0</version>
     </dependency>
 
     <!-- Test dependencies -->
@@ -163,6 +165,7 @@
       <artifactId>google-cloud-spanner</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
+      <version>6.26.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.truth</groupId>
