@@ -273,6 +273,7 @@ class JdbcParameterStore {
       case Types.NUMERIC:
       case Types.DECIMAL:
       case JsonType.VENDOR_TYPE_NUMBER:
+      case PgJsonbType.VENDOR_TYPE_NUMBER:
         return true;
     }
     return false;
@@ -336,6 +337,12 @@ class JdbcParameterStore {
             || value instanceof InputStream
             || value instanceof Reader
             || (value instanceof Value && ((Value) value).getType().getCode() == Type.Code.JSON);
+      case PgJsonbType.VENDOR_TYPE_NUMBER:
+        return value instanceof String
+            || value instanceof InputStream
+            || value instanceof Reader
+            || (value instanceof Value
+                && ((Value) value).getType().getCode() == Type.Code.PG_JSONB);
     }
     return false;
   }
@@ -490,6 +497,7 @@ class JdbcParameterStore {
         }
         return binder.to(stringValue);
       case JsonType.VENDOR_TYPE_NUMBER:
+      case PgJsonbType.VENDOR_TYPE_NUMBER:
         String jsonValue;
         if (value instanceof String) {
           jsonValue = (String) value;
@@ -500,6 +508,9 @@ class JdbcParameterStore {
         } else {
           throw JdbcSqlExceptionFactory.of(
               value + " is not a valid JSON value", Code.INVALID_ARGUMENT);
+        }
+        if (sqlType == PgJsonbType.VENDOR_TYPE_NUMBER) {
+          return binder.to(Value.pgJsonb(jsonValue));
         }
         return binder.to(Value.json(jsonValue));
       case Types.DATE:
@@ -750,6 +761,8 @@ class JdbcParameterStore {
           return binder.toStringArray(null);
         case JsonType.VENDOR_TYPE_NUMBER:
           return binder.toJsonArray(null);
+        case PgJsonbType.VENDOR_TYPE_NUMBER:
+          return binder.toPgJsonbArray(null);
         case Types.DATE:
           return binder.toDateArray(null);
         case Types.TIME:
@@ -818,6 +831,8 @@ class JdbcParameterStore {
     } else if (String[].class.isAssignableFrom(value.getClass())) {
       if (type == JsonType.VENDOR_TYPE_NUMBER) {
         return binder.toJsonArray(Arrays.asList((String[]) value));
+      } else if (type == PgJsonbType.VENDOR_TYPE_NUMBER) {
+        return binder.toPgJsonbArray(Arrays.asList((String[]) value));
       } else {
         return binder.toStringArray(Arrays.asList((String[]) value));
       }

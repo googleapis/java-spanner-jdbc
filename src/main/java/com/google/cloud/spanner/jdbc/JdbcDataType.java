@@ -281,6 +281,37 @@ enum JdbcDataType {
       return Type.json();
     }
   },
+  PG_JSONB {
+    @Override
+    public int getSqlType() {
+      return PgJsonbType.VENDOR_TYPE_NUMBER;
+    }
+
+    @Override
+    public Class<String> getJavaClass() {
+      return String.class;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.PG_JSONB;
+    }
+
+    @Override
+    public List<String> getArrayElements(ResultSet rs, int columnIndex) {
+      return rs.getPgJsonbList(columnIndex);
+    }
+
+    @Override
+    public String getTypeName() {
+      return "JSONB";
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.pgJsonb();
+    }
+  },
   TIMESTAMP {
     @Override
     public int getSqlType() {

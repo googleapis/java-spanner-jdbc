@@ -225,6 +225,14 @@ public class JdbcParameterStoreTest {
     assertEquals(jsonString, params.getParameter(1));
     verifyParameter(params, Value.json(jsonString));
 
+    params.setParameter(1, jsonString, PgJsonbType.VENDOR_TYPE_NUMBER);
+    assertEquals(jsonString, params.getParameter(1));
+    verifyParameter(params, Value.pgJsonb(jsonString));
+
+    params.setParameter(1, jsonString, PgJsonbType.INSTANCE);
+    assertEquals(jsonString, params.getParameter(1));
+    verifyParameter(params, Value.pgJsonb(jsonString));
+
     params.setParameter(1, BigDecimal.ONE, Types.DECIMAL);
     if (dialect == Dialect.POSTGRESQL) {
       verifyParameter(params, Value.pgNumeric(BigDecimal.ONE.toString()));
@@ -472,7 +480,8 @@ public class JdbcParameterStoreTest {
           Types.NCHAR,
           Types.NVARCHAR,
           Types.LONGNVARCHAR,
-          JsonType.VENDOR_TYPE_NUMBER
+          JsonType.VENDOR_TYPE_NUMBER,
+          PgJsonbType.VENDOR_TYPE_NUMBER
         }) {
       assertInvalidParameter(params, new Object(), type);
       assertInvalidParameter(params, Boolean.TRUE, type);
@@ -498,7 +507,8 @@ public class JdbcParameterStoreTest {
           Types.NCHAR,
           Types.NVARCHAR,
           Types.LONGNVARCHAR,
-          JsonType.VENDOR_TYPE_NUMBER
+          JsonType.VENDOR_TYPE_NUMBER,
+          PgJsonbType.VENDOR_TYPE_NUMBER
         }) {
       Reader reader = new StringReader("test");
       reader.close();
@@ -591,6 +601,10 @@ public class JdbcParameterStoreTest {
     params.setParameter(1, Value.json(jsonString), (Integer) null);
     assertEquals(Value.json(jsonString), params.getParameter(1));
     verifyParameter(params, Value.json(jsonString));
+
+    params.setParameter(1, Value.pgJsonb(jsonString), (Integer) null);
+    assertEquals(Value.pgJsonb(jsonString), params.getParameter(1));
+    verifyParameter(params, Value.pgJsonb(jsonString));
   }
 
   private boolean stringReadersEqual(StringReader r1, StringReader r2) throws IOException {
@@ -768,6 +782,25 @@ public class JdbcParameterStoreTest {
     assertEquals(
         Value.jsonArray(Arrays.asList(jsonString1, jsonString2, null)), params.getParameter(1));
     verifyParameter(params, Value.jsonArray(Arrays.asList(jsonString1, jsonString2, null)));
+
+    // JSONB
+    params.setParameter(
+        1,
+        JdbcArray.createArray("JSONB", new String[] {jsonString1, jsonString2, null}),
+        Types.ARRAY);
+    assertEquals(
+        JdbcArray.createArray("JSONB", new String[] {jsonString1, jsonString2, null}),
+        params.getParameter(1));
+    verifyParameter(params, Value.pgJsonbArray(Arrays.asList(jsonString1, jsonString2, null)));
+
+    params.setParameter(1, JdbcArray.createArray("JSONB", null), Types.ARRAY);
+    assertEquals(JdbcArray.createArray("JSONB", null), params.getParameter(1));
+    verifyParameter(params, Value.pgJsonbArray(null));
+
+    params.setParameter(1, Value.pgJsonbArray(Arrays.asList(jsonString1, jsonString2, null)));
+    assertEquals(
+        Value.pgJsonbArray(Arrays.asList(jsonString1, jsonString2, null)), params.getParameter(1));
+    verifyParameter(params, Value.pgJsonbArray(Arrays.asList(jsonString1, jsonString2, null)));
   }
 
   private void verifyParameter(JdbcParameterStore params, Value value) throws SQLException {
