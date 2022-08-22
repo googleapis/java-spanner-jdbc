@@ -1153,6 +1153,9 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
 
   @Test
   public void test12_InsertReturningTestData() throws SQLException {
+    assumeFalse(
+        "Emulator does not support DML with returning clause",
+        EmulatorSpannerHelper.isUsingEmulator());
     try (Connection connection = createConnection(env, database)) {
       connection.setAutoCommit(false);
       try (PreparedStatement ps =
