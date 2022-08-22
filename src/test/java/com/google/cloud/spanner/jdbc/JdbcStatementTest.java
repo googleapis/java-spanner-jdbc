@@ -71,9 +71,8 @@ public class JdbcStatementTest {
   private String getDmlReturningString() {
     if (dialect == Dialect.GOOGLE_STANDARD_SQL) {
       return DML_RETURNING_GSQL;
-    } else {
-      return DML_RETURNING_PG;
     }
+    return DML_RETURNING_PG;
   }
 
   @SuppressWarnings("unchecked")

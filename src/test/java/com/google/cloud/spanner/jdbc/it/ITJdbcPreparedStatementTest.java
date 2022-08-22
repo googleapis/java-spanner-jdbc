@@ -1226,7 +1226,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           ResultSet rs = ps.executeQuery();
           rs.next();
           concert.assertEqualsFields(connection, rs, dialect.dialect);
-          // check that calling executeUpdate will not reset the meta data
+          // check that calling executeQuery will not reset the meta data
           assertInsertConcertParameterMetadata(ps.getParameterMetaData());
         }
       }
