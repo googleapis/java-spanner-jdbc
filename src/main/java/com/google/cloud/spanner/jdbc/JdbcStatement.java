@@ -87,7 +87,7 @@ class JdbcStatement extends AbstractJdbcStatement {
     switch (result.getResultType()) {
       case RESULT_SET:
         throw JdbcSqlExceptionFactory.of(
-            "The statement is not an update or DDL statement", Code.INVALID_ARGUMENT);
+            "The statement is not a normal update or DDL statement", Code.INVALID_ARGUMENT);
       case UPDATE_COUNT:
         return result.getUpdateCount();
       case NO_RESULT:

@@ -17,6 +17,10 @@
 package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.mock;
@@ -53,6 +57,8 @@ public class JdbcStatementTest {
   private static final String SELECT = "SELECT 1";
   private static final String UPDATE = "UPDATE FOO SET BAR=1 WHERE BAZ=2";
   private static final String LARGE_UPDATE = "UPDATE FOO SET BAR=1 WHERE 1=1";
+  private static final String DML_RETURNING_GSQL = "UPDATE FOO SET BAR=1 WHERE 1=1 THEN RETURN *";
+  private static final String DML_RETURNING_PG = "UPDATE FOO SET BAR=1 WHERE 1=1 RETURNING *";
   private static final String DDL = "CREATE INDEX FOO ON BAR(ID)";
 
   @Parameter public Dialect dialect;
@@ -62,10 +68,20 @@ public class JdbcStatementTest {
     return Dialect.values();
   }
 
+  private String getDmlReturningString() {
+    if (dialect == Dialect.GOOGLE_STANDARD_SQL) {
+      return DML_RETURNING_GSQL;
+    } else {
+      return DML_RETURNING_PG;
+    }
+  }
+
   @SuppressWarnings("unchecked")
   private JdbcStatement createStatement() throws SQLException {
     Connection spanner = mock(Connection.class);
     when(spanner.getDialect()).thenReturn(dialect);
+
+    final String DML_RETURNING = getDmlReturningString();
 
     com.google.cloud.spanner.ResultSet resultSet = mock(com.google.cloud.spanner.ResultSet.class);
     when(resultSet.next()).thenReturn(true, false);
@@ -88,6 +104,18 @@ public class JdbcStatementTest {
     when(spanner.execute(com.google.cloud.spanner.Statement.of(LARGE_UPDATE)))
         .thenReturn(largeUpdateResult);
 
+    com.google.cloud.spanner.ResultSet dmlReturningResultSet =
+        mock(com.google.cloud.spanner.ResultSet.class);
+    when(dmlReturningResultSet.next()).thenReturn(true, false);
+    when(dmlReturningResultSet.getColumnCount()).thenReturn(1);
+    when(dmlReturningResultSet.getColumnType(0)).thenReturn(Type.int64());
+    when(dmlReturningResultSet.getLong(0)).thenReturn(1L);
+
+    StatementResult dmlReturningResult = mock(StatementResult.class);
+    when(dmlReturningResult.getResultType()).thenReturn(ResultType.RESULT_SET);
+    when(dmlReturningResult.getResultSet()).thenReturn(dmlReturningResultSet);
+    when(spanner.execute(com.google.cloud.spanner.Statement.of(DML_RETURNING))).thenReturn(dmlReturningResult);
+
     StatementResult ddlResult = mock(StatementResult.class);
     when(ddlResult.getResultType()).thenReturn(ResultType.NO_RESULT);
     when(spanner.execute(com.google.cloud.spanner.Statement.of(DDL))).thenReturn(ddlResult);
@@ -96,6 +124,8 @@ public class JdbcStatementTest {
     when(spanner.executeQuery(com.google.cloud.spanner.Statement.of(UPDATE)))
         .thenThrow(
             SpannerExceptionFactory.newSpannerException(ErrorCode.INVALID_ARGUMENT, "not a query"));
+    when(spanner.executeQuery(com.google.cloud.spanner.Statement.of(DML_RETURNING)))
+        .thenReturn(dmlReturningResultSet);
     when(spanner.executeQuery(com.google.cloud.spanner.Statement.of(DDL)))
         .thenThrow(
             SpannerExceptionFactory.newSpannerException(ErrorCode.INVALID_ARGUMENT, "not a query"));
@@ -109,6 +139,10 @@ public class JdbcStatementTest {
         .thenThrow(
             SpannerExceptionFactory.newSpannerException(
                 ErrorCode.INVALID_ARGUMENT, "not an update"));
+    when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(DML_RETURNING)))
+        .thenThrow(
+            SpannerExceptionFactory.newSpannerException(
+                ErrorCode.FAILED_PRECONDITION, "cannot execute dml returning over executeUpdate"));
 
     when(spanner.executeBatchUpdate(anyList()))
         .thenAnswer(
@@ -220,6 +254,20 @@ public class JdbcStatementTest {
   }
 
   @Test
+  public void testExecuteWithDmlReturningStatement() throws SQLException {
+    Statement statement = createStatement();
+    boolean res = statement.execute(getDmlReturningString());
+    assertThat(res).isTrue();
+    assertThat(statement.getUpdateCount()).isEqualTo(JdbcConstants.STATEMENT_RESULT_SET);
+    try (ResultSet rs = statement.getResultSet()) {
+      assertNotNull(rs);
+      assertTrue(rs.next());
+      assertEquals(rs.getLong(1), 1L);
+      assertFalse(rs.next());
+    }
+  }
+
+  @Test
   public void testExecuteWithGeneratedKeys() throws SQLException {
     Statement statement = createStatement();
     assertThat(statement.execute(UPDATE, Statement.NO_GENERATED_KEYS)).isFalse();
@@ -254,6 +302,17 @@ public class JdbcStatementTest {
               JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query")
                   .matches(e))
           .isTrue();
+    }
+  }
+
+  @Test
+  public void testExecuteQueryWithDmlReturningStatement() throws SQLException {
+    Statement statement = createStatement();
+    try (ResultSet rs = statement.executeQuery(getDmlReturningString())) {
+      assertNotNull(rs);
+      assertTrue(rs.next());
+      assertEquals(rs.getLong(1), 1L);
+      assertFalse(rs.next());
     }
   }
 
@@ -353,8 +412,23 @@ public class JdbcStatementTest {
     } catch (SQLException e) {
       assertThat(
               JdbcExceptionMatcher.matchCodeAndMessage(
-                      Code.INVALID_ARGUMENT, "The statement is not an update or DDL statement")
+                      Code.INVALID_ARGUMENT, "The statement is not a normal update or DDL statement")
                   .matches(e))
+          .isTrue();
+    }
+  }
+
+  @Test
+  public void testExecuteUpdateWithDmlReturningStatement() {
+    try {
+      Statement statement = createStatement();
+      statement.executeUpdate(getDmlReturningString());
+      fail("missing expected exception");
+    } catch (SQLException e) {
+      assertThat(
+          JdbcExceptionMatcher.matchCodeAndMessage(
+                  Code.INVALID_ARGUMENT, "The statement is not a normal update or DDL statement")
+              .matches(e))
           .isTrue();
     }
   }
@@ -433,7 +507,8 @@ public class JdbcStatementTest {
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (1, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (2, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (3, 'TEST')");
-        assertThat(statement.executeBatch()).asList().containsExactly(1, 1, 1);
+        statement.addBatch(getDmlReturningString());
+        assertThat(statement.executeBatch()).asList().containsExactly(1, 1, 1, 1);
       }
     }
   }
