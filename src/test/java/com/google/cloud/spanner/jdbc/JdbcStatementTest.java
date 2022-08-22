@@ -114,7 +114,8 @@ public class JdbcStatementTest {
     StatementResult dmlReturningResult = mock(StatementResult.class);
     when(dmlReturningResult.getResultType()).thenReturn(ResultType.RESULT_SET);
     when(dmlReturningResult.getResultSet()).thenReturn(dmlReturningResultSet);
-    when(spanner.execute(com.google.cloud.spanner.Statement.of(DML_RETURNING))).thenReturn(dmlReturningResult);
+    when(spanner.execute(com.google.cloud.spanner.Statement.of(DML_RETURNING)))
+        .thenReturn(dmlReturningResult);
 
     StatementResult ddlResult = mock(StatementResult.class);
     when(ddlResult.getResultType()).thenReturn(ResultType.NO_RESULT);
@@ -412,7 +413,8 @@ public class JdbcStatementTest {
     } catch (SQLException e) {
       assertThat(
               JdbcExceptionMatcher.matchCodeAndMessage(
-                      Code.INVALID_ARGUMENT, "The statement is not a normal update or DDL statement")
+                      Code.INVALID_ARGUMENT,
+                      "The statement is not a normal update or DDL statement")
                   .matches(e))
           .isTrue();
     }
@@ -426,9 +428,10 @@ public class JdbcStatementTest {
       fail("missing expected exception");
     } catch (SQLException e) {
       assertThat(
-          JdbcExceptionMatcher.matchCodeAndMessage(
-                  Code.INVALID_ARGUMENT, "The statement is not a normal update or DDL statement")
-              .matches(e))
+              JdbcExceptionMatcher.matchCodeAndMessage(
+                      Code.INVALID_ARGUMENT,
+                      "The statement is not a normal update or DDL statement")
+                  .matches(e))
           .isTrue();
     }
   }
