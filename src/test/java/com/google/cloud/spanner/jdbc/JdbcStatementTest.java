@@ -68,7 +68,7 @@ public class JdbcStatementTest {
     return Dialect.values();
   }
 
-  private String getDmlReturningString() {
+  private String getDmlReturningSql() {
     if (dialect == Dialect.GOOGLE_STANDARD_SQL) {
       return DML_RETURNING_GSQL;
     }
@@ -80,7 +80,7 @@ public class JdbcStatementTest {
     Connection spanner = mock(Connection.class);
     when(spanner.getDialect()).thenReturn(dialect);
 
-    final String DML_RETURNING = getDmlReturningString();
+    final String DML_RETURNING_SQL = getDmlReturningSql();
 
     com.google.cloud.spanner.ResultSet resultSet = mock(com.google.cloud.spanner.ResultSet.class);
     when(resultSet.next()).thenReturn(true, false);
@@ -113,7 +113,7 @@ public class JdbcStatementTest {
     StatementResult dmlReturningResult = mock(StatementResult.class);
     when(dmlReturningResult.getResultType()).thenReturn(ResultType.RESULT_SET);
     when(dmlReturningResult.getResultSet()).thenReturn(dmlReturningResultSet);
-    when(spanner.execute(com.google.cloud.spanner.Statement.of(DML_RETURNING)))
+    when(spanner.execute(com.google.cloud.spanner.Statement.of(DML_RETURNING_SQL)))
         .thenReturn(dmlReturningResult);
 
     StatementResult ddlResult = mock(StatementResult.class);
@@ -124,7 +124,7 @@ public class JdbcStatementTest {
     when(spanner.executeQuery(com.google.cloud.spanner.Statement.of(UPDATE)))
         .thenThrow(
             SpannerExceptionFactory.newSpannerException(ErrorCode.INVALID_ARGUMENT, "not a query"));
-    when(spanner.executeQuery(com.google.cloud.spanner.Statement.of(DML_RETURNING)))
+    when(spanner.executeQuery(com.google.cloud.spanner.Statement.of(DML_RETURNING_SQL)))
         .thenReturn(dmlReturningResultSet);
     when(spanner.executeQuery(com.google.cloud.spanner.Statement.of(DDL)))
         .thenThrow(
@@ -139,7 +139,7 @@ public class JdbcStatementTest {
         .thenThrow(
             SpannerExceptionFactory.newSpannerException(
                 ErrorCode.INVALID_ARGUMENT, "not an update"));
-    when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(DML_RETURNING)))
+    when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(DML_RETURNING_SQL)))
         .thenThrow(
             SpannerExceptionFactory.newSpannerException(
                 ErrorCode.FAILED_PRECONDITION, "cannot execute dml returning over executeUpdate"));
@@ -256,7 +256,7 @@ public class JdbcStatementTest {
   @Test
   public void testExecuteWithDmlReturningStatement() throws SQLException {
     Statement statement = createStatement();
-    boolean res = statement.execute(getDmlReturningString());
+    boolean res = statement.execute(getDmlReturningSql());
     assertThat(res).isTrue();
     assertThat(statement.getUpdateCount()).isEqualTo(JdbcConstants.STATEMENT_RESULT_SET);
     try (ResultSet rs = statement.getResultSet()) {
@@ -308,7 +308,7 @@ public class JdbcStatementTest {
   @Test
   public void testExecuteQueryWithDmlReturningStatement() throws SQLException {
     Statement statement = createStatement();
-    try (ResultSet rs = statement.executeQuery(getDmlReturningString())) {
+    try (ResultSet rs = statement.executeQuery(getDmlReturningSql())) {
       assertNotNull(rs);
       assertTrue(rs.next());
       assertEquals(rs.getLong(1), 1L);
@@ -423,7 +423,7 @@ public class JdbcStatementTest {
   public void testExecuteUpdateWithDmlReturningStatement() {
     try {
       Statement statement = createStatement();
-      statement.executeUpdate(getDmlReturningString());
+      statement.executeUpdate(getDmlReturningSql());
       fail("missing expected exception");
     } catch (SQLException e) {
       assertThat(
@@ -509,7 +509,7 @@ public class JdbcStatementTest {
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (1, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (2, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (3, 'TEST')");
-        statement.addBatch(getDmlReturningString());
+        statement.addBatch(getDmlReturningSql());
         assertThat(statement.executeBatch()).asList().containsExactly(1, 1, 1, 1);
       }
     }
