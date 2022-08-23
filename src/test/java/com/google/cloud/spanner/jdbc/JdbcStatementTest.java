@@ -17,9 +17,11 @@
 package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.anyList;
@@ -423,15 +425,14 @@ public class JdbcStatementTest {
   public void testExecuteUpdateWithDmlReturningStatement() {
     try {
       Statement statement = createStatement();
-      statement.executeUpdate(getDmlReturningSql());
-      fail("missing expected exception");
+      SQLException e =
+          assertThrows(SQLException.class, () -> statement.executeUpdate(getDmlReturningSql()));
+      assertTrue(
+          JdbcExceptionMatcher.matchCodeAndMessage(
+                  Code.INVALID_ARGUMENT, "The statement is not a normal update or DDL statement")
+              .matches(e));
     } catch (SQLException e) {
-      assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(
-                      Code.INVALID_ARGUMENT,
-                      "The statement is not a normal update or DDL statement")
-                  .matches(e))
-          .isTrue();
+      // ignore exception.
     }
   }
 
@@ -509,8 +510,20 @@ public class JdbcStatementTest {
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (1, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (2, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (3, 'TEST')");
-        statement.addBatch(getDmlReturningSql());
         assertThat(statement.executeBatch()).asList().containsExactly(1, 1, 1, 1);
+      }
+    }
+  }
+
+  @Test
+  public void testDmlBatchWithDmlReturning() throws SQLException {
+    try (Statement statement = createStatement()) {
+      // Verify that multiple batches can be executed on the same statement.
+      for (int i = 0; i < 2; i++) {
+        statement.addBatch(getDmlReturningSql());
+        statement.addBatch(getDmlReturningSql());
+        statement.addBatch(getDmlReturningSql());
+        assertArrayEquals(statement.executeBatch(), new int[] {1, 1, 1});
       }
     }
   }
