@@ -1182,12 +1182,13 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           ps.setString(3, album.albumTitle);
           ps.setLong(4, album.marketingBudget);
           assertInsertAlbumParameterMetadata(ps.getParameterMetaData());
-          ResultSet rs = ps.executeQuery();
-          rs.next();
-          assertEquals(rs.getLong(1), album.singerId);
-          assertEquals(rs.getLong(2), album.albumId);
-          assertEquals(rs.getString(3), album.albumTitle);
-          assertEquals(rs.getLong(4), album.marketingBudget);
+          try (ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            assertEquals(rs.getLong(1), album.singerId);
+            assertEquals(rs.getLong(2), album.albumId);
+            assertEquals(rs.getString(3), album.albumTitle);
+            assertEquals(rs.getLong(4), album.marketingBudget);
+          }
           // check that calling executeQuery will not reset the metadata
           assertInsertAlbumParameterMetadata(ps.getParameterMetaData());
         }
@@ -1203,16 +1204,17 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           ps.setLong(5, song.duration);
           ps.setCharacterStream(6, new StringReader(song.songGenre));
           assertInsertSongParameterMetadata(ps.getParameterMetaData());
-          ResultSet rs = ps.executeQuery();
-          rs.next();
-          assertEquals(rs.getByte(1), (byte) song.singerId);
-          assertEquals(rs.getInt(2), (int) song.albumId);
-          assertEquals(rs.getShort(3), (short) song.songId);
-          assertEquals(rs.getNString(4), song.songName);
-          assertEquals(rs.getLong(5), song.duration);
-          assertEquals(
-              CharStreams.toString(rs.getCharacterStream(6)),
-              CharStreams.toString(new StringReader(song.songGenre)));
+          try (ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            assertEquals(rs.getByte(1), (byte) song.singerId);
+            assertEquals(rs.getInt(2), (int) song.albumId);
+            assertEquals(rs.getShort(3), (short) song.songId);
+            assertEquals(rs.getNString(4), song.songName);
+            assertEquals(rs.getLong(5), song.duration);
+            assertEquals(
+                CharStreams.toString(rs.getCharacterStream(6)),
+                CharStreams.toString(new StringReader(song.songGenre)));
+          }
           // check that calling executeQuery will not reset the metadata
           assertInsertSongParameterMetadata(ps.getParameterMetaData());
         }
@@ -1226,9 +1228,10 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         for (Concert concert : createConcerts()) {
           concert.setPreparedStatement(connection, ps, getDialect());
           assertInsertConcertParameterMetadata(ps.getParameterMetaData());
-          ResultSet rs = ps.executeQuery();
-          rs.next();
-          concert.assertEqualsFields(connection, rs, dialect.dialect);
+          try (ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            concert.assertEqualsFields(connection, rs, dialect.dialect);
+          }
           // check that calling executeQuery will not reset the meta data
           assertInsertConcertParameterMetadata(ps.getParameterMetaData());
         }
