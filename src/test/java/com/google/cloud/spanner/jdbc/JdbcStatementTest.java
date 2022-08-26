@@ -259,8 +259,8 @@ public class JdbcStatementTest {
   public void testExecuteWithDmlReturningStatement() throws SQLException {
     Statement statement = createStatement();
     boolean res = statement.execute(getDmlReturningSql());
-    assertThat(res).isTrue();
-    assertThat(statement.getUpdateCount()).isEqualTo(JdbcConstants.STATEMENT_RESULT_SET);
+    assertTrue(res);
+    assertEquals(statement.getUpdateCount(), JdbcConstants.STATEMENT_RESULT_SET);
     try (ResultSet rs = statement.getResultSet()) {
       assertNotNull(rs);
       assertTrue(rs.next());
@@ -415,7 +415,7 @@ public class JdbcStatementTest {
       assertThat(
               JdbcExceptionMatcher.matchCodeAndMessage(
                       Code.INVALID_ARGUMENT,
-                      "The statement is not a normal update or DDL statement")
+                      "The statement is not a non-returning DML or DDL statement")
                   .matches(e))
           .isTrue();
     }
@@ -429,7 +429,8 @@ public class JdbcStatementTest {
           assertThrows(SQLException.class, () -> statement.executeUpdate(getDmlReturningSql()));
       assertTrue(
           JdbcExceptionMatcher.matchCodeAndMessage(
-                  Code.INVALID_ARGUMENT, "The statement is not a normal update or DDL statement")
+                  Code.INVALID_ARGUMENT,
+                  "The statement is not a non-returning DML or DDL statement")
               .matches(e));
     } catch (SQLException e) {
       // ignore exception.
@@ -510,7 +511,7 @@ public class JdbcStatementTest {
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (1, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (2, 'TEST')");
         statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (3, 'TEST')");
-        assertThat(statement.executeBatch()).asList().containsExactly(1, 1, 1, 1);
+        assertThat(statement.executeBatch()).asList().containsExactly(1, 1, 1);
       }
     }
   }
