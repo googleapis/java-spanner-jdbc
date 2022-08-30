@@ -141,7 +141,8 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
               null),
           new Column("colnumeric", Types.NUMERIC, "numeric", 15, 16383, 10, false, null),
           // TODO: Update this to typeName=jsonb
-          new Column("coljson", Types.NVARCHAR, "varchar", 2621440, null, null, false, null));
+          new Column(
+              "coljson", Types.NVARCHAR, "character varying", 2621440, null, null, false, null));
 
   @Test
   public void testGetColumns() throws SQLException {
