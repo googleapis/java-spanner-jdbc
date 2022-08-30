@@ -33,7 +33,6 @@ import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.JsonType;
-import com.google.cloud.spanner.jdbc.PgJsonbType;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
@@ -932,7 +931,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         ps.setDate(++index, new Date(System.currentTimeMillis()));
         ps.setTimestamp(++index, new Timestamp(System.currentTimeMillis()));
         ps.setBigDecimal(++index, BigDecimal.TEN);
-        ps.setObject(++index, "{\"test_value\": \"foo\"}", PgJsonbType.INSTANCE);
+        // TODO: This test currently uses string/varchar. This should be updated to JSONB.
+        ps.setObject(++index, "{\"test_value\": \"foo\"}", Types.VARCHAR);
 
         assertEquals(1, ps.executeUpdate());
       }

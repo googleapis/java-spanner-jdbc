@@ -72,7 +72,7 @@ CREATE TABLE TableWithAllColumnTypes (
     ColDate      DATE NOT NULL,
     ColTimestamp TIMESTAMP WITH TIME ZONE,
     ColNumeric   NUMERIC NOT NULL,
-    ColJson      JSONB NOT NULL
+    ColJson      VARCHAR NOT NULL
 );
 
 CREATE TABLE TableWithRef (
