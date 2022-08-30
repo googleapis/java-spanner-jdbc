@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -387,6 +388,9 @@ public class JdbcParameterStoreTest {
       params.setParameter(1, BigDecimal.ZERO, type);
       assertEquals(BigDecimal.ZERO, params.getParameter(1));
       verifyParameter(params, Value.bool(false));
+      params.setParameter(1, null, type);
+      assertNull(params.getParameter(1));
+      verifyParameter(params, Value.bool(null));
     }
 
     // types that should lead to numeric

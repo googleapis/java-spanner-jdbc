@@ -873,6 +873,7 @@ class JdbcParameterStore {
         return binder.to((ByteArray) null);
       case Types.BLOB:
         return binder.to((ByteArray) null);
+      case Types.BIT:
       case Types.BOOLEAN:
         return binder.to((Boolean) null);
       case Types.CHAR:
