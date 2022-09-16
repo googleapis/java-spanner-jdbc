@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.7.7](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.6...v2.7.7) (2022-09-16)
+
+
+### Bug Fixes
+
+* Types.BOOLEAN and Types.BIT should have identical behaviour for nullability ([#920](https://github.com/googleapis/java-spanner-jdbc/issues/920)) ([42e5903](https://github.com/googleapis/java-spanner-jdbc/commit/42e590343ccbe294301a7b9933bd5db1830c8877))
+
+
+### Dependencies
+
+* Google-cloud-spanner-bom 6.30.0 ([#967](https://github.com/googleapis/java-spanner-jdbc/issues/967)) ([9385a5d](https://github.com/googleapis/java-spanner-jdbc/commit/9385a5dc52704de6fb1fe1c31f2c4ba2ad84d547))
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.0.2 ([#963](https://github.com/googleapis/java-spanner-jdbc/issues/963)) ([811d96b](https://github.com/googleapis/java-spanner-jdbc/commit/811d96b0a7f90df7ec4d680aad085eec9d331a5e))
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.0.3 ([#966](https://github.com/googleapis/java-spanner-jdbc/issues/966)) ([f8b88cd](https://github.com/googleapis/java-spanner-jdbc/commit/f8b88cd95c2bf02ce178a387ad82b149a9f4dbca))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.29.0 ([#943](https://github.com/googleapis/java-spanner-jdbc/issues/943)) ([9754023](https://github.com/googleapis/java-spanner-jdbc/commit/9754023b4d16aa78361d5be465d24b0481b84293))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.29.1 ([#961](https://github.com/googleapis/java-spanner-jdbc/issues/961)) ([a3e1fc6](https://github.com/googleapis/java-spanner-jdbc/commit/a3e1fc6b627e8f4da0191787e432d52b8174067a))
+
 ## [2.7.6](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.5...v2.7.6) (2022-08-11)
 
 
