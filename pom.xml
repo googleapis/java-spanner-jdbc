@@ -429,7 +429,7 @@
                 <buildArg>--no-fallback</buildArg>
               </buildArgs>
               <classpath>
-                ${projectClasspath}:/${project.build.directory}/test-classes
+                ${projectClasspath}:/${project.build.directory}/test-classes:${project.build.directory}/classes:/${project.basedir}/src/main/resources:/${project.basedir}/src/test/resources
               </classpath>
             </configuration>
           </plugin>
