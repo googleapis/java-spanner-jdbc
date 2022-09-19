@@ -353,6 +353,11 @@
     <profile>
       <id>native-0.9.13</id>
       <dependencies>
+          <dependency>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>0.9.13</version> <!-- or newer version -->
+          </dependency>
         <dependency>
           <groupId>org.junit.vintage</groupId>
           <artifactId>junit-vintage-engine</artifactId>
@@ -424,7 +429,7 @@
                 <buildArg>--no-fallback</buildArg>
               </buildArgs>
               <classpath>
-                projectClasspath
+                ${projectClasspath}:/${project.build.directory}/test-classes
               </classpath>
             </configuration>
           </plugin>
