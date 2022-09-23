@@ -353,11 +353,13 @@
     <profile>
       <id>native-0.9.13</id>
       <dependencies>
+        <!--  Adding dependency in order for it to be included it in the custom native-image classpath   -->
           <dependency>
             <groupId>org.graalvm.buildtools</groupId>
             <artifactId>native-maven-plugin</artifactId>
             <version>0.9.13</version> <!-- or newer version -->
           </dependency>
+
         <dependency>
           <groupId>org.junit.vintage</groupId>
           <artifactId>junit-vintage-engine</artifactId>
