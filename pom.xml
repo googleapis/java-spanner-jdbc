@@ -351,7 +351,7 @@
 
   <profiles>
     <profile>
-      <id>native-0.9.11</id>
+      <id>native-0.9.14</id>
 
       <dependencies>
 
@@ -391,7 +391,7 @@
           <plugin>
             <groupId>org.graalvm.buildtools</groupId>
             <artifactId>native-maven-plugin</artifactId>
-            <version>0.9.11</version>
+            <version>0.9.14</version>
             <extensions>true</extensions>
             <executions>
               <execution>
