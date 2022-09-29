@@ -70,13 +70,13 @@ integration)
     RETURN_CODE=$?
     ;;
 graalvm)
-    # Run Unit and Integration Tests with Native Image. Use native-maven-plugin until https://github.com/graalvm/native-build-tools/issues/279 is fixed.
-    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative-0.9.11 -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
+    # Run Unit and Integration Tests with Native Image.
+    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative-0.9.14 -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
     RETURN_CODE=$?
     ;;
 graalvm17)
-    # Run Unit and Integration Tests with Native Image. Use native-maven-plugin 0.9.11 until https://github.com/graalvm/native-build-tools/issues/279 is fixed.
-    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative-0.9.11 -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
+    # Run Unit and Integration Tests with Native Image.
+    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative-0.9.14 -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
     RETURN_CODE=$?
     ;;
 samples)
