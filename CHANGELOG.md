@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.7.8](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.7...v2.7.8) (2022-10-03)
+
+
+### Bug Fixes
+
+* Upgrade native image plugin to 0.9.14 to unblock graalvm 22.2 update ([#998](https://github.com/googleapis/java-spanner-jdbc/issues/998)) ([e5ed330](https://github.com/googleapis/java-spanner-jdbc/commit/e5ed3300780eec0a32c0f135415063f65fb5ca82))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.0.4 ([#1001](https://github.com/googleapis/java-spanner-jdbc/issues/1001)) ([feafe10](https://github.com/googleapis/java-spanner-jdbc/commit/feafe1076c7e272bfe69fe055f742072b5aac763))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.30.1 ([#973](https://github.com/googleapis/java-spanner-jdbc/issues/973)) ([205f312](https://github.com/googleapis/java-spanner-jdbc/commit/205f312ab3466e9efb3fc3c79ddc9644adcca527))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.30.2 ([#976](https://github.com/googleapis/java-spanner-jdbc/issues/976)) ([037a33a](https://github.com/googleapis/java-spanner-jdbc/commit/037a33a932d2a50412bc53cc05cf512a9d2a4548))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.31.0 ([#1000](https://github.com/googleapis/java-spanner-jdbc/issues/1000)) ([59d69fb](https://github.com/googleapis/java-spanner-jdbc/commit/59d69fb6548d7e1d23fc8285faa975befd00323a))
+* Update dependency org.graalvm.buildtools:junit-platform-native to v0.9.14 ([#977](https://github.com/googleapis/java-spanner-jdbc/issues/977)) ([32c881e](https://github.com/googleapis/java-spanner-jdbc/commit/32c881ea6530d23385f0c001e99d767146544210))
+* Update dependency org.junit.vintage:junit-vintage-engine to v5.9.1 ([#974](https://github.com/googleapis/java-spanner-jdbc/issues/974)) ([fab57d9](https://github.com/googleapis/java-spanner-jdbc/commit/fab57d9adea37ca4c3aa9aeb8d11e086ba86e538))
+
 ## [2.7.7](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.6...v2.7.7) (2022-09-16)
 
 
