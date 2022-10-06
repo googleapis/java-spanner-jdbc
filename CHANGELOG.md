@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.9](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.8...v2.7.9) (2022-10-06)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.31.2 ([#1002](https://github.com/googleapis/java-spanner-jdbc/issues/1002)) ([f2ac8e3](https://github.com/googleapis/java-spanner-jdbc/commit/f2ac8e392e972d326bc5702855385471febea87c))
+
 ## [2.7.8](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.7...v2.7.8) (2022-10-03)
 
 
