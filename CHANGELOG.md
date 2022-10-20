@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.7.11](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.10...v2.7.11) (2022-10-20)
+
+
+### Dependencies
+
+* Update dependency org.graalvm.buildtools:junit-platform-native to v0.9.16 ([#1017](https://github.com/googleapis/java-spanner-jdbc/issues/1017)) ([ee7888c](https://github.com/googleapis/java-spanner-jdbc/commit/ee7888c1720aa84ca2d4278a9e52f111c298ea9d))
+* Update dependency org.graalvm.buildtools:native-maven-plugin to v0.9.16 ([#1018](https://github.com/googleapis/java-spanner-jdbc/issues/1018)) ([3d5b100](https://github.com/googleapis/java-spanner-jdbc/commit/3d5b1004eb3d4e61f954b523ef2c45d59f0fbfe0))
+
 ## [2.7.10](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.9...v2.7.10) (2022-10-18)
 
 
