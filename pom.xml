@@ -349,6 +349,8 @@
     </pluginManagement>
   </build>
 
+  <profiles>
+
     <profile>
       <id>shade</id>
       <build>
