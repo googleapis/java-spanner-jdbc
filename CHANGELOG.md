@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.12](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.11...v2.7.12) (2022-10-27)
+
+
+### Bug Fixes
+
+* **java:** Initialize classes at build-time to address native image 22.2.0 issues ([#1026](https://github.com/googleapis/java-spanner-jdbc/issues/1026)) ([8010da5](https://github.com/googleapis/java-spanner-jdbc/commit/8010da5ef539d509eb7f96d9b89edf35b2e809ad))
+
 ## [2.7.11](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.10...v2.7.11) (2022-10-20)
 
 
