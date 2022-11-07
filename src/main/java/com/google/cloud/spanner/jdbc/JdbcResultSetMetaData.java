@@ -155,7 +155,9 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   @Override
   public int getScale(int column) {
     int colType = getColumnType(column);
-    if (colType == Types.DOUBLE || colType == Types.NUMERIC) return 15;
+    if (colType == Types.DOUBLE || colType == Types.NUMERIC) {
+      return 15;
+    }
     return 0;
   }
 

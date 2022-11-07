@@ -69,8 +69,10 @@ CREATE TABLE TableWithAllColumnTypes (
     ColString    VARCHAR(100) NOT NULL,
     ColStringMax TEXT,
     ColBytes     BYTEA NOT NULL,
+    ColDate      DATE NOT NULL,
     ColTimestamp TIMESTAMP WITH TIME ZONE,
-    ColNumeric   NUMERIC NOT NULL
+    ColNumeric   NUMERIC NOT NULL,
+    ColJson      VARCHAR NOT NULL
 );
 
 CREATE TABLE TableWithRef (

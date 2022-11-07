@@ -203,6 +203,9 @@ class JdbcArray implements Array {
           case JSON:
             builder = binder.to(Value.json((String) value));
             break;
+          case PG_JSONB:
+            builder = binder.to(Value.pgJsonb((String) value));
+            break;
           case TIMESTAMP:
             builder = binder.to(JdbcTypeConverter.toGoogleTimestamp((Timestamp) value));
             break;

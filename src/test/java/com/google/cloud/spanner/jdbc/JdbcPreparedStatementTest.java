@@ -128,6 +128,8 @@ public class JdbcPreparedStatementTest {
           Value.int64(13L),
           Value.numeric(new BigDecimal("3.14")),
           Value.string("bar"),
+          Value.json("{}"),
+          Value.pgJsonb("{}"),
           Value.timestamp(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(999L, 99)),
           Value.boolArray(Collections.singleton(true)),
           Value.bytesArray(Collections.singleton(ByteArray.copyFrom("foo"))),
@@ -137,6 +139,8 @@ public class JdbcPreparedStatementTest {
           Value.int64Array(Collections.singleton(13L)),
           Value.numericArray(Collections.singleton(new BigDecimal("3.14"))),
           Value.stringArray(Collections.singleton("bar")),
+          Value.jsonArray(Collections.singleton("{}")),
+          Value.pgJsonbArray(Collections.singleton("{}")),
           Value.timestampArray(
               Collections.singleton(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(999L, 99))),
         }) {
@@ -152,7 +156,7 @@ public class JdbcPreparedStatementTest {
   @SuppressWarnings("deprecation")
   @Test
   public void testParameters() throws SQLException, MalformedURLException {
-    final int numberOfParams = 51;
+    final int numberOfParams = 53;
     String sql = generateSqlWithParameters(numberOfParams);
 
     JdbcConnection connection = createMockConnection();
@@ -204,6 +208,8 @@ public class JdbcPreparedStatementTest {
       ps.setObject(49, UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"));
       ps.setObject(50, "TEST", JDBCType.NVARCHAR);
       ps.setObject(51, "TEST", JDBCType.NVARCHAR, 20);
+      ps.setObject(52, "{}", JsonType.VENDOR_TYPE_NUMBER);
+      ps.setObject(53, "{}", PgJsonbType.VENDOR_TYPE_NUMBER);
 
       testSetUnsupportedTypes(ps);
 
@@ -258,6 +264,8 @@ public class JdbcPreparedStatementTest {
       assertEquals(URL.class.getName(), pmd.getParameterClassName(48));
       assertEquals(UUID.class.getName(), pmd.getParameterClassName(49));
       assertEquals(String.class.getName(), pmd.getParameterClassName(50));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(51));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(51));
       assertEquals(String.class.getName(), pmd.getParameterClassName(51));
 
       ps.clearParameters();

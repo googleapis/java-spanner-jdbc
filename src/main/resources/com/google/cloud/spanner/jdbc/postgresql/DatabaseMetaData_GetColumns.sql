@@ -37,7 +37,7 @@ SELECT TABLE_CATALOG AS "TABLE_CAT", TABLE_SCHEMA AS "TABLE_SCHEM", TABLE_NAME A
            WHEN DATA_TYPE = 'bigint' THEN 19
            WHEN DATA_TYPE = 'numeric' THEN 15
            WHEN DATA_TYPE LIKE 'character varying' THEN CHARACTER_MAXIMUM_LENGTH
-           WHEN DATA_TYPE = 'jsonb' THEN 2621440
+           WHEN DATA_TYPE = 'jsonb' THEN CHARACTER_MAXIMUM_LENGTH
            WHEN DATA_TYPE = 'timestamp with time zone' THEN 35
            END AS "COLUMN_SIZE",
        0 AS "BUFFER_LENGTH",

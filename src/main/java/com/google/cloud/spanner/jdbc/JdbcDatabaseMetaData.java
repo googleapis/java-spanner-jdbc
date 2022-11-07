@@ -940,6 +940,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                 StructField.of("SQL_DATETIME_SUB", Type.int64()),
                 StructField.of("NUM_PREC_RADIX", Type.int64())),
             Arrays.asList(
+                // TODO(#925): Make these dialect-dependent (i.e. 'timestamptz' for PostgreSQL.
                 Struct.newBuilder()
                     .set("TYPE_NAME")
                     .to("STRING")
@@ -1243,7 +1244,52 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                     .to((Long) null)
                     .set("NUM_PREC_RADIX")
                     .to(10)
-                    .build())));
+                    .build(),
+                getJsonType(connection.getDialect()))));
+  }
+
+  private Struct getJsonType(Dialect dialect) {
+    return Struct.newBuilder()
+        .set("TYPE_NAME")
+        .to(dialect == Dialect.POSTGRESQL ? "JSONB" : "JSON")
+        .set("DATA_TYPE")
+        .to(
+            dialect == Dialect.POSTGRESQL
+                ? PgJsonbType.VENDOR_TYPE_NUMBER
+                : JsonType.VENDOR_TYPE_NUMBER)
+        .set("PRECISION")
+        .to(2621440L)
+        .set("LITERAL_PREFIX")
+        .to((String) null)
+        .set("LITERAL_SUFFIX")
+        .to((String) null)
+        .set("CREATE_PARAMS")
+        .to((String) null)
+        .set("NULLABLE")
+        .to(DatabaseMetaData.typeNullable)
+        .set("CASE_SENSITIVE")
+        .to(true)
+        .set("SEARCHABLE")
+        .to(DatabaseMetaData.typeSearchable)
+        .set("UNSIGNED_ATTRIBUTE")
+        .to(true)
+        .set("FIXED_PREC_SCALE")
+        .to(false)
+        .set("AUTO_INCREMENT")
+        .to(false)
+        .set("LOCAL_TYPE_NAME")
+        .to(dialect == Dialect.POSTGRESQL ? "JSONB" : "JSON")
+        .set("MINIMUM_SCALE")
+        .to(0)
+        .set("MAXIMUM_SCALE")
+        .to(0)
+        .set("SQL_DATA_TYPE")
+        .to((Long) null)
+        .set("SQL_DATETIME_SUB")
+        .to((Long) null)
+        .set("NUM_PREC_RADIX")
+        .to((Long) null)
+        .build();
   }
 
   @Override

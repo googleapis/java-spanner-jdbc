@@ -129,6 +129,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new Column(
               "colstringmax", Types.NVARCHAR, "character varying", null, null, null, true, null),
           new Column("colbytes", Types.BINARY, "bytea", 10485760, null, null, false, null),
+          new Column("coldate", Types.DATE, "date", 10, null, null, false, null),
           new Column(
               "coltimestamp",
               Types.TIMESTAMP,
@@ -138,7 +139,10 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
               null,
               true,
               null),
-          new Column("colnumeric", Types.NUMERIC, "numeric", 15, 16383, 10, false, null));
+          new Column("colnumeric", Types.NUMERIC, "numeric", 15, 16383, 10, false, null),
+          // TODO: Update this to typeName=jsonb and colSize=2621440
+          new Column(
+              "coljson", Types.NVARCHAR, "character varying", null, null, null, false, null));
 
   @Test
   public void testGetColumns() throws SQLException {

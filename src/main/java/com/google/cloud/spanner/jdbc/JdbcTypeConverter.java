@@ -84,8 +84,9 @@ class JdbcTypeConverter {
       }
       if (targetType.equals(byte[].class)) {
         if (type.getCode() == Code.BYTES) return value;
-        if (type.getCode() == Code.STRING || type.getCode() == Code.JSON)
-          return ((String) value).getBytes(UTF8);
+        if (type.getCode() == Code.STRING
+            || type.getCode() == Code.JSON
+            || type.getCode() == Code.PG_JSONB) return ((String) value).getBytes(UTF8);
       }
       if (targetType.equals(Boolean.class)) {
         if (type.getCode() == Code.BOOL) return value;
@@ -207,6 +208,9 @@ class JdbcTypeConverter {
                 toGoogleTimestamps((java.sql.Timestamp[]) ((java.sql.Array) value).getArray()));
           case JSON:
             return Value.jsonArray(Arrays.asList((String[]) ((java.sql.Array) value).getArray()));
+          case PG_JSONB:
+            return Value.pgJsonbArray(
+                Arrays.asList((String[]) ((java.sql.Array) value).getArray()));
           case STRUCT:
           default:
             throw JdbcSqlExceptionFactory.of(
@@ -232,6 +236,8 @@ class JdbcTypeConverter {
         return Value.timestamp(toGoogleTimestamp((java.sql.Timestamp) value));
       case JSON:
         return Value.json((String) value);
+      case PG_JSONB:
+        return Value.pgJsonb((String) value);
       case STRUCT:
       default:
         throw JdbcSqlExceptionFactory.of(

@@ -22,10 +22,12 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptionsTest;
 import java.io.IOException;
@@ -462,28 +464,33 @@ public class JdbcDatabaseMetaDataTest {
 
   @Test
   public void testGetTypeInfo() throws SQLException {
-    JdbcConnection connection = mock(JdbcConnection.class);
-    DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
-    try (ResultSet rs = meta.getTypeInfo()) {
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TYPE_NAME"), is(equalTo("STRING")));
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TYPE_NAME"), is(equalTo("INT64")));
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TYPE_NAME"), is(equalTo("BYTES")));
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TYPE_NAME"), is(equalTo("FLOAT64")));
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TYPE_NAME"), is(equalTo("BOOL")));
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TYPE_NAME"), is(equalTo("DATE")));
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TYPE_NAME"), is(equalTo("TIMESTAMP")));
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TYPE_NAME"), is(equalTo("NUMERIC")));
-      assertThat(rs.next(), is(false));
-      ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(18)));
+    for (Dialect dialect : Dialect.values()) {
+      JdbcConnection connection = mock(JdbcConnection.class);
+      when(connection.getDialect()).thenReturn(dialect);
+      DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
+      try (ResultSet rs = meta.getTypeInfo()) {
+        assertTrue(rs.next());
+        assertEquals("STRING", rs.getString("TYPE_NAME"));
+        assertTrue(rs.next());
+        assertEquals("INT64", rs.getString("TYPE_NAME"));
+        assertTrue(rs.next());
+        assertEquals("BYTES", rs.getString("TYPE_NAME"));
+        assertTrue(rs.next());
+        assertEquals("FLOAT64", rs.getString("TYPE_NAME"));
+        assertTrue(rs.next());
+        assertEquals("BOOL", rs.getString("TYPE_NAME"));
+        assertTrue(rs.next());
+        assertEquals("DATE", rs.getString("TYPE_NAME"));
+        assertTrue(rs.next());
+        assertEquals("TIMESTAMP", rs.getString("TYPE_NAME"));
+        assertTrue(rs.next());
+        assertEquals("NUMERIC", rs.getString("TYPE_NAME"));
+        assertTrue(rs.next());
+        assertEquals(dialect == Dialect.POSTGRESQL ? "JSONB" : "JSON", rs.getString("TYPE_NAME"));
+        assertThat(rs.next(), is(false));
+        ResultSetMetaData rsmd = rs.getMetaData();
+        assertThat(rsmd.getColumnCount(), is(equalTo(18)));
+      }
     }
   }
 
