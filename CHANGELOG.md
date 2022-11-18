@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.8.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.13...v2.8.0) (2022-11-17)
+
+
+### Features
+
+* Jsonb data type support ([#926](https://github.com/googleapis/java-spanner-jdbc/issues/926)) ([cefc290](https://github.com/googleapis/java-spanner-jdbc/commit/cefc290d343a2a973e1efbeee33c349fbf98060c))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.0.6 ([#1044](https://github.com/googleapis/java-spanner-jdbc/issues/1044)) ([3b00962](https://github.com/googleapis/java-spanner-jdbc/commit/3b0096215b63df415a44df1e2f7cb765f9022630))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.33.0 ([#1051](https://github.com/googleapis/java-spanner-jdbc/issues/1051)) ([e728ac1](https://github.com/googleapis/java-spanner-jdbc/commit/e728ac1eee0987a59ce57bc4c2f76e0c42b840a9))
+* Update dependency io.perfmark:perfmark-api to v0.26.0 ([#1045](https://github.com/googleapis/java-spanner-jdbc/issues/1045)) ([87d578c](https://github.com/googleapis/java-spanner-jdbc/commit/87d578c7408586118f1941b976330357ca658d15))
+
 ## [2.7.13](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.12...v2.7.13) (2022-10-31)
 
 
