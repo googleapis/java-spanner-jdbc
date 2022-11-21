@@ -36,6 +36,7 @@ import com.google.cloud.spanner.jdbc.JsonType;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
+import com.google.common.io.CharStreams;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -263,6 +264,24 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         ps.setArray(6, connection.createArrayOf("INT64", this.ticketPrices));
       }
     }
+
+    private void assertEqualsFields(Connection connection, ResultSet rs, Dialect dialect)
+        throws SQLException {
+      assertEquals(rs.getLong(1), this.venueId);
+      assertEquals(rs.getLong(2), this.singerId);
+      if (dialect == Dialect.POSTGRESQL) {
+        assertEquals(rs.getString(3), this.concertDate.toString());
+        assertEquals(rs.getString(4), this.beginTime.toString());
+        assertEquals(rs.getString(5), this.endTime.toString());
+      } else {
+        assertEquals(rs.getDate(3), this.concertDate);
+        assertEquals(rs.getTimestamp(4), this.beginTime);
+        assertEquals(rs.getTimestamp(5), this.endTime);
+        assertArrayEquals(
+            (Object[]) rs.getArray(6).getArray(),
+            (Object[]) connection.createArrayOf("INT64", this.ticketPrices).getArray());
+      }
+    }
   }
 
   private static Date parseDate(String value) {
@@ -331,6 +350,34 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       return "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime) VALUES (?,?,?,?,?);";
     }
     return "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime, TicketPrices) VALUES (?,?,?,?,?,?);";
+  }
+
+  private String getConcertsInsertReturningQuery(Dialect dialect) {
+    if (dialect == Dialect.POSTGRESQL) {
+      return "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime) VALUES (?,?,?,?,?) RETURNING *;";
+    }
+    return "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime, TicketPrices) VALUES (?,?,?,?,?,?) THEN RETURN *;";
+  }
+
+  private String getSingersInsertReturningQuery(Dialect dialect) {
+    if (dialect == Dialect.POSTGRESQL) {
+      return "INSERT INTO Singers (SingerId, FirstName, LastName, SingerInfo, BirthDate) values (?,?,?,?,?) RETURNING *";
+    }
+    return "INSERT INTO Singers (SingerId, FirstName, LastName, SingerInfo, BirthDate) values (?,?,?,?,?) THEN RETURN *";
+  }
+
+  private String getAlbumsInsertReturningQuery(Dialect dialect) {
+    if (dialect == Dialect.POSTGRESQL) {
+      return "INSERT INTO Albums (SingerId, AlbumId, AlbumTitle, MarketingBudget) VALUES (?,?,?,?) RETURNING *";
+    }
+    return "INSERT INTO Albums (SingerId, AlbumId, AlbumTitle, MarketingBudget) VALUES (?,?,?,?) THEN RETURN *";
+  }
+
+  private String getSongsInsertReturningQuery(Dialect dialect) {
+    if (dialect == Dialect.POSTGRESQL) {
+      return "INSERT INTO Songs (SingerId, AlbumId, TrackId, SongName, Duration, SongGenre) VALUES (?,?,?,?,?,?) RETURNING *;";
+    }
+    return "INSERT INTO Songs (SingerId, AlbumId, TrackId, SongName, Duration, SongGenre) VALUES (?,?,?,?,?,?) THEN RETURN *;";
   }
 
   private int getConcertExpectedParamCount(Dialect dialect) {
@@ -1147,6 +1194,103 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       assertEquals(ParameterMetaData.parameterModeIn, pmd.getParameterMode(param));
       assertEquals(ParameterMetaData.parameterNullableUnknown, pmd.isNullable(param));
       assertFalse(pmd.isSigned(param));
+    }
+  }
+
+  @Test
+  public void test12_InsertReturningTestData() throws SQLException {
+    assumeFalse(
+        "Emulator does not support DML with returning clause",
+        EmulatorSpannerHelper.isUsingEmulator());
+    try (Connection connection = createConnection(env, database)) {
+      connection.setAutoCommit(false);
+      // Delete existing rows from tables populated by other tests,
+      // so that this test can populate rows from scratch.
+      Statement deleteStatements = connection.createStatement();
+      deleteStatements.addBatch("DELETE FROM Concerts WHERE TRUE");
+      deleteStatements.addBatch("DELETE FROM Songs WHERE TRUE");
+      deleteStatements.addBatch("DELETE FROM Albums WHERE TRUE");
+      deleteStatements.addBatch("DELETE FROM Singers WHERE TRUE");
+      deleteStatements.executeBatch();
+      try (PreparedStatement ps =
+          connection.prepareStatement(getSingersInsertReturningQuery(dialect.dialect))) {
+        assertDefaultParameterMetaData(ps.getParameterMetaData(), 5);
+        for (Singer singer : createSingers()) {
+          singer.setPreparedStatement(ps, getDialect());
+          assertInsertSingerParameterMetadata(ps.getParameterMetaData());
+          ps.addBatch();
+          // check that adding the current params to a batch will not reset the metadata
+          assertInsertSingerParameterMetadata(ps.getParameterMetaData());
+        }
+        int[] results = ps.executeBatch();
+        for (int res : results) {
+          assertEquals(1, res);
+        }
+      }
+      try (PreparedStatement ps =
+          connection.prepareStatement(getAlbumsInsertReturningQuery(dialect.dialect))) {
+        assertDefaultParameterMetaData(ps.getParameterMetaData(), 4);
+        for (Album album : createAlbums()) {
+          ps.setLong(1, album.singerId);
+          ps.setLong(2, album.albumId);
+          ps.setString(3, album.albumTitle);
+          ps.setLong(4, album.marketingBudget);
+          assertInsertAlbumParameterMetadata(ps.getParameterMetaData());
+          try (ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            assertEquals(rs.getLong(1), album.singerId);
+            assertEquals(rs.getLong(2), album.albumId);
+            assertEquals(rs.getString(3), album.albumTitle);
+            assertEquals(rs.getLong(4), album.marketingBudget);
+          }
+          // check that calling executeQuery will not reset the metadata
+          assertInsertAlbumParameterMetadata(ps.getParameterMetaData());
+        }
+      }
+      try (PreparedStatement ps =
+          connection.prepareStatement(getSongsInsertReturningQuery(dialect.dialect))) {
+        assertDefaultParameterMetaData(ps.getParameterMetaData(), 6);
+        for (Song song : createSongs()) {
+          ps.setByte(1, (byte) song.singerId);
+          ps.setInt(2, (int) song.albumId);
+          ps.setShort(3, (short) song.songId);
+          ps.setNString(4, song.songName);
+          ps.setLong(5, song.duration);
+          ps.setCharacterStream(6, new StringReader(song.songGenre));
+          assertInsertSongParameterMetadata(ps.getParameterMetaData());
+          try (ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            assertEquals(rs.getByte(1), (byte) song.singerId);
+            assertEquals(rs.getInt(2), (int) song.albumId);
+            assertEquals(rs.getShort(3), (short) song.songId);
+            assertEquals(rs.getNString(4), song.songName);
+            assertEquals(rs.getLong(5), song.duration);
+            assertEquals(
+                CharStreams.toString(rs.getCharacterStream(6)),
+                CharStreams.toString(new StringReader(song.songGenre)));
+          }
+          // check that calling executeQuery will not reset the metadata
+          assertInsertSongParameterMetadata(ps.getParameterMetaData());
+        }
+      } catch (IOException e) {
+        // ignore exception.
+      }
+      try (PreparedStatement ps =
+          connection.prepareStatement(getConcertsInsertReturningQuery(dialect.dialect))) {
+        assertDefaultParameterMetaData(
+            ps.getParameterMetaData(), getConcertExpectedParamCount(dialect.dialect));
+        for (Concert concert : createConcerts()) {
+          concert.setPreparedStatement(connection, ps, getDialect());
+          assertInsertConcertParameterMetadata(ps.getParameterMetaData());
+          try (ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            concert.assertEqualsFields(connection, rs, dialect.dialect);
+          }
+          // check that calling executeQuery will not reset the meta data
+          assertInsertConcertParameterMetadata(ps.getParameterMetaData());
+        }
+      }
+      connection.commit();
     }
   }
 
