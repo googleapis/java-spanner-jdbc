@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.Database;
@@ -952,6 +953,51 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertArrayEquals(
             new String[] {"{\"test_value\":\"foo\"}", "{}", "[]", null},
             (String[]) rs.getArray(++index).getArray());
+        assertFalse(rs.next());
+      }
+    }
+  }
+
+  @Test
+  public void test08_PGInsertAllColumnTypes() throws SQLException {
+    assumeTrue(dialect.dialect == Dialect.POSTGRESQL);
+
+    String sql =
+        "INSERT INTO TableWithAllColumnTypes ("
+            + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColDate, ColTimestamp, ColNumeric, ColJson"
+            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    try (Connection con = createConnection(env, database)) {
+      try (PreparedStatement ps = con.prepareStatement(sql)) {
+        int index = 0;
+        ps.setLong(++index, 1L);
+        ps.setDouble(++index, 2D);
+        ps.setBoolean(++index, true);
+        ps.setString(++index, "test");
+        ps.setObject(++index, UUID.fromString("2d37f522-e0a5-4f22-8e09-4d77d299c967"));
+        ps.setBytes(++index, "test".getBytes());
+        ps.setDate(++index, new Date(System.currentTimeMillis()));
+        ps.setTimestamp(++index, new Timestamp(System.currentTimeMillis()));
+        ps.setBigDecimal(++index, BigDecimal.TEN);
+        // TODO: This test currently uses string/varchar. This should be updated to JSONB.
+        ps.setObject(++index, "{\"test_value\": \"foo\"}", Types.VARCHAR);
+
+        assertEquals(1, ps.executeUpdate());
+      }
+      try (ResultSet rs =
+          con.createStatement().executeQuery("SELECT * FROM TableWithAllColumnTypes")) {
+        int index = 0;
+        assertTrue(rs.next());
+        assertEquals(1L, rs.getLong(++index));
+        assertEquals(2d, rs.getDouble(++index), 0.0d);
+        assertTrue(rs.getBoolean(++index));
+        assertEquals("test", rs.getString(++index));
+        assertEquals("2d37f522-e0a5-4f22-8e09-4d77d299c967", rs.getString(++index));
+        assertArrayEquals("test".getBytes(), rs.getBytes(++index));
+        assertNotNull(rs.getDate(++index));
+        assertNotNull(rs.getTimestamp(++index));
+        assertEquals(BigDecimal.TEN, rs.getBigDecimal(++index));
+        assertEquals("{\"test_value\": \"foo\"}", rs.getString(++index));
+
         assertFalse(rs.next());
       }
     }

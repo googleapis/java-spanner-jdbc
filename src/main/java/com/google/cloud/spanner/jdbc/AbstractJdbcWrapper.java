@@ -41,18 +41,32 @@ abstract class AbstractJdbcWrapper implements Wrapper {
    */
   static int extractColumnType(Type type) {
     Preconditions.checkNotNull(type);
-    if (type.equals(Type.bool())) return Types.BOOLEAN;
-    if (type.equals(Type.bytes())) return Types.BINARY;
-    if (type.equals(Type.date())) return Types.DATE;
-    if (type.equals(Type.float64())) return Types.DOUBLE;
-    if (type.equals(Type.int64())) return Types.BIGINT;
-    if (type.equals(Type.numeric())) return Types.NUMERIC;
-    if (type.equals(Type.pgNumeric())) return Types.NUMERIC;
-    if (type.equals(Type.string())) return Types.NVARCHAR;
-    if (type.equals(Type.json())) return Types.NVARCHAR;
-    if (type.equals(Type.timestamp())) return Types.TIMESTAMP;
-    if (type.getCode() == Code.ARRAY) return Types.ARRAY;
-    return Types.OTHER;
+    switch (type.getCode()) {
+      case BOOL:
+        return Types.BOOLEAN;
+      case BYTES:
+        return Types.BINARY;
+      case DATE:
+        return Types.DATE;
+      case FLOAT64:
+        return Types.DOUBLE;
+      case INT64:
+        return Types.BIGINT;
+      case NUMERIC:
+      case PG_NUMERIC:
+        return Types.NUMERIC;
+      case STRING:
+      case JSON:
+      case PG_JSONB:
+        return Types.NVARCHAR;
+      case TIMESTAMP:
+        return Types.TIMESTAMP;
+      case ARRAY:
+        return Types.ARRAY;
+      case STRUCT:
+      default:
+        return Types.OTHER;
+    }
   }
 
   /** Extract Spanner type name from {@link java.sql.Types} code. */
@@ -101,29 +115,52 @@ abstract class AbstractJdbcWrapper implements Wrapper {
    */
   static String getClassName(Type type) {
     Preconditions.checkNotNull(type);
-    if (type == Type.bool()) return Boolean.class.getName();
-    if (type == Type.bytes()) return byte[].class.getName();
-    if (type == Type.date()) return Date.class.getName();
-    if (type == Type.float64()) return Double.class.getName();
-    if (type == Type.int64()) return Long.class.getName();
-    if (type == Type.numeric()) return BigDecimal.class.getName();
-    if (type == Type.pgNumeric()) return BigDecimal.class.getName();
-    if (type == Type.string()) return String.class.getName();
-    if (type == Type.json()) return String.class.getName();
-    if (type == Type.timestamp()) return Timestamp.class.getName();
-    if (type.getCode() == Code.ARRAY) {
-      if (type.getArrayElementType() == Type.bool()) return Boolean[].class.getName();
-      if (type.getArrayElementType() == Type.bytes()) return byte[][].class.getName();
-      if (type.getArrayElementType() == Type.date()) return Date[].class.getName();
-      if (type.getArrayElementType() == Type.float64()) return Double[].class.getName();
-      if (type.getArrayElementType() == Type.int64()) return Long[].class.getName();
-      if (type.getArrayElementType() == Type.numeric()) return BigDecimal[].class.getName();
-      if (type.getArrayElementType() == Type.pgNumeric()) return BigDecimal[].class.getName();
-      if (type.getArrayElementType() == Type.string()) return String[].class.getName();
-      if (type.getArrayElementType() == Type.json()) return String[].class.getName();
-      if (type.getArrayElementType() == Type.timestamp()) return Timestamp[].class.getName();
+    switch (type.getCode()) {
+      case BOOL:
+        return Boolean.class.getName();
+      case BYTES:
+        return byte[].class.getName();
+      case DATE:
+        return Date.class.getName();
+      case FLOAT64:
+        return Double.class.getName();
+      case INT64:
+        return Long.class.getName();
+      case NUMERIC:
+      case PG_NUMERIC:
+        return BigDecimal.class.getName();
+      case STRING:
+      case JSON:
+      case PG_JSONB:
+        return String.class.getName();
+      case TIMESTAMP:
+        return Timestamp.class.getName();
+      case ARRAY:
+        switch (type.getArrayElementType().getCode()) {
+          case BOOL:
+            return Boolean[].class.getName();
+          case BYTES:
+            return byte[][].class.getName();
+          case DATE:
+            return Date[].class.getName();
+          case FLOAT64:
+            return Double[].class.getName();
+          case INT64:
+            return Long[].class.getName();
+          case NUMERIC:
+          case PG_NUMERIC:
+            return BigDecimal[].class.getName();
+          case STRING:
+          case JSON:
+          case PG_JSONB:
+            return String[].class.getName();
+          case TIMESTAMP:
+            return Timestamp[].class.getName();
+        }
+      case STRUCT:
+      default:
+        return null;
     }
-    return null;
   }
 
   /** Standard error message for out-of-range values. */

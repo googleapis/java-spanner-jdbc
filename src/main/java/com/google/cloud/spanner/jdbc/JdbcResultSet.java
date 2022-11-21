@@ -155,6 +155,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? null : spanner.getString(spannerIndex);
       case JSON:
         return isNull ? null : spanner.getJson(spannerIndex);
+      case PG_JSONB:
+        return isNull ? null : spanner.getPgJsonb(spannerIndex);
       case TIMESTAMP:
         return isNull ? null : spanner.getTimestamp(spannerIndex).toString();
       case STRUCT:
@@ -185,6 +187,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return !isNull && Boolean.parseBoolean(spanner.getString(spannerIndex));
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -219,6 +222,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? (byte) 0 : checkedCastToByte(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -253,6 +257,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0 : checkedCastToShort(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -287,6 +292,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0 : checkedCastToInt(parseLong(spanner.getString(spannerIndex)));
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -319,6 +325,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0L : parseLong(spanner.getString(spannerIndex));
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -349,6 +356,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0 : checkedCastToFloat(parseDouble(spanner.getString(spannerIndex)));
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -379,6 +387,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? 0 : parseDouble(spanner.getString(spannerIndex));
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case DATE:
       case STRUCT:
       case TIMESTAMP:
@@ -418,6 +427,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case PG_NUMERIC:
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case STRUCT:
       case ARRAY:
       default:
@@ -444,6 +454,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case PG_NUMERIC:
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case STRUCT:
       case ARRAY:
       default:
@@ -471,6 +482,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case PG_NUMERIC:
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case STRUCT:
       case ARRAY:
       default:
@@ -726,6 +738,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         }
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case DATE:
       case TIMESTAMP:
       case STRUCT:
@@ -818,6 +831,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case NUMERIC:
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case STRUCT:
       case ARRAY:
       default:
@@ -848,6 +862,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case NUMERIC:
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case STRUCT:
       case ARRAY:
       default:
@@ -881,6 +896,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case NUMERIC:
       case BYTES:
       case JSON:
+      case PG_JSONB:
       case STRUCT:
       case ARRAY:
       default:

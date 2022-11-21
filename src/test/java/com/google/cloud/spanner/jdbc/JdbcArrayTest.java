@@ -171,6 +171,25 @@ public class JdbcArrayTest {
 
     array =
         JdbcArray.createArray(
+            "JSONB",
+            new String[] {"{}", "[]", null, "{\"name\":\"John\", \"age\":30, \"car\":null}"});
+    assertThat(array.getBaseType()).isEqualTo(PgJsonbType.VENDOR_TYPE_NUMBER);
+    assertThat(((String[]) array.getArray(1, 1))[0]).isEqualTo("{}");
+    try (ResultSet rs = array.getResultSet()) {
+      assertTrue(rs.next());
+      assertEquals("{}", rs.getString(2));
+      assertTrue(rs.next());
+      assertEquals("[]", rs.getString(2));
+      assertTrue(rs.next());
+      assertNull(rs.getString(2));
+      assertTrue(rs.wasNull());
+      assertTrue(rs.next());
+      assertEquals("{\"name\":\"John\", \"age\":30, \"car\":null}", rs.getString(2));
+      assertFalse(rs.next());
+    }
+
+    array =
+        JdbcArray.createArray(
             "TIMESTAMP",
             new Timestamp[] {new Timestamp(1L), new Timestamp(100L), new Timestamp(1000L)});
     assertThat(array.getBaseType()).isEqualTo(Types.TIMESTAMP);
