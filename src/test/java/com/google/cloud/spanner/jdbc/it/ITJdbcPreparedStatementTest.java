@@ -1204,6 +1204,14 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         EmulatorSpannerHelper.isUsingEmulator());
     try (Connection connection = createConnection(env, database)) {
       connection.setAutoCommit(false);
+      // Delete existing rows from tables populated by other tests,
+      // so that this test can populate rows from scratch.
+      Statement deleteStatements = connection.createStatement();
+      deleteStatements.addBatch("DELETE FROM Singers WHERE TRUE");
+      deleteStatements.addBatch("DELETE FROM Albums WHERE TRUE");
+      deleteStatements.addBatch("DELETE FROM Songs WHERE TRUE");
+      deleteStatements.addBatch("DELETE FROM Concerts WHERE TRUE");
+      deleteStatements.executeBatch();
       try (PreparedStatement ps =
           connection.prepareStatement(getSingersInsertReturningQuery(dialect.dialect))) {
         assertDefaultParameterMetaData(ps.getParameterMetaData(), 5);
