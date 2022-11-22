@@ -194,7 +194,9 @@ class JdbcConnection extends AbstractJdbcConnection {
   public void commit() throws SQLException {
     checkClosed();
     try {
-      getSpannerConnection().commit();
+      if (getSpannerConnection().isInTransaction()) {
+        getSpannerConnection().commit();
+      }
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
@@ -204,7 +206,9 @@ class JdbcConnection extends AbstractJdbcConnection {
   public void rollback() throws SQLException {
     checkClosed();
     try {
-      getSpannerConnection().rollback();
+      if (getSpannerConnection().isInTransaction()) {
+        getSpannerConnection().rollback();
+      }
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
