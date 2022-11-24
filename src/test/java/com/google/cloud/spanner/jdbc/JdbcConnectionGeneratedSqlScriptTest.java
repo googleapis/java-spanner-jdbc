@@ -26,6 +26,7 @@ import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConn
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnectionProvider;
 import com.google.cloud.spanner.connection.ConnectionImplTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.IsolationLevel;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
 import java.sql.SQLException;
 import org.junit.Test;
@@ -59,6 +60,7 @@ public class JdbcConnectionGeneratedSqlScriptTest {
     @Override
     public GenericConnection getConnection() {
       ConnectionOptions options = mock(ConnectionOptions.class);
+      when(options.getDefaultIsolationLevel()).thenReturn(IsolationLevel.SERIALIZABLE);
       when(options.getUri()).thenReturn(ConnectionImplTest.URI);
       com.google.cloud.spanner.connection.Connection spannerConnection =
           ConnectionImplTest.createConnection(options, dialect);

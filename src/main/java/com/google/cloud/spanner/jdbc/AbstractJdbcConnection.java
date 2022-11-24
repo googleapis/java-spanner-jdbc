@@ -115,25 +115,6 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
   }
 
   @Override
-  public void setTransactionIsolation(int level) throws SQLException {
-    checkClosed();
-    JdbcPreconditions.checkArgument(
-        level == TRANSACTION_SERIALIZABLE
-            || level == TRANSACTION_REPEATABLE_READ
-            || level == TRANSACTION_READ_UNCOMMITTED
-            || level == TRANSACTION_READ_COMMITTED,
-        "Not a transaction isolation level");
-    JdbcPreconditions.checkSqlFeatureSupported(
-        level == TRANSACTION_SERIALIZABLE, ONLY_SERIALIZABLE);
-  }
-
-  @Override
-  public int getTransactionIsolation() throws SQLException {
-    checkClosed();
-    return TRANSACTION_SERIALIZABLE;
-  }
-
-  @Override
   public void setHoldability(int holdability) throws SQLException {
     checkClosed();
     JdbcPreconditions.checkArgument(

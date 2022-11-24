@@ -37,6 +37,7 @@ import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.connection.AbstractConnectionImplTest;
 import com.google.cloud.spanner.connection.ConnectionImplTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.IsolationLevel;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.rpc.Code;
 import java.lang.reflect.InvocationTargetException;
@@ -85,7 +86,9 @@ public class JdbcConnectionTest {
   }
 
   private ConnectionOptions mockOptions() {
-    return mock(ConnectionOptions.class);
+    ConnectionOptions options = mock(ConnectionOptions.class);
+    when(options.getDefaultIsolationLevel()).thenReturn(IsolationLevel.SERIALIZABLE);
+    return options;
   }
 
   @Test
@@ -348,28 +351,23 @@ public class JdbcConnectionTest {
           .isEqualTo(Connection.TRANSACTION_SERIALIZABLE);
       // assert that setting it to this value is ok.
       connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+      // Read-committed should also be supported.
+      connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+      assertThat(connection.getTransactionIsolation())
+          .isEqualTo(Connection.TRANSACTION_READ_COMMITTED);
       // assert that setting it to something else is not ok.
       int[] settings =
           new int[] {
-            Connection.TRANSACTION_READ_COMMITTED,
-            Connection.TRANSACTION_READ_UNCOMMITTED,
-            Connection.TRANSACTION_REPEATABLE_READ,
-            -100
+            Connection.TRANSACTION_READ_UNCOMMITTED, Connection.TRANSACTION_REPEATABLE_READ, -100
           };
       for (int setting : settings) {
         boolean exception = false;
         try {
           connection.setTransactionIsolation(setting);
         } catch (SQLException e) {
-          if (setting == -100) {
-            exception =
-                (e instanceof JdbcSqlException
-                    && ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT);
-          } else {
-            exception =
-                (e instanceof JdbcSqlException
-                    && ((JdbcSqlException) e).getCode() == Code.UNIMPLEMENTED);
-          }
+          exception =
+              (e instanceof JdbcSqlException
+                  && ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT);
         }
         assertThat(exception).isTrue();
       }

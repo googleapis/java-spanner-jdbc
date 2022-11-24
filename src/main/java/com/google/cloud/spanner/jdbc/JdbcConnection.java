@@ -23,8 +23,10 @@ import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
 import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.IsolationLevel;
 import com.google.cloud.spanner.connection.TransactionMode;
 import com.google.common.collect.Iterators;
+import com.google.rpc.Code;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -54,6 +56,56 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   JdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     super(connectionUrl, options);
+  }
+
+  @Override
+  public void setTransactionIsolation(int level) throws SQLException {
+    checkClosed();
+    try {
+      getSpannerConnection().setDefaultIsolationLevel(convertToSpannerIsolationLevel(level));
+    } catch (SpannerException spannerException) {
+      throw JdbcSqlExceptionFactory.of(spannerException);
+    }
+  }
+
+  @Override
+  public int getTransactionIsolation() throws SQLException {
+    checkClosed();
+    return convertToJdbcIsolationLevel(getSpannerConnection().getDefaultIsolationLevel());
+  }
+
+  int convertToJdbcIsolationLevel(IsolationLevel spannerIsolationLevel) throws SQLException {
+    switch (spannerIsolationLevel) {
+      case READ_UNCOMMITTED:
+        return TRANSACTION_READ_UNCOMMITTED;
+      case READ_COMMITTED:
+        return TRANSACTION_READ_COMMITTED;
+      case REPEATABLE_READ:
+        return TRANSACTION_REPEATABLE_READ;
+      case SERIALIZABLE:
+        return TRANSACTION_SERIALIZABLE;
+      default:
+        throw JdbcSqlExceptionFactory.of(
+            String.format("%s is not a valid isolation level", spannerIsolationLevel),
+            Code.INVALID_ARGUMENT);
+    }
+  }
+
+  IsolationLevel convertToSpannerIsolationLevel(int jdbcIsolationLevel) throws SQLException {
+    switch (jdbcIsolationLevel) {
+      case TRANSACTION_READ_UNCOMMITTED:
+        return IsolationLevel.READ_UNCOMMITTED;
+      case TRANSACTION_READ_COMMITTED:
+        return IsolationLevel.READ_COMMITTED;
+      case TRANSACTION_REPEATABLE_READ:
+        return IsolationLevel.REPEATABLE_READ;
+      case TRANSACTION_SERIALIZABLE:
+        return IsolationLevel.SERIALIZABLE;
+      default:
+        throw JdbcSqlExceptionFactory.of(
+            String.format("%d is not a valid isolation level", jdbcIsolationLevel),
+            Code.INVALID_ARGUMENT);
+    }
   }
 
   @Override
