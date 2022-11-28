@@ -564,6 +564,16 @@ class JdbcConnection extends AbstractJdbcConnection {
     }
   }
 
+  @Override
+  public void setConvertDmlToMutations(boolean convert) throws SQLException {
+    checkClosed();
+    try {
+      getSpannerConnection().setConvertDmlToMutations(convert);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
   @SuppressWarnings("deprecation")
   private static final class JdbcToSpannerTransactionRetryListener
       implements com.google.cloud.spanner.connection.TransactionRetryListener {
