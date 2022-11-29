@@ -564,6 +564,11 @@ class JdbcConnection extends AbstractJdbcConnection {
     }
   }
 
+  public boolean isConvertDmlToMutations() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().isConvertDmlToMutations();
+  }
+
   @Override
   public void setConvertDmlToMutations(boolean convert) throws SQLException {
     checkClosed();

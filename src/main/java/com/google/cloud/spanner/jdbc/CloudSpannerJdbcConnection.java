@@ -299,6 +299,8 @@ public interface CloudSpannerJdbcConnection extends Connection {
    */
   void bufferedWrite(Mutation mutation) throws SQLException;
 
+  boolean isConvertDmlToMutations() throws SQLException;
+
   /** Instructs the JDBC connection to automatically convert DML statements to mutations. */
   void setConvertDmlToMutations(boolean convert) throws SQLException;
 
