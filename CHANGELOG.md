@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.9.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.8.0...v2.9.0) (2022-12-14)
+
+
+### Features
+
+* Add tests for DML with Returning clause ([#936](https://github.com/googleapis/java-spanner-jdbc/issues/936)) ([8a86467](https://github.com/googleapis/java-spanner-jdbc/commit/8a86467c6db7a4e99fdf23cdbce2d78382f8cde9))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.1.0 ([#1069](https://github.com/googleapis/java-spanner-jdbc/issues/1069)) ([c2ff33a](https://github.com/googleapis/java-spanner-jdbc/commit/c2ff33a8f6a7051e1639fee235e1b6bba5916c3a))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.34.1 ([#1072](https://github.com/googleapis/java-spanner-jdbc/issues/1072)) ([0045a5e](https://github.com/googleapis/java-spanner-jdbc/commit/0045a5e51c5a40523f70ec22c9b75bc8707dccb7))
+
 ## [2.8.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.7.13...v2.8.0) (2022-11-17)
 
 
