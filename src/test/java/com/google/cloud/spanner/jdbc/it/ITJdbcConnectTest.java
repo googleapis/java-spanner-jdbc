@@ -74,7 +74,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
       url.append("//").append(System.getenv("SPANNER_EMULATOR_HOST"));
     }
     if (options.getHost() != null) {
-      url.append(options.getHost().substring(options.getHost().indexOf(58) + 1));
+      url.append(options.getHost().substring(options.getHost().indexOf(':') + 1));
     }
     url.append("/").append(database.getId().getName());
     if (EmulatorSpannerHelper.isUsingEmulator()) {
