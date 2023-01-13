@@ -60,16 +60,21 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
 
   private Database database;
+  private SpannerOptions options;
 
   @Before
   public void setup() {
     database = env.getOrCreateDatabase(Dialect.GOOGLE_STANDARD_SQL, Collections.emptyList());
+    options = env.getTestHelper().getOptions();
   }
 
   private String createBaseUrl() {
     StringBuilder url = new StringBuilder("jdbc:cloudspanner:");
     if (EmulatorSpannerHelper.isUsingEmulator()) {
       url.append("//").append(System.getenv("SPANNER_EMULATOR_HOST"));
+    }
+    if (options.getHost() != null) {
+      url.append(options.getHost().substring(options.getHost().indexOf(58) + 1));
     }
     url.append("/").append(database.getId().getName());
     if (EmulatorSpannerHelper.isUsingEmulator()) {
