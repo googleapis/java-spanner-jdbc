@@ -73,6 +73,8 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
     if (EmulatorSpannerHelper.isUsingEmulator()) {
       url.append("//").append(System.getenv("SPANNER_EMULATOR_HOST"));
     }
+    // Extract "//x.y.googleapis.com" from "https://x.y.googleapis.com" and append it to
+    // url.
     if (options.getHost() != null) {
       url.append(options.getHost().substring(options.getHost().indexOf(':') + 1));
     }
