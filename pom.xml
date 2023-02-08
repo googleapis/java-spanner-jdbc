@@ -83,11 +83,6 @@
         <artifactId>opencensus-contrib-grpc-util</artifactId>
         <version>${opencensus.version}</version>
       </dependency>
-      <dependency>
-        <groupId>io.perfmark</groupId>
-        <artifactId>perfmark-api</artifactId>
-        <version>0.26.0</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
