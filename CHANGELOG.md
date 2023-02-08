@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.9.4](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.3...v2.9.4) (2023-02-08)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.2.0 ([#1118](https://github.com/googleapis/java-spanner-jdbc/issues/1118)) ([56ed82b](https://github.com/googleapis/java-spanner-jdbc/commit/56ed82b26e40ccfa88e046eb39f8b146bd647e16))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.35.2 ([#1114](https://github.com/googleapis/java-spanner-jdbc/issues/1114)) ([6575d0c](https://github.com/googleapis/java-spanner-jdbc/commit/6575d0c980fa894a5d50b978f8cc93974e804eb2))
+* Use perfmark-api version via shared dependencies BOM ([#1111](https://github.com/googleapis/java-spanner-jdbc/issues/1111)) ([beb5298](https://github.com/googleapis/java-spanner-jdbc/commit/beb52985676b0e981072ee7df60a4cf9f6139624))
+
 ## [2.9.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.2...v2.9.3) (2023-01-25)
 
 
