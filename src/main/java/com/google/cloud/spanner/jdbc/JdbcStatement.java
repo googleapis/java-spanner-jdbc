@@ -60,9 +60,11 @@ class JdbcStatement extends AbstractJdbcStatement {
 
   /**
    * @see java.sql.Statement#executeUpdate(String)
-   *     <p>This method allows both DML and DDL statements to be executed. It assumes that the user
-   *     knows what kind of statement is being executed, and the method will therefore return 0 for
-   *     both DML statements that changed 0 rows as well as for all DDL statements.
+   *     <p>This method allows non-returning DML, ClientSideStatement with no result and DDL
+   *     statements to be executed. It assumes that the user knows what kind of statement is being
+   *     executed, and the method will therefore return 0 for both non-returning DML statements that
+   *     changed 0 rows and for all statements that return no result. The method throws a
+   *     SQLException for Returning DML statements.
    */
   @Override
   public int executeUpdate(String sql) throws SQLException {
@@ -75,27 +77,16 @@ class JdbcStatement extends AbstractJdbcStatement {
 
   /**
    * @see java.sql.Statement#executeLargeUpdate(String)
-   *     <p>This method allows both DML and DDL statements to be executed. It assumes that the user
-   *     knows what kind of statement is being executed, and the method will therefore return 0 for
-   *     both DML statements that changed 0 rows as well as for all DDL statements.
+   *     <p>This method allows non-returning DML, ClientSideStatement with no result and DDL
+   *     statements to be executed. It assumes that the user knows what kind of statement is being
+   *     executed, and the method will therefore return 0 for both non-returning DML statements that
+   *     changed 0 rows and for all statements that return no result. The method throws a
+   *     SQLException for Returning DML statements.
    */
   @Override
   public long executeLargeUpdate(String sql) throws SQLException {
     checkClosed();
-    Statement statement = Statement.of(sql);
-    StatementResult result = execute(statement);
-    switch (result.getResultType()) {
-      case RESULT_SET:
-        throw JdbcSqlExceptionFactory.of(
-            "The statement is not a non-returning DML or DDL statement", Code.INVALID_ARGUMENT);
-      case UPDATE_COUNT:
-        return result.getUpdateCount();
-      case NO_RESULT:
-        return 0L;
-      default:
-        throw JdbcSqlExceptionFactory.of(
-            "unknown result: " + result.getResultType(), Code.FAILED_PRECONDITION);
-    }
+    return executeLargeUpdate(Statement.of(sql));
   }
 
   @Override

@@ -62,6 +62,8 @@ public class JdbcStatementTest {
   private static final String DML_RETURNING_GSQL = "UPDATE FOO SET BAR=1 WHERE 1=1 THEN RETURN *";
   private static final String DML_RETURNING_PG = "UPDATE FOO SET BAR=1 WHERE 1=1 RETURNING *";
   private static final String DDL = "CREATE INDEX FOO ON BAR(ID)";
+  private static final String NO_RESULT_CLIENT_SIDE_STATEMENT = "SET AUTOCOMMIT=TRUE";
+  private static final String RESULT_SET_CLIENT_SIDE_STATEMENT = "SHOW VARIABLE AUTOCOMMIT";
 
   @Parameter public Dialect dialect;
 
@@ -119,6 +121,7 @@ public class JdbcStatementTest {
         .thenReturn(dmlReturningResult);
 
     StatementResult ddlResult = mock(StatementResult.class);
+    when(ddlResult.getUpdateCount()).thenReturn(0L);
     when(ddlResult.getResultType()).thenReturn(ResultType.NO_RESULT);
     when(spanner.execute(com.google.cloud.spanner.Statement.of(DDL))).thenReturn(ddlResult);
 
@@ -137,14 +140,22 @@ public class JdbcStatementTest {
         .thenThrow(
             SpannerExceptionFactory.newSpannerException(
                 ErrorCode.INVALID_ARGUMENT, "not an update"));
-    when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(DDL)))
-        .thenThrow(
-            SpannerExceptionFactory.newSpannerException(
-                ErrorCode.INVALID_ARGUMENT, "not an update"));
+    when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(LARGE_UPDATE)))
+        .thenReturn(Integer.MAX_VALUE + 1L);
+    when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(DDL))).thenReturn(0L);
     when(spanner.executeUpdate(com.google.cloud.spanner.Statement.of(DML_RETURNING_SQL)))
         .thenThrow(
             SpannerExceptionFactory.newSpannerException(
                 ErrorCode.FAILED_PRECONDITION, "cannot execute dml returning over executeUpdate"));
+    when(spanner.executeUpdate(
+            com.google.cloud.spanner.Statement.of(NO_RESULT_CLIENT_SIDE_STATEMENT)))
+        .thenReturn(0L);
+    when(spanner.executeUpdate(
+            com.google.cloud.spanner.Statement.of(RESULT_SET_CLIENT_SIDE_STATEMENT)))
+        .thenThrow(
+            SpannerExceptionFactory.newSpannerException(
+                ErrorCode.FAILED_PRECONDITION,
+                "cannot execute ClientSideStatement returning result set over executeUpdate"));
 
     when(spanner.executeBatchUpdate(anyList()))
         .thenAnswer(
@@ -413,9 +424,7 @@ public class JdbcStatementTest {
       fail("missing expected exception");
     } catch (SQLException e) {
       assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(
-                      Code.INVALID_ARGUMENT,
-                      "The statement is not a non-returning DML or DDL statement")
+              JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not an update")
                   .matches(e))
           .isTrue();
     }
@@ -429,8 +438,7 @@ public class JdbcStatementTest {
           assertThrows(SQLException.class, () -> statement.executeUpdate(getDmlReturningSql()));
       assertTrue(
           JdbcExceptionMatcher.matchCodeAndMessage(
-                  Code.INVALID_ARGUMENT,
-                  "The statement is not a non-returning DML or DDL statement")
+                  Code.FAILED_PRECONDITION, "cannot execute dml returning over executeUpdate")
               .matches(e));
     } catch (SQLException e) {
       // ignore exception.
@@ -440,7 +448,23 @@ public class JdbcStatementTest {
   @Test
   public void testExecuteUpdateWithDdlStatement() throws SQLException {
     Statement statement = createStatement();
-    assertThat(statement.executeUpdate(DDL)).isEqualTo(0);
+    assertEquals(statement.executeUpdate(DDL), 0);
+  }
+
+  @Test
+  public void testClientSideStatementWithExecuteUpdate() throws SQLException {
+    try (JdbcStatement statement = createStatement()) {
+      int cnt = statement.executeUpdate(NO_RESULT_CLIENT_SIDE_STATEMENT);
+      assertEquals(cnt, 0);
+      SQLException e =
+          assertThrows(
+              SQLException.class, () -> statement.executeUpdate(RESULT_SET_CLIENT_SIDE_STATEMENT));
+      assertTrue(
+          JdbcExceptionMatcher.matchCodeAndMessage(
+                  Code.FAILED_PRECONDITION,
+                  "cannot execute ClientSideStatement returning result set over executeUpdate")
+              .matches(e));
+    }
   }
 
   @Test

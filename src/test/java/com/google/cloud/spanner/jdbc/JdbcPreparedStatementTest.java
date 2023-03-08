@@ -32,6 +32,7 @@ import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.ResultSets;
+import com.google.cloud.spanner.SpannerExceptionFactory;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
@@ -65,6 +66,11 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class JdbcPreparedStatementTest {
+  private static final String DDL =
+      "CREATE TABLE FOO1 (ID INT64 NOT NULL, NAME STRING(100)) PRIMARY KEY (ID)";
+  private static final String NO_RESULT_CLIENT_SIDE_STATEMENT = "SET AUTOCOMMIT=TRUE";
+  private static final String RESULT_SET_CLIENT_SIDE_STATEMENT = "SHOW VARIABLE AUTOCOMMIT";
+
   @Parameter public Dialect dialect;
 
   @Parameters(name = "dialect = {0}")
@@ -106,6 +112,16 @@ public class JdbcPreparedStatementTest {
     when(connection.getDialect()).thenReturn(dialect);
     when(connection.getParser()).thenReturn(AbstractStatementParser.getInstance(dialect));
     when(connection.getSpannerConnection()).thenReturn(spanner);
+    when(spanner.executeUpdate(Statement.of(DDL))).thenReturn(0L);
+    when(spanner.executeUpdate(
+            com.google.cloud.spanner.Statement.of(NO_RESULT_CLIENT_SIDE_STATEMENT)))
+        .thenReturn(0L);
+    when(spanner.executeUpdate(
+            com.google.cloud.spanner.Statement.of(RESULT_SET_CLIENT_SIDE_STATEMENT)))
+        .thenThrow(
+            SpannerExceptionFactory.newSpannerException(
+                ErrorCode.FAILED_PRECONDITION,
+                "cannot execute ClientSideStatement returning result set over executeUpdate"));
     when(connection.createBlob()).thenCallRealMethod();
     when(connection.createClob()).thenCallRealMethod();
     when(connection.createNClob()).thenCallRealMethod();
@@ -394,6 +410,36 @@ public class JdbcPreparedStatementTest {
             createMockConnection(connection), "UPDATE FOO SET BAR=1 WHERE TRUE")) {
       ResultSetMetaData metadata = ps.getMetaData();
       assertEquals(0, metadata.getColumnCount());
+    }
+  }
+
+  @Test
+  public void testExecuteUpdateForDdl() throws SQLException {
+    Connection connection = mock(Connection.class);
+    try (JdbcPreparedStatement ps =
+        new JdbcPreparedStatement(createMockConnection(connection), DDL)) {
+      int updateCount = ps.executeUpdate();
+      assertEquals(0, updateCount);
+    }
+  }
+
+  @Test
+  public void testExecuteUpdateForClientSideStatement() throws SQLException {
+    try (JdbcPreparedStatement ps =
+        new JdbcPreparedStatement(
+            createMockConnection(mock(Connection.class)), NO_RESULT_CLIENT_SIDE_STATEMENT)) {
+      int updateCount = ps.executeUpdate();
+      assertEquals(0, updateCount);
+    }
+    try (JdbcPreparedStatement ps =
+        new JdbcPreparedStatement(
+            createMockConnection(mock(Connection.class)), RESULT_SET_CLIENT_SIDE_STATEMENT)) {
+      SQLException e = assertThrows(SQLException.class, ps::executeUpdate);
+      assertTrue(
+          JdbcExceptionMatcher.matchCodeAndMessage(
+                  Code.FAILED_PRECONDITION,
+                  "cannot execute ClientSideStatement returning result set over executeUpdate")
+              .matches(e));
     }
   }
 

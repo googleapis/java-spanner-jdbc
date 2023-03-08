@@ -29,7 +29,9 @@ import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Value;
+import com.google.cloud.spanner.jdbc.JdbcSqlException;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
+import com.google.rpc.Code;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -122,6 +124,57 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
             assertThat(rs.next()).isTrue();
             assertThat(rs.getInt(1)).isEqualTo(i);
             assertThat(rs.next()).isFalse();
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  public void testDdlPreparedStatementExecuteUpdate() throws SQLException {
+    String createTableFoo4 =
+        "CREATE TABLE FOO4 (ID INT64 NOT NULL, NAME STRING(100)) PRIMARY KEY (ID)";
+    if (dialect.dialect == Dialect.POSTGRESQL) {
+      createTableFoo4 = "CREATE TABLE FOO4 (ID BIGINT PRIMARY KEY, NAME VARCHAR(100))";
+    }
+    try (Connection connection = createConnection(env, database)) {
+      try (PreparedStatement pstmt = connection.prepareStatement(createTableFoo4)) {
+        int updateCount = pstmt.executeUpdate();
+        assertEquals(updateCount, 0);
+      }
+    }
+  }
+
+  @Test
+  public void testDdlStatementExecuteUpdate() throws SQLException {
+    String createTableFoo5 =
+        "CREATE TABLE FOO5 (ID INT64 NOT NULL, NAME STRING(100)) PRIMARY KEY (ID)";
+    if (dialect.dialect == Dialect.POSTGRESQL) {
+      createTableFoo5 = "CREATE TABLE FOO5 (ID BIGINT PRIMARY KEY, NAME VARCHAR(100))";
+    }
+    try (Connection connection = createConnection(env, database)) {
+      try (Statement stmt = connection.createStatement()) {
+        int updateCount = stmt.executeUpdate(createTableFoo5);
+        assertEquals(updateCount, 0);
+      }
+    }
+  }
+
+  @Test
+  public void testClientSideStatement() throws SQLException {
+    final String SET_AUTOCOMMIT_FALSE = "SET AUTOCOMMIT=FALSE";
+    final String SHOW_AUTOCOMMIT = "SHOW VARIABLE AUTOCOMMIT";
+    try (Connection connection = createConnection(env, database)) {
+      try (Statement stmt = connection.createStatement()) {
+        int updateCount = stmt.executeUpdate(SET_AUTOCOMMIT_FALSE);
+        assertEquals(updateCount, 0);
+        SQLException e =
+            assertThrows(SQLException.class, () -> stmt.executeUpdate(SHOW_AUTOCOMMIT));
+        assertTrue(e instanceof JdbcSqlException);
+        assertEquals(Code.FAILED_PRECONDITION, ((JdbcSqlException) e).getCode());
+        try (ResultSet rs = stmt.executeQuery(SHOW_AUTOCOMMIT)) {
+          while (rs.next()) {
+            assertFalse(rs.getBoolean(1));
           }
         }
       }
