@@ -62,7 +62,7 @@ class JdbcStatement extends AbstractJdbcStatement {
    * @see java.sql.Statement#executeUpdate(String)
    *     <p>This method allows non-returning DML, ClientSideStatement with no result and DDL
    *     statements to be executed. It assumes that the user knows what kind of statement is being
-   *     executed, and the method will therefore return 0 for both non-returning DML statements that
+   *     executed, and the method will therefore return 0 for non-returning DML statements that
    *     changed 0 rows and for all statements that return no result. The method throws a
    *     SQLException for Returning DML statements.
    */
@@ -79,7 +79,7 @@ class JdbcStatement extends AbstractJdbcStatement {
    * @see java.sql.Statement#executeLargeUpdate(String)
    *     <p>This method allows non-returning DML, ClientSideStatement with no result and DDL
    *     statements to be executed. It assumes that the user knows what kind of statement is being
-   *     executed, and the method will therefore return 0 for both non-returning DML statements that
+   *     executed, and the method will therefore return 0 for non-returning DML statements that
    *     changed 0 rows and for all statements that return no result. The method throws a
    *     SQLException for Returning DML statements.
    */
