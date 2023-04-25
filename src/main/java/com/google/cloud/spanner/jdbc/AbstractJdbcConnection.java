@@ -28,7 +28,6 @@ import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
-import java.sql.Savepoint;
 import java.sql.Struct;
 import java.util.Properties;
 import java.util.concurrent.Executor;
@@ -42,7 +41,6 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
       "Only isolation level TRANSACTION_SERIALIZABLE is supported";
   private static final String ONLY_CLOSE_ALLOWED =
       "Only holdability CLOSE_CURSORS_AT_COMMIT is supported";
-  private static final String SAVEPOINTS_UNSUPPORTED = "Savepoints are not supported";
   private static final String SQLXML_UNSUPPORTED = "SQLXML is not supported";
   private static final String STRUCTS_UNSUPPORTED = "Structs are not supported";
   private static final String ABORT_UNSUPPORTED = "Abort is not supported";
@@ -161,26 +159,6 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
     checkClosed();
     firstWarning = null;
     lastWarning = null;
-  }
-
-  @Override
-  public Savepoint setSavepoint() throws SQLException {
-    return checkClosedAndThrowUnsupported(SAVEPOINTS_UNSUPPORTED);
-  }
-
-  @Override
-  public Savepoint setSavepoint(String name) throws SQLException {
-    return checkClosedAndThrowUnsupported(SAVEPOINTS_UNSUPPORTED);
-  }
-
-  @Override
-  public void rollback(Savepoint savepoint) throws SQLException {
-    checkClosedAndThrowUnsupported(SAVEPOINTS_UNSUPPORTED);
-  }
-
-  @Override
-  public void releaseSavepoint(Savepoint savepoint) throws SQLException {
-    checkClosedAndThrowUnsupported(SAVEPOINTS_UNSUPPORTED);
   }
 
   @Override

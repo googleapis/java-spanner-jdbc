@@ -23,6 +23,7 @@ import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
 import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.SavepointSupport;
 import com.google.cloud.spanner.connection.TransactionMode;
 import com.google.common.collect.Iterators;
 import java.sql.Array;
@@ -33,6 +34,7 @@ import java.sql.NClob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -400,6 +402,69 @@ class JdbcConnection extends AbstractJdbcConnection {
   public String getSchema() throws SQLException {
     checkClosed();
     return "";
+  }
+
+  @Override
+  public SavepointSupport getSavepointSupport() {
+    return getSpannerConnection().getSavepointSupport();
+  }
+
+  @Override
+  public void setSavepointSupport(SavepointSupport savepointSupport) throws SQLException {
+    checkClosed();
+    try {
+      getSpannerConnection().setSavepointSupport(savepointSupport);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public Savepoint setSavepoint() throws SQLException {
+    checkClosed();
+    try {
+      JdbcSavepoint savepoint = JdbcSavepoint.unnamed();
+      getSpannerConnection().savepoint(savepoint.internalGetSavepointName());
+      return savepoint;
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public Savepoint setSavepoint(String name) throws SQLException {
+    checkClosed();
+    try {
+      JdbcSavepoint savepoint = JdbcSavepoint.named(name);
+      getSpannerConnection().savepoint(savepoint.internalGetSavepointName());
+      return savepoint;
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public void rollback(Savepoint savepoint) throws SQLException {
+    checkClosed();
+    JdbcPreconditions.checkArgument(savepoint instanceof JdbcSavepoint, savepoint);
+    JdbcSavepoint jdbcSavepoint = (JdbcSavepoint) savepoint;
+    try {
+      getSpannerConnection().rollbackToSavepoint(jdbcSavepoint.internalGetSavepointName());
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public void releaseSavepoint(Savepoint savepoint) throws SQLException {
+    checkClosed();
+    JdbcPreconditions.checkArgument(savepoint instanceof JdbcSavepoint, savepoint);
+    JdbcSavepoint jdbcSavepoint = (JdbcSavepoint) savepoint;
+    try {
+      getSpannerConnection().releaseSavepoint(jdbcSavepoint.internalGetSavepointName());
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
   }
 
   @Override
