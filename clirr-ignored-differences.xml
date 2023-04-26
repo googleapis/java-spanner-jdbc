@@ -6,4 +6,14 @@
     <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
     <method>com.google.cloud.spanner.Dialect getDialect()</method>
   </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>com.google.cloud.spanner.connection.SavepointSupport getSavepointSupport()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>void setSavepointSupport(com.google.cloud.spanner.connection.SavepointSupport)</method>
+  </difference>
 </differences>
