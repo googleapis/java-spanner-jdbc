@@ -36,6 +36,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
   private final String sql;
   private final String sqlWithoutComments;
   private final ParametersInfo parameters;
+  private JdbcParameterMetaData cachedParameterMetadata;
 
   JdbcPreparedStatement(JdbcConnection connection, String sql) throws SQLException {
     super(connection);
@@ -101,7 +102,34 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
   @Override
   public JdbcParameterMetaData getParameterMetaData() throws SQLException {
     checkClosed();
-    return new JdbcParameterMetaData(this);
+    if (cachedParameterMetadata == null) {
+      if (getConnection().getParser().isUpdateStatement(sql)
+          && !getConnection().getParser().checkReturningClause(sql)) {
+        cachedParameterMetadata = getParameterMetadataForUpdate();
+      } else {
+        cachedParameterMetadata = getParameterMetadataForQuery();
+      }
+    }
+    return cachedParameterMetadata;
+  }
+
+  private JdbcParameterMetaData getParameterMetadataForUpdate() {
+    try (com.google.cloud.spanner.ResultSet resultSet =
+        getConnection()
+            .getSpannerConnection()
+            .analyzeUpdateStatement(
+                Statement.of(parameters.sqlWithNamedParameters), QueryAnalyzeMode.PLAN)) {
+      return new JdbcParameterMetaData(this, resultSet);
+    }
+  }
+
+  private JdbcParameterMetaData getParameterMetadataForQuery() {
+    try (com.google.cloud.spanner.ResultSet resultSet =
+        getConnection()
+            .getSpannerConnection()
+            .analyzeQuery(Statement.of(parameters.sqlWithNamedParameters), QueryAnalyzeMode.PLAN)) {
+      return new JdbcParameterMetaData(this, resultSet);
+    }
   }
 
   @Override

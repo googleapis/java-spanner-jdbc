@@ -17,10 +17,10 @@
 package com.google.cloud.spanner.jdbc;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
@@ -40,6 +40,10 @@ import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.rpc.Code;
+import com.google.spanner.v1.ResultSetMetadata;
+import com.google.spanner.v1.StructType;
+import com.google.spanner.v1.StructType.Field;
+import com.google.spanner.v1.TypeCode;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -57,6 +61,8 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -159,7 +165,8 @@ public class JdbcPreparedStatementTest {
     final int numberOfParams = 53;
     String sql = generateSqlWithParameters(numberOfParams);
 
-    JdbcConnection connection = createMockConnection();
+    Connection spannerConnection = createMockConnectionWithAnalyzeResults(numberOfParams);
+    JdbcConnection connection = createMockConnection(spannerConnection);
     try (JdbcPreparedStatement ps = new JdbcPreparedStatement(connection, sql)) {
       ps.setArray(1, connection.createArrayOf("INT64", new Long[] {1L, 2L, 3L}));
       ps.setAsciiStream(2, new ByteArrayInputStream("TEST".getBytes()));
@@ -251,10 +258,14 @@ public class JdbcPreparedStatementTest {
       assertEquals(String.class.getName(), pmd.getParameterClassName(35));
       assertEquals(String.class.getName(), pmd.getParameterClassName(36));
       assertEquals(String.class.getName(), pmd.getParameterClassName(37));
-      assertNull(pmd.getParameterClassName(38));
-      assertNull(pmd.getParameterClassName(39));
+
+      // These parameter values are not set, so the driver returns the type that was returned by
+      // Cloud Spanner.
+      assertEquals(String.class.getName(), pmd.getParameterClassName(38));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(39));
+
       assertEquals(Short.class.getName(), pmd.getParameterClassName(40));
-      assertNull(pmd.getParameterClassName(41));
+      assertEquals(String.class.getName(), pmd.getParameterClassName(41));
       assertEquals(String.class.getName(), pmd.getParameterClassName(42));
       assertEquals(Time.class.getName(), pmd.getParameterClassName(43));
       assertEquals(Time.class.getName(), pmd.getParameterClassName(44));
@@ -302,7 +313,10 @@ public class JdbcPreparedStatementTest {
   public void testSetNullValues() throws SQLException {
     final int numberOfParameters = 27;
     String sql = generateSqlWithParameters(numberOfParameters);
-    try (JdbcPreparedStatement ps = new JdbcPreparedStatement(createMockConnection(), sql)) {
+
+    JdbcConnection connection =
+        createMockConnection(createMockConnectionWithAnalyzeResults(numberOfParameters));
+    try (JdbcPreparedStatement ps = new JdbcPreparedStatement(connection, sql)) {
       int index = 0;
       ps.setNull(++index, Types.BLOB);
       ps.setNull(++index, Types.NVARCHAR);
@@ -408,5 +422,35 @@ public class JdbcPreparedStatementTest {
     JdbcSqlException jdbcSqlException = (JdbcSqlException) sqlException;
     assertEquals(
         ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value(), jdbcSqlException.getErrorCode());
+  }
+
+  private Connection createMockConnectionWithAnalyzeResults(int numParams) {
+    Connection spannerConnection = mock(Connection.class);
+    ResultSet resultSet = mock(ResultSet.class);
+    when(spannerConnection.analyzeUpdateStatement(any(Statement.class), eq(QueryAnalyzeMode.PLAN)))
+        .thenReturn(resultSet);
+    when(spannerConnection.analyzeQuery(any(Statement.class), eq(QueryAnalyzeMode.PLAN)))
+        .thenReturn(resultSet);
+    ResultSetMetadata metadata =
+        ResultSetMetadata.newBuilder()
+            .setUndeclaredParameters(
+                StructType.newBuilder()
+                    .addAllFields(
+                        IntStream.range(0, numParams)
+                            .mapToObj(
+                                i ->
+                                    Field.newBuilder()
+                                        .setName("p" + (i + 1))
+                                        .setType(
+                                            com.google.spanner.v1.Type.newBuilder()
+                                                .setCode(TypeCode.STRING)
+                                                .build())
+                                        .build())
+                            .collect(Collectors.toList()))
+                    .build())
+            .build();
+    when(resultSet.getMetadata()).thenReturn(metadata);
+
+    return spannerConnection;
   }
 }

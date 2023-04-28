@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.common.base.Preconditions;
@@ -66,6 +67,68 @@ abstract class AbstractJdbcWrapper implements Wrapper {
       case STRUCT:
       default:
         return Types.OTHER;
+    }
+  }
+
+  static String getSpannerTypeName(Type type, Dialect dialect) {
+    // TODO: Move this into the Java Connection API.
+    Preconditions.checkNotNull(type);
+    switch (type.getCode()) {
+      case BOOL:
+        return dialect == Dialect.POSTGRESQL ? "boolean" : "BOOL";
+      case BYTES:
+        return dialect == Dialect.POSTGRESQL ? "bytea" : "BYTES";
+      case DATE:
+        return dialect == Dialect.POSTGRESQL ? "date" : "DATE";
+      case FLOAT64:
+        return dialect == Dialect.POSTGRESQL ? "double precision" : "FLOAT64";
+      case INT64:
+        return dialect == Dialect.POSTGRESQL ? "bigint" : "INT64";
+      case NUMERIC:
+        return "NUMERIC";
+      case PG_NUMERIC:
+        return "numeric";
+      case STRING:
+        return dialect == Dialect.POSTGRESQL ? "varchar" : "STRING";
+      case JSON:
+        return "JSON";
+      case PG_JSONB:
+        return "jsonb";
+      case TIMESTAMP:
+        return dialect == Dialect.POSTGRESQL ? "timestamp with time zone" : "TIMESTAMP";
+      case STRUCT:
+        return "STRUCT";
+      case ARRAY:
+        switch (type.getArrayElementType().getCode()) {
+          case BOOL:
+            return dialect == Dialect.POSTGRESQL ? "boolean[]" : "ARRAY<BOOL>";
+          case BYTES:
+            return dialect == Dialect.POSTGRESQL ? "bytea[]" : "ARRAY<BYTES>";
+          case DATE:
+            return dialect == Dialect.POSTGRESQL ? "date[]" : "ARRAY<DATE>";
+          case FLOAT64:
+            return dialect == Dialect.POSTGRESQL ? "double precision[]" : "ARRAY<FLOAT64>";
+          case INT64:
+            return dialect == Dialect.POSTGRESQL ? "bigint[]" : "ARRAY<INT64>";
+          case NUMERIC:
+            return "ARRAY<NUMERIC>";
+          case PG_NUMERIC:
+            return "numeric[]";
+          case STRING:
+            return dialect == Dialect.POSTGRESQL ? "varchar[]" : "ARRAY<STRING>";
+          case JSON:
+            return "ARRAY<JSON>";
+          case PG_JSONB:
+            return "jsonb[]";
+          case TIMESTAMP:
+            return dialect == Dialect.POSTGRESQL
+                ? "timestamp with time zone[]"
+                : "ARRAY<TIMESTAMP>";
+          case STRUCT:
+            return "ARRAY<STRUCT>";
+        }
+      default:
+        return null;
     }
   }
 
