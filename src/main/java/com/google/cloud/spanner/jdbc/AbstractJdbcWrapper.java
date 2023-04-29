@@ -132,7 +132,12 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     }
   }
 
-  /** Extract Spanner type name from {@link java.sql.Types} code. */
+  /**
+   * Extract Spanner type name from {@link java.sql.Types} code.
+   *
+   * @deprecated Use {@link #getSpannerTypeName(Type, Dialect)} instead.
+   */
+  @Deprecated
   static String getSpannerTypeName(int sqlType) {
     if (sqlType == Types.BOOLEAN) return Type.bool().getCode().name();
     if (sqlType == Types.BINARY) return Type.bytes().getCode().name();
@@ -152,7 +157,12 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     return OTHER_NAME;
   }
 
-  /** Get corresponding Java class name from {@link java.sql.Types} code. */
+  /**
+   * Get corresponding Java class name from {@link java.sql.Types} code.
+   *
+   * @deprecated Use {@link #getClassName(Type)} instead.
+   */
+  @Deprecated
   static String getClassName(int sqlType) {
     if (sqlType == Types.BOOLEAN) return Boolean.class.getName();
     if (sqlType == Types.BINARY) return Byte[].class.getName();
