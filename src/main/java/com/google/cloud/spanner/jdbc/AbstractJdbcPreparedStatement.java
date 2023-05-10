@@ -16,6 +16,8 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.Value;
+import com.google.protobuf.NullValue;
 import com.google.rpc.Code;
 import java.io.InputStream;
 import java.io.Reader;
@@ -81,7 +83,16 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   @Override
   public void setNull(int parameterIndex, int sqlType) throws SQLException {
     checkClosed();
-    parameters.setParameter(parameterIndex, null, sqlType, null);
+    if (sqlType == Types.OTHER) {
+      parameters.setParameter(
+          parameterIndex,
+          Value.untyped(
+              com.google.protobuf.Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()),
+          sqlType,
+          null);
+    } else {
+      parameters.setParameter(parameterIndex, null, sqlType, null);
+    }
   }
 
   @Override
