@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.15](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.14...v2.9.15) (2023-05-15)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.9.0 ([#1227](https://github.com/googleapis/java-spanner-jdbc/issues/1227)) ([329f258](https://github.com/googleapis/java-spanner-jdbc/commit/329f25862a0f7118cc0419568eca3a72a053a055))
+
 ## [2.9.14](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.13...v2.9.14) (2023-05-02)
 
 
