@@ -405,7 +405,8 @@ class JdbcConnection extends AbstractJdbcConnection {
   }
 
   @Override
-  public SavepointSupport getSavepointSupport() {
+  public SavepointSupport getSavepointSupport() throws SQLException {
+    checkClosed();
     return getSpannerConnection().getSavepointSupport();
   }
 

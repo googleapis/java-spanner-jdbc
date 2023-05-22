@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.9.16](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.15...v2.9.16) (2023-05-15)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.42.0 ([#1231](https://github.com/googleapis/java-spanner-jdbc/issues/1231)) ([011570f](https://github.com/googleapis/java-spanner-jdbc/commit/011570ffb1d18fafe0a322d5582c5f7206349e09))
+
+## [2.9.15](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.14...v2.9.15) (2023-05-15)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.9.0 ([#1227](https://github.com/googleapis/java-spanner-jdbc/issues/1227)) ([329f258](https://github.com/googleapis/java-spanner-jdbc/commit/329f25862a0f7118cc0419568eca3a72a053a055))
+
+## [2.9.14](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.13...v2.9.14) (2023-05-02)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.41.0 ([#1216](https://github.com/googleapis/java-spanner-jdbc/issues/1216)) ([9d0be37](https://github.com/googleapis/java-spanner-jdbc/commit/9d0be37fcea0ab90f8408b433295f7640f059f0a))
+
+## [2.9.13](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.12...v2.9.13) (2023-04-27)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.8.0 ([#1211](https://github.com/googleapis/java-spanner-jdbc/issues/1211)) ([a7e762d](https://github.com/googleapis/java-spanner-jdbc/commit/a7e762dddc2e0165bbf8e3e722df3b46c2b9a089))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.40.1 ([#1207](https://github.com/googleapis/java-spanner-jdbc/issues/1207)) ([44ea7f8](https://github.com/googleapis/java-spanner-jdbc/commit/44ea7f8520230c7a9c632e42b7b668f179d4aa95))
+
 ## [2.9.12](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.11...v2.9.12) (2023-04-19)
 
 
