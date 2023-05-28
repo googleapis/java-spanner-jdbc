@@ -183,6 +183,7 @@ class JdbcArray implements Array {
             builder = binder.to((Boolean) value);
             break;
           case BYTES:
+          case PROTO:
             builder = binder.to(ByteArray.copyFrom((byte[]) value));
             break;
           case DATE:
@@ -192,6 +193,7 @@ class JdbcArray implements Array {
             builder = binder.to((Double) value);
             break;
           case INT64:
+          case ENUM:
             builder = binder.to((Long) value);
             break;
           case NUMERIC:
