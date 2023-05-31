@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.10.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.16...v2.10.0) (2023-05-30)
+
+
+### Features
+
+* Support Savepoint ([#1212](https://github.com/googleapis/java-spanner-jdbc/issues/1212)) ([6833696](https://github.com/googleapis/java-spanner-jdbc/commit/683369633627367342b3a40e3abba4fa81069724))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.10.1 ([#1239](https://github.com/googleapis/java-spanner-jdbc/issues/1239)) ([8f7e7a7](https://github.com/googleapis/java-spanner-jdbc/commit/8f7e7a79be6d7326d7e6bdd6018bb76a695cb1b8))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.42.2 ([#1237](https://github.com/googleapis/java-spanner-jdbc/issues/1237)) ([97961b2](https://github.com/googleapis/java-spanner-jdbc/commit/97961b2c501d428575e283485386e04f4673d968))
+
 ## [2.9.16](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.15...v2.9.16) (2023-05-15)
 
 
