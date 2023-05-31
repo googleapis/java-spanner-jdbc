@@ -78,7 +78,13 @@ class JdbcArray implements Array {
   private JdbcArray(JdbcDataType type, Object[] elements) throws SQLException {
     this.type = type;
     if (elements != null) {
-      this.data = java.lang.reflect.Array.newInstance(type.getJavaClass(), elements.length);
+      if (type.getCode() == Type.Code.PROTO || type.getCode() == Type.Code.ENUM) {
+        this.data =
+            java.lang.reflect.Array.newInstance(
+                elements.getClass().getComponentType(), elements.length);
+      } else {
+        this.data = java.lang.reflect.Array.newInstance(type.getJavaClass(), elements.length);
+      }
       try {
         System.arraycopy(elements, 0, this.data, 0, elements.length);
       } catch (Exception e) {

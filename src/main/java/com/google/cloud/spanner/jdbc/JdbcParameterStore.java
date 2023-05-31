@@ -24,11 +24,17 @@ import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.ValueBinder;
 import com.google.common.io.CharStreams;
+import com.google.protobuf.AbstractMessage;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Message;
+import com.google.protobuf.ProtocolMessageEnum;
 import com.google.rpc.Code;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -274,6 +280,8 @@ class JdbcParameterStore {
       case Types.DECIMAL:
       case JsonType.VENDOR_TYPE_NUMBER:
       case PgJsonbType.VENDOR_TYPE_NUMBER:
+      case ProtoMessageType.VENDOR_TYPE_NUMBER:
+      case ProtoEnumType.VENDOR_TYPE_NUMBER:
         return true;
     }
     return false;
@@ -343,6 +351,10 @@ class JdbcParameterStore {
             || value instanceof Reader
             || (value instanceof Value
                 && ((Value) value).getType().getCode() == Type.Code.PG_JSONB);
+      case ProtoMessageType.VENDOR_TYPE_NUMBER:
+        return value instanceof AbstractMessage || value instanceof byte[];
+      case ProtoEnumType.VENDOR_TYPE_NUMBER:
+        return value instanceof ProtocolMessageEnum || value instanceof Number;
     }
     return false;
   }
@@ -603,6 +615,23 @@ class JdbcParameterStore {
           }
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid clob", Code.INVALID_ARGUMENT);
+      case ProtoMessageType.VENDOR_TYPE_NUMBER:
+        if (value instanceof AbstractMessage) {
+          return binder.to((AbstractMessage) value);
+        } else if (value instanceof byte[]) {
+          return binder.to(ByteArray.copyFrom((byte[]) value));
+        } else {
+          throw JdbcSqlExceptionFactory.of(
+              value + " is not a valid PROTO value", Code.INVALID_ARGUMENT);
+        }
+      case ProtoEnumType.VENDOR_TYPE_NUMBER:
+        if (value instanceof ProtocolMessageEnum) {
+          return binder.to((ProtocolMessageEnum) value);
+        } else if (value instanceof Number) {
+          return binder.to(((Number) value).longValue());
+        }
+        throw JdbcSqlExceptionFactory.of(
+            value + " is not a valid ENUM value", Code.INVALID_ARGUMENT);
     }
     return null;
   }
@@ -723,6 +752,10 @@ class JdbcParameterStore {
         throw new IllegalArgumentException(
             "Unsupported parameter type: " + value.getClass().getName() + " - " + value);
       }
+    } else if (AbstractMessage.class.isAssignableFrom(value.getClass())) {
+      return binder.to((AbstractMessage) value);
+    } else if (ProtocolMessageEnum.class.isAssignableFrom(value.getClass())) {
+      return binder.to((ProtocolMessageEnum) value);
     }
     return null;
   }
@@ -838,6 +871,57 @@ class JdbcParameterStore {
       }
     } else if (byte[][].class.isAssignableFrom(value.getClass())) {
       return binder.toBytesArray(JdbcTypeConverter.toGoogleBytes((byte[][]) value));
+    } else if (AbstractMessage[].class.isAssignableFrom(value.getClass())) {
+      Class<?> componentType = value.getClass().getComponentType();
+      int length = java.lang.reflect.Array.getLength(value);
+      List<ByteArray> convertedArray = new ArrayList<>();
+      try {
+        for (int i = 0; i < length; i++) {
+          Object element = java.lang.reflect.Array.get(value, i);
+          if (element != null) {
+            byte[] l = (byte[]) componentType.getMethod("toByteArray").invoke(element);
+            convertedArray.add(ByteArray.copyFrom(l));
+          } else {
+            convertedArray.add(null);
+          }
+        }
+
+        Message.Builder builder =
+            (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
+        Descriptor msgDescriptor = builder.getDescriptorForType();
+
+        if (length == 0) {
+          return binder.toProtoMessageArray(null, msgDescriptor.getFullName());
+        }
+        return binder.toProtoMessageArray(convertedArray, msgDescriptor.getFullName());
+      } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (ProtocolMessageEnum[].class.isAssignableFrom(value.getClass())) {
+      Class<?> componentType = value.getClass().getComponentType();
+      int length = java.lang.reflect.Array.getLength(value);
+      List<Long> convertedArray = new ArrayList<>();
+      try {
+        for (int i = 0; i < length; i++) {
+          Object element = java.lang.reflect.Array.get(value, i);
+          if (element != null) {
+            int op = (int) componentType.getMethod("getNumber").invoke(element);
+            convertedArray.add((long) op);
+          } else {
+            convertedArray.add(null);
+          }
+        }
+
+        Descriptors.EnumDescriptor enumDescriptor =
+            (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
+
+        if (length == 0) {
+          return binder.toProtoEnumArray(null, enumDescriptor.getFullName());
+        }
+        return binder.toProtoEnumArray(convertedArray, enumDescriptor.getFullName());
+      } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+        throw new RuntimeException(e);
+      }
     }
     return null;
   }
@@ -870,6 +954,7 @@ class JdbcParameterStore {
       case Types.BIGINT:
         return binder.to((Long) null);
       case Types.BINARY:
+      case ProtoMessageType.VENDOR_TYPE_NUMBER:
         return binder.to((ByteArray) null);
       case Types.BLOB:
         return binder.to((ByteArray) null);
@@ -894,6 +979,7 @@ class JdbcParameterStore {
       case Types.FLOAT:
         return binder.to((Double) null);
       case Types.INTEGER:
+      case ProtoEnumType.VENDOR_TYPE_NUMBER:
         return binder.to((Long) null);
       case Types.LONGNVARCHAR:
         return binder.to((String) null);
