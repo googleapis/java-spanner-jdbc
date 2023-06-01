@@ -28,6 +28,7 @@ import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Message;
+import com.google.protobuf.NullValue;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.google.rpc.Code;
 import java.io.IOException;
@@ -808,6 +809,13 @@ class JdbcParameterStore {
         case Types.LONGVARBINARY:
         case Types.BLOB:
           return binder.toBytesArray(null);
+        case ProtoMessageType.VENDOR_TYPE_NUMBER:
+        case ProtoEnumType.VENDOR_TYPE_NUMBER:
+          return binder.to(
+              Value.untyped(
+                  com.google.protobuf.Value.newBuilder()
+                      .setNullValue(NullValue.NULL_VALUE)
+                      .build()));
       }
       throw JdbcSqlExceptionFactory.unsupported("Unknown/unsupported array base type: " + type);
     }
@@ -890,9 +898,6 @@ class JdbcParameterStore {
             (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
         Descriptor msgDescriptor = builder.getDescriptorForType();
 
-        if (length == 0) {
-          return binder.toProtoMessageArray(null, msgDescriptor.getFullName());
-        }
         return binder.toProtoMessageArray(convertedArray, msgDescriptor.getFullName());
       } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
         throw new RuntimeException(e);
@@ -915,9 +920,6 @@ class JdbcParameterStore {
         Descriptors.EnumDescriptor enumDescriptor =
             (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
 
-        if (length == 0) {
-          return binder.toProtoEnumArray(null, enumDescriptor.getFullName());
-        }
         return binder.toProtoEnumArray(convertedArray, enumDescriptor.getFullName());
       } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
         throw new RuntimeException(e);
