@@ -83,15 +83,16 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   @Override
   public void setNull(int parameterIndex, int sqlType) throws SQLException {
     checkClosed();
-    if (sqlType == Types.OTHER) {
+    if (sqlType == Types.OTHER || sqlType == Types.NULL) {
       parameters.setParameter(
           parameterIndex,
           Value.untyped(
               com.google.protobuf.Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()),
           sqlType,
-          null);
+          /* scaleOrLength = */ null);
     } else {
-      parameters.setParameter(parameterIndex, null, sqlType, null);
+      parameters.setParameter(
+          parameterIndex, /* value = */ null, sqlType, /* scaleOrLength = */ null);
     }
   }
 

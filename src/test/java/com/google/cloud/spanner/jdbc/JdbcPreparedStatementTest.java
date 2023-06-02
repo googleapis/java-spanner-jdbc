@@ -300,7 +300,7 @@ public class JdbcPreparedStatementTest {
 
   @Test
   public void testSetNullValues() throws SQLException {
-    final int numberOfParameters = 27;
+    final int numberOfParameters = 29;
     String sql = generateSqlWithParameters(numberOfParameters);
     try (JdbcPreparedStatement ps = new JdbcPreparedStatement(createMockConnection(), sql)) {
       int index = 0;
@@ -331,6 +331,8 @@ public class JdbcPreparedStatementTest {
       ps.setNull(++index, Types.BIT);
       ps.setNull(++index, Types.VARBINARY);
       ps.setNull(++index, Types.VARCHAR);
+      ps.setNull(++index, Types.OTHER);
+      ps.setNull(++index, Types.NULL);
       assertEquals(numberOfParameters, index);
 
       JdbcParameterMetaData pmd = ps.getParameterMetaData();
