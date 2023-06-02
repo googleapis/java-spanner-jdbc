@@ -512,7 +512,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new IndexInfo("TableWithRef", false, "PRIMARY_KEY", 1, "Id", "A"),
           new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 1, "RefFloat", "A"),
           new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 2, "RefString", "A"),
-          new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 3, "RefDate", "A"));
+          new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 3, "RefDate", "A"),
+          new IndexInfo("all_nullable_types", false, "PRIMARY_KEY", 1, "ColInt64", "A"));
 
   @Test
   public void testGetIndexInfo() throws SQLException {
@@ -860,7 +861,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new Table("SingersView", "VIEW"),
           new Table("Songs"),
           new Table("TableWithAllColumnTypes"),
-          new Table("TableWithRef"));
+          new Table("TableWithRef"),
+          new Table("all_nullable_types"));
 
   @Test
   public void testGetTables() throws SQLException {
