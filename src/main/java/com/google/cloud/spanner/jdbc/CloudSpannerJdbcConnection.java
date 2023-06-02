@@ -25,6 +25,7 @@ import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
+import com.google.cloud.spanner.connection.SavepointSupport;
 import com.google.cloud.spanner.connection.TransactionMode;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -255,6 +256,12 @@ public interface CloudSpannerJdbcConnection extends Connection {
    *     AbortedException}s.
    */
   void setRetryAbortsInternally(boolean retryAbortsInternally) throws SQLException;
+
+  /** Returns the current savepoint support for this connection. */
+  SavepointSupport getSavepointSupport() throws SQLException;
+
+  /** Sets how savepoints should be supported on this connection. */
+  void setSavepointSupport(SavepointSupport savepointSupport) throws SQLException;
 
   /**
    * Writes the specified mutation directly to the database and commits the change. The value is
