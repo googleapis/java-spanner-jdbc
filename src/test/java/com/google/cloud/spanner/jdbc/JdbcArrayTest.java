@@ -27,7 +27,10 @@ import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.Struct;
+import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
+import com.google.cloud.spanner.jdbc.it.SingerProto.Genre;
+import com.google.cloud.spanner.jdbc.it.SingerProto.SingerInfo;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -36,6 +39,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -201,6 +205,65 @@ public class JdbcArrayTest {
       assertThat(rs.getTimestamp(2)).isEqualTo(new Timestamp(100L));
       assertThat(rs.next()).isTrue();
       assertThat(rs.getTimestamp(2)).isEqualTo(new Timestamp(1000L));
+      assertThat(rs.next()).isFalse();
+    }
+
+    // TODO(Harsha): null is not handled in getResultSet method for primitive types like byte[].
+    SingerInfo singerInfo =
+        SingerInfo.newBuilder().setSingerId(1).setNationality("Country1").build();
+    array =
+        JdbcArray.createArray(
+            "PROTO", new SingerInfo[] {singerInfo, SingerInfo.getDefaultInstance()});
+    assertThat(array.getBaseType()).isEqualTo(ProtoMessageType.VENDOR_TYPE_NUMBER);
+    assertThat(((SingerInfo[]) array.getArray(1, 1))[0]).isEqualTo(singerInfo);
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getObject(2, SingerInfo.class)).isEqualTo(singerInfo);
+      assertThat(rs.getBytes(2)).isEqualTo(singerInfo.toByteArray());
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getObject(2, SingerInfo.class)).isEqualTo(SingerInfo.getDefaultInstance());
+      assertThat(rs.getBytes(2)).isEqualTo(SingerInfo.getDefaultInstance().toByteArray());
+      assertThat(rs.next()).isFalse();
+    }
+
+    array = JdbcArray.createArray("ENUM", new Genre[] {Genre.ROCK, Genre.FOLK});
+    assertThat(array.getBaseType()).isEqualTo(ProtoEnumType.VENDOR_TYPE_NUMBER);
+    assertThat(((Genre[]) array.getArray(1, 1))[0]).isEqualTo(Genre.ROCK);
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getObject(2, Genre.class)).isEqualTo(Genre.ROCK);
+      assertThat(rs.getInt(2)).isEqualTo(Genre.ROCK.getNumber());
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getObject(2, Genre.class)).isEqualTo(Genre.FOLK);
+      assertThat(rs.getInt(2)).isEqualTo(Genre.FOLK.getNumber());
+      assertThat(rs.next()).isFalse();
+    }
+
+    array =
+        JdbcArray.createArray(
+            JdbcDataType.getType(Code.PROTO),
+            Arrays.asList(singerInfo.toByteArray(), SingerInfo.getDefaultInstance().toByteArray()));
+    assertThat(array.getBaseType()).isEqualTo(ProtoMessageType.VENDOR_TYPE_NUMBER);
+    assertThat(((byte[][]) array.getArray(1, 1))[0]).isEqualTo(singerInfo.toByteArray());
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getBytes(2)).isEqualTo(singerInfo.toByteArray());
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getBytes(2)).isEqualTo(SingerInfo.getDefaultInstance().toByteArray());
+      assertThat(rs.next()).isFalse();
+    }
+
+    array =
+        JdbcArray.createArray(
+            JdbcDataType.getType(Code.ENUM),
+            Arrays.asList((long) Genre.ROCK.getNumber(), (long) Genre.FOLK.getNumber()));
+    assertThat(array.getBaseType()).isEqualTo(ProtoEnumType.VENDOR_TYPE_NUMBER);
+    assertThat(((Long[]) array.getArray(1, 1))[0]).isEqualTo(Genre.ROCK.getNumber());
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getInt(2)).isEqualTo(Genre.ROCK.getNumber());
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getInt(2)).isEqualTo(Genre.FOLK.getNumber());
       assertThat(rs.next()).isFalse();
     }
   }

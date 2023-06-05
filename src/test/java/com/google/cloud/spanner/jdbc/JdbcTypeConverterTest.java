@@ -36,6 +36,8 @@ import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.ReadOnlyStalenessUtil;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
+import com.google.cloud.spanner.jdbc.it.SingerProto.Genre;
+import com.google.cloud.spanner.jdbc.it.SingerProto.SingerInfo;
 import com.google.rpc.Code;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -73,7 +75,7 @@ public class JdbcTypeConverterTest {
           Type.string(),
           Type.json(),
           Type.timestamp(),
-          Type.numeric()
+          Type.numeric(),
         }) {
       assertConvertThrows(testValue, Type.array(t), Boolean.class, Code.INVALID_ARGUMENT);
       assertConvertThrows(testValue, Type.array(t), Byte.class, Code.INVALID_ARGUMENT);
@@ -124,6 +126,122 @@ public class JdbcTypeConverterTest {
 
     assertThat(convert(testValues, Type.bytes(), byte[].class)).isEqualTo(testValues);
     assertThat(convert(testValues, Type.bytes(), String.class)).isEqualTo("test");
+  }
+
+  @Test
+  public void testConvertProtoMessage() throws SQLException {
+    SingerInfo singerInfo =
+        SingerInfo.newBuilder().setSingerId(1).setNationality("Country1").build();
+    byte[] testValues = singerInfo.toByteArray();
+    String protoTypeFqn = SingerInfo.getDescriptor().getFullName();
+    assertConvertThrows(testValues, Type.proto(protoTypeFqn), Boolean.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValues, Type.proto(protoTypeFqn), Byte.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValues, Type.proto(protoTypeFqn), Short.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValues, Type.proto(protoTypeFqn), Integer.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValues, Type.proto(protoTypeFqn), Long.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValues, Type.proto(protoTypeFqn), Float.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(testValues, Type.proto(protoTypeFqn), Double.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.proto(protoTypeFqn), BigInteger.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.proto(protoTypeFqn), BigDecimal.class, Code.INVALID_ARGUMENT);
+
+    assertThat(convert(testValues, Type.proto(protoTypeFqn), byte[].class)).isEqualTo(testValues);
+    assertThat(convert(testValues, Type.proto(protoTypeFqn), SingerInfo.class))
+        .isEqualTo(singerInfo);
+  }
+
+  @Test
+  public void testConvertProtoMessageArray() throws SQLException {
+    SingerInfo singerInfo =
+        SingerInfo.newBuilder().setSingerId(1).setNationality("Country1").build();
+    Array testValues =
+        JdbcArray.createArray("PROTO", new byte[][] {singerInfo.toByteArray(), null});
+    String protoTypeFqn = SingerInfo.getDescriptor().getFullName();
+    assertConvertThrows(
+        testValues, Type.array(Type.proto(protoTypeFqn)), Boolean[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.array(Type.proto(protoTypeFqn)), Byte[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.array(Type.proto(protoTypeFqn)), Short[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.array(Type.proto(protoTypeFqn)), Integer[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.array(Type.proto(protoTypeFqn)), Long[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.array(Type.proto(protoTypeFqn)), Float[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.array(Type.proto(protoTypeFqn)), Double[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues,
+        Type.array(Type.proto(protoTypeFqn)),
+        BigInteger[].class,
+        Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues,
+        Type.array(Type.proto(protoTypeFqn)),
+        BigDecimal[].class,
+        Code.INVALID_ARGUMENT);
+
+    assertThat(convert(testValues, Type.array(Type.proto(protoTypeFqn)), Array.class))
+        .isEqualTo(testValues);
+    assertThat(convert(testValues, Type.array(Type.proto(protoTypeFqn)), SingerInfo[].class))
+        .isEqualTo(new SingerInfo[] {singerInfo, null});
+  }
+
+  @Test
+  public void testConvertProtoEnumArray() throws SQLException {
+    Array testValues =
+        JdbcArray.createArray("ENUM", new Long[] {(long) Genre.ROCK.getNumber(), null});
+    String protoTypeFqn = Genre.getDescriptor().getFullName();
+    assertConvertThrows(
+        testValues,
+        Type.array(Type.protoEnum(protoTypeFqn)),
+        Boolean[].class,
+        Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.array(Type.protoEnum(protoTypeFqn)), Byte[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.array(Type.protoEnum(protoTypeFqn)), Short[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues,
+        Type.array(Type.protoEnum(protoTypeFqn)),
+        Integer[].class,
+        Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.array(Type.protoEnum(protoTypeFqn)), Long[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues, Type.array(Type.protoEnum(protoTypeFqn)), Float[].class, Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues,
+        Type.array(Type.protoEnum(protoTypeFqn)),
+        Double[].class,
+        Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues,
+        Type.array(Type.protoEnum(protoTypeFqn)),
+        BigInteger[].class,
+        Code.INVALID_ARGUMENT);
+    assertConvertThrows(
+        testValues,
+        Type.array(Type.protoEnum(protoTypeFqn)),
+        BigDecimal[].class,
+        Code.INVALID_ARGUMENT);
+
+    assertThat(convert(testValues, Type.array(Type.protoEnum(protoTypeFqn)), Array.class))
+        .isEqualTo(testValues);
+    assertThat(convert(testValues, Type.array(Type.protoEnum(protoTypeFqn)), Genre[].class))
+        .isEqualTo(new Genre[] {Genre.ROCK, null});
+  }
+
+  @Test
+  public void testConvertProtoEnum() throws SQLException {
+    long testValue = Genre.ROCK.getNumber();
+    String protoTypeFqn = Genre.getDescriptor().getFullName();
+
+    assertThat(convert(testValue, Type.protoEnum(protoTypeFqn), Integer.class))
+        .isEqualTo(testValue);
+    assertThat(convert(testValue, Type.protoEnum(protoTypeFqn), Genre.class)).isEqualTo(Genre.ROCK);
   }
 
   @Test
