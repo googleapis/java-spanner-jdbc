@@ -387,7 +387,7 @@ enum JdbcDataType {
 
     @Override
     public Type getSpannerType() {
-      return Type.proto("");
+      return Type.bytes();
     }
   },
   ENUM {
@@ -420,7 +420,7 @@ enum JdbcDataType {
 
     @Override
     public Type getSpannerType() {
-      return Type.protoEnum("");
+      return Type.int64();
     }
   };
 

@@ -24,7 +24,13 @@ import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.ValueBinder;
 import com.google.common.collect.ImmutableList;
+import com.google.protobuf.AbstractMessage;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Message;
+import com.google.protobuf.ProtocolMessageEnum;
 import com.google.rpc.Code;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Date;
@@ -145,7 +151,15 @@ class JdbcArray implements Array {
   public Object getArray(long index, int count, Map<String, Class<?>> map) throws SQLException {
     checkFree();
     if (data != null) {
-      Object res = java.lang.reflect.Array.newInstance(type.getJavaClass(), count);
+      Object res;
+      if ((type.getCode() == Type.Code.PROTO
+          && AbstractMessage[].class.isAssignableFrom(data.getClass()))
+          || (type.getCode() == Type.Code.ENUM
+          && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass()))) {
+        res = java.lang.reflect.Array.newInstance(data.getClass().getComponentType(), count);
+      } else {
+        res = java.lang.reflect.Array.newInstance(type.getJavaClass(), count);
+      }
       System.arraycopy(data, (int) index - 1, res, 0, count);
       return res;
     }
@@ -174,6 +188,7 @@ class JdbcArray implements Array {
     JdbcPreconditions.checkArgument(count >= 0, "Count must be >= 0");
     checkFree();
     ImmutableList.Builder<Struct> rows = ImmutableList.builder();
+    Type spannerType = type.getSpannerType();
     int added = 0;
     if (data != null) {
       // Note that array index in JDBC is base-one.
@@ -189,8 +204,14 @@ class JdbcArray implements Array {
             builder = binder.to((Boolean) value);
             break;
           case BYTES:
-          case PROTO:
             builder = binder.to(ByteArray.copyFrom((byte[]) value));
+            break;
+          case PROTO:
+            if (value instanceof AbstractMessage) {
+              builder = binder.to((AbstractMessage) value);
+            } else {
+              builder = binder.to(ByteArray.copyFrom((byte[]) value));
+            }
             break;
           case DATE:
             builder = binder.to(JdbcTypeConverter.toGoogleDate((Date) value));
@@ -199,8 +220,14 @@ class JdbcArray implements Array {
             builder = binder.to((Double) value);
             break;
           case INT64:
-          case ENUM:
             builder = binder.to((Long) value);
+            break;
+          case ENUM:
+            if (value instanceof ProtocolMessageEnum) {
+              builder = binder.to((ProtocolMessageEnum) value);
+            } else {
+              builder = binder.to((Long) value);
+            }
             break;
           case NUMERIC:
             builder = binder.to((BigDecimal) value);
@@ -230,12 +257,35 @@ class JdbcArray implements Array {
           break;
         }
       }
+
+      if (type.getCode() == Type.Code.PROTO
+          && AbstractMessage[].class.isAssignableFrom(data.getClass())) {
+        Class<?> componentType = data.getClass().getComponentType();
+        try {
+          Message.Builder builder =
+              (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
+          Descriptor msgDescriptor = builder.getDescriptorForType();
+          spannerType = Type.proto(msgDescriptor.getFullName());
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+          throw new RuntimeException(e);
+        }
+      } else if (type.getCode() == Type.Code.ENUM
+          && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass())) {
+        Class<?> componentType = data.getClass().getComponentType();
+        try {
+          Descriptors.EnumDescriptor enumDescriptor =
+              (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
+          spannerType = Type.protoEnum(enumDescriptor.getFullName());
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
+
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(
-                StructField.of("INDEX", Type.int64()),
-                StructField.of("VALUE", type.getSpannerType())),
+                StructField.of("INDEX", Type.int64()), StructField.of("VALUE", spannerType)),
             rows.build()));
   }
 
