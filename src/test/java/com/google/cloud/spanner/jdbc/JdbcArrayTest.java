@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc;
 
 import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlDate;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -213,35 +214,35 @@ public class JdbcArrayTest {
     array =
         JdbcArray.createArray(
             "PROTO", new SingerInfo[] {singerInfo, SingerInfo.getDefaultInstance(), null});
-    assertThat(array.getBaseType()).isEqualTo(ProtoMessageType.VENDOR_TYPE_NUMBER);
-    assertThat(((SingerInfo[]) array.getArray(1, 1))[0]).isEqualTo(singerInfo);
+    assertEquals(ProtoMessageType.VENDOR_TYPE_NUMBER, array.getBaseType());
+    assertEquals(singerInfo, ((SingerInfo[]) array.getArray(1, 1))[0]);
     try (ResultSet rs = array.getResultSet()) {
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getObject(2, SingerInfo.class)).isEqualTo(singerInfo);
-      assertThat(rs.getBytes(2)).isEqualTo(singerInfo.toByteArray());
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getObject(2, SingerInfo.class)).isEqualTo(SingerInfo.getDefaultInstance());
-      assertThat(rs.getBytes(2)).isEqualTo(SingerInfo.getDefaultInstance().toByteArray());
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getObject(2, SingerInfo.class)).isEqualTo(null);
-      assertThat(rs.getBytes(2)).isEqualTo(null);
-      assertThat(rs.next()).isFalse();
+      assertTrue(rs.next());
+      assertEquals(singerInfo, rs.getObject(2, SingerInfo.class));
+      assertArrayEquals(singerInfo.toByteArray(), rs.getBytes(2));
+      assertTrue(rs.next());
+      assertEquals(SingerInfo.getDefaultInstance(), rs.getObject(2, SingerInfo.class));
+      assertArrayEquals(SingerInfo.getDefaultInstance().toByteArray(), rs.getBytes(2));
+      assertTrue(rs.next());
+      assertNull(rs.getObject(2, SingerInfo.class));
+      assertNull(rs.getBytes(2));
+      assertFalse(rs.next());
     }
 
     array = JdbcArray.createArray("ENUM", new Genre[] {Genre.ROCK, Genre.FOLK, null});
-    assertThat(array.getBaseType()).isEqualTo(ProtoEnumType.VENDOR_TYPE_NUMBER);
-    assertThat(((Genre[]) array.getArray(1, 1))[0]).isEqualTo(Genre.ROCK);
+    assertEquals(ProtoEnumType.VENDOR_TYPE_NUMBER, array.getBaseType());
+    assertEquals(Genre.ROCK, ((Genre[]) array.getArray(1, 1))[0]);
     try (ResultSet rs = array.getResultSet()) {
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getObject(2, Genre.class)).isEqualTo(Genre.ROCK);
-      assertThat(rs.getInt(2)).isEqualTo(Genre.ROCK.getNumber());
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getObject(2, Genre.class)).isEqualTo(Genre.FOLK);
-      assertThat(rs.getInt(2)).isEqualTo(Genre.FOLK.getNumber());
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getObject(2, Genre.class)).isEqualTo(null);
-      assertThat(rs.getInt(2)).isEqualTo(0);
-      assertThat(rs.next()).isFalse();
+      assertTrue(rs.next());
+      assertEquals(Genre.ROCK, rs.getObject(2, Genre.class));
+      assertEquals(Genre.ROCK.getNumber(), rs.getInt(2));
+      assertTrue(rs.next());
+      assertEquals(Genre.FOLK, rs.getObject(2, Genre.class));
+      assertEquals(Genre.FOLK.getNumber(), rs.getInt(2));
+      assertTrue(rs.next());
+      assertNull(rs.getObject(2, Genre.class));
+      assertEquals(0, rs.getInt(2));
+      assertFalse(rs.next());
     }
 
     array =
@@ -249,32 +250,32 @@ public class JdbcArrayTest {
             JdbcDataType.getType(Code.PROTO),
             Arrays.asList(
                 singerInfo.toByteArray(), SingerInfo.getDefaultInstance().toByteArray(), null));
-    assertThat(array.getBaseType()).isEqualTo(ProtoMessageType.VENDOR_TYPE_NUMBER);
-    assertThat(((byte[][]) array.getArray(1, 1))[0]).isEqualTo(singerInfo.toByteArray());
+    assertEquals(ProtoMessageType.VENDOR_TYPE_NUMBER, array.getBaseType());
+    assertArrayEquals(singerInfo.toByteArray(), ((byte[][]) array.getArray(1, 1))[0]);
     try (ResultSet rs = array.getResultSet()) {
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getBytes(2)).isEqualTo(singerInfo.toByteArray());
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getBytes(2)).isEqualTo(SingerInfo.getDefaultInstance().toByteArray());
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getBytes(2)).isEqualTo(null);
-      assertThat(rs.next()).isFalse();
+      assertTrue(rs.next());
+      assertArrayEquals(singerInfo.toByteArray(), rs.getBytes(2));
+      assertTrue(rs.next());
+      assertArrayEquals(SingerInfo.getDefaultInstance().toByteArray(), rs.getBytes(2));
+      assertTrue(rs.next());
+      assertNull(rs.getBytes(2));
+      assertFalse(rs.next());
     }
 
     array =
         JdbcArray.createArray(
             JdbcDataType.getType(Code.ENUM),
             Arrays.asList((long) Genre.ROCK.getNumber(), (long) Genre.FOLK.getNumber(), null));
-    assertThat(array.getBaseType()).isEqualTo(ProtoEnumType.VENDOR_TYPE_NUMBER);
-    assertThat(((Long[]) array.getArray(1, 1))[0]).isEqualTo(Genre.ROCK.getNumber());
+    assertEquals(ProtoEnumType.VENDOR_TYPE_NUMBER, array.getBaseType());
+    assertEquals(Genre.ROCK.getNumber(), (long) ((Long[]) array.getArray(1, 1))[0]);
     try (ResultSet rs = array.getResultSet()) {
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getInt(2)).isEqualTo(Genre.ROCK.getNumber());
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getInt(2)).isEqualTo(Genre.FOLK.getNumber());
-      assertThat(rs.next()).isTrue();
-      assertThat(rs.getInt(2)).isEqualTo(0);
-      assertThat(rs.next()).isFalse();
+      assertTrue(rs.next());
+      assertEquals(Genre.ROCK.getNumber(), rs.getInt(2));
+      assertTrue(rs.next());
+      assertEquals(Genre.FOLK.getNumber(), rs.getInt(2));
+      assertTrue(rs.next());
+      assertEquals(0, rs.getInt(2));
+      assertFalse(rs.next());
     }
   }
 

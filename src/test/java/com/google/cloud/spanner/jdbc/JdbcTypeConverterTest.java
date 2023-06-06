@@ -30,6 +30,8 @@ import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlTime;
 import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlTimestamp;
 import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlTimestamps;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import com.google.cloud.ByteArray;
@@ -146,9 +148,8 @@ public class JdbcTypeConverterTest {
     assertConvertThrows(
         testValues, Type.proto(protoTypeFqn), BigDecimal.class, Code.INVALID_ARGUMENT);
 
-    assertThat(convert(testValues, Type.proto(protoTypeFqn), byte[].class)).isEqualTo(testValues);
-    assertThat(convert(testValues, Type.proto(protoTypeFqn), SingerInfo.class))
-        .isEqualTo(singerInfo);
+    assertEquals(testValues, convert(testValues, Type.proto(protoTypeFqn), byte[].class));
+    assertEquals(singerInfo, convert(testValues, Type.proto(protoTypeFqn), SingerInfo.class));
   }
 
   @Test
@@ -183,10 +184,11 @@ public class JdbcTypeConverterTest {
         BigDecimal[].class,
         Code.INVALID_ARGUMENT);
 
-    assertThat(convert(testValues, Type.array(Type.proto(protoTypeFqn)), Array.class))
-        .isEqualTo(testValues);
-    assertThat(convert(testValues, Type.array(Type.proto(protoTypeFqn)), SingerInfo[].class))
-        .isEqualTo(new SingerInfo[] {singerInfo, null});
+    assertEquals(
+        testValues, convert(testValues, Type.array(Type.proto(protoTypeFqn)), Array.class));
+    assertArrayEquals(
+        new SingerInfo[] {singerInfo, null},
+        (Object[]) convert(testValues, Type.array(Type.proto(protoTypeFqn)), SingerInfo[].class));
   }
 
   @Test
@@ -228,10 +230,11 @@ public class JdbcTypeConverterTest {
         BigDecimal[].class,
         Code.INVALID_ARGUMENT);
 
-    assertThat(convert(testValues, Type.array(Type.protoEnum(protoTypeFqn)), Array.class))
-        .isEqualTo(testValues);
-    assertThat(convert(testValues, Type.array(Type.protoEnum(protoTypeFqn)), Genre[].class))
-        .isEqualTo(new Genre[] {Genre.ROCK, null});
+    assertEquals(
+        testValues, convert(testValues, Type.array(Type.protoEnum(protoTypeFqn)), Array.class));
+    assertArrayEquals(
+        new Genre[] {Genre.ROCK, null},
+        (Object[]) convert(testValues, Type.array(Type.protoEnum(protoTypeFqn)), Genre[].class));
   }
 
   @Test
@@ -239,9 +242,9 @@ public class JdbcTypeConverterTest {
     long testValue = Genre.ROCK.getNumber();
     String protoTypeFqn = Genre.getDescriptor().getFullName();
 
-    assertThat(convert(testValue, Type.protoEnum(protoTypeFqn), Integer.class))
-        .isEqualTo(testValue);
-    assertThat(convert(testValue, Type.protoEnum(protoTypeFqn), Genre.class)).isEqualTo(Genre.ROCK);
+    assertEquals((int) testValue, convert(testValue, Type.protoEnum(protoTypeFqn), Integer.class));
+    assertEquals(testValue, convert(testValue, Type.protoEnum(protoTypeFqn), Long.class));
+    assertEquals(Genre.ROCK, convert(testValue, Type.protoEnum(protoTypeFqn), Genre.class));
   }
 
   @Test

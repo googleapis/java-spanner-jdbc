@@ -16,10 +16,9 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assume.assumeFalse;
@@ -154,7 +153,7 @@ public class ITProtoColumnsTest {
           singerInfoArray, resultSet.getObject("ProtoMessageArray", SingerInfo[].class));
       assertArrayEquals(singerGenreArray, resultSet.getObject("ProtoEnumArray", Genre[].class));
 
-      assertThat(resultSet.next(), is(false));
+      assertFalse(resultSet.next());
     }
   }
 
@@ -188,7 +187,7 @@ public class ITProtoColumnsTest {
       assertNull(resultSet.getObject("ProtoMessageArray", SingerInfo[].class));
       assertNull(resultSet.getObject("ProtoEnumArray", Genre[].class));
 
-      assertThat(resultSet.next(), is(false));
+      assertFalse(resultSet.next());
     }
   }
 
@@ -228,7 +227,7 @@ public class ITProtoColumnsTest {
       assertArrayEquals(singerInfoBytes, resultSet.getBytes("ProtoMessage"));
       assertEquals(singerGenreConst, resultSet.getInt("ProtoEnum"));
 
-      assertThat(resultSet.next(), is(false));
+      assertFalse(resultSet.next());
     }
   }
 }
