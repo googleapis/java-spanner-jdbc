@@ -30,7 +30,6 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Message;
 import com.google.protobuf.ProtocolMessageEnum;
 import com.google.rpc.Code;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Date;
@@ -187,8 +186,35 @@ class JdbcArray implements Array {
     JdbcPreconditions.checkArgument(startIndex >= 1L, "Start index must be >= 1");
     JdbcPreconditions.checkArgument(count >= 0, "Count must be >= 0");
     checkFree();
-    ImmutableList.Builder<Struct> rows = ImmutableList.builder();
     Type spannerType = type.getSpannerType();
+    if (data != null) {
+      if (type.getCode() == Type.Code.PROTO
+          && AbstractMessage[].class.isAssignableFrom(data.getClass())) {
+        Class<?> componentType = data.getClass().getComponentType();
+        try {
+          Message.Builder builder =
+              (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
+          Descriptor msgDescriptor = builder.getDescriptorForType();
+          spannerType = Type.proto(msgDescriptor.getFullName());
+        } catch (Exception e) {
+          throw JdbcSqlExceptionFactory.of(
+              "Error occurred when getting proto message descriptor from data", Code.UNKNOWN, e);
+        }
+      } else if (type.getCode() == Type.Code.ENUM
+          && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass())) {
+        Class<?> componentType = data.getClass().getComponentType();
+        try {
+          Descriptors.EnumDescriptor enumDescriptor =
+              (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
+          spannerType = Type.protoEnum(enumDescriptor.getFullName());
+        } catch (Exception e) {
+          throw JdbcSqlExceptionFactory.of(
+              "Error occurred when getting proto enum descriptor from data", Code.UNKNOWN, e);
+        }
+      }
+    }
+
+    ImmutableList.Builder<Struct> rows = ImmutableList.builder();
     int added = 0;
     if (data != null) {
       // Note that array index in JDBC is base-one.
@@ -207,10 +233,12 @@ class JdbcArray implements Array {
             builder = binder.to(ByteArray.copyFrom((byte[]) value));
             break;
           case PROTO:
-            if (value instanceof AbstractMessage) {
+            if (value == null && AbstractMessage[].class.isAssignableFrom(data.getClass())) {
+              builder = binder.to((ByteArray) null, spannerType.getProtoTypeFqn());
+            } else if (value instanceof AbstractMessage) {
               builder = binder.to((AbstractMessage) value);
             } else {
-              builder = binder.to(ByteArray.copyFrom((byte[]) value));
+              builder = binder.to(value != null ? ByteArray.copyFrom((byte[]) value) : null);
             }
             break;
           case DATE:
@@ -223,7 +251,9 @@ class JdbcArray implements Array {
             builder = binder.to((Long) value);
             break;
           case ENUM:
-            if (value instanceof ProtocolMessageEnum) {
+            if (value == null && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass())) {
+              builder = binder.to((Long) null, spannerType.getProtoTypeFqn());
+            } else if (value instanceof ProtocolMessageEnum) {
               builder = binder.to((ProtocolMessageEnum) value);
             } else {
               builder = binder.to((Long) value);
@@ -255,29 +285,6 @@ class JdbcArray implements Array {
         added++;
         if (added == count) {
           break;
-        }
-      }
-
-      if (type.getCode() == Type.Code.PROTO
-          && AbstractMessage[].class.isAssignableFrom(data.getClass())) {
-        Class<?> componentType = data.getClass().getComponentType();
-        try {
-          Message.Builder builder =
-              (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
-          Descriptor msgDescriptor = builder.getDescriptorForType();
-          spannerType = Type.proto(msgDescriptor.getFullName());
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-          throw new RuntimeException(e);
-        }
-      } else if (type.getCode() == Type.Code.ENUM
-          && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass())) {
-        Class<?> componentType = data.getClass().getComponentType();
-        try {
-          Descriptors.EnumDescriptor enumDescriptor =
-              (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
-          spannerType = Type.protoEnum(enumDescriptor.getFullName());
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-          throw new RuntimeException(e);
         }
       }
     }

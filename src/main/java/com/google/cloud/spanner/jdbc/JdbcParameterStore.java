@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -899,8 +898,9 @@ class JdbcParameterStore {
         Descriptor msgDescriptor = builder.getDescriptorForType();
 
         return binder.toProtoMessageArray(convertedArray, msgDescriptor.getFullName());
-      } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-        throw new RuntimeException(e);
+      } catch (Exception e) {
+        throw JdbcSqlExceptionFactory.of(
+            "Error occurred when binding Array of Proto Message input", Code.UNKNOWN, e);
       }
     } else if (ProtocolMessageEnum[].class.isAssignableFrom(value.getClass())) {
       Class<?> componentType = value.getClass().getComponentType();
@@ -921,8 +921,9 @@ class JdbcParameterStore {
             (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
 
         return binder.toProtoEnumArray(convertedArray, enumDescriptor.getFullName());
-      } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-        throw new RuntimeException(e);
+      } catch (Exception e) {
+        throw JdbcSqlExceptionFactory.of(
+            "Error occurred when binding Array of Proto Enum input", Code.UNKNOWN, e);
       }
     }
     return null;

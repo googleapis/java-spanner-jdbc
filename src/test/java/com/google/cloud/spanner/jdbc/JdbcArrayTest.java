@@ -208,12 +208,11 @@ public class JdbcArrayTest {
       assertThat(rs.next()).isFalse();
     }
 
-    // TODO(Harsha): null is not handled in getResultSet method for primitive types like byte[].
     SingerInfo singerInfo =
         SingerInfo.newBuilder().setSingerId(1).setNationality("Country1").build();
     array =
         JdbcArray.createArray(
-            "PROTO", new SingerInfo[] {singerInfo, SingerInfo.getDefaultInstance()});
+            "PROTO", new SingerInfo[] {singerInfo, SingerInfo.getDefaultInstance(), null});
     assertThat(array.getBaseType()).isEqualTo(ProtoMessageType.VENDOR_TYPE_NUMBER);
     assertThat(((SingerInfo[]) array.getArray(1, 1))[0]).isEqualTo(singerInfo);
     try (ResultSet rs = array.getResultSet()) {
@@ -223,10 +222,13 @@ public class JdbcArrayTest {
       assertThat(rs.next()).isTrue();
       assertThat(rs.getObject(2, SingerInfo.class)).isEqualTo(SingerInfo.getDefaultInstance());
       assertThat(rs.getBytes(2)).isEqualTo(SingerInfo.getDefaultInstance().toByteArray());
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getObject(2, SingerInfo.class)).isEqualTo(null);
+      assertThat(rs.getBytes(2)).isEqualTo(null);
       assertThat(rs.next()).isFalse();
     }
 
-    array = JdbcArray.createArray("ENUM", new Genre[] {Genre.ROCK, Genre.FOLK});
+    array = JdbcArray.createArray("ENUM", new Genre[] {Genre.ROCK, Genre.FOLK, null});
     assertThat(array.getBaseType()).isEqualTo(ProtoEnumType.VENDOR_TYPE_NUMBER);
     assertThat(((Genre[]) array.getArray(1, 1))[0]).isEqualTo(Genre.ROCK);
     try (ResultSet rs = array.getResultSet()) {
@@ -236,6 +238,9 @@ public class JdbcArrayTest {
       assertThat(rs.next()).isTrue();
       assertThat(rs.getObject(2, Genre.class)).isEqualTo(Genre.FOLK);
       assertThat(rs.getInt(2)).isEqualTo(Genre.FOLK.getNumber());
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getObject(2, Genre.class)).isEqualTo(null);
+      assertThat(rs.getInt(2)).isEqualTo(0);
       assertThat(rs.next()).isFalse();
     }
 
