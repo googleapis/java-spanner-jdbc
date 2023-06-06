@@ -77,23 +77,13 @@ public class ITProtoColumnsTest {
                         + "spanner.examples.music.SingerInfo,"
                         + "spanner.examples.music.Genre,"
                         + ")",
-                    "CREATE TABLE Singers ("
-                        + "  SingerId   INT64 NOT NULL,"
-                        + "  FirstName  STRING(1024),"
-                        + "  LastName   STRING(1024),"
-                        + "  SingerInfo spanner.examples.music.SingerInfo,"
-                        + "  SingerGenre spanner.examples.music.Genre,"
-                        + "  SingerNationality STRING(1024) AS (SingerInfo.nationality) STORED,"
-                        + "  ) PRIMARY KEY (SingerNationality, SingerGenre)",
                     "CREATE TABLE Types ("
                         + "  RowID INT64 NOT NULL,"
                         + "  ProtoMessage    spanner.examples.music.SingerInfo,"
                         + "  ProtoEnum   spanner.examples.music.Genre,"
                         + "  ProtoMessageArray   ARRAY<spanner.examples.music.SingerInfo>,"
                         + "  ProtoEnumArray  ARRAY<spanner.examples.music.Genre>,"
-                        + "  ) PRIMARY KEY (RowID)",
-                    "CREATE INDEX SingerByNationalityAndGenre ON Singers(SingerNationality, SingerGenre)"
-                        + "  STORING (SingerId, FirstName, LastName)"))
+                        + "  ) PRIMARY KEY (RowID)"))
             .get(OPERATION_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
 
     in.close();
