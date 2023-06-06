@@ -153,9 +153,9 @@ class JdbcArray implements Array {
     if (data != null) {
       Object res;
       if ((type.getCode() == Type.Code.PROTO
-          && AbstractMessage[].class.isAssignableFrom(data.getClass()))
+              && AbstractMessage[].class.isAssignableFrom(data.getClass()))
           || (type.getCode() == Type.Code.ENUM
-          && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass()))) {
+              && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass()))) {
         res = java.lang.reflect.Array.newInstance(data.getClass().getComponentType(), count);
       } else {
         res = java.lang.reflect.Array.newInstance(type.getJavaClass(), count);
