@@ -83,7 +83,10 @@ class JdbcArray implements Array {
   private JdbcArray(JdbcDataType type, Object[] elements) throws SQLException {
     this.type = type;
     if (elements != null) {
-      if (type.getCode() == Type.Code.PROTO || type.getCode() == Type.Code.ENUM) {
+      if ((type.getCode() == Type.Code.PROTO
+              && AbstractMessage[].class.isAssignableFrom(elements.getClass()))
+          || (type.getCode() == Type.Code.ENUM
+              && ProtocolMessageEnum[].class.isAssignableFrom(elements.getClass()))) {
         this.data =
             java.lang.reflect.Array.newInstance(
                 elements.getClass().getComponentType(), elements.length);
@@ -186,33 +189,8 @@ class JdbcArray implements Array {
     JdbcPreconditions.checkArgument(startIndex >= 1L, "Start index must be >= 1");
     JdbcPreconditions.checkArgument(count >= 0, "Count must be >= 0");
     checkFree();
-    Type spannerType = type.getSpannerType();
-    if (data != null) {
-      if (type.getCode() == Type.Code.PROTO
-          && AbstractMessage[].class.isAssignableFrom(data.getClass())) {
-        Class<?> componentType = data.getClass().getComponentType();
-        try {
-          Message.Builder builder =
-              (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
-          Descriptor msgDescriptor = builder.getDescriptorForType();
-          spannerType = Type.proto(msgDescriptor.getFullName());
-        } catch (Exception e) {
-          throw JdbcSqlExceptionFactory.of(
-              "Error occurred when getting proto message descriptor from data", Code.UNKNOWN, e);
-        }
-      } else if (type.getCode() == Type.Code.ENUM
-          && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass())) {
-        Class<?> componentType = data.getClass().getComponentType();
-        try {
-          Descriptors.EnumDescriptor enumDescriptor =
-              (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
-          spannerType = Type.protoEnum(enumDescriptor.getFullName());
-        } catch (Exception e) {
-          throw JdbcSqlExceptionFactory.of(
-              "Error occurred when getting proto enum descriptor from data", Code.UNKNOWN, e);
-        }
-      }
-    }
+    Type spannerTypeForProto = getSpannerTypeForProto();
+    Type spannerType = spannerTypeForProto == null ? type.getSpannerType() : spannerTypeForProto;
 
     ImmutableList.Builder<Struct> rows = ImmutableList.builder();
     int added = 0;
@@ -294,6 +272,38 @@ class JdbcArray implements Array {
             Type.struct(
                 StructField.of("INDEX", Type.int64()), StructField.of("VALUE", spannerType)),
             rows.build()));
+  }
+
+  // Returns null if the type is not a PROTO or ENUM
+  private Type getSpannerTypeForProto() throws SQLException {
+    Type spannerType = null;
+    if (data != null) {
+      if (type.getCode() == Type.Code.PROTO
+          && AbstractMessage[].class.isAssignableFrom(data.getClass())) {
+        Class<?> componentType = data.getClass().getComponentType();
+        try {
+          Message.Builder builder =
+              (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
+          Descriptor msgDescriptor = builder.getDescriptorForType();
+          spannerType = Type.proto(msgDescriptor.getFullName());
+        } catch (Exception e) {
+          throw JdbcSqlExceptionFactory.of(
+              "Error occurred when getting proto message descriptor from data", Code.UNKNOWN, e);
+        }
+      } else if (type.getCode() == Type.Code.ENUM
+          && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass())) {
+        Class<?> componentType = data.getClass().getComponentType();
+        try {
+          Descriptors.EnumDescriptor enumDescriptor =
+              (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
+          spannerType = Type.protoEnum(enumDescriptor.getFullName());
+        } catch (Exception e) {
+          throw JdbcSqlExceptionFactory.of(
+              "Error occurred when getting proto enum descriptor from data", Code.UNKNOWN, e);
+        }
+      }
+    }
+    return spannerType;
   }
 
   @Override
