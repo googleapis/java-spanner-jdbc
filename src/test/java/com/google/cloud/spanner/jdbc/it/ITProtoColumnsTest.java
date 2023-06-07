@@ -192,6 +192,35 @@ public class ITProtoColumnsTest {
   }
 
   @Test
+  public void testUntypedNullElements() throws Exception {
+    assumeFalse(
+        "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
+    try (Connection connection = DriverManager.getConnection(url);
+        PreparedStatement ps =
+            connection.prepareStatement(
+                "INSERT INTO Types" + " (RowID, ProtoMessage, ProtoEnum) VALUES (?, ?, ?)")) {
+      ps.setInt(1, 3);
+      ps.setObject(2, null);
+      ps.setObject(3, null);
+
+      final int updateCount = ps.executeUpdate();
+      assertEquals(1, updateCount);
+    }
+
+    try (Connection connection = DriverManager.getConnection(url);
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM Types WHERE RowID = 3")) {
+
+      resultSet.next();
+      assertEquals(3, resultSet.getInt("RowID"));
+      assertNull(resultSet.getObject("ProtoMessage", SingerInfo.class));
+      assertNull(resultSet.getObject("ProtoEnum", Genre.class));
+
+      assertFalse(resultSet.next());
+    }
+  }
+
+  @Test
   public void testInterCompatibility() throws Exception {
     assumeFalse(
         "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
@@ -208,7 +237,7 @@ public class ITProtoColumnsTest {
         PreparedStatement ps =
             connection.prepareStatement(
                 "INSERT INTO Types" + " (RowID, ProtoMessage, ProtoEnum) VALUES (?, ?, ?)")) {
-      ps.setInt(1, 3);
+      ps.setInt(1, 4);
       ps.setObject(2, singerInfoBytes);
       ps.setObject(3, singerGenreConst);
 
@@ -218,10 +247,10 @@ public class ITProtoColumnsTest {
 
     try (Connection connection = DriverManager.getConnection(url);
         Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("SELECT * FROM Types WHERE RowID = 3")) {
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM Types WHERE RowID = 4")) {
 
       resultSet.next();
-      assertEquals(3, resultSet.getInt("RowID"));
+      assertEquals(4, resultSet.getInt("RowID"));
       assertEquals(singerInfo, resultSet.getObject("ProtoMessage", SingerInfo.class));
       assertEquals(singerGenre, resultSet.getObject("ProtoEnum", Genre.class));
       assertArrayEquals(singerInfoBytes, resultSet.getBytes("ProtoMessage"));
