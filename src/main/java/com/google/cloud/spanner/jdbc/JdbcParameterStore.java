@@ -879,54 +879,64 @@ class JdbcParameterStore {
     } else if (byte[][].class.isAssignableFrom(value.getClass())) {
       return binder.toBytesArray(JdbcTypeConverter.toGoogleBytes((byte[][]) value));
     } else if (AbstractMessage[].class.isAssignableFrom(value.getClass())) {
-      Class<?> componentType = value.getClass().getComponentType();
-      int length = java.lang.reflect.Array.getLength(value);
-      List<ByteArray> convertedArray = new ArrayList<>();
-      try {
-        for (int i = 0; i < length; i++) {
-          Object element = java.lang.reflect.Array.get(value, i);
-          if (element != null) {
-            byte[] l = (byte[]) componentType.getMethod("toByteArray").invoke(element);
-            convertedArray.add(ByteArray.copyFrom(l));
-          } else {
-            convertedArray.add(null);
-          }
-        }
-
-        Message.Builder builder =
-            (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
-        Descriptor msgDescriptor = builder.getDescriptorForType();
-
-        return binder.toProtoMessageArray(convertedArray, msgDescriptor.getFullName());
-      } catch (Exception e) {
-        throw JdbcSqlExceptionFactory.of(
-            "Error occurred when binding Array of Proto Message input", Code.UNKNOWN, e);
-      }
+      return bindProtoMessageArray(binder, value);
     } else if (ProtocolMessageEnum[].class.isAssignableFrom(value.getClass())) {
-      Class<?> componentType = value.getClass().getComponentType();
-      int length = java.lang.reflect.Array.getLength(value);
-      List<Long> convertedArray = new ArrayList<>();
-      try {
-        for (int i = 0; i < length; i++) {
-          Object element = java.lang.reflect.Array.get(value, i);
-          if (element != null) {
-            int op = (int) componentType.getMethod("getNumber").invoke(element);
-            convertedArray.add((long) op);
-          } else {
-            convertedArray.add(null);
-          }
-        }
-
-        Descriptors.EnumDescriptor enumDescriptor =
-            (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
-
-        return binder.toProtoEnumArray(convertedArray, enumDescriptor.getFullName());
-      } catch (Exception e) {
-        throw JdbcSqlExceptionFactory.of(
-            "Error occurred when binding Array of Proto Enum input", Code.UNKNOWN, e);
-      }
+      return bindProtoEnumArray(binder, value);
     }
     return null;
+  }
+
+  private Builder bindProtoMessageArray(ValueBinder<Builder> binder, Object value)
+      throws SQLException {
+    Class<?> componentType = value.getClass().getComponentType();
+    int length = java.lang.reflect.Array.getLength(value);
+    List<ByteArray> convertedArray = new ArrayList<>();
+    try {
+      for (int i = 0; i < length; i++) {
+        Object element = java.lang.reflect.Array.get(value, i);
+        if (element != null) {
+          byte[] l = (byte[]) componentType.getMethod("toByteArray").invoke(element);
+          convertedArray.add(ByteArray.copyFrom(l));
+        } else {
+          convertedArray.add(null);
+        }
+      }
+
+      Message.Builder builder =
+          (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
+      Descriptor msgDescriptor = builder.getDescriptorForType();
+
+      return binder.toProtoMessageArray(convertedArray, msgDescriptor.getFullName());
+    } catch (Exception e) {
+      throw JdbcSqlExceptionFactory.of(
+          "Error occurred when binding Array of Proto Message input", Code.UNKNOWN, e);
+    }
+  }
+
+  private Builder bindProtoEnumArray(ValueBinder<Builder> binder, Object value)
+      throws SQLException {
+    Class<?> componentType = value.getClass().getComponentType();
+    int length = java.lang.reflect.Array.getLength(value);
+    List<Long> convertedArray = new ArrayList<>();
+    try {
+      for (int i = 0; i < length; i++) {
+        Object element = java.lang.reflect.Array.get(value, i);
+        if (element != null) {
+          int op = (int) componentType.getMethod("getNumber").invoke(element);
+          convertedArray.add((long) op);
+        } else {
+          convertedArray.add(null);
+        }
+      }
+
+      Descriptors.EnumDescriptor enumDescriptor =
+          (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
+
+      return binder.toProtoEnumArray(convertedArray, enumDescriptor.getFullName());
+    } catch (Exception e) {
+      throw JdbcSqlExceptionFactory.of(
+          "Error occurred when binding Array of Proto Enum input", Code.UNKNOWN, e);
+    }
   }
 
   private List<Long> toLongList(Number[] input) {
