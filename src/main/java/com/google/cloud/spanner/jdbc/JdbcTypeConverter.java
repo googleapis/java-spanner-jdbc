@@ -190,39 +190,13 @@ class JdbcTypeConverter {
       if (targetType.isArray() && type.getCode() == Code.ARRAY) {
         if (type.getArrayElementType().getCode() == Code.PROTO
             || type.getArrayElementType().getCode() == Code.BYTES) {
-          Class<?> componentType = targetType.getComponentType();
-          if (AbstractMessage.class.isAssignableFrom(componentType)) {
-            byte[][] result = (byte[][]) ((JdbcArray) value).getArray();
-            Object obj = java.lang.reflect.Array.newInstance(componentType, result.length);
-            for (int i = 0; i < result.length; i++) {
-              if (result[i] != null) {
-                Method parseMethodParseFrom = componentType.getMethod("parseFrom", byte[].class);
-                java.lang.reflect.Array.set(
-                    obj, i, componentType.cast(parseMethodParseFrom.invoke(null, result[i])));
-              }
-            }
-            return obj;
-          }
+          Object res = convertArrayOfProtoMessage(value, targetType);
+          if (res != null) return res;
         }
         if (type.getArrayElementType().getCode() == Code.ENUM
             || type.getArrayElementType().getCode() == Code.INT64) {
-          Class<?> componentType = targetType.getComponentType();
-          if (ProtocolMessageEnum.class.isAssignableFrom(componentType)) {
-            Long[] result = (Long[]) ((JdbcArray) value).getArray();
-            Object obj = java.lang.reflect.Array.newInstance(componentType, result.length);
-            for (int i = 0; i < result.length; i++) {
-              if (result[i] != null) {
-                Method parseMethodForNumber = componentType.getMethod("forNumber", int.class);
-                java.lang.reflect.Array.set(
-                    obj,
-                    i,
-                    componentType.cast(
-                        parseMethodForNumber.invoke(
-                            null, AbstractJdbcWrapper.checkedCastToInt(result[i]))));
-              }
-            }
-            return obj;
-          }
+          Object res = convertArrayOfProtoEnum(value, targetType);
+          if (res != null) return res;
         }
       }
     } catch (SQLException e) {
@@ -236,6 +210,52 @@ class JdbcTypeConverter {
     throw JdbcSqlExceptionFactory.of(
         "Cannot convert " + type.getCode().name() + " to " + targetType.getName(),
         com.google.rpc.Code.INVALID_ARGUMENT);
+  }
+
+  /**
+   * Converts the given value to the Java {@link Class} type. The targetType {@link Class} must be
+   * an array of {@link AbstractMessage}.
+   */
+  static Object convertArrayOfProtoMessage(Object value, Class<?> targetType) throws Exception {
+    Class<?> componentType = targetType.getComponentType();
+    if (AbstractMessage.class.isAssignableFrom(componentType)) {
+      byte[][] result = (byte[][]) ((JdbcArray) value).getArray();
+      Object obj = java.lang.reflect.Array.newInstance(componentType, result.length);
+      for (int i = 0; i < result.length; i++) {
+        if (result[i] != null) {
+          Method parseMethodParseFrom = componentType.getMethod("parseFrom", byte[].class);
+          java.lang.reflect.Array.set(
+              obj, i, componentType.cast(parseMethodParseFrom.invoke(null, result[i])));
+        }
+      }
+      return obj;
+    }
+    return null;
+  }
+
+  /**
+   * Converts the given value to the Java {@link Class} type. The targetType {@link Class} must be
+   * an array of {@link ProtocolMessageEnum}.
+   */
+  static Object convertArrayOfProtoEnum(Object value, Class<?> targetType) throws Exception {
+    Class<?> componentType = targetType.getComponentType();
+    if (ProtocolMessageEnum.class.isAssignableFrom(componentType)) {
+      Long[] result = (Long[]) ((JdbcArray) value).getArray();
+      Object obj = java.lang.reflect.Array.newInstance(componentType, result.length);
+      for (int i = 0; i < result.length; i++) {
+        if (result[i] != null) {
+          Method parseMethodForNumber = componentType.getMethod("forNumber", int.class);
+          java.lang.reflect.Array.set(
+              obj,
+              i,
+              componentType.cast(
+                  parseMethodForNumber.invoke(
+                      null, AbstractJdbcWrapper.checkedCastToInt(result[i]))));
+        }
+      }
+      return obj;
+    }
+    return null;
   }
 
   private static Value convertToSpannerValue(Object value, Type type) throws SQLException {
