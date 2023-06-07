@@ -27,10 +27,13 @@ import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
 import com.google.cloud.spanner.connection.SavepointSupport;
 import com.google.cloud.spanner.connection.TransactionMode;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Iterator;
+import javax.annotation.Nonnull;
 
 /**
  * JDBC connection with a number of additional Cloud Spanner specific methods. JDBC connections that
@@ -379,4 +382,35 @@ public interface CloudSpannerJdbcConnection extends Connection {
    */
   Iterator<com.google.cloud.spanner.connection.TransactionRetryListener>
       getTransactionRetryListenersFromConnection() throws SQLException;
+
+  /**
+   * Sets the proto descriptors to use for the next DDL statement (single or batch) that will be
+   * executed. The proto descriptor is automatically cleared after the statement is executed.
+   *
+   * @param protoDescriptors The proto descriptors to use with the next DDL statement (single or
+   *     batch) that will be executed on this connection.
+   */
+  default void setProtoDescriptors(@Nonnull byte[] protoDescriptors) throws SQLException {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Sets the proto descriptors to use for the next DDL statement (single or batch) that will be
+   * executed. The proto descriptor is automatically cleared after the statement is executed.
+   *
+   * @param protoDescriptors The proto descriptors to use with the next DDL statement (single or
+   *     batch) that will be executed on this connection.
+   */
+  default void setProtoDescriptors(@Nonnull InputStream protoDescriptors)
+      throws SQLException, IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * @return The proto descriptor that will be used with the next DDL statement (single or batch)
+   *     that is executed on this connection.
+   */
+  default byte[] getProtoDescriptors() throws SQLException {
+    throw new UnsupportedOperationException();
+  }
 }

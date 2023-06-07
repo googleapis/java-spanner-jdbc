@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.api.client.util.Preconditions;
+import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerException;
@@ -26,6 +27,8 @@ import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.SavepointSupport;
 import com.google.cloud.spanner.connection.TransactionMode;
 import com.google.common.collect.Iterators;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -40,6 +43,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import javax.annotation.Nonnull;
 
 /** Jdbc Connection class for Google Cloud Spanner */
 class JdbcConnection extends AbstractJdbcConnection {
@@ -671,5 +675,35 @@ class JdbcConnection extends AbstractJdbcConnection {
       getTransactionRetryListenersFromConnection() throws SQLException {
     checkClosed();
     return getSpannerConnection().getTransactionRetryListeners();
+  }
+
+  @Override
+  public void setProtoDescriptors(@Nonnull byte[] protoDescriptors) throws SQLException {
+    checkClosed();
+    Preconditions.checkNotNull(protoDescriptors);
+    try {
+      getSpannerConnection().setProtoDescriptors(protoDescriptors);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public void setProtoDescriptors(@Nonnull InputStream protoDescriptors)
+      throws SQLException, IOException {
+    checkClosed();
+    Preconditions.checkNotNull(protoDescriptors);
+    try {
+      getSpannerConnection()
+          .setProtoDescriptors(ByteArray.copyFrom(protoDescriptors).toByteArray());
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public byte[] getProtoDescriptors() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().getProtoDescriptors();
   }
 }
