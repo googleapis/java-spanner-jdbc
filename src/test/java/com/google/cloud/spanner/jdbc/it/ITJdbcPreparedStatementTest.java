@@ -1313,6 +1313,16 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           preparedStatement.setLong(1, 1L);
         }
         assertEquals(1, preparedStatement.executeUpdate());
+
+        // Verify that calling preparedStatement.setObject(index, null) works.
+        for (int param = 1;
+            param <= preparedStatement.getParameterMetaData().getParameterCount();
+            param++) {
+          preparedStatement.setObject(param, null);
+        }
+        // We need a different primary key value to insert another row.
+        preparedStatement.setLong(1, 2L);
+        assertEquals(1, preparedStatement.executeUpdate());
       }
     }
   }

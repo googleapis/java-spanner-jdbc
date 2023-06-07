@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
@@ -39,7 +38,6 @@ import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.Connection;
-import com.google.rpc.Code;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -47,7 +45,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Date;
 import java.sql.JDBCType;
-import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
@@ -197,7 +194,10 @@ public class JdbcPreparedStatementTest {
       ps.setObject(35, "TEST");
       ps.setObject(36, "TEST", Types.NVARCHAR);
       ps.setObject(37, "TEST", Types.NVARCHAR, 20);
+      ps.setRef(38, null);
+      ps.setRowId(39, null);
       ps.setShort(40, (short) 1);
+      ps.setSQLXML(41, null);
       ps.setString(42, "TEST");
       ps.setTime(43, new Time(1000L));
       ps.setTime(44, new Time(1000L), Calendar.getInstance(TimeZone.getTimeZone("GMT")));
@@ -210,8 +210,6 @@ public class JdbcPreparedStatementTest {
       ps.setObject(51, "TEST", JDBCType.NVARCHAR, 20);
       ps.setObject(52, "{}", JsonType.VENDOR_TYPE_NUMBER);
       ps.setObject(53, "{}", PgJsonbType.VENDOR_TYPE_NUMBER);
-
-      testSetUnsupportedTypes(ps);
 
       JdbcParameterMetaData pmd = ps.getParameterMetaData();
       assertEquals(numberOfParams, pmd.getParameterCount());
@@ -274,33 +272,9 @@ public class JdbcPreparedStatementTest {
     }
   }
 
-  private void testSetUnsupportedTypes(PreparedStatement ps) {
-    try {
-      ps.setRef(38, null);
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
-    try {
-      ps.setRowId(39, null);
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
-    try {
-      ps.setSQLXML(41, null);
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
-  }
-
   @Test
   public void testSetNullValues() throws SQLException {
-    final int numberOfParameters = 29;
+    final int numberOfParameters = 31;
     String sql = generateSqlWithParameters(numberOfParameters);
     try (JdbcPreparedStatement ps = new JdbcPreparedStatement(createMockConnection(), sql)) {
       int index = 0;
@@ -331,6 +305,8 @@ public class JdbcPreparedStatementTest {
       ps.setNull(++index, Types.BIT);
       ps.setNull(++index, Types.VARBINARY);
       ps.setNull(++index, Types.VARCHAR);
+      ps.setNull(++index, JsonType.VENDOR_TYPE_NUMBER);
+      ps.setNull(++index, PgJsonbType.VENDOR_TYPE_NUMBER);
       ps.setNull(++index, Types.OTHER);
       ps.setNull(++index, Types.NULL);
       assertEquals(numberOfParameters, index);
