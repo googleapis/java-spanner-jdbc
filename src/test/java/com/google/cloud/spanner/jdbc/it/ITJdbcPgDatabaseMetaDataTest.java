@@ -420,6 +420,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new IndexInfo("albums", false, "PRIMARY_KEY", 1, "singerid", "A"),
           new IndexInfo("albums", false, "PRIMARY_KEY", 2, "albumid", "A"),
           new IndexInfo("albums", true, "albumsbyalbumtitle", 1, "albumtitle", "A"),
+          new IndexInfo("all_nullable_types", false, "PRIMARY_KEY", 1, "colint64", "A"),
           new IndexInfo("concerts", false, "PRIMARY_KEY", 1, "venueid", "A"),
           new IndexInfo("concerts", false, "PRIMARY_KEY", 2, "singerid", "A"),
           new IndexInfo("concerts", false, "PRIMARY_KEY", 3, "concertdate", "A"),
@@ -790,6 +791,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
   private static final List<Table> EXPECTED_TABLES =
       Arrays.asList(
           new Table("albums"),
+          new Table("all_nullable_types"),
           new Table("concerts"),
           new Table("singers"),
           // TODO: Enable when views are supported for PostgreSQL dialect databases.

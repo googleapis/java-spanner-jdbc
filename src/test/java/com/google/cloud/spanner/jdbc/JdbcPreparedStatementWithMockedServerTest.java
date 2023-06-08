@@ -25,6 +25,7 @@ import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
 import com.google.cloud.spanner.Statement;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlBatchUpdateException;
 import io.grpc.Server;
@@ -36,6 +37,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
 import org.junit.After;
@@ -190,6 +192,71 @@ public class JdbcPreparedStatementWithMockedServerTest {
             assertThat(e.getUpdateCounts()).asList().containsExactly(1);
           }
         }
+      }
+    }
+  }
+
+  @Test
+  public void testInsertUntypedNullValues() throws SQLException {
+    mockSpanner.putStatementResult(
+        StatementResult.update(
+            Statement.newBuilder(
+                    "insert into all_nullable_types (ColInt64, ColFloat64, ColBool, ColString, ColBytes, ColDate, ColTimestamp, ColNumeric, ColJson, ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColBytesArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray) "
+                        + "values (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18)")
+                .bind("p1")
+                .to((Value) null)
+                .bind("p2")
+                .to((Value) null)
+                .bind("p3")
+                .to((Value) null)
+                .bind("p4")
+                .to((Value) null)
+                .bind("p5")
+                .to((Value) null)
+                .bind("p6")
+                .to((Value) null)
+                .bind("p7")
+                .to((Value) null)
+                .bind("p8")
+                .to((Value) null)
+                .bind("p9")
+                .to((Value) null)
+                .bind("p10")
+                .to((Value) null)
+                .bind("p11")
+                .to((Value) null)
+                .bind("p12")
+                .to((Value) null)
+                .bind("p13")
+                .to((Value) null)
+                .bind("p14")
+                .to((Value) null)
+                .bind("p15")
+                .to((Value) null)
+                .bind("p16")
+                .to((Value) null)
+                .bind("p17")
+                .to((Value) null)
+                .bind("p18")
+                .to((Value) null)
+                .build(),
+            1L));
+    try (Connection connection = createConnection()) {
+      for (int type : new int[] {Types.OTHER, Types.NULL}) {
+        try (PreparedStatement statement =
+            connection.prepareStatement(
+                "insert into all_nullable_types ("
+                    + "ColInt64, ColFloat64, ColBool, ColString, ColBytes, ColDate, ColTimestamp, ColNumeric, ColJson, "
+                    + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColBytesArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray) "
+                    + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+          for (int param = 1;
+              param <= statement.getParameterMetaData().getParameterCount();
+              param++) {
+            statement.setNull(param, type);
+          }
+          assertEquals(1, statement.executeUpdate());
+        }
+        mockSpanner.clearRequests();
       }
     }
   }
