@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.11.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.10.0...v2.11.0) (2023-06-12)
+
+
+### Features
+
+* Support untyped NULL value parameters ([#1224](https://github.com/googleapis/java-spanner-jdbc/issues/1224)) ([80d2b9d](https://github.com/googleapis/java-spanner-jdbc/commit/80d2b9d3e4c3265522bbb20766bff1f164617711))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.11.0 ([#1254](https://github.com/googleapis/java-spanner-jdbc/issues/1254)) ([41f40fc](https://github.com/googleapis/java-spanner-jdbc/commit/41f40fce634cea205d5e5a9c1eb567ecb97ff655))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.42.3 ([#1248](https://github.com/googleapis/java-spanner-jdbc/issues/1248)) ([397d573](https://github.com/googleapis/java-spanner-jdbc/commit/397d5738a8126aaf090d533d0f20efb74a77a788))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.43.0 ([#1255](https://github.com/googleapis/java-spanner-jdbc/issues/1255)) ([ffe36b6](https://github.com/googleapis/java-spanner-jdbc/commit/ffe36b6b2087157c8d895fa348cff614435a4735))
+
 ## [2.10.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.9.16...v2.10.0) (2023-05-30)
 
 
