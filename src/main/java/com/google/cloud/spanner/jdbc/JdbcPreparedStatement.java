@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.Options.QueryOption;
+import com.google.cloud.spanner.PartitionOptions;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.SpannerException;
@@ -25,13 +26,15 @@ import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.AbstractStatementParser.ParametersInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.rpc.Code;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 /** Implementation of {@link PreparedStatement} for Cloud Spanner. */
-class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
+class JdbcPreparedStatement extends AbstractJdbcPreparedStatement
+    implements CloudSpannerJdbcPreparedStatement {
   private static final char POS_PARAM_CHAR = '?';
   private final String sql;
   private final String sqlWithoutComments;
@@ -118,5 +121,38 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
     try (ResultSet rs = analyzeQuery(createStatement(), QueryAnalyzeMode.PLAN)) {
       return rs.getMetaData();
     }
+  }
+
+  @Override
+  public ResultSet partitionQuery(PartitionOptions partitionOptions, QueryOption... options)
+      throws SQLException {
+    return runWithStatementTimeout(
+        connection ->
+            JdbcResultSet.of(
+                this, connection.partitionQuery(createStatement(), partitionOptions, options)));
+  }
+
+  @Override
+  public ResultSet runPartition() throws SQLException {
+    return runWithStatementTimeout(
+        connection -> {
+          if (getParameters().getHighestIndex() < 1 || getParameters().getParameter(1) == null) {
+            throw JdbcSqlExceptionFactory.of(
+                "No query parameter has been set. runPartition() requires the partition ID to be set as a query parameter with index 1. Call PreparedStatement#setString(1, \"some-partition-id\") before calling runPartition().",
+                Code.FAILED_PRECONDITION);
+          }
+          String partitionId = getParameters().getParameter(1).toString();
+          return JdbcResultSet.of(this, connection.runPartition(partitionId));
+        });
+  }
+
+  @Override
+  public CloudSpannerJdbcPartitionedQueryResultSet runPartitionedQuery(
+      PartitionOptions partitionOptions, QueryOption... options) throws SQLException {
+    return runWithStatementTimeout(
+        connection ->
+            JdbcPartitionedQueryResultSet.of(
+                this,
+                connection.runPartitionedQuery(createStatement(), partitionOptions, options)));
   }
 }

@@ -17,6 +17,8 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.Options;
+import com.google.cloud.spanner.Options.QueryOption;
+import com.google.cloud.spanner.PartitionOptions;
 import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.SpannerBatchUpdateException;
 import com.google.cloud.spanner.SpannerException;
@@ -35,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 
 /** Implementation of {@link java.sql.Statement} for Google Cloud Spanner. */
-class JdbcStatement extends AbstractJdbcStatement {
+class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcStatement {
   enum BatchType {
     NONE,
     DML,
@@ -420,5 +422,30 @@ class JdbcStatement extends AbstractJdbcStatement {
   public boolean execute(String sql, String[] columnNames) throws SQLException {
     checkClosed();
     return execute(sql);
+  }
+
+  @Override
+  public ResultSet partitionQuery(
+      String query, PartitionOptions partitionOptions, QueryOption... options) throws SQLException {
+    return runWithStatementTimeout(
+        connection ->
+            JdbcResultSet.of(
+                this, connection.partitionQuery(Statement.of(query), partitionOptions, options)));
+  }
+
+  @Override
+  public ResultSet runPartition(String encodedPartitionId) throws SQLException {
+    return runWithStatementTimeout(
+        connection -> JdbcResultSet.of(this, connection.runPartition(encodedPartitionId)));
+  }
+
+  @Override
+  public CloudSpannerJdbcPartitionedQueryResultSet runPartitionedQuery(
+      String query, PartitionOptions partitionOptions, QueryOption... options) throws SQLException {
+    return runWithStatementTimeout(
+        connection ->
+            JdbcPartitionedQueryResultSet.of(
+                this,
+                connection.runPartitionedQuery(Statement.of(query), partitionOptions, options)));
   }
 }

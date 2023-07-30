@@ -118,6 +118,23 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
     }
   }
 
+  interface JdbcFunction<T, R> {
+    R apply(T t) throws SQLException;
+  }
+
+  protected <T> T runWithStatementTimeout(JdbcFunction<Connection, T> function)
+      throws SQLException {
+    checkClosed();
+    StatementTimeout originalTimeout = setTemporaryStatementTimeout();
+    try {
+      return function.apply(getConnection().getSpannerConnection());
+    } catch (SpannerException spannerException) {
+      throw JdbcSqlExceptionFactory.of(spannerException);
+    } finally {
+      resetStatementTimeout(originalTimeout);
+    }
+  }
+
   /**
    * Sets the statement timeout of the Spanner {@link Connection} to the query timeout of this JDBC
    * {@link Statement} and returns the original timeout of the Spanner {@link Connection} so it can

@@ -21,6 +21,7 @@ import static com.google.cloud.spanner.Type.Code.PG_NUMERIC;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Value;
+import com.google.cloud.spanner.connection.PartitionedQueryResultSet;
 import com.google.common.base.Preconditions;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -55,9 +56,11 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   static JdbcResultSet of(Statement statement, com.google.cloud.spanner.ResultSet resultSet) {
-    Preconditions.checkNotNull(statement);
-    Preconditions.checkNotNull(resultSet);
-    return new JdbcResultSet(statement, resultSet);
+    if (resultSet instanceof PartitionedQueryResultSet) {
+      return JdbcPartitionedQueryResultSet.of(statement, (PartitionedQueryResultSet) resultSet);
+    }
+    return new JdbcResultSet(
+        Preconditions.checkNotNull(statement), Preconditions.checkNotNull(resultSet));
   }
 
   private boolean closed = false;
@@ -68,7 +71,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   private boolean nextCalledForMetaDataResult = false;
   private long currentRow = 0L;
 
-  private JdbcResultSet(Statement statement, com.google.cloud.spanner.ResultSet spanner) {
+  JdbcResultSet(Statement statement, com.google.cloud.spanner.ResultSet spanner) {
     super(spanner);
     this.statement = statement;
   }
