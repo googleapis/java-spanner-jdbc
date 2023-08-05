@@ -581,6 +581,10 @@ class JdbcConnection extends AbstractJdbcConnection {
     }
   }
 
+  /**
+   * Convenience method for calling a setter and translating any {@link SpannerException} to a
+   * {@link SQLException}.
+   */
   private <T> void set(BiConsumer<Connection, T> setter, T value) throws SQLException {
     checkClosed();
     try {
@@ -590,6 +594,10 @@ class JdbcConnection extends AbstractJdbcConnection {
     }
   }
 
+  /**
+   * Convenience method for calling a getter and translating any {@link SpannerException} to a
+   * {@link SQLException}.
+   */
   private <R> R get(Function<Connection, R> getter) throws SQLException {
     checkClosed();
     try {

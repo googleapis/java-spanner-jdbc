@@ -118,10 +118,12 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
     }
   }
 
+  /** Functional interface that throws {@link SQLException}. */
   interface JdbcFunction<T, R> {
     R apply(T t) throws SQLException;
   }
 
+  /** Runs the given function with the timeout that has been set on this statement. */
   protected <T> T runWithStatementTimeout(JdbcFunction<Connection, T> function)
       throws SQLException {
     checkClosed();

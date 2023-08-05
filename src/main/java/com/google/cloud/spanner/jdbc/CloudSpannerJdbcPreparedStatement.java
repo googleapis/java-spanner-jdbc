@@ -22,6 +22,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * This interface is implemented by {@link PreparedStatement}s that are created on Cloud Spanner
+ * JDBC connections.
+ */
 public interface CloudSpannerJdbcPreparedStatement extends PreparedStatement {
 
   /**

@@ -20,6 +20,10 @@ import com.google.cloud.spanner.connection.PartitionedQueryResultSet;
 import com.google.common.base.Preconditions;
 import java.sql.Statement;
 
+/**
+ * {@link java.sql.ResultSet} implementation that is returned for queries that are executed with
+ * `RUN PARTITIONED QUERY ...`.
+ */
 class JdbcPartitionedQueryResultSet extends JdbcResultSet
     implements CloudSpannerJdbcPartitionedQueryResultSet {
   static JdbcPartitionedQueryResultSet of(

@@ -56,6 +56,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   static JdbcResultSet of(Statement statement, com.google.cloud.spanner.ResultSet resultSet) {
+    // Return a JDBC version of a PartitionedQueryResultSet if the Cloud Spanner Java client
+    // returned a PartitionedQueryResultSet.
     if (resultSet instanceof PartitionedQueryResultSet) {
       return JdbcPartitionedQueryResultSet.of(statement, (PartitionedQueryResultSet) resultSet);
     }

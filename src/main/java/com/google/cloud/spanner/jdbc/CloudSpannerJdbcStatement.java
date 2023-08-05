@@ -22,6 +22,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * This interface is implemented by {@link Statement}s that are created on Cloud Spanner JDBC
+ * connections.
+ */
 public interface CloudSpannerJdbcStatement extends Statement {
 
   /**

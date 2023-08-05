@@ -341,14 +341,18 @@ public interface CloudSpannerJdbcConnection extends Connection {
    * CloudSpannerJdbcStatement#partitionQuery(String, PartitionOptions, QueryOption...)} and {@link
    * CloudSpannerJdbcPreparedStatement#partitionQuery(PartitionOptions, QueryOption...)}.
    */
-  void setDataBoostEnabled(boolean dataBoostEnabled) throws SQLException;
+  default void setDataBoostEnabled(boolean dataBoostEnabled) throws SQLException {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Returns whether data boost is enabled for partitioned queries. See also {@link
    * CloudSpannerJdbcStatement#partitionQuery(String, PartitionOptions, QueryOption...)} and {@link
    * CloudSpannerJdbcPreparedStatement#partitionQuery(PartitionOptions, QueryOption...)}.
    */
-  boolean isDataBoostEnabled() throws SQLException;
+  default boolean isDataBoostEnabled() throws SQLException {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Sets whether this connection should always use partitioned queries when a query is executed on
@@ -357,24 +361,32 @@ public interface CloudSpannerJdbcConnection extends Connection {
    * flag in combination with {@link #setDataBoostEnabled(boolean)} to force all queries on this
    * connection to use data boost.
    */
-  void setAutoPartitionMode(boolean alwaysUsePartitionedQueries) throws SQLException;
+  default void setAutoPartitionMode(boolean alwaysUsePartitionedQueries) throws SQLException {
+    throw new UnsupportedOperationException();
+  }
 
   /** Returns whether this connection will execute all queries as partitioned queries. */
-  boolean isAutoPartitionMode() throws SQLException;
+  default boolean isAutoPartitionMode() throws SQLException {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Sets the maximum number of partitions that should be included as a hint to Cloud Spanner when
    * partitioning a query on this connection. Note that this is only a hint and Cloud Spanner might
    * choose to ignore the hint.
    */
-  void setMaxPartitions(int maxPartitions) throws SQLException;
+  default void setMaxPartitions(int maxPartitions) throws SQLException {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Gets the maximum number of partitions that should be included as a hint to Cloud Spanner when
    * partitioning a query on this connection. Note that this is only a hint and Cloud Spanner might
    * choose to ignore the hint.
    */
-  int getMaxPartitions() throws SQLException;
+  default int getMaxPartitions() throws SQLException {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Sets the maximum degree of parallelism that is used when executing a partitioned query. A
@@ -382,10 +394,14 @@ public interface CloudSpannerJdbcConnection extends Connection {
    * from Cloud Spanner. Set this value to <code>0</code>> to use the number of available processors
    * as returned by {@link Runtime#availableProcessors()}.
    */
-  void setMaxPartitionedParallelism(int maxThreads) throws SQLException;
+  default void setMaxPartitionedParallelism(int maxThreads) throws SQLException {
+    throw new UnsupportedOperationException();
+  }
 
   /** Returns the maximum degree of parallelism that is used for partitioned queries. */
-  int getMaxPartitionedParallelism() throws SQLException;
+  default int getMaxPartitionedParallelism() throws SQLException {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * @see
