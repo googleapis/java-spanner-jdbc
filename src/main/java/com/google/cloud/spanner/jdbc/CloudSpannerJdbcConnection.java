@@ -357,10 +357,10 @@ public interface CloudSpannerJdbcConnection extends Connection {
    * flag in combination with {@link #setDataBoostEnabled(boolean)} to force all queries on this
    * connection to use data boost.
    */
-  void setAlwaysUsePartitionedQueries(boolean alwaysUsePartitionedQueries) throws SQLException;
+  void setAutoPartitionMode(boolean alwaysUsePartitionedQueries) throws SQLException;
 
   /** Returns whether this connection will execute all queries as partitioned queries. */
-  boolean isAlwaysUsePartitionedQueries() throws SQLException;
+  boolean isAutoPartitionMode() throws SQLException;
 
   /**
    * Sets the maximum number of partitions that should be included as a hint to Cloud Spanner when

@@ -610,14 +610,13 @@ class JdbcConnection extends AbstractJdbcConnection {
   }
 
   @Override
-  public void setAlwaysUsePartitionedQueries(boolean alwaysUsePartitionedQueries)
-      throws SQLException {
-    set(Connection::setAlwaysUsePartitionedQueries, alwaysUsePartitionedQueries);
+  public void setAutoPartitionMode(boolean autoPartitionMode) throws SQLException {
+    set(Connection::setAutoPartitionMode, autoPartitionMode);
   }
 
   @Override
-  public boolean isAlwaysUsePartitionedQueries() throws SQLException {
-    return get(Connection::isAlwaysUsePartitionedQueries);
+  public boolean isAutoPartitionMode() throws SQLException {
+    return get(Connection::isAutoPartitionMode);
   }
 
   @Override
