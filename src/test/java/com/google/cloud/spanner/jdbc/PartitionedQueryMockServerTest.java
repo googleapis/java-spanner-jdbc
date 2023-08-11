@@ -17,6 +17,8 @@
 package com.google.cloud.spanner.jdbc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
@@ -25,6 +27,9 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
 import com.google.cloud.spanner.connection.RandomResultSetGenerator;
 import com.google.cloud.spanner.connection.SpannerPool;
+import com.google.protobuf.ByteString;
+import com.google.spanner.v1.ExecuteSqlRequest;
+import com.google.spanner.v1.PartitionQueryRequest;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -332,6 +337,94 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
           assertEquals(maxPartitions, results.getNumPartitions());
           assertEquals(1, results.getParallelism());
         }
+      }
+    }
+  }
+
+  @Test
+  public void testAutoPartitionMode() throws SQLException {
+    int numRows = 5;
+    int maxPartitions = 4;
+    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
+    Statement statement = Statement.of("select * from my_table where active=true");
+    mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
+
+    try (Connection connection = createConnection()) {
+      CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
+          connection.unwrap(CloudSpannerJdbcConnection.class);
+      // This will automatically enable Data Boost for any partitioned query that is executed on
+      // this connection. The property is ignored for any query that is not a partitioned query.
+      cloudSpannerJdbcConnection.setDataBoostEnabled(true);
+      // Sets the maximum number of partitions that should be used by Cloud Spanner.
+      // This is just a hint that can be ignored by Cloud Spanner, but the mock server that is used
+      // for testing respects this hint.
+      cloudSpannerJdbcConnection.setMaxPartitions(maxPartitions);
+      cloudSpannerJdbcConnection.setAutoPartitionMode(true);
+
+      try (ResultSet results =
+          connection.createStatement().executeQuery("select * from my_table where active=true")) {
+        int rowCount = 0;
+        while (results.next()) {
+          rowCount++;
+        }
+        // The mock server is not smart enough to actually partition the query and only return
+        // a fraction of the rows per partition. The total row count will therefore be equal to
+        // the number of partitions multiplied by the number of rows.
+        assertEquals(numRows * maxPartitions, rowCount);
+        assertEquals(1, mockSpanner.countRequestsOfType(PartitionQueryRequest.class));
+
+        // Partitioned queries return a result set with some additional metadata that can be
+        // inspected to determine the number of partitions and the degree of parallelism that the
+        // query used.
+        assertEquals(
+            maxPartitions, results.unwrap(JdbcPartitionedQueryResultSet.class).getNumPartitions());
+        assertEquals(1, results.unwrap(JdbcPartitionedQueryResultSet.class).getParallelism());
+
+        // Verify that we can run metadata queries in auto_partition_mode.
+        // Just add a random result for the table metadata query. We don't care about the result,
+        // only about the fact that it should be allowed, and that it is executed in normal mode.
+        if (dialect == Dialect.GOOGLE_STANDARD_SQL) {
+          mockSpanner.putPartialStatementResult(
+              StatementResult.query(
+                  Statement.of(
+                      "SELECT TABLE_CATALOG AS TABLE_CAT, TABLE_SCHEMA AS TABLE_SCHEM, TABLE_NAME,\n"
+                          + "       CASE WHEN TABLE_TYPE = 'BASE TABLE' THEN 'TABLE' ELSE TABLE_TYPE END AS TABLE_TYPE,\n"
+                          + "       NULL AS REMARKS, NULL AS TYPE_CAT, NULL AS TYPE_SCHEM, NULL AS TYPE_NAME,\n"
+                          + "       NULL AS SELF_REFERENCING_COL_NAME, NULL AS REF_GENERATION\n"
+                          + "FROM INFORMATION_SCHEMA.TABLES AS T"),
+                  SELECT_COUNT_RESULTSET_BEFORE_INSERT));
+        } else {
+          mockSpanner.putPartialStatementResult(
+              StatementResult.query(
+                  Statement.of(
+                      "SELECT TABLE_CATALOG AS \"TABLE_CAT\", TABLE_SCHEMA AS \"TABLE_SCHEM\", TABLE_NAME AS \"TABLE_NAME\",\n"
+                          + "       CASE WHEN TABLE_TYPE = 'BASE TABLE' THEN 'TABLE' ELSE TABLE_TYPE END AS \"TABLE_TYPE\",\n"
+                          + "       NULL AS \"REMARKS\", NULL AS \"TYPE_CAT\", NULL AS \"TYPE_SCHEM\", NULL AS \"TYPE_NAME\",\n"
+                          + "       NULL AS \"SELF_REFERENCING_COL_NAME\", NULL AS \"REF_GENERATION\"\n"
+                          + "FROM INFORMATION_SCHEMA.TABLES AS T"),
+                  SELECT_COUNT_RESULTSET_BEFORE_INSERT));
+        }
+        try (ResultSet tables = connection.getMetaData().getTables(null, null, null, null)) {
+          assertTrue(tables.next());
+          assertEquals(0, tables.getInt(1));
+          assertFalse(tables.next());
+        }
+        assertEquals(
+            1,
+            mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
+                .filter(req -> req.getSql().contains("FROM INFORMATION_SCHEMA.TABLES AS T"))
+                .count());
+        ExecuteSqlRequest request =
+            mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
+                .filter(req -> req.getSql().contains("FROM INFORMATION_SCHEMA.TABLES AS T"))
+                .findFirst()
+                .orElse(ExecuteSqlRequest.getDefaultInstance());
+        assertTrue(request.hasTransaction());
+        assertTrue(request.getTransaction().hasSingleUse());
+        assertTrue(request.getTransaction().getSingleUse().hasReadOnly());
+        assertTrue(request.getTransaction().getSingleUse().getReadOnly().hasStrong());
+        assertEquals(ByteString.EMPTY, request.getPartitionToken());
+        assertEquals(1, mockSpanner.countRequestsOfType(PartitionQueryRequest.class));
       }
     }
   }
