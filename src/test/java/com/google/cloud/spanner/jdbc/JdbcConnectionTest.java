@@ -686,14 +686,12 @@ public class JdbcConnectionTest {
     try (JdbcConnection connection = createConnection(mockOptions())) {
       PreparedStatement statement =
           connection.prepareStatement(sql, java.sql.Statement.NO_GENERATED_KEYS);
-      ResultSet rs = statement.getGeneratedKeys();
-      assertThat(rs.next()).isFalse();
-      try {
-        statement = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
-        fail("missing expected SQLFeatureNotSupportedException");
-      } catch (SQLFeatureNotSupportedException e) {
-        // ignore, this is the expected exception.
-      }
+      ResultSet generatedKeys = statement.getGeneratedKeys();
+      assertFalse(generatedKeys.next());
+
+      statement = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
+      generatedKeys = statement.getGeneratedKeys();
+      assertFalse(generatedKeys.next());
     }
   }
 

@@ -42,7 +42,6 @@ import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImp
 import com.google.rpc.Code;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
@@ -271,15 +270,14 @@ public class JdbcStatementTest {
 
   @Test
   public void testExecuteWithGeneratedKeys() throws SQLException {
-    Statement statement = createStatement();
-    assertThat(statement.execute(UPDATE, Statement.NO_GENERATED_KEYS)).isFalse();
-    ResultSet keys = statement.getGeneratedKeys();
-    assertThat(keys.next()).isFalse();
-    try {
+    try (Statement statement = createStatement()) {
+      assertFalse(statement.execute(UPDATE, Statement.NO_GENERATED_KEYS));
+      ResultSet keys = statement.getGeneratedKeys();
+      assertFalse(keys.next());
+
       statement.execute(UPDATE, Statement.RETURN_GENERATED_KEYS);
-      fail("missing expected exception");
-    } catch (SQLFeatureNotSupportedException e) {
-      // Ignore, this is the expected exception.
+      keys = statement.getGeneratedKeys();
+      assertFalse(keys.next());
     }
   }
 
@@ -445,15 +443,14 @@ public class JdbcStatementTest {
 
   @Test
   public void testExecuteUpdateWithGeneratedKeys() throws SQLException {
-    Statement statement = createStatement();
-    assertThat(statement.executeUpdate(UPDATE, Statement.NO_GENERATED_KEYS)).isEqualTo(1);
-    ResultSet keys = statement.getGeneratedKeys();
-    assertThat(keys.next()).isFalse();
-    try {
-      statement.executeUpdate(UPDATE, Statement.RETURN_GENERATED_KEYS);
-      fail("missing expected exception");
-    } catch (SQLFeatureNotSupportedException e) {
-      // Ignore, this is the expected exception.
+    try (Statement statement = createStatement()) {
+      assertEquals(1, statement.executeUpdate(UPDATE, Statement.NO_GENERATED_KEYS));
+      ResultSet keys = statement.getGeneratedKeys();
+      assertFalse(keys.next());
+
+      assertEquals(1, statement.executeUpdate(UPDATE, Statement.RETURN_GENERATED_KEYS));
+      keys = statement.getGeneratedKeys();
+      assertFalse(keys.next());
     }
   }
 
