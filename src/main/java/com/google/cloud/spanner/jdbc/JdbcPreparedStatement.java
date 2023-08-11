@@ -29,6 +29,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import javax.annotation.Nullable;
 
 /** Implementation of {@link PreparedStatement} for Cloud Spanner. */
 class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
@@ -36,8 +37,11 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
   private final String sql;
   private final String sqlWithoutComments;
   private final ParametersInfo parameters;
+  private final @Nullable ImmutableList<String> generatedKeysColumns;
 
-  JdbcPreparedStatement(JdbcConnection connection, String sql) throws SQLException {
+  JdbcPreparedStatement(
+      JdbcConnection connection, String sql, @Nullable ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
     super(connection);
     this.sql = sql;
     try {
@@ -47,6 +51,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
+    this.generatedKeysColumns = generatedKeysColumns;
   }
 
   ParametersInfo getParametersInfo() {
@@ -87,8 +92,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
 
   @Override
   public boolean execute() throws SQLException {
-    checkClosed();
-    return executeStatement(createStatement());
+    return executeStatement(createStatement(), generatedKeysColumns);
   }
 
   @Override
