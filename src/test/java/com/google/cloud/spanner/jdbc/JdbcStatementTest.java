@@ -619,6 +619,20 @@ public class JdbcStatementTest {
               : "insert into test (id, value) values (1, 'One')\nTHEN RETURN `id`",
           "insert into test (id, value) values (1, 'One')",
           ImmutableList.of("id"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "insert into test (id, value) values (1, 'One')\nRETURNING \"id\", \"value\""
+              : "insert into test (id, value) values (1, 'One')\nTHEN RETURN `id`, `value`",
+          "insert into test (id, value) values (1, 'One')",
+          ImmutableList.of("id", "value"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "insert into test (id, value) values (1, 'One')\nRETURNING *"
+              : "insert into test (id, value) values (1, 'One')\nTHEN RETURN *",
+          "insert into test (id, value) values (1, 'One')",
+          ImmutableList.of("*"));
       // Requesting generated keys for a DML statement that already contains a returning clause is a
       // no-op.
       assertAddReturningSame(
@@ -641,6 +655,20 @@ public class JdbcStatementTest {
               : "update test set value='Two' where id=1\nTHEN RETURN `value`",
           "update test set value='Two' where id=1",
           ImmutableList.of("value"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "update test set value='Two' where id=1\nRETURNING \"value\", \"id\""
+              : "update test set value='Two' where id=1\nTHEN RETURN `value`, `id`",
+          "update test set value='Two' where id=1",
+          ImmutableList.of("value", "id"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "update test set value='Two' where id=1\nRETURNING *"
+              : "update test set value='Two' where id=1\nTHEN RETURN *",
+          "update test set value='Two' where id=1",
+          ImmutableList.of("*"));
       // Requesting generated keys for a DML statement that already contains a returning clause is a
       // no-op.
       assertAddReturningSame(
@@ -658,11 +686,29 @@ public class JdbcStatementTest {
               : "delete test where id=1\nTHEN RETURN `value`",
           "delete test where id=1",
           ImmutableList.of("value"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "delete test where id=1\nRETURNING \"id\", \"value\""
+              : "delete test where id=1\nTHEN RETURN `id`, `value`",
+          "delete test where id=1",
+          ImmutableList.of("id", "value"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "delete test where id=1\nRETURNING *"
+              : "delete test where id=1\nTHEN RETURN *",
+          "delete test where id=1",
+          ImmutableList.of("*"));
       // Requesting generated keys for a DML statement that already contains a returning clause is a
       // no-op.
       assertAddReturningSame(
           statement,
-          "delete test where id=1 " + statement.getReturningClause() + " value",
+          "delete test where id=1 "
+              + (dialect == Dialect.POSTGRESQL
+                  ? "delete test where id=1\nRETURNING"
+                  : "delete test where id=1\nTHEN RETURN")
+              + " value",
           ImmutableList.of("value"));
 
       // Requesting generated keys for DDL is a no-op.

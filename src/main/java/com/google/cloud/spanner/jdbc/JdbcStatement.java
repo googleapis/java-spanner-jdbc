@@ -35,11 +35,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /** Implementation of {@link java.sql.Statement} for Google Cloud Spanner. */
 class JdbcStatement extends AbstractJdbcStatement {
+  static final ImmutableList<String> ALL_COLUMNS = ImmutableList.of("*");
+
   enum BatchType {
     NONE,
     DML,
@@ -118,6 +121,13 @@ class JdbcStatement extends AbstractJdbcStatement {
     if (generatedKeysColumns == null || generatedKeysColumns.isEmpty()) {
       return statement;
     }
+    if (generatedKeysColumns.size() == 1
+        && Objects.equals(generatedKeysColumns.get(0), ALL_COLUMNS.get(0))) {
+      return statement
+          .toBuilder()
+          .replace(statement.getSql() + getReturningAllColumnsClause())
+          .build();
+    }
     // Check if the statement is a DML statement or not.
     ParsedStatement parsedStatement = getConnection().getParser().parse(statement);
     if (parsedStatement.isUpdate() && !parsedStatement.hasReturningClause()) {
@@ -130,20 +140,31 @@ class JdbcStatement extends AbstractJdbcStatement {
                   .map(this::quoteColumn)
                   .collect(
                       Collectors.joining(
-                          ", ", statement.getSql() + "\n" + getReturningClause() + " ", "")))
+                          ", ", statement.getSql() + getReturningClause() + " ", "")))
           .build();
     }
     return statement;
   }
 
   /** Returns the dialect-specific clause for returning values from a DML statement. */
+  String getReturningAllColumnsClause() {
+    switch (getConnection().getDialect()) {
+      case POSTGRESQL:
+        return "\nRETURNING *";
+      case GOOGLE_STANDARD_SQL:
+      default:
+        return "\nTHEN RETURN *";
+    }
+  }
+
+  /** Returns the dialect-specific clause for returning values from a DML statement. */
   String getReturningClause() {
     switch (getConnection().getDialect()) {
       case POSTGRESQL:
-        return "RETURNING";
+        return "\nRETURNING";
       case GOOGLE_STANDARD_SQL:
       default:
-        return "THEN RETURN";
+        return "\nTHEN RETURN";
     }
   }
 
