@@ -23,6 +23,7 @@ import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.connection.AbstractStatementParser.ParsedStatement;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -34,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /** Implementation of {@link java.sql.Statement} for Google Cloud Spanner. */
@@ -109,6 +112,80 @@ class JdbcStatement extends AbstractJdbcStatement {
       default:
         throw JdbcSqlExceptionFactory.of(
             "unknown result: " + result.getResultType(), Code.FAILED_PRECONDITION);
+    }
+  }
+
+  /**
+   * Adds a THEN RETURN/RETURNING clause to the given statement if the following conditions are all
+   * met:
+   *
+   * <ol>
+   *   <li>The generatedKeysColumns is not null or empty
+   *   <li>The statement is a DML statement
+   *   <li>The DML statement does not already contain a THEN RETURN/RETURNING clause
+   * </ol>
+   */
+  Statement addReturningToStatement(
+      Statement statement, @Nullable ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
+    if (generatedKeysColumns == null || generatedKeysColumns.isEmpty()) {
+      return statement;
+    }
+    if (generatedKeysColumns.size() == 1
+        && Objects.equals(generatedKeysColumns.get(0), ALL_COLUMNS.get(0))) {
+      return statement
+          .toBuilder()
+          .replace(statement.getSql() + getReturningAllColumnsClause())
+          .build();
+    }
+    // Check if the statement is a DML statement or not.
+    ParsedStatement parsedStatement = getConnection().getParser().parse(statement);
+    if (parsedStatement.isUpdate() && !parsedStatement.hasReturningClause()) {
+      // Add a 'THEN RETURN/RETURNING col1, col2, ...' to the statement.
+      // The column names will be quoted using the dialect-specific identifier quoting character.
+      return statement
+          .toBuilder()
+          .replace(
+              generatedKeysColumns.stream()
+                  .map(this::quoteColumn)
+                  .collect(
+                      Collectors.joining(
+                          ", ", statement.getSql() + getReturningClause() + " ", "")))
+          .build();
+    }
+    return statement;
+  }
+
+  /** Returns the dialect-specific clause for returning values from a DML statement. */
+  String getReturningAllColumnsClause() {
+    switch (getConnection().getDialect()) {
+      case POSTGRESQL:
+        return "\nRETURNING *";
+      case GOOGLE_STANDARD_SQL:
+      default:
+        return "\nTHEN RETURN *";
+    }
+  }
+
+  /** Returns the dialect-specific clause for returning values from a DML statement. */
+  String getReturningClause() {
+    switch (getConnection().getDialect()) {
+      case POSTGRESQL:
+        return "\nRETURNING";
+      case GOOGLE_STANDARD_SQL:
+      default:
+        return "\nTHEN RETURN";
+    }
+  }
+
+  /** Adds dialect-specific quotes to the given column name. */
+  String quoteColumn(String column) {
+    switch (getConnection().getDialect()) {
+      case POSTGRESQL:
+        return "\"" + column + "\"";
+      case GOOGLE_STANDARD_SQL:
+      default:
+        return "`" + column + "`";
     }
   }
 
