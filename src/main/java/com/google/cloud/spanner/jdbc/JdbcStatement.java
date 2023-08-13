@@ -50,6 +50,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   }
 
   private ResultSet currentResultSet;
+  private ResultSet currentGeneratedKeys;
   private long currentUpdateCount;
   private int fetchSize;
   private BatchType currentBatchType = BatchType.NONE;
@@ -99,12 +100,15 @@ class JdbcStatement extends AbstractJdbcStatement {
   private long internalExecuteLargeUpdate(
       String sql, @Nullable ImmutableList<String> generatedKeysColumns) throws SQLException {
     checkClosed();
-    Statement statement = Statement.of(sql);
+    Statement statement = addReturningToStatement(Statement.of(sql), generatedKeysColumns);
     StatementResult result = execute(statement);
     switch (result.getResultType()) {
       case RESULT_SET:
-        throw JdbcSqlExceptionFactory.of(
-            "The statement is not a non-returning DML or DDL statement", Code.INVALID_ARGUMENT);
+        if (generatedKeysColumns == null || generatedKeysColumns.isEmpty()) {
+          throw JdbcSqlExceptionFactory.of(
+              "The statement is not a non-returning DML or DDL statement", Code.INVALID_ARGUMENT);
+        }
+        this.currentGeneratedKeys = JdbcResultSet.of(result.getResultSet());
       case UPDATE_COUNT:
         return result.getUpdateCount();
       case NO_RESULT:
