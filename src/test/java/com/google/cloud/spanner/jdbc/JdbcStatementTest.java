@@ -359,12 +359,18 @@ public class JdbcStatementTest {
         com.google.cloud.spanner.Statement.of(UPDATE);
     com.google.cloud.spanner.Statement largeUpdateStatement =
         com.google.cloud.spanner.Statement.of(LARGE_UPDATE);
-    when(spannerConnection.executeUpdate(updateStatement)).thenReturn(1L);
-    when(spannerConnection.executeUpdate(largeUpdateStatement)).thenReturn(Integer.MAX_VALUE + 1L);
+    StatementResult updateResult = mock(StatementResult.class);
+    when(updateResult.getUpdateCount()).thenReturn(1L);
+    when(updateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
+    when(spannerConnection.execute(updateStatement)).thenReturn(updateResult);
+    StatementResult largeUpdateResult = mock(StatementResult.class);
+    when(largeUpdateResult.getUpdateCount()).thenReturn(Integer.MAX_VALUE + 1L);
+    when(largeUpdateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
+    when(spannerConnection.execute(largeUpdateStatement)).thenReturn(largeUpdateResult);
     try (JdbcStatement statement = new JdbcStatement(connection)) {
-      assertThat(statement.executeUpdate(updateStatement)).isEqualTo(1);
+      assertThat(statement.executeUpdate(UPDATE)).isEqualTo(1);
       try {
-        statement.executeUpdate(largeUpdateStatement);
+        statement.executeUpdate(LARGE_UPDATE);
         fail("missing expected exception");
       } catch (JdbcSqlExceptionImpl e) {
         assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
@@ -382,12 +388,17 @@ public class JdbcStatementTest {
         com.google.cloud.spanner.Statement.of(UPDATE);
     com.google.cloud.spanner.Statement largeUpdateStatement =
         com.google.cloud.spanner.Statement.of(LARGE_UPDATE);
-    when(spannerConnection.executeUpdate(updateStatement)).thenReturn(1L);
-    when(spannerConnection.executeUpdate(largeUpdateStatement)).thenReturn(Integer.MAX_VALUE + 1L);
+    StatementResult updateResult = mock(StatementResult.class);
+    when(updateResult.getUpdateCount()).thenReturn(1L);
+    when(updateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
+    when(spannerConnection.execute(updateStatement)).thenReturn(updateResult);
+    StatementResult largeUpdateResult = mock(StatementResult.class);
+    when(largeUpdateResult.getUpdateCount()).thenReturn(Integer.MAX_VALUE + 1L);
+    when(largeUpdateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
+    when(spannerConnection.execute(largeUpdateStatement)).thenReturn(largeUpdateResult);
     try (JdbcStatement statement = new JdbcStatement(connection)) {
-      assertThat(statement.executeLargeUpdate(updateStatement)).isEqualTo(1);
-      assertThat(statement.executeLargeUpdate(largeUpdateStatement))
-          .isEqualTo(Integer.MAX_VALUE + 1L);
+      assertThat(statement.executeLargeUpdate(UPDATE)).isEqualTo(1);
+      assertThat(statement.executeLargeUpdate(LARGE_UPDATE)).isEqualTo(Integer.MAX_VALUE + 1L);
     }
   }
 

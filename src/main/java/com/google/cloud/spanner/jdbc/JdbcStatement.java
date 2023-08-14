@@ -126,6 +126,7 @@ class JdbcStatement extends AbstractJdbcStatement {
     }
   }
 
+  /** Extracts the update count from the given result set and then closes the result set. */
   private long extractUpdateCountAndClose(com.google.cloud.spanner.ResultSet resultSet)
       throws SQLException {
     if (resultSet.getStats() == null) {
