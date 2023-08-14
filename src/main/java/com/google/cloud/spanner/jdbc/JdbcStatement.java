@@ -119,9 +119,11 @@ class JdbcStatement extends AbstractJdbcStatement {
     }
   }
 
-  private long extractUpdateCountAndClose(com.google.cloud.spanner.ResultSet resultSet) throws SQLException {
+  private long extractUpdateCountAndClose(com.google.cloud.spanner.ResultSet resultSet)
+      throws SQLException {
     if (resultSet.getStats() == null) {
-      throw JdbcSqlExceptionFactory.of("Result does not contain any stats", Code.FAILED_PRECONDITION);
+      throw JdbcSqlExceptionFactory.of(
+          "Result does not contain any stats", Code.FAILED_PRECONDITION);
     }
     long updateCount;
     if (resultSet.getStats().hasRowCountExact()) {
@@ -129,7 +131,8 @@ class JdbcStatement extends AbstractJdbcStatement {
     } else if (resultSet.getStats().hasRowCountLowerBound()) {
       updateCount = resultSet.getStats().getRowCountLowerBound();
     } else {
-      throw JdbcSqlExceptionFactory.of("Result does not contain an update count", Code.FAILED_PRECONDITION);
+      throw JdbcSqlExceptionFactory.of(
+          "Result does not contain an update count", Code.FAILED_PRECONDITION);
     }
     resultSet.close();
     return updateCount;
