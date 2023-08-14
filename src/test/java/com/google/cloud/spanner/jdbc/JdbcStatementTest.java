@@ -100,6 +100,10 @@ public class JdbcStatementTest {
     when(updateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
     when(updateResult.getUpdateCount()).thenReturn(1L);
     when(spanner.execute(com.google.cloud.spanner.Statement.of(UPDATE))).thenReturn(updateResult);
+    when(spanner.execute(com.google.cloud.spanner.Statement.of(UPDATE + "\nTHEN RETURN *")))
+        .thenReturn(updateResult);
+    when(spanner.execute(com.google.cloud.spanner.Statement.of(UPDATE + "\nRETURNING *")))
+        .thenReturn(updateResult);
 
     StatementResult largeUpdateResult = mock(StatementResult.class);
     when(largeUpdateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);

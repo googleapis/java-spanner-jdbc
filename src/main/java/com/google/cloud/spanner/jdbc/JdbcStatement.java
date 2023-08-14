@@ -98,9 +98,16 @@ class JdbcStatement extends AbstractJdbcStatement {
 
   private long internalExecuteLargeUpdate(
       String sql, @Nullable ImmutableList<String> generatedKeysColumns) throws SQLException {
+    return internalExecuteLargeUpdate(Statement.of(sql), generatedKeysColumns);
+  }
+
+  protected long internalExecuteLargeUpdate(
+      Statement statement, @Nullable ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
     checkClosed();
-    Statement statement = addReturningToStatement(Statement.of(sql), generatedKeysColumns);
-    StatementResult result = execute(statement);
+    Statement statementWithReturningClause =
+        addReturningToStatement(statement, generatedKeysColumns);
+    StatementResult result = execute(statementWithReturningClause);
     switch (result.getResultType()) {
       case RESULT_SET:
         if (generatedKeysColumns == null || generatedKeysColumns.isEmpty()) {
@@ -222,12 +229,21 @@ class JdbcStatement extends AbstractJdbcStatement {
       Statement statement, @Nullable ImmutableList<String> generatedKeysColumns)
       throws SQLException {
     checkClosed();
-    StatementResult result = execute(statement);
+    Statement statementWithReturning = addReturningToStatement(statement, generatedKeysColumns);
+    StatementResult result = execute(statementWithReturning);
     switch (result.getResultType()) {
       case RESULT_SET:
-        currentResultSet = JdbcResultSet.of(this, result.getResultSet());
-        currentUpdateCount = JdbcConstants.STATEMENT_RESULT_SET;
-        return true;
+        // Check whether the statement was modified to include a RETURNING clause for generated
+        // keys. If so, then we return the result as an update count and the rows as the generated
+        // keys.
+        if (statementWithReturning == statement) {
+          currentResultSet = JdbcResultSet.of(this, result.getResultSet());
+          currentUpdateCount = JdbcConstants.STATEMENT_RESULT_SET;
+          return true;
+        }
+        this.currentGeneratedKeys = JdbcResultSet.copyOf(result.getResultSet());
+        this.currentUpdateCount = extractUpdateCountAndClose(result.getResultSet());
+        return false;
       case UPDATE_COUNT:
         currentResultSet = null;
         currentUpdateCount = result.getUpdateCount();
@@ -465,15 +481,18 @@ class JdbcStatement extends AbstractJdbcStatement {
   @Override
   public ResultSet getGeneratedKeys() throws SQLException {
     checkClosed();
-    // Return an empty result set instead of throwing an exception, to facilitate any application
-    // that might not check on beforehand whether the driver supports any generated keys.
-    com.google.cloud.spanner.ResultSet rs =
-        ResultSets.forRows(
-            Type.struct(
-                StructField.of("COLUMN_NAME", Type.string()),
-                StructField.of("VALUE", Type.int64())),
-            Collections.emptyList());
-    return JdbcResultSet.of(rs);
+    if (this.currentGeneratedKeys == null) {
+      // Return an empty result set instead of throwing an exception, as that is what the JDBC spec
+      // says we should do.
+      this.currentGeneratedKeys =
+          JdbcResultSet.of(
+              ResultSets.forRows(
+                  Type.struct(
+                      StructField.of("COLUMN_NAME", Type.string()),
+                      StructField.of("VALUE", Type.int64())),
+                  Collections.emptyList()));
+    }
+    return this.currentGeneratedKeys;
   }
 
   @Override
