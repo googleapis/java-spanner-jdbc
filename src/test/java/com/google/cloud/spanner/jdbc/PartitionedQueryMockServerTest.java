@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.google.cloud.spanner.Dialect;
@@ -107,6 +108,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
           connection.prepareStatement("partition select * from my_table where active=?")) {
         partitionStatement.setBoolean(1, true);
         try (ResultSet partitions = partitionStatement.executeQuery()) {
+          assertNotNull(partitions.getMetaData());
           while (partitions.next()) {
             partitionIds.add(partitions.getString(1));
           }
@@ -120,6 +122,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
             connection
                 .createStatement()
                 .executeQuery(String.format("run partition '%s'", partitionId))) {
+          assertNotNull(resultSet.getMetaData());
           int rowCount = 0;
           while (resultSet.next()) {
             rowCount++;
@@ -134,6 +137,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
           runStatement.setString(1, partitionId);
           int rowCount = 0;
           try (ResultSet resultSet = runStatement.executeQuery()) {
+            assertNotNull(resultSet.getMetaData());
             while (resultSet.next()) {
               rowCount++;
             }
@@ -153,6 +157,8 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
               "run partitioned query select * from my_table where active=?")) {
         partitionStatement.setBoolean(1, true);
         try (ResultSet results = partitionStatement.executeQuery()) {
+          assertNotNull(results.getMetaData());
+          assertEquals(18, results.getMetaData().getColumnCount());
           int rowCount = 0;
           while (results.next()) {
             rowCount++;
@@ -201,6 +207,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
               .partitionQuery(
                   "select * from my_table where active=true",
                   PartitionOptions.getDefaultInstance())) {
+        assertNotNull(partitions.getMetaData());
         while (partitions.next()) {
           partitionIds.add(partitions.getString(1));
         }
@@ -214,6 +221,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
                 .createStatement()
                 .unwrap(CloudSpannerJdbcStatement.class)
                 .runPartition(partitionId)) {
+          assertNotNull(resultSet.getMetaData());
           int rowCount = 0;
           while (resultSet.next()) {
             rowCount++;
@@ -235,6 +243,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
               .runPartitionedQuery(
                   "select * from my_table where active=true",
                   PartitionOptions.getDefaultInstance())) {
+        assertNotNull(results.getMetaData());
         int rowCount = 0;
         while (results.next()) {
           rowCount++;
@@ -287,6 +296,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
             partitionStatement
                 .unwrap(CloudSpannerJdbcPreparedStatement.class)
                 .partitionQuery(PartitionOptions.getDefaultInstance())) {
+          assertNotNull(partitions.getMetaData());
           while (partitions.next()) {
             partitionIds.add(partitions.getString(1));
           }
@@ -301,6 +311,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
           int rowCount = 0;
           try (ResultSet resultSet =
               runStatement.unwrap(CloudSpannerJdbcPreparedStatement.class).runPartition()) {
+            assertNotNull(resultSet.getMetaData());
             while (resultSet.next()) {
               rowCount++;
             }
@@ -322,6 +333,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
             preparedStatement
                 .unwrap(CloudSpannerJdbcPreparedStatement.class)
                 .runPartitionedQuery(PartitionOptions.getDefaultInstance())) {
+          assertNotNull(results.getMetaData());
           int rowCount = 0;
           while (results.next()) {
             rowCount++;
@@ -363,6 +375,8 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
 
       try (ResultSet results =
           connection.createStatement().executeQuery("select * from my_table where active=true")) {
+        assertNotNull(results.getMetaData());
+        assertEquals(18, results.getMetaData().getColumnCount());
         int rowCount = 0;
         while (results.next()) {
           rowCount++;
@@ -425,6 +439,47 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
         assertTrue(request.getTransaction().getSingleUse().getReadOnly().hasStrong());
         assertEquals(ByteString.EMPTY, request.getPartitionToken());
         assertEquals(1, mockSpanner.countRequestsOfType(PartitionQueryRequest.class));
+      }
+    }
+  }
+
+  @Test
+  public void testAutoPartitionModeEmptyResult() throws SQLException {
+    int numRows = 0;
+    int maxPartitions = 1;
+    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
+    Statement statement = Statement.of("select * from my_table where active=true");
+    mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
+
+    try (Connection connection = createConnection()) {
+      CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
+          connection.unwrap(CloudSpannerJdbcConnection.class);
+      // This will automatically enable Data Boost for any partitioned query that is executed on
+      // this connection. The property is ignored for any query that is not a partitioned query.
+      cloudSpannerJdbcConnection.setDataBoostEnabled(true);
+      // Sets the maximum number of partitions that should be used by Cloud Spanner.
+      // This is just a hint that can be ignored by Cloud Spanner, but the mock server that is used
+      // for testing respects this hint.
+      cloudSpannerJdbcConnection.setMaxPartitions(maxPartitions);
+      cloudSpannerJdbcConnection.setAutoPartitionMode(true);
+
+      try (ResultSet results =
+          connection.createStatement().executeQuery("select * from my_table where active=true")) {
+        assertNotNull(results.getMetaData());
+        assertEquals(18, results.getMetaData().getColumnCount());
+        int rowCount = 0;
+        while (results.next()) {
+          rowCount++;
+        }
+        assertEquals(0, rowCount);
+        assertEquals(1, mockSpanner.countRequestsOfType(PartitionQueryRequest.class));
+
+        // Partitioned queries return a result set with some additional metadata that can be
+        // inspected to determine the number of partitions and the degree of parallelism that the
+        // query used.
+        assertEquals(
+            maxPartitions, results.unwrap(JdbcPartitionedQueryResultSet.class).getNumPartitions());
+        assertEquals(1, results.unwrap(JdbcPartitionedQueryResultSet.class).getParallelism());
       }
     }
   }
