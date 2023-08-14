@@ -639,7 +639,11 @@ public class JdbcStatementTest {
               + " value",
           ImmutableList.of("id"));
       // Requesting generated keys for a query is a no-op.
-      assertAddReturningSame(statement, "select id, value from test", ImmutableList.of("id"));
+      for (ImmutableList<String> keys :
+          ImmutableList.of(
+              ImmutableList.of("id"), ImmutableList.of("id", "value"), ImmutableList.of("*"))) {
+        assertAddReturningSame(statement, "select id, value from test", keys);
+      }
 
       // Update statements may also request generated keys.
       assertAddReturningSame(statement, "update test set value='Two' where id=1", null);
@@ -699,22 +703,30 @@ public class JdbcStatementTest {
           ImmutableList.of("*"));
       // Requesting generated keys for a DML statement that already contains a returning clause is a
       // no-op.
-      assertAddReturningSame(
-          statement,
-          "delete test where id=1 "
-              + (dialect == Dialect.POSTGRESQL
-                  ? "delete test where id=1\nRETURNING"
-                  : "delete test where id=1\nTHEN RETURN")
-              + " value",
-          ImmutableList.of("value"));
+      for (ImmutableList<String> keys :
+          ImmutableList.of(
+              ImmutableList.of("id"), ImmutableList.of("id", "value"), ImmutableList.of("*"))) {
+        assertAddReturningSame(
+            statement,
+            "delete test where id=1 "
+                + (dialect == Dialect.POSTGRESQL
+                    ? "delete test where id=1\nRETURNING"
+                    : "delete test where id=1\nTHEN RETURN")
+                + " value",
+            keys);
+      }
 
       // Requesting generated keys for DDL is a no-op.
-      assertAddReturningSame(
-          statement,
-          dialect == Dialect.POSTGRESQL
-              ? "create table test (id bigint primary key, value varchar)"
-              : "create table test (id int64, value string(max)) primary key (id)",
-          ImmutableList.of("id"));
+      for (ImmutableList<String> keys :
+          ImmutableList.of(
+              ImmutableList.of("id"), ImmutableList.of("id", "value"), ImmutableList.of("*"))) {
+        assertAddReturningSame(
+            statement,
+            dialect == Dialect.POSTGRESQL
+                ? "create table test (id bigint primary key, value varchar)"
+                : "create table test (id int64, value string(max)) primary key (id)",
+            keys);
+      }
     }
   }
 

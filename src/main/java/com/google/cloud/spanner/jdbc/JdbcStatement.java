@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -152,16 +151,17 @@ class JdbcStatement extends AbstractJdbcStatement {
     if (generatedKeysColumns == null || generatedKeysColumns.isEmpty()) {
       return statement;
     }
-    if (generatedKeysColumns.size() == 1
-        && Objects.equals(generatedKeysColumns.get(0), ALL_COLUMNS.get(0))) {
-      return statement
-          .toBuilder()
-          .replace(statement.getSql() + getReturningAllColumnsClause())
-          .build();
-    }
     // Check if the statement is a DML statement or not.
     ParsedStatement parsedStatement = getConnection().getParser().parse(statement);
     if (parsedStatement.isUpdate() && !parsedStatement.hasReturningClause()) {
+      if (generatedKeysColumns.size() == 1
+          && ALL_COLUMNS.get(0).equals(generatedKeysColumns.get(0))) {
+        // Add a 'THEN RETURN/RETURNING *' clause to the statement.
+        return statement
+            .toBuilder()
+            .replace(statement.getSql() + getReturningAllColumnsClause())
+            .build();
+      }
       // Add a 'THEN RETURN/RETURNING col1, col2, ...' to the statement.
       // The column names will be quoted using the dialect-specific identifier quoting character.
       return statement
