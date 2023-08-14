@@ -108,7 +108,8 @@ class JdbcStatement extends AbstractJdbcStatement {
           throw JdbcSqlExceptionFactory.of(
               "The statement is not a non-returning DML or DDL statement", Code.INVALID_ARGUMENT);
         }
-        this.currentGeneratedKeys = JdbcResultSet.of(result.getResultSet());
+        this.currentGeneratedKeys = JdbcResultSet.copyOf(result.getResultSet());
+        return extractUpdateCountAndClose(result.getResultSet());
       case UPDATE_COUNT:
         return result.getUpdateCount();
       case NO_RESULT:
@@ -117,6 +118,22 @@ class JdbcStatement extends AbstractJdbcStatement {
         throw JdbcSqlExceptionFactory.of(
             "unknown result: " + result.getResultType(), Code.FAILED_PRECONDITION);
     }
+  }
+
+  private long extractUpdateCountAndClose(com.google.cloud.spanner.ResultSet resultSet) throws SQLException {
+    if (resultSet.getStats() == null) {
+      throw JdbcSqlExceptionFactory.of("Result does not contain any stats", Code.FAILED_PRECONDITION);
+    }
+    long updateCount;
+    if (resultSet.getStats().hasRowCountExact()) {
+      updateCount = resultSet.getStats().getRowCountExact();
+    } else if (resultSet.getStats().hasRowCountLowerBound()) {
+      updateCount = resultSet.getStats().getRowCountLowerBound();
+    } else {
+      throw JdbcSqlExceptionFactory.of("Result does not contain an update count", Code.FAILED_PRECONDITION);
+    }
+    resultSet.close();
+    return updateCount;
   }
 
   /**
