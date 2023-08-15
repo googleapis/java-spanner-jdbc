@@ -72,11 +72,7 @@ class JdbcStatement extends AbstractJdbcStatement {
    */
   @Override
   public int executeUpdate(String sql) throws SQLException {
-    long result = executeLargeUpdate(sql);
-    if (result > Integer.MAX_VALUE) {
-      throw JdbcSqlExceptionFactory.of("update count too large: " + result, Code.OUT_OF_RANGE);
-    }
-    return (int) result;
+    return checkedCast(executeLargeUpdate(sql));
   }
 
   /**
