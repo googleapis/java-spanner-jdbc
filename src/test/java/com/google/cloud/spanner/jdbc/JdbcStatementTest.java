@@ -21,6 +21,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -39,14 +40,15 @@ import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.cloud.spanner.connection.StatementResult.ResultType;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
+import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -98,6 +100,10 @@ public class JdbcStatementTest {
     when(updateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
     when(updateResult.getUpdateCount()).thenReturn(1L);
     when(spanner.execute(com.google.cloud.spanner.Statement.of(UPDATE))).thenReturn(updateResult);
+    when(spanner.execute(com.google.cloud.spanner.Statement.of(UPDATE + "\nTHEN RETURN *")))
+        .thenReturn(updateResult);
+    when(spanner.execute(com.google.cloud.spanner.Statement.of(UPDATE + "\nRETURNING *")))
+        .thenReturn(updateResult);
 
     StatementResult largeUpdateResult = mock(StatementResult.class);
     when(largeUpdateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
@@ -271,15 +277,14 @@ public class JdbcStatementTest {
 
   @Test
   public void testExecuteWithGeneratedKeys() throws SQLException {
-    Statement statement = createStatement();
-    assertThat(statement.execute(UPDATE, Statement.NO_GENERATED_KEYS)).isFalse();
-    ResultSet keys = statement.getGeneratedKeys();
-    assertThat(keys.next()).isFalse();
-    try {
+    try (Statement statement = createStatement()) {
+      assertFalse(statement.execute(UPDATE, Statement.NO_GENERATED_KEYS));
+      ResultSet keys = statement.getGeneratedKeys();
+      assertFalse(keys.next());
+
       statement.execute(UPDATE, Statement.RETURN_GENERATED_KEYS);
-      fail("missing expected exception");
-    } catch (SQLFeatureNotSupportedException e) {
-      // Ignore, this is the expected exception.
+      keys = statement.getGeneratedKeys();
+      assertFalse(keys.next());
     }
   }
 
@@ -354,12 +359,18 @@ public class JdbcStatementTest {
         com.google.cloud.spanner.Statement.of(UPDATE);
     com.google.cloud.spanner.Statement largeUpdateStatement =
         com.google.cloud.spanner.Statement.of(LARGE_UPDATE);
-    when(spannerConnection.executeUpdate(updateStatement)).thenReturn(1L);
-    when(spannerConnection.executeUpdate(largeUpdateStatement)).thenReturn(Integer.MAX_VALUE + 1L);
+    StatementResult updateResult = mock(StatementResult.class);
+    when(updateResult.getUpdateCount()).thenReturn(1L);
+    when(updateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
+    when(spannerConnection.execute(updateStatement)).thenReturn(updateResult);
+    StatementResult largeUpdateResult = mock(StatementResult.class);
+    when(largeUpdateResult.getUpdateCount()).thenReturn(Integer.MAX_VALUE + 1L);
+    when(largeUpdateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
+    when(spannerConnection.execute(largeUpdateStatement)).thenReturn(largeUpdateResult);
     try (JdbcStatement statement = new JdbcStatement(connection)) {
-      assertThat(statement.executeUpdate(updateStatement)).isEqualTo(1);
+      assertThat(statement.executeUpdate(UPDATE)).isEqualTo(1);
       try {
-        statement.executeUpdate(largeUpdateStatement);
+        statement.executeUpdate(LARGE_UPDATE);
         fail("missing expected exception");
       } catch (JdbcSqlExceptionImpl e) {
         assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
@@ -377,12 +388,17 @@ public class JdbcStatementTest {
         com.google.cloud.spanner.Statement.of(UPDATE);
     com.google.cloud.spanner.Statement largeUpdateStatement =
         com.google.cloud.spanner.Statement.of(LARGE_UPDATE);
-    when(spannerConnection.executeUpdate(updateStatement)).thenReturn(1L);
-    when(spannerConnection.executeUpdate(largeUpdateStatement)).thenReturn(Integer.MAX_VALUE + 1L);
+    StatementResult updateResult = mock(StatementResult.class);
+    when(updateResult.getUpdateCount()).thenReturn(1L);
+    when(updateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
+    when(spannerConnection.execute(updateStatement)).thenReturn(updateResult);
+    StatementResult largeUpdateResult = mock(StatementResult.class);
+    when(largeUpdateResult.getUpdateCount()).thenReturn(Integer.MAX_VALUE + 1L);
+    when(largeUpdateResult.getResultType()).thenReturn(ResultType.UPDATE_COUNT);
+    when(spannerConnection.execute(largeUpdateStatement)).thenReturn(largeUpdateResult);
     try (JdbcStatement statement = new JdbcStatement(connection)) {
-      assertThat(statement.executeLargeUpdate(updateStatement)).isEqualTo(1);
-      assertThat(statement.executeLargeUpdate(largeUpdateStatement))
-          .isEqualTo(Integer.MAX_VALUE + 1L);
+      assertThat(statement.executeLargeUpdate(UPDATE)).isEqualTo(1);
+      assertThat(statement.executeLargeUpdate(LARGE_UPDATE)).isEqualTo(Integer.MAX_VALUE + 1L);
     }
   }
 
@@ -445,15 +461,14 @@ public class JdbcStatementTest {
 
   @Test
   public void testExecuteUpdateWithGeneratedKeys() throws SQLException {
-    Statement statement = createStatement();
-    assertThat(statement.executeUpdate(UPDATE, Statement.NO_GENERATED_KEYS)).isEqualTo(1);
-    ResultSet keys = statement.getGeneratedKeys();
-    assertThat(keys.next()).isFalse();
-    try {
-      statement.executeUpdate(UPDATE, Statement.RETURN_GENERATED_KEYS);
-      fail("missing expected exception");
-    } catch (SQLFeatureNotSupportedException e) {
-      // Ignore, this is the expected exception.
+    try (Statement statement = createStatement()) {
+      assertEquals(1, statement.executeUpdate(UPDATE, Statement.NO_GENERATED_KEYS));
+      ResultSet keys = statement.getGeneratedKeys();
+      assertFalse(keys.next());
+
+      assertEquals(1, statement.executeUpdate(UPDATE, Statement.RETURN_GENERATED_KEYS));
+      keys = statement.getGeneratedKeys();
+      assertFalse(keys.next());
     }
   }
 
@@ -598,5 +613,158 @@ public class JdbcStatementTest {
               (long) Statement.SUCCESS_NO_INFO,
               (long) Statement.SUCCESS_NO_INFO);
     }
+  }
+
+  @Test
+  public void testAddReturningToStatement() throws SQLException {
+    JdbcConnection connection = mock(JdbcConnection.class);
+    when(connection.getDialect()).thenReturn(dialect);
+    when(connection.getParser()).thenReturn(AbstractStatementParser.getInstance(dialect));
+    try (JdbcStatement statement = new JdbcStatement(connection)) {
+      assertAddReturningSame(statement, "insert into test (id, value) values (1, 'One')", null);
+      assertAddReturningSame(
+          statement, "insert into test (id, value) values (1, 'One')", ImmutableList.of());
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "insert into test (id, value) values (1, 'One')\nRETURNING \"id\""
+              : "insert into test (id, value) values (1, 'One')\nTHEN RETURN `id`",
+          "insert into test (id, value) values (1, 'One')",
+          ImmutableList.of("id"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "insert into test (id, value) values (1, 'One')\nRETURNING \"id\", \"value\""
+              : "insert into test (id, value) values (1, 'One')\nTHEN RETURN `id`, `value`",
+          "insert into test (id, value) values (1, 'One')",
+          ImmutableList.of("id", "value"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "insert into test (id, value) values (1, 'One')\nRETURNING *"
+              : "insert into test (id, value) values (1, 'One')\nTHEN RETURN *",
+          "insert into test (id, value) values (1, 'One')",
+          ImmutableList.of("*"));
+      // Requesting generated keys for a DML statement that already contains a returning clause is a
+      // no-op.
+      assertAddReturningSame(
+          statement,
+          "insert into test (id, value) values (1, 'One') "
+              + statement.getReturningClause()
+              + " value",
+          ImmutableList.of("id"));
+      // Requesting generated keys for a query is a no-op.
+      for (ImmutableList<String> keys :
+          ImmutableList.of(
+              ImmutableList.of("id"), ImmutableList.of("id", "value"), ImmutableList.of("*"))) {
+        assertAddReturningSame(statement, "select id, value from test", keys);
+      }
+
+      // Update statements may also request generated keys.
+      assertAddReturningSame(statement, "update test set value='Two' where id=1", null);
+      assertAddReturningSame(
+          statement, "update test set value='Two' where id=1", ImmutableList.of());
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "update test set value='Two' where id=1\nRETURNING \"value\""
+              : "update test set value='Two' where id=1\nTHEN RETURN `value`",
+          "update test set value='Two' where id=1",
+          ImmutableList.of("value"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "update test set value='Two' where id=1\nRETURNING \"value\", \"id\""
+              : "update test set value='Two' where id=1\nTHEN RETURN `value`, `id`",
+          "update test set value='Two' where id=1",
+          ImmutableList.of("value", "id"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "update test set value='Two' where id=1\nRETURNING *"
+              : "update test set value='Two' where id=1\nTHEN RETURN *",
+          "update test set value='Two' where id=1",
+          ImmutableList.of("*"));
+      // Requesting generated keys for a DML statement that already contains a returning clause is a
+      // no-op.
+      assertAddReturningSame(
+          statement,
+          "update test set value='Two' where id=1 " + statement.getReturningClause() + " value",
+          ImmutableList.of("value"));
+
+      // Delete statements may also request generated keys.
+      assertAddReturningSame(statement, "delete test where id=1", null);
+      assertAddReturningSame(statement, "delete test where id=1", ImmutableList.of());
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "delete test where id=1\nRETURNING \"value\""
+              : "delete test where id=1\nTHEN RETURN `value`",
+          "delete test where id=1",
+          ImmutableList.of("value"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "delete test where id=1\nRETURNING \"id\", \"value\""
+              : "delete test where id=1\nTHEN RETURN `id`, `value`",
+          "delete test where id=1",
+          ImmutableList.of("id", "value"));
+      assertAddReturningEquals(
+          statement,
+          dialect == Dialect.POSTGRESQL
+              ? "delete test where id=1\nRETURNING *"
+              : "delete test where id=1\nTHEN RETURN *",
+          "delete test where id=1",
+          ImmutableList.of("*"));
+      // Requesting generated keys for a DML statement that already contains a returning clause is a
+      // no-op.
+      for (ImmutableList<String> keys :
+          ImmutableList.of(
+              ImmutableList.of("id"), ImmutableList.of("id", "value"), ImmutableList.of("*"))) {
+        assertAddReturningSame(
+            statement,
+            "delete test where id=1 "
+                + (dialect == Dialect.POSTGRESQL
+                    ? "delete test where id=1\nRETURNING"
+                    : "delete test where id=1\nTHEN RETURN")
+                + " value",
+            keys);
+      }
+
+      // Requesting generated keys for DDL is a no-op.
+      for (ImmutableList<String> keys :
+          ImmutableList.of(
+              ImmutableList.of("id"), ImmutableList.of("id", "value"), ImmutableList.of("*"))) {
+        assertAddReturningSame(
+            statement,
+            dialect == Dialect.POSTGRESQL
+                ? "create table test (id bigint primary key, value varchar)"
+                : "create table test (id int64, value string(max)) primary key (id)",
+            keys);
+      }
+    }
+  }
+
+  private void assertAddReturningSame(
+      JdbcStatement statement, String sql, @Nullable ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
+    com.google.cloud.spanner.Statement spannerStatement =
+        com.google.cloud.spanner.Statement.of(sql);
+    assertSame(
+        spannerStatement,
+        statement.addReturningToStatement(spannerStatement, generatedKeysColumns));
+  }
+
+  private void assertAddReturningEquals(
+      JdbcStatement statement,
+      String expectedSql,
+      String sql,
+      @Nullable ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
+    com.google.cloud.spanner.Statement spannerStatement =
+        com.google.cloud.spanner.Statement.of(sql);
+    assertEquals(
+        com.google.cloud.spanner.Statement.of(expectedSql),
+        statement.addReturningToStatement(spannerStatement, generatedKeysColumns));
   }
 }

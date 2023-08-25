@@ -25,6 +25,7 @@ import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.AbstractStatementParser.ParametersInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.rpc.Code;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -81,13 +82,17 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
 
   @Override
   public int executeUpdate() throws SQLException {
-    checkClosed();
-    return executeUpdate(createStatement());
+    long count = internalExecuteLargeUpdate(createStatement(), generatedKeysColumns);
+    if (count > Integer.MAX_VALUE) {
+      throw JdbcSqlExceptionFactory.of(
+          "update count too large for executeUpdate: " + count, Code.OUT_OF_RANGE);
+    }
+    return (int) count;
   }
 
+  @Override
   public long executeLargeUpdate() throws SQLException {
-    checkClosed();
-    return executeLargeUpdate(createStatement());
+    return internalExecuteLargeUpdate(createStatement(), generatedKeysColumns);
   }
 
   @Override
