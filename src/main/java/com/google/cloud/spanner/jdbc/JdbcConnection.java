@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import static com.google.cloud.spanner.jdbc.JdbcStatement.ALL_COLUMNS;
+import static com.google.cloud.spanner.jdbc.JdbcStatement.isNullOrEmpty;
 
 import com.google.api.client.util.Preconditions;
 import com.google.cloud.spanner.CommitResponse;
@@ -327,9 +328,7 @@ class JdbcConnection extends AbstractJdbcConnection {
   public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
     return prepareStatement(
         sql,
-        columnNames == null || columnNames.length == 0
-            ? NO_GENERATED_KEY_COLUMNS
-            : ImmutableList.copyOf(columnNames));
+        isNullOrEmpty(columnNames) ? NO_GENERATED_KEY_COLUMNS : ImmutableList.copyOf(columnNames));
   }
 
   @Override

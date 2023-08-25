@@ -104,13 +104,14 @@ class JdbcStatement extends AbstractJdbcStatement {
 
   protected long executeLargeUpdate(Statement statement, ImmutableList<String> generatedKeysColumns)
       throws SQLException {
+    Preconditions.checkNotNull(generatedKeysColumns);
     checkClosed();
     Statement statementWithReturningClause =
         addReturningToStatement(statement, generatedKeysColumns);
     StatementResult result = execute(statementWithReturningClause);
     switch (result.getResultType()) {
       case RESULT_SET:
-        if (generatedKeysColumns == null || generatedKeysColumns.isEmpty()) {
+        if (generatedKeysColumns.isEmpty()) {
           // Close the result set as we are not going to return it to the user. This prevents the
           // underlying session from potentially being leaked.
           throw closeResultSetAndCreateInvalidQueryException(result);
@@ -130,21 +131,24 @@ class JdbcStatement extends AbstractJdbcStatement {
   /** Extracts the update count from the given result set and then closes the result set. */
   private long extractUpdateCountAndClose(com.google.cloud.spanner.ResultSet resultSet)
       throws SQLException {
-    if (resultSet.getStats() == null) {
-      throw JdbcSqlExceptionFactory.of(
-          "Result does not contain any stats", Code.FAILED_PRECONDITION);
+    try {
+      if (resultSet.getStats() == null) {
+        throw JdbcSqlExceptionFactory.of(
+            "Result does not contain any stats", Code.FAILED_PRECONDITION);
+      }
+      long updateCount;
+      if (resultSet.getStats().hasRowCountExact()) {
+        updateCount = resultSet.getStats().getRowCountExact();
+      } else if (resultSet.getStats().hasRowCountLowerBound()) {
+        updateCount = resultSet.getStats().getRowCountLowerBound();
+      } else {
+        throw JdbcSqlExceptionFactory.of(
+            "Result does not contain an update count", Code.FAILED_PRECONDITION);
+      }
+      return updateCount;
+    } finally {
+      resultSet.close();
     }
-    long updateCount;
-    if (resultSet.getStats().hasRowCountExact()) {
-      updateCount = resultSet.getStats().getRowCountExact();
-    } else if (resultSet.getStats().hasRowCountLowerBound()) {
-      updateCount = resultSet.getStats().getRowCountLowerBound();
-    } else {
-      throw JdbcSqlExceptionFactory.of(
-          "Result does not contain an update count", Code.FAILED_PRECONDITION);
-    }
-    resultSet.close();
-    return updateCount;
   }
 
   private SQLException closeResultSetAndCreateInvalidQueryException(StatementResult result) {
@@ -240,13 +244,16 @@ class JdbcStatement extends AbstractJdbcStatement {
   boolean executeStatement(Statement statement, ImmutableList<String> generatedKeysColumns)
       throws SQLException {
     checkClosed();
+    // This will return the same Statement instance if no THEN RETURN clause is added to the
+    // statement.
     Statement statementWithReturning = addReturningToStatement(statement, generatedKeysColumns);
     StatementResult result = execute(statementWithReturning);
     switch (result.getResultType()) {
       case RESULT_SET:
         // Check whether the statement was modified to include a RETURNING clause for generated
         // keys. If so, then we return the result as an update count and the rows as the generated
-        // keys.
+        // keys. We can safely use '==', as the addReturningToStatement(..) method returns the same
+        // instance if no generated keys were requested.
         if (statementWithReturning == statement) {
           currentResultSet = JdbcResultSet.of(this, result.getResultSet());
           currentUpdateCount = JdbcConstants.STATEMENT_RESULT_SET;
@@ -494,7 +501,8 @@ class JdbcStatement extends AbstractJdbcStatement {
     checkClosed();
     if (this.currentGeneratedKeys == null) {
       // Return an empty result set instead of throwing an exception, as that is what the JDBC spec
-      // says we should do.
+      // says we should do. Note that we need to create a new instance every time, as users could in
+      // theory call close() on the returned result set.
       this.currentGeneratedKeys =
           JdbcResultSet.of(
               ResultSets.forRows(
@@ -527,9 +535,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   public int executeUpdate(String sql, String[] columnNames) throws SQLException {
     return executeUpdate(
         sql,
-        columnNames == null || columnNames.length == 0
-            ? NO_GENERATED_KEY_COLUMNS
-            : ImmutableList.copyOf(columnNames));
+        isNullOrEmpty(columnNames) ? NO_GENERATED_KEY_COLUMNS : ImmutableList.copyOf(columnNames));
   }
 
   @Override
@@ -553,9 +559,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   public long executeLargeUpdate(String sql, String[] columnNames) throws SQLException {
     return executeLargeUpdate(
         sql,
-        columnNames == null || columnNames.length == 0
-            ? NO_GENERATED_KEY_COLUMNS
-            : ImmutableList.copyOf(columnNames));
+        isNullOrEmpty(columnNames) ? NO_GENERATED_KEY_COLUMNS : ImmutableList.copyOf(columnNames));
   }
 
   @Override
@@ -579,8 +583,10 @@ class JdbcStatement extends AbstractJdbcStatement {
   public boolean execute(String sql, String[] columnNames) throws SQLException {
     return executeStatement(
         Statement.of(sql),
-        columnNames == null || columnNames.length == 0
-            ? NO_GENERATED_KEY_COLUMNS
-            : ImmutableList.copyOf(columnNames));
+        isNullOrEmpty(columnNames) ? NO_GENERATED_KEY_COLUMNS : ImmutableList.copyOf(columnNames));
+  }
+
+  static boolean isNullOrEmpty(String[] columnNames) {
+    return columnNames == null || columnNames.length == 0;
   }
 }
