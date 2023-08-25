@@ -111,8 +111,9 @@ class JdbcStatement extends AbstractJdbcStatement {
     switch (result.getResultType()) {
       case RESULT_SET:
         if (generatedKeysColumns == null || generatedKeysColumns.isEmpty()) {
-          throw JdbcSqlExceptionFactory.of(
-              "The statement is not a non-returning DML or DDL statement", Code.INVALID_ARGUMENT);
+          // Close the result set as we are not going to return it to the user. This prevents the
+          // underlying session from potentially being leaked.
+          throw closeResultSetAndCreateInvalidQueryException(result);
         }
         this.currentGeneratedKeys = JdbcResultSet.copyOf(result.getResultSet());
         return extractUpdateCountAndClose(result.getResultSet());
@@ -144,6 +145,17 @@ class JdbcStatement extends AbstractJdbcStatement {
     }
     resultSet.close();
     return updateCount;
+  }
+  
+  private SQLException closeResultSetAndCreateInvalidQueryException(StatementResult result) {
+    //noinspection finally
+    try {
+      result.getResultSet().close();
+    } finally {
+      //noinspection ReturnInsideFinallyBlock
+      return JdbcSqlExceptionFactory.of(
+          "The statement is not a non-returning DML or DDL statement", Code.INVALID_ARGUMENT);
+    }
   }
 
   /**

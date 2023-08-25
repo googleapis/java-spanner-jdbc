@@ -39,6 +39,7 @@ branchProtectionRules:
     - OwlBot Post Processor
     - 'Kokoro - Test: Java GraalVM Native Image'
     - 'Kokoro - Test: Java 17 GraalVM Native Image'
+    - javadoc
 
 # Identifies the protection rule pattern. Name of the branch to be protected.
 # Defaults to `main`
