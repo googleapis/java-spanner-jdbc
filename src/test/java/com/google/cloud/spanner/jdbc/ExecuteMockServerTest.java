@@ -320,7 +320,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createConnection()) {
       assertEquals(1, connection.prepareStatement(DML).executeUpdate());
       // TODO: Enable the next statement once PreparedStatement supports executing DDL through the
-      // executeUpdate() method.
+      //       executeUpdate() method.
       // assertEquals(0, connection.prepareStatement(DDL).executeUpdate());
       verifyOverflow(() -> connection.prepareStatement(LARGE_DML).executeUpdate());
       verifyException(() -> connection.prepareStatement(QUERY).executeUpdate());
@@ -337,7 +337,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       assertEquals(
           1, connection.prepareStatement(DML, Statement.NO_GENERATED_KEYS).executeUpdate());
       // TODO: Enable the next statement once PreparedStatement supports executing DDL through the
-      // executeUpdate() method.
+      //       executeUpdate() method.
       // assertEquals(0, connection.prepareStatement(DDL,
       // Statement.NO_GENERATED_KEYS).executeUpdate());
       verifyOverflow(
@@ -359,7 +359,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createConnection()) {
       assertEquals(1, connection.prepareStatement(DML, new String[] {"id"}).executeUpdate());
       // TODO: Enable the next statement once PreparedStatement supports executing DDL through the
-      // executeUpdate() method.
+      //       executeUpdate() method.
       // assertEquals(0, connection.prepareStatement(DDL, new String[] {"id"}).executeUpdate());
       verifyOverflow(
           () -> connection.prepareStatement(LARGE_DML, new String[] {"id"}).executeUpdate());
@@ -376,7 +376,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createConnection()) {
       assertEquals(1, connection.prepareStatement(DML, new int[] {1}).executeUpdate());
       // TODO: Enable the next statement once PreparedStatement supports executing DDL through the
-      // executeUpdate() method.
+      //       executeUpdate() method.
       // assertEquals(0, connection.prepareStatement(DDL, new int[] {1}).executeUpdate());
       verifyOverflow(() -> connection.prepareStatement(LARGE_DML, new int[] {1}).executeUpdate());
       verifyException(() -> connection.prepareStatement(QUERY, new int[] {1}).executeUpdate());
@@ -391,7 +391,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createConnection()) {
       assertEquals(1L, connection.prepareStatement(DML).executeLargeUpdate());
       // TODO: Enable the next statement once PreparedStatement supports executing DDL through the
-      // executeUpdate() method.
+      //       executeUpdate() method.
       // assertEquals(0L, connection.prepareStatement(DDL).executeLargeUpdate());
       assertEquals(LARGE_UPDATE_COUNT, connection.prepareStatement(LARGE_DML).executeLargeUpdate());
       verifyException(() -> connection.prepareStatement(QUERY).executeLargeUpdate());
@@ -408,7 +408,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       assertEquals(
           1, connection.prepareStatement(DML, Statement.NO_GENERATED_KEYS).executeLargeUpdate());
       // TODO: Enable the next statement once PreparedStatement supports executing DDL through the
-      // executeUpdate() method.
+      //       executeUpdate() method.
       // assertEquals(0, connection.prepareStatement(DDL,
       // Statement.NO_GENERATED_KEYS).executeLargeUpdate());
       assertEquals(
@@ -431,7 +431,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createConnection()) {
       assertEquals(1, connection.prepareStatement(DML, new String[] {"id"}).executeLargeUpdate());
       // TODO: Enable the next statement once PreparedStatement supports executing DDL through the
-      // executeUpdate() method.
+      //       executeUpdate() method.
       // assertEquals(0, connection.prepareStatement(DDL, new String[]
       // {"id"}).executeLargeUpdate());
       assertEquals(
@@ -451,7 +451,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createConnection()) {
       assertEquals(1, connection.prepareStatement(DML, new int[] {1}).executeLargeUpdate());
       // TODO: Enable the next statement once PreparedStatement supports executing DDL through the
-      // executeUpdate() method.
+      //       executeUpdate() method.
       // assertEquals(0, connection.prepareStatement(DDL, new int[] {1}).executeLargeUpdate());
       assertEquals(
           LARGE_UPDATE_COUNT,
