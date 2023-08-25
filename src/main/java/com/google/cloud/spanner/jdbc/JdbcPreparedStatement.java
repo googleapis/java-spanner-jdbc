@@ -24,13 +24,13 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.AbstractStatementParser.ParametersInfo;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import javax.annotation.Nullable;
 
 /** Implementation of {@link PreparedStatement} for Cloud Spanner. */
 class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
@@ -38,10 +38,10 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
   private final String sql;
   private final String sqlWithoutComments;
   private final ParametersInfo parameters;
-  private final @Nullable ImmutableList<String> generatedKeysColumns;
+  private final ImmutableList<String> generatedKeysColumns;
 
   JdbcPreparedStatement(
-      JdbcConnection connection, String sql, @Nullable ImmutableList<String> generatedKeysColumns)
+      JdbcConnection connection, String sql, ImmutableList<String> generatedKeysColumns)
       throws SQLException {
     super(connection);
     this.sql = sql;
@@ -52,7 +52,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
-    this.generatedKeysColumns = generatedKeysColumns;
+    this.generatedKeysColumns = Preconditions.checkNotNull(generatedKeysColumns);
   }
 
   ParametersInfo getParametersInfo() {
@@ -82,7 +82,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
 
   @Override
   public int executeUpdate() throws SQLException {
-    long count = internalExecuteLargeUpdate(createStatement(), generatedKeysColumns);
+    long count = executeLargeUpdate(createStatement(), generatedKeysColumns);
     if (count > Integer.MAX_VALUE) {
       throw JdbcSqlExceptionFactory.of(
           "update count too large for executeUpdate: " + count, Code.OUT_OF_RANGE);
@@ -92,7 +92,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
 
   @Override
   public long executeLargeUpdate() throws SQLException {
-    return internalExecuteLargeUpdate(createStatement(), generatedKeysColumns);
+    return executeLargeUpdate(createStatement(), generatedKeysColumns);
   }
 
   @Override

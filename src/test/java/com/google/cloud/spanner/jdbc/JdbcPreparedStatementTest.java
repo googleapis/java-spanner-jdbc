@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.cloud.spanner.jdbc.JdbcConnection.NO_GENERATED_KEY_COLUMNS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
@@ -142,7 +143,8 @@ public class JdbcPreparedStatementTest {
               Collections.singleton(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(999L, 99))),
         }) {
 
-      try (JdbcPreparedStatement ps = new JdbcPreparedStatement(connection, sql, null)) {
+      try (JdbcPreparedStatement ps =
+          new JdbcPreparedStatement(connection, sql, NO_GENERATED_KEY_COLUMNS)) {
         ps.setObject(1, value);
         Statement statement = ps.createStatement();
         assertEquals(statement.getParameters().get("p1"), value);
@@ -157,7 +159,8 @@ public class JdbcPreparedStatementTest {
     String sql = generateSqlWithParameters(numberOfParams);
 
     JdbcConnection connection = createMockConnection();
-    try (JdbcPreparedStatement ps = new JdbcPreparedStatement(connection, sql, null)) {
+    try (JdbcPreparedStatement ps =
+        new JdbcPreparedStatement(connection, sql, NO_GENERATED_KEY_COLUMNS)) {
       ps.setArray(1, connection.createArrayOf("INT64", new Long[] {1L, 2L, 3L}));
       ps.setAsciiStream(2, new ByteArrayInputStream("TEST".getBytes()));
       ps.setAsciiStream(3, new ByteArrayInputStream("TEST".getBytes()), 4);
@@ -276,7 +279,8 @@ public class JdbcPreparedStatementTest {
   public void testSetNullValues() throws SQLException {
     final int numberOfParameters = 31;
     String sql = generateSqlWithParameters(numberOfParameters);
-    try (JdbcPreparedStatement ps = new JdbcPreparedStatement(createMockConnection(), sql, null)) {
+    try (JdbcPreparedStatement ps =
+        new JdbcPreparedStatement(createMockConnection(), sql, NO_GENERATED_KEY_COLUMNS)) {
       int index = 0;
       ps.setNull(++index, Types.BLOB);
       ps.setNull(++index, Types.NVARCHAR);
@@ -350,7 +354,8 @@ public class JdbcPreparedStatementTest {
                     .build()));
     when(connection.analyzeQuery(Statement.of(sql), QueryAnalyzeMode.PLAN)).thenReturn(rs);
     try (JdbcPreparedStatement ps =
-        new JdbcPreparedStatement(createMockConnection(connection), sql, null)) {
+        new JdbcPreparedStatement(
+            createMockConnection(connection), sql, NO_GENERATED_KEY_COLUMNS)) {
       ResultSetMetaData metadata = ps.getMetaData();
       assertEquals(4, metadata.getColumnCount());
       assertEquals("ID", metadata.getColumnLabel(1));
@@ -369,7 +374,9 @@ public class JdbcPreparedStatementTest {
     Connection connection = mock(Connection.class);
     try (JdbcPreparedStatement ps =
         new JdbcPreparedStatement(
-            createMockConnection(connection), "UPDATE FOO SET BAR=1 WHERE TRUE", null)) {
+            createMockConnection(connection),
+            "UPDATE FOO SET BAR=1 WHERE TRUE",
+            NO_GENERATED_KEY_COLUMNS)) {
       ResultSetMetaData metadata = ps.getMetaData();
       assertEquals(0, metadata.getColumnCount());
     }
@@ -382,7 +389,8 @@ public class JdbcPreparedStatementTest {
         assertThrows(
             SQLException.class,
             () ->
-                new JdbcPreparedStatement(createMockConnection(mock(Connection.class)), sql, null));
+                new JdbcPreparedStatement(
+                    createMockConnection(mock(Connection.class)), sql, NO_GENERATED_KEY_COLUMNS));
     assertTrue(sqlException instanceof JdbcSqlException);
     JdbcSqlException jdbcSqlException = (JdbcSqlException) sqlException;
     assertEquals(

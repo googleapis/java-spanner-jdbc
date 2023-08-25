@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.cloud.spanner.jdbc.JdbcConnection.NO_GENERATED_KEY_COLUMNS;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -621,7 +622,8 @@ public class JdbcStatementTest {
     when(connection.getDialect()).thenReturn(dialect);
     when(connection.getParser()).thenReturn(AbstractStatementParser.getInstance(dialect));
     try (JdbcStatement statement = new JdbcStatement(connection)) {
-      assertAddReturningSame(statement, "insert into test (id, value) values (1, 'One')", null);
+      assertAddReturningSame(
+          statement, "insert into test (id, value) values (1, 'One')", NO_GENERATED_KEY_COLUMNS);
       assertAddReturningSame(
           statement, "insert into test (id, value) values (1, 'One')", ImmutableList.of());
       assertAddReturningEquals(
@@ -661,7 +663,8 @@ public class JdbcStatementTest {
       }
 
       // Update statements may also request generated keys.
-      assertAddReturningSame(statement, "update test set value='Two' where id=1", null);
+      assertAddReturningSame(
+          statement, "update test set value='Two' where id=1", NO_GENERATED_KEY_COLUMNS);
       assertAddReturningSame(
           statement, "update test set value='Two' where id=1", ImmutableList.of());
       assertAddReturningEquals(
@@ -693,7 +696,7 @@ public class JdbcStatementTest {
           ImmutableList.of("value"));
 
       // Delete statements may also request generated keys.
-      assertAddReturningSame(statement, "delete test where id=1", null);
+      assertAddReturningSame(statement, "delete test where id=1", NO_GENERATED_KEY_COLUMNS);
       assertAddReturningSame(statement, "delete test where id=1", ImmutableList.of());
       assertAddReturningEquals(
           statement,
