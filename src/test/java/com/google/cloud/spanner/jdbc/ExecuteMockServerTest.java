@@ -54,15 +54,19 @@ import org.junit.runners.JUnit4;
 
 /**
  * Test class for verifying that the methods execute, executeQuery, and executeUpdate work as
- * intended.
+ * intended, and that they always also include any comments in the statement, as these may contain
+ * hints.
  */
 @RunWith(JUnit4.class)
 public class ExecuteMockServerTest extends AbstractMockServerTest {
-  private static final String QUERY = "select * from my_table";
-  private static final String DML = "insert into my_table (id, value) values (1, 'One')";
-  private static final String LARGE_DML = "update my_table set value='new value' where true";
+  private static final String QUERY =
+      "/*@ lock_scanned_ranges = exclusive */ select * from my_table";
+  private static final String DML =
+      "/*@ lock_scanned_ranges = exclusive */ insert into my_table (id, value) values (1, 'One')";
+  private static final String LARGE_DML =
+      "/*@ lock_scanned_ranges = exclusive */ update my_table set value='new value' where true";
   private static final String DML_RETURNING =
-      "insert into my_table (id, value) values (1, 'One') THEN RETURN *";
+      "/*@ lock_scanned_ranges = exclusive */ insert into my_table (id, value) values (1, 'One') THEN RETURN *";
   private static final String DDL = "create table my_table";
   private static final long LARGE_UPDATE_COUNT = 2L * Integer.MAX_VALUE;
 
