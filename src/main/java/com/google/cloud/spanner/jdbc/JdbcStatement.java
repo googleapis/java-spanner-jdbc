@@ -88,8 +88,9 @@ class JdbcStatement extends AbstractJdbcStatement {
     StatementResult result = execute(statement);
     switch (result.getResultType()) {
       case RESULT_SET:
-        throw JdbcSqlExceptionFactory.of(
-            "The statement is not a non-returning DML or DDL statement", Code.INVALID_ARGUMENT);
+        // Close the result set as we are not going to return it to the user. This prevents the
+        // underlying session from potentially being leaked.
+        throw closeResultSetAndCreateInvalidQueryException(result);
       case UPDATE_COUNT:
         return result.getUpdateCount();
       case NO_RESULT:
@@ -97,6 +98,17 @@ class JdbcStatement extends AbstractJdbcStatement {
       default:
         throw JdbcSqlExceptionFactory.of(
             "unknown result: " + result.getResultType(), Code.FAILED_PRECONDITION);
+    }
+  }
+
+  private SQLException closeResultSetAndCreateInvalidQueryException(StatementResult result) {
+    //noinspection finally
+    try {
+      result.getResultSet().close();
+    } finally {
+      //noinspection ReturnInsideFinallyBlock
+      return JdbcSqlExceptionFactory.of(
+          "The statement is not a non-returning DML or DDL statement", Code.INVALID_ARGUMENT);
     }
   }
 

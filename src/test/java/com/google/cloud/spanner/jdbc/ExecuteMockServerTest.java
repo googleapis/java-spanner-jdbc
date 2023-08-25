@@ -24,7 +24,9 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
+import com.google.cloud.spanner.SessionPoolOptions;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
+import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.longrunning.Operation;
 import com.google.protobuf.Any;
 import com.google.protobuf.Empty;
@@ -614,5 +616,33 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     assertFalse(statement.getMoreResults());
     assertEquals(-1, statement.getUpdateCount());
     assertEquals(-1L, statement.getLargeUpdateCount());
+  }
+
+  @Test
+  public void testInvalidExecuteUpdate_shouldNotLeakSession() throws SQLException {
+    int maxSessions = 1;
+    try (Connection connection =
+        new JdbcConnection(
+            createUrl(),
+            ConnectionOptions.newBuilder()
+                .setUri(createUrl().substring("jdbc:".length()))
+                .setSessionPoolOptions(
+                    SessionPoolOptions.newBuilder()
+                        .setMinSessions(1)
+                        .setMaxSessions(maxSessions)
+                        .setFailIfPoolExhausted()
+                        .build())
+                .build())) {
+
+      for (int i = 0; i < (maxSessions + 1); i++) {
+        SQLException exception =
+            assertThrows(
+                SQLException.class, () -> connection.createStatement().executeUpdate(QUERY));
+        assertTrue(exception instanceof JdbcSqlException);
+        JdbcSqlException jdbcSqlException = (JdbcSqlException) exception;
+        // This would be RESOURCE_EXHAUSTED if the query leaked a session.
+        assertEquals(Code.INVALID_ARGUMENT, jdbcSqlException.getCode());
+      }
+    }
   }
 }
