@@ -116,6 +116,9 @@ class JdbcStatement extends AbstractJdbcStatement {
           // underlying session from potentially being leaked.
           throw closeResultSetAndCreateInvalidQueryException(result);
         }
+        // Make a copy of the result set os it does not matter if the user does not close the result
+        // set. This also consumes all rows of the result set, which again means that it is safe to
+        // extract the update count.
         this.currentGeneratedKeys = JdbcResultSet.copyOf(result.getResultSet());
         return extractUpdateCountAndClose(result.getResultSet());
       case UPDATE_COUNT:
@@ -128,7 +131,11 @@ class JdbcStatement extends AbstractJdbcStatement {
     }
   }
 
-  /** Extracts the update count from the given result set and then closes the result set. */
+  /**
+   * Extracts the update count from the given result set and then closes the result set. This method
+   * may only be called for a {@link com.google.cloud.spanner.ResultSet} where all rows have been
+   * fetched. That is; {@link com.google.cloud.spanner.ResultSet#next()} must have returned false.
+   */
   private long extractUpdateCountAndClose(com.google.cloud.spanner.ResultSet resultSet)
       throws SQLException {
     try {
@@ -140,6 +147,8 @@ class JdbcStatement extends AbstractJdbcStatement {
       if (resultSet.getStats().hasRowCountExact()) {
         updateCount = resultSet.getStats().getRowCountExact();
       } else if (resultSet.getStats().hasRowCountLowerBound()) {
+        // This is returned by Cloud Spanner if the user had set the autocommit_dml_mode to
+        // 'partitioned_non_atomic' (i.e. PDML).
         updateCount = resultSet.getStats().getRowCountLowerBound();
       } else {
         throw JdbcSqlExceptionFactory.of(
