@@ -16,6 +16,8 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.cloud.spanner.jdbc.JdbcConnection.NO_GENERATED_KEY_COLUMNS;
+
 import com.google.cloud.spanner.Options;
 import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.SpannerBatchUpdateException;
@@ -36,7 +38,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
 /** Implementation of {@link java.sql.Statement} for Google Cloud Spanner. */
 class JdbcStatement extends AbstractJdbcStatement {
@@ -49,6 +50,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   }
 
   private ResultSet currentResultSet;
+  private ResultSet currentGeneratedKeys;
   private long currentUpdateCount;
   private int fetchSize;
   private BatchType currentBatchType = BatchType.NONE;
@@ -72,7 +74,12 @@ class JdbcStatement extends AbstractJdbcStatement {
    */
   @Override
   public int executeUpdate(String sql) throws SQLException {
-    long result = executeLargeUpdate(sql);
+    return executeUpdate(sql, NO_GENERATED_KEY_COLUMNS);
+  }
+
+  private int executeUpdate(String sql, ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
+    long result = executeLargeUpdate(sql, generatedKeysColumns);
     if (result > Integer.MAX_VALUE) {
       throw JdbcSqlExceptionFactory.of("update count too large: " + result, Code.OUT_OF_RANGE);
     }
@@ -87,14 +94,33 @@ class JdbcStatement extends AbstractJdbcStatement {
    */
   @Override
   public long executeLargeUpdate(String sql) throws SQLException {
+    return executeLargeUpdate(sql, NO_GENERATED_KEY_COLUMNS);
+  }
+
+  private long executeLargeUpdate(String sql, ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
+    return executeLargeUpdate(Statement.of(sql), generatedKeysColumns);
+  }
+
+  protected long executeLargeUpdate(Statement statement, ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
+    Preconditions.checkNotNull(generatedKeysColumns);
     checkClosed();
-    Statement statement = Statement.of(sql);
-    StatementResult result = execute(statement);
+    Statement statementWithReturningClause =
+        addReturningToStatement(statement, generatedKeysColumns);
+    StatementResult result = execute(statementWithReturningClause);
     switch (result.getResultType()) {
       case RESULT_SET:
-        // Close the result set as we are not going to return it to the user. This prevents the
-        // underlying session from potentially being leaked.
-        throw closeResultSetAndCreateInvalidQueryException(result);
+        if (generatedKeysColumns.isEmpty()) {
+          // Close the result set as we are not going to return it to the user. This prevents the
+          // underlying session from potentially being leaked.
+          throw closeResultSetAndCreateInvalidQueryException(result);
+        }
+        // Make a copy of the result set as it does not matter if the user does not close the result
+        // set. This also consumes all rows of the result set, which again means that it is safe to
+        // extract the update count.
+        this.currentGeneratedKeys = JdbcResultSet.copyOf(result.getResultSet());
+        return extractUpdateCountAndClose(result.getResultSet());
       case UPDATE_COUNT:
         return result.getUpdateCount();
       case NO_RESULT:
@@ -102,6 +128,35 @@ class JdbcStatement extends AbstractJdbcStatement {
       default:
         throw JdbcSqlExceptionFactory.of(
             "unknown result: " + result.getResultType(), Code.FAILED_PRECONDITION);
+    }
+  }
+
+  /**
+   * Extracts the update count from the given result set and then closes the result set. This method
+   * may only be called for a {@link com.google.cloud.spanner.ResultSet} where all rows have been
+   * fetched. That is; {@link com.google.cloud.spanner.ResultSet#next()} must have returned false.
+   */
+  private long extractUpdateCountAndClose(com.google.cloud.spanner.ResultSet resultSet)
+      throws SQLException {
+    try {
+      if (resultSet.getStats() == null) {
+        throw JdbcSqlExceptionFactory.of(
+            "Result does not contain any stats", Code.FAILED_PRECONDITION);
+      }
+      long updateCount;
+      if (resultSet.getStats().hasRowCountExact()) {
+        updateCount = resultSet.getStats().getRowCountExact();
+      } else if (resultSet.getStats().hasRowCountLowerBound()) {
+        // This is returned by Cloud Spanner if the user had set the autocommit_dml_mode to
+        // 'partitioned_non_atomic' (i.e. PDML).
+        updateCount = resultSet.getStats().getRowCountLowerBound();
+      } else {
+        throw JdbcSqlExceptionFactory.of(
+            "Result does not contain an update count", Code.FAILED_PRECONDITION);
+      }
+      return updateCount;
+    } finally {
+      resultSet.close();
     }
   }
 
@@ -121,15 +176,14 @@ class JdbcStatement extends AbstractJdbcStatement {
    * met:
    *
    * <ol>
-   *   <li>The generatedKeysColumns is not null or empty
+   *   <li>The generatedKeysColumns is not empty
    *   <li>The statement is a DML statement
    *   <li>The DML statement does not already contain a THEN RETURN/RETURNING clause
    * </ol>
    */
-  Statement addReturningToStatement(
-      Statement statement, @Nullable ImmutableList<String> generatedKeysColumns)
+  Statement addReturningToStatement(Statement statement, ImmutableList<String> generatedKeysColumns)
       throws SQLException {
-    if (generatedKeysColumns == null || generatedKeysColumns.isEmpty()) {
+    if (Preconditions.checkNotNull(generatedKeysColumns).isEmpty()) {
       return statement;
     }
     // Check if the statement is a DML statement or not.
@@ -193,17 +247,30 @@ class JdbcStatement extends AbstractJdbcStatement {
 
   @Override
   public boolean execute(String sql) throws SQLException {
-    checkClosed();
-    return executeStatement(Statement.of(sql));
+    return executeStatement(Statement.of(sql), NO_GENERATED_KEY_COLUMNS);
   }
 
-  boolean executeStatement(Statement statement) throws SQLException {
-    StatementResult result = execute(statement);
+  boolean executeStatement(Statement statement, ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
+    checkClosed();
+    // This will return the same Statement instance if no THEN RETURN clause is added to the
+    // statement.
+    Statement statementWithReturning = addReturningToStatement(statement, generatedKeysColumns);
+    StatementResult result = execute(statementWithReturning);
     switch (result.getResultType()) {
       case RESULT_SET:
-        currentResultSet = JdbcResultSet.of(this, result.getResultSet());
-        currentUpdateCount = JdbcConstants.STATEMENT_RESULT_SET;
-        return true;
+        // Check whether the statement was modified to include a RETURNING clause for generated
+        // keys. If so, then we return the result as an update count and the rows as the generated
+        // keys. We can safely use '==', as the addReturningToStatement(..) method returns the same
+        // instance if no generated keys were requested.
+        if (statementWithReturning == statement) {
+          currentResultSet = JdbcResultSet.of(this, result.getResultSet());
+          currentUpdateCount = JdbcConstants.STATEMENT_RESULT_SET;
+          return true;
+        }
+        this.currentGeneratedKeys = JdbcResultSet.copyOf(result.getResultSet());
+        this.currentUpdateCount = extractUpdateCountAndClose(result.getResultSet());
+        return false;
       case UPDATE_COUNT:
         currentResultSet = null;
         currentUpdateCount = result.getUpdateCount();
@@ -441,77 +508,94 @@ class JdbcStatement extends AbstractJdbcStatement {
   @Override
   public ResultSet getGeneratedKeys() throws SQLException {
     checkClosed();
-    // Return an empty result set instead of throwing an exception, to facilitate any application
-    // that might not check on beforehand whether the driver supports any generated keys.
-    com.google.cloud.spanner.ResultSet rs =
-        ResultSets.forRows(
-            Type.struct(
-                StructField.of("COLUMN_NAME", Type.string()),
-                StructField.of("VALUE", Type.int64())),
-            Collections.emptyList());
-    return JdbcResultSet.of(rs);
+    if (this.currentGeneratedKeys == null) {
+      // Return an empty result set instead of throwing an exception, as that is what the JDBC spec
+      // says we should do. Note that we need to create a new instance every time, as users could in
+      // theory call close() on the returned result set.
+      this.currentGeneratedKeys =
+          JdbcResultSet.of(
+              ResultSets.forRows(
+                  Type.struct(
+                      StructField.of("COLUMN_NAME", Type.string()),
+                      StructField.of("VALUE", Type.int64())),
+                  Collections.emptyList()));
+    }
+    return this.currentGeneratedKeys;
   }
 
   @Override
   public int executeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
-    checkClosed();
-    JdbcPreconditions.checkSqlFeatureSupported(
-        autoGeneratedKeys == java.sql.Statement.NO_GENERATED_KEYS,
-        JdbcConnection.ONLY_NO_GENERATED_KEYS);
-    return executeUpdate(sql);
+    return executeUpdate(
+        sql,
+        autoGeneratedKeys == java.sql.Statement.RETURN_GENERATED_KEYS
+            ? ALL_COLUMNS
+            : NO_GENERATED_KEY_COLUMNS);
   }
 
   @Override
   public int executeUpdate(String sql, int[] columnIndexes) throws SQLException {
-    checkClosed();
-    return executeUpdate(sql);
+    // This should preferably have returned an error, but the initial version of the driver just
+    // accepted and ignored this. Starting to throw an error now would be a breaking change.
+    // TODO: Consider throwing an Unsupported error for the next major version bump.
+    return executeUpdate(sql, NO_GENERATED_KEY_COLUMNS);
   }
 
   @Override
   public int executeUpdate(String sql, String[] columnNames) throws SQLException {
-    checkClosed();
-    return executeUpdate(sql);
+    return executeUpdate(
+        sql,
+        isNullOrEmpty(columnNames) ? NO_GENERATED_KEY_COLUMNS : ImmutableList.copyOf(columnNames));
   }
 
   @Override
   public long executeLargeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
-    checkClosed();
-    JdbcPreconditions.checkSqlFeatureSupported(
-        autoGeneratedKeys == java.sql.Statement.NO_GENERATED_KEYS,
-        JdbcConnection.ONLY_NO_GENERATED_KEYS);
-    return executeLargeUpdate(sql);
+    return executeLargeUpdate(
+        sql,
+        autoGeneratedKeys == java.sql.Statement.RETURN_GENERATED_KEYS
+            ? ALL_COLUMNS
+            : NO_GENERATED_KEY_COLUMNS);
   }
 
   @Override
   public long executeLargeUpdate(String sql, int[] columnIndexes) throws SQLException {
-    checkClosed();
-    return executeLargeUpdate(sql);
+    // This should preferably have returned an error, but the initial version of the driver just
+    // accepted and ignored this. Starting to throw an error now would be a breaking change.
+    // TODO: Consider throwing an Unsupported error for the next major version bump.
+    return executeLargeUpdate(sql, NO_GENERATED_KEY_COLUMNS);
   }
 
   @Override
   public long executeLargeUpdate(String sql, String[] columnNames) throws SQLException {
-    checkClosed();
-    return executeLargeUpdate(sql);
+    return executeLargeUpdate(
+        sql,
+        isNullOrEmpty(columnNames) ? NO_GENERATED_KEY_COLUMNS : ImmutableList.copyOf(columnNames));
   }
 
   @Override
   public boolean execute(String sql, int autoGeneratedKeys) throws SQLException {
-    checkClosed();
-    JdbcPreconditions.checkSqlFeatureSupported(
-        autoGeneratedKeys == java.sql.Statement.NO_GENERATED_KEYS,
-        JdbcConnection.ONLY_NO_GENERATED_KEYS);
-    return execute(sql);
+    return executeStatement(
+        Statement.of(sql),
+        autoGeneratedKeys == java.sql.Statement.RETURN_GENERATED_KEYS
+            ? ALL_COLUMNS
+            : NO_GENERATED_KEY_COLUMNS);
   }
 
   @Override
   public boolean execute(String sql, int[] columnIndexes) throws SQLException {
-    checkClosed();
-    return execute(sql);
+    // This should preferably have returned an error, but the initial version of the driver just
+    // accepted and ignored this. Starting to throw an error now would be a breaking change.
+    // TODO: Consider throwing an Unsupported error for the next major version bump.
+    return executeStatement(Statement.of(sql), NO_GENERATED_KEY_COLUMNS);
   }
 
   @Override
   public boolean execute(String sql, String[] columnNames) throws SQLException {
-    checkClosed();
-    return execute(sql);
+    return executeStatement(
+        Statement.of(sql),
+        isNullOrEmpty(columnNames) ? NO_GENERATED_KEY_COLUMNS : ImmutableList.copyOf(columnNames));
+  }
+
+  static boolean isNullOrEmpty(String[] columnNames) {
+    return columnNames == null || columnNames.length == 0;
   }
 }
