@@ -116,7 +116,7 @@ class JdbcStatement extends AbstractJdbcStatement {
           // underlying session from potentially being leaked.
           throw closeResultSetAndCreateInvalidQueryException(result);
         }
-        // Make a copy of the result set os it does not matter if the user does not close the result
+        // Make a copy of the result set as it does not matter if the user does not close the result
         // set. This also consumes all rows of the result set, which again means that it is safe to
         // extract the update count.
         this.currentGeneratedKeys = JdbcResultSet.copyOf(result.getResultSet());
