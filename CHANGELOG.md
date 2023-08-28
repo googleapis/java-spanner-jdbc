@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.12.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.11.9...v2.12.0) (2023-08-28)
+
+
+### Features
+
+* Return generated keys ([#1310](https://github.com/googleapis/java-spanner-jdbc/issues/1310)) ([9b5ab37](https://github.com/googleapis/java-spanner-jdbc/commit/9b5ab377587de09004474cb1cf488919fc83d6cb))
+
+
+### Bug Fixes
+
+* Session leak for invalid update ([#1323](https://github.com/googleapis/java-spanner-jdbc/issues/1323)) ([a7d0fbb](https://github.com/googleapis/java-spanner-jdbc/commit/a7d0fbb529ff71b45d6ddbbad8fc3be43e7c966f))
+
 ## [2.11.9](https://github.com/googleapis/java-spanner-jdbc/compare/v2.11.8...v2.11.9) (2023-08-21)
 
 
