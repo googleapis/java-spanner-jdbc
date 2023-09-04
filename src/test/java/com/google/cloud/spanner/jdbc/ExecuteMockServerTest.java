@@ -60,7 +60,9 @@ import org.junit.runners.JUnit4;
 public class ExecuteMockServerTest extends AbstractMockServerTest {
   private static final String QUERY = "select * from my_table";
   private static final String DML = "insert into my_table (id, value) values (1, 'One')";
+  private static final String DML_THEN_RETURN_ID = DML + "\nTHEN RETURN `id`";
   private static final String LARGE_DML = "update my_table set value='new value' where true";
+  private static final String LARGE_DML_THEN_RETURN_ID = LARGE_DML + "\nTHEN RETURN `id`";
   private static final String DML_RETURNING =
       "insert into my_table (id, value) values (1, 'One') THEN RETURN *";
   private static final String DDL = "create table my_table";
@@ -93,6 +95,24 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
                     .addValues(Value.newBuilder().setStringValue("One").build())
                     .build())
             .build();
+    com.google.spanner.v1.ResultSet returnIdResultSet =
+        com.google.spanner.v1.ResultSet.newBuilder()
+            .setMetadata(
+                ResultSetMetadata.newBuilder()
+                    .setRowType(
+                        StructType.newBuilder()
+                            .addFields(
+                                Field.newBuilder()
+                                    .setType(Type.newBuilder().setCode(TypeCode.INT64).build())
+                                    .setName("id")
+                                    .build())
+                            .build())
+                    .build())
+            .addRows(
+                ListValue.newBuilder()
+                    .addValues(Value.newBuilder().setStringValue("1").build())
+                    .build())
+            .build();
     mockSpanner.putStatementResult(
         StatementResult.query(com.google.cloud.spanner.Statement.of(QUERY), resultSet));
     mockSpanner.putStatementResult(
@@ -106,6 +126,20 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
             resultSet
                 .toBuilder()
                 .setStats(ResultSetStats.newBuilder().setRowCountExact(1L).build())
+                .build()));
+    mockSpanner.putStatementResult(
+        StatementResult.query(
+            com.google.cloud.spanner.Statement.of(DML_THEN_RETURN_ID),
+            returnIdResultSet
+                .toBuilder()
+                .setStats(ResultSetStats.newBuilder().setRowCountExact(1L).build())
+                .build()));
+    mockSpanner.putStatementResult(
+        StatementResult.query(
+            com.google.cloud.spanner.Statement.of(LARGE_DML_THEN_RETURN_ID),
+            returnIdResultSet
+                .toBuilder()
+                .setStats(ResultSetStats.newBuilder().setRowCountExact(LARGE_UPDATE_COUNT).build())
                 .build()));
     mockDatabaseAdmin.addResponse(
         Operation.newBuilder()
@@ -173,8 +207,9 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       assertEquals(1, statement.executeUpdate(DML, new String[] {"id"}));
       assertEquals(0, statement.executeUpdate(DDL, new String[] {"id"}));
       verifyOverflow(() -> statement.executeUpdate(LARGE_DML, new String[] {"id"}));
-      verifyException(() -> statement.executeUpdate(QUERY, new String[] {"id"}));
-      verifyException(() -> statement.executeUpdate(DML_RETURNING, new String[] {"id"}));
+      verifyException(
+          () -> statement.executeUpdate(QUERY, new String[] {"id"}), Code.FAILED_PRECONDITION);
+      assertEquals(1, statement.executeUpdate(DML_RETURNING, new String[] {"id"}));
     }
   }
 
@@ -225,8 +260,9 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       assertEquals(0, statement.executeLargeUpdate(DDL, new String[] {"id"}));
       assertEquals(
           LARGE_UPDATE_COUNT, statement.executeLargeUpdate(LARGE_DML, new String[] {"id"}));
-      verifyException(() -> statement.executeLargeUpdate(QUERY, new String[] {"id"}));
-      verifyException(() -> statement.executeLargeUpdate(DML_RETURNING, new String[] {"id"}));
+      verifyException(
+          () -> statement.executeLargeUpdate(QUERY, new String[] {"id"}), Code.FAILED_PRECONDITION);
+      assertEquals(1L, statement.executeLargeUpdate(DML_RETURNING, new String[] {"id"}));
     }
   }
 
@@ -327,8 +363,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       verifyOverflow(() -> connection.prepareStatement(LARGE_DML).executeUpdate());
       verifyException(() -> connection.prepareStatement(QUERY).executeUpdate());
       verifyException(
-          () -> connection.prepareStatement(DML_RETURNING).executeUpdate(),
-          Code.FAILED_PRECONDITION);
+          () -> connection.prepareStatement(DML_RETURNING).executeUpdate(), Code.INVALID_ARGUMENT);
     }
   }
 
@@ -352,7 +387,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
               connection
                   .prepareStatement(DML_RETURNING, Statement.NO_GENERATED_KEYS)
                   .executeUpdate(),
-          Code.FAILED_PRECONDITION);
+          Code.INVALID_ARGUMENT);
     }
   }
 
@@ -366,10 +401,10 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       verifyOverflow(
           () -> connection.prepareStatement(LARGE_DML, new String[] {"id"}).executeUpdate());
       verifyException(
-          () -> connection.prepareStatement(QUERY, new String[] {"id"}).executeUpdate());
-      verifyException(
-          () -> connection.prepareStatement(DML_RETURNING, new String[] {"id"}).executeUpdate(),
+          () -> connection.prepareStatement(QUERY, new String[] {"id"}).executeUpdate(),
           Code.FAILED_PRECONDITION);
+      assertEquals(
+          1, connection.prepareStatement(DML_RETURNING, new String[] {"id"}).executeUpdate());
     }
   }
 
@@ -384,7 +419,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       verifyException(() -> connection.prepareStatement(QUERY, new int[] {1}).executeUpdate());
       verifyException(
           () -> connection.prepareStatement(DML_RETURNING, new int[] {1}).executeUpdate(),
-          Code.FAILED_PRECONDITION);
+          Code.INVALID_ARGUMENT);
     }
   }
 
@@ -399,7 +434,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       verifyException(() -> connection.prepareStatement(QUERY).executeLargeUpdate());
       verifyException(
           () -> connection.prepareStatement(DML_RETURNING).executeLargeUpdate(),
-          Code.FAILED_PRECONDITION);
+          Code.INVALID_ARGUMENT);
     }
   }
 
@@ -424,7 +459,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
               connection
                   .prepareStatement(DML_RETURNING, Statement.NO_GENERATED_KEYS)
                   .executeLargeUpdate(),
-          Code.FAILED_PRECONDITION);
+          Code.INVALID_ARGUMENT);
     }
   }
 
@@ -440,11 +475,10 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
           LARGE_UPDATE_COUNT,
           connection.prepareStatement(LARGE_DML, new String[] {"id"}).executeLargeUpdate());
       verifyException(
-          () -> connection.prepareStatement(QUERY, new String[] {"id"}).executeLargeUpdate());
-      verifyException(
-          () ->
-              connection.prepareStatement(DML_RETURNING, new String[] {"id"}).executeLargeUpdate(),
+          () -> connection.prepareStatement(QUERY, new String[] {"id"}).executeLargeUpdate(),
           Code.FAILED_PRECONDITION);
+      assertEquals(
+          1L, connection.prepareStatement(DML_RETURNING, new String[] {"id"}).executeLargeUpdate());
     }
   }
 
@@ -461,7 +495,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       verifyException(() -> connection.prepareStatement(QUERY, new int[] {1}).executeLargeUpdate());
       verifyException(
           () -> connection.prepareStatement(DML_RETURNING, new int[] {1}).executeLargeUpdate(),
-          Code.FAILED_PRECONDITION);
+          Code.INVALID_ARGUMENT);
     }
   }
 
