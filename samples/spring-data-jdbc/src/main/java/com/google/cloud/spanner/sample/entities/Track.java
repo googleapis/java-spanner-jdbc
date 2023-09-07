@@ -19,17 +19,25 @@ package com.google.cloud.spanner.sample.entities;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+/**
+ * The "tracks" table is interleaved in "albums". That means that the first part of the primary key
+ * (the "id" column) references the Album that this Track belongs to. That again means that we do
+ * not auto-generate the id for this entity. We can achieve this by adding an extra property,
+ * albumId, that is mapped to the "id" column. We can then manually set an albumId value before
+ * inserting the record in the database.
+ */
 @Table("tracks")
 public class Track extends AbstractEntity {
 
   /**
-   * We need to map this to the ID column to be able to explicitly set it, instead of letting Spring
-   * Data generate it. This is necessary, because Track is interleaved in Album. That again means
-   * that we must use the ID value of the Album for a Track.
+   * We need to map this to the "id" column to be able to explicitly set it, instead of letting
+   * Spring Data generate it. This is necessary, because Track is interleaved in Album. That again
+   * means that we must use the ID value of the Album for a Track.
    */
   @Column("id")
   private Long albumId;
 
+  /** This is the second part of the primary key of a Track. */
   private int trackNumber;
 
   private String title;

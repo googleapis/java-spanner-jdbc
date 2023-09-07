@@ -20,6 +20,8 @@ import com.google.cloud.spanner.sample.entities.Album;
 import com.google.cloud.spanner.sample.entities.Singer;
 import com.google.cloud.spanner.sample.repositories.AlbumRepository;
 import com.google.cloud.spanner.sample.repositories.SingerRepository;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,11 +39,29 @@ public class SingerService {
   /** Creates a singer and a list of albums in a transaction. */
   @Transactional
   public Singer createSingerAndAlbums(Singer singer, Album... albums) {
+    // Saving a singer will return an updated singer entity that has the primary key value set.
     singer = singerRepository.save(singer);
     for (Album album : albums) {
+      // Set the singerId that was generated on the Album before saving it.
       album.setSingerId(singer.getId());
       albumRepository.save(album);
     }
     return singer;
+  }
+
+  /**
+   * Searches for all singers that have a last name starting with any of the given prefixes. This
+   * method uses a read-only transaction. Read-only transactions should be preferred to read/write
+   * transactions whenever possible, as read-only transactions do not take locks.
+   */
+  @Transactional(readOnly = true)
+  public List<Singer> listSingersWithLastNameStartingWith(String... prefixes) {
+    ImmutableList.Builder<Singer> result = ImmutableList.builder();
+    // This is not the most efficient way to search for this, but the main purpose of this method is
+    // to show how to use read-only transactions.
+    for (String prefix : prefixes) {
+      result.addAll(singerRepository.findSingersByLastNameStartingWith(prefix));
+    }
+    return result.build();
   }
 }

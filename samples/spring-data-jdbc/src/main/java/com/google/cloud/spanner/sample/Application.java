@@ -62,7 +62,14 @@ public class Application implements CommandLineRunner {
 
   @Override
   public void run(String... args) {
-    // databaseSeeder.dropDatabaseSchema();
+
+    // Set the system property 'dropAndRecreateSchema' to true to drop any existing database
+    // schema when the application is executed.
+    if (Boolean.parseBoolean(System.getProperty("dropAndRecreateSchema", "false"))) {
+      logger.info("Dropping existing schema if it exists");
+      databaseSeeder.dropDatabaseSchemaIfExists();
+    }
+
     logger.info("Creating database schema if it does not already exist");
     databaseSeeder.createDatabaseSchemaIfNotExists();
     logger.info("Deleting existing test data");
@@ -105,6 +112,14 @@ public class Application implements CommandLineRunner {
     // List all singers that have a last name starting with an 'J'.
     logger.info("All singers with a last name starting with an 'J':");
     for (Singer singer : singerRepository.findSingersByLastNameStartingWith("J")) {
+      logger.info("\t{}", singer.getFullName());
+    }
+
+    // The singerService.listSingersWithLastNameStartingWith(..) method uses a read-only
+    // transaction. You should prefer read-only transactions to read/write transactions whenever
+    // possible, as read-only transactions do not take locks.
+    logger.info("All singers with a last name starting with an 'A', 'B', or 'C'.");
+    for (Singer singer : singerService.listSingersWithLastNameStartingWith("A", "B", "C")) {
       logger.info("\t{}", singer.getFullName());
     }
   }
