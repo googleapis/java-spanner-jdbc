@@ -14,7 +14,8 @@ actual database or JDBC driver being used.
 This sample shows:
 
 1. How to use Spring Data JDBC with Cloud Spanner PostgreSQL.
-2. How to develop a portable application that runs on both Google Cloud Spanner and PostgreSQL with the same code base.
+2. How to develop a portable application that runs on both Google Cloud Spanner PostgreSQL and
+   open-source PostgreSQL with the same code base.
 3. How to use bit-reversed sequences to automatically generate primary key values for entities.
 
 __NOTE__: This application does __not require PGAdapter__. Instead, it connects to Cloud Spanner
