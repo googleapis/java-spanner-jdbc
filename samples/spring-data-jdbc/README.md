@@ -2,12 +2,12 @@
 
 This sample application shows how to develop portable applications using Spring Data JDBC in
 combination with Cloud Spanner PostgreSQL. This application can be configured to run on either a
-[Cloud Spanner PostgreSQL](https://cloud.google.com/spanner/docs/postgresql-interface) database or a
-traditional PostgreSQL database. The only change that is needed to switch between the two is
+[Cloud Spanner PostgreSQL](https://cloud.google.com/spanner/docs/postgresql-interface) database or
+an open-source PostgreSQL database. The only change that is needed to switch between the two is
 changing the active Spring profile that is used by the application.
 
 The application uses the Cloud Spanner JDBC driver to connect to Cloud Spanner PostgreSQL, and it
-uses the PostgreSQL JDBC driver to connect to traditional PostgreSQL. Spring Data JDBC works with
+uses the PostgreSQL JDBC driver to connect to open-source PostgreSQL. Spring Data JDBC works with
 both drivers and offers a single consistent API to the application developer, regardless of the
 actual database or JDBC driver being used.
 
@@ -36,7 +36,7 @@ and queries written against the PostgreSQL interface can be easily ported to ano
 environment.
 
 This sample showcases this portability with an application that works on both Cloud Spanner PostgreSQL
-and traditional PostgreSQL with the same code base.
+and open-source PostgreSQL with the same code base.
 
 ## Spring Data JDBC
 
@@ -51,10 +51,10 @@ limited, opinionated ORM.
 ## Sample Application
 
 This sample shows how to create a portable application using Spring Data JDBC and the Cloud Spanner
-PostgreSQL dialect. The application works on both Cloud Spanner PostgreSQL and traditional
+PostgreSQL dialect. The application works on both Cloud Spanner PostgreSQL and open-source
 PostgreSQL. You can switch between the two by changing the active Spring profile:
 * Profile `cs` runs the application on Cloud Spanner PostgreSQL.
-* Profile `pg` runs the application on traditional PostgreSQL.
+* Profile `pg` runs the application on open-source PostgreSQL.
 
 The default profile is `cs`. You can change the default profile by modifying the
 [application.properties](src/main/resources/application.properties) file.
@@ -78,7 +78,7 @@ The main application components are:
   schema is created from the [create_schema.sql](src/main/resources/create_schema.sql) file. The
   `DatabaseSeeder` class loads this file into memory and executes it on the active database using
   standard JDBC APIs. The class also removes Cloud Spanner-specific extensions to the PostgreSQL
-  dialect when the application runs on traditional PostgreSQL.
+  dialect when the application runs on open-source PostgreSQL.
 * [JdbcConfiguration.java](src/main/java/com/google/cloud/spanner/sample/JdbcConfiguration.java):
   Spring Data JDBC by default detects the database dialect based on the JDBC driver that is used.
   This class overrides this default and instructs Spring Data JDBC to also use the PostgreSQL

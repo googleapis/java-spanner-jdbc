@@ -62,7 +62,7 @@ public class Application implements CommandLineRunner {
 
   @Override
   public void run(String... args) {
-    // databaseSeeder.dropDatabaseSchema();
+//     databaseSeeder.dropDatabaseSchemaIfExists();
     logger.info("Creating database schema if it does not already exist");
     databaseSeeder.createDatabaseSchemaIfNotExists();
     logger.info("Deleting existing test data");

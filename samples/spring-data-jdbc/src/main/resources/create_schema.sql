@@ -1,12 +1,12 @@
 /*
  This script creates the database schema for this sample application.
- All lines that start with /* skip_on_traditional_pg */ are skipped when the application is running on a
+ All lines that start with /* skip_on_open_source_pg */ are skipped when the application is running on a
  normal PostgreSQL database. The same lines are executed when the application is running on a Cloud
  Spanner database. The script is executed by the DatabaseSeeder class.
 */
 
 create sequence if not exists id_generator
-/* skip_on_traditional_pg */ bit_reversed_positive
+/* skip_on_open_source_pg */ bit_reversed_positive
 ;
     
 create table if not exists singers (
@@ -42,7 +42,7 @@ create table if not exists tracks (
     updated_at timestamptz default current_timestamp,
     primary key (id, track_number)
 )
-/* skip_on_traditional_pg */ interleave in parent albums on delete cascade
+/* skip_on_open_source_pg */ interleave in parent albums on delete cascade
 ;
 
 create table if not exists venues (

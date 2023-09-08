@@ -90,24 +90,24 @@ public class DatabaseSeeder {
 
   /**
    * Returns true if this application is currently running on a Cloud Spanner PostgreSQL database,
-   * and false if it is running on a traditional PostgreSQL database.
+   * and false if it is running on an open-source PostgreSQL database.
    */
   private boolean isCloudSpanner() {
     return isCloudSpannerPG.get();
   }
 
   /**
-   * Removes all statements that start with a 'skip_on_traditional_pg' comment if the application is
-   * running on traditional PostgreSQL. This ensures that we can use the same DDL script both on
-   * Cloud Spanner and on traditional PostgreSQL. It also removes any empty statements in the given
+   * Removes all statements that start with a 'skip_on_open_source_pg' comment if the application is
+   * running on open-source PostgreSQL. This ensures that we can use the same DDL script both on
+   * Cloud Spanner and on open-source PostgreSQL. It also removes any empty statements in the given
    * array.
    */
   private String[] updateDdlStatements(String[] statements) {
     for (int i = 0; i < statements.length; i++) {
       if (!isCloudSpanner()) {
-        // Replace any line that starts with '/* skip_on_traditional_pg */' with an empty string.
+        // Replace any line that starts with '/* skip_on_open_source_pg */' with an empty string.
         statements[i] =
-            statements[i].replaceAll("(?m)^\\s*/\\*\\s*skip_on_traditional_pg\\s*\\*/.+$", "");
+            statements[i].replaceAll("(?m)^\\s*/\\*\\s*skip_on_open_source_pg\\s*\\*/.+$", "");
       }
       statements[i] = statements[i].trim();
     }
