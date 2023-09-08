@@ -60,7 +60,7 @@ public class DatabaseSeeder {
           new Singer("Isabella", "Hernandez"),
           new Singer("Jacob", "Perez"));
 
-  private final Random random = new Random();
+  private static final Random RANDOM = new Random();
 
   private final JdbcTemplate jdbcTemplate;
 
@@ -200,30 +200,30 @@ public class DatabaseSeeder {
   }
 
   /** Generates a random title for an album or a track. */
-  String randomTitle() {
+  static String randomTitle() {
     return randomElement(ADJECTIVES) + " " + randomElement(NOUNS);
   }
 
   /** Returns a random element from the given list. */
-  <T> T randomElement(List<T> list) {
-    return list.get(random.nextInt(list.size()));
+  static <T> T randomElement(List<T> list) {
+    return list.get(RANDOM.nextInt(list.size()));
   }
 
   /** Generates a random {@link BigDecimal}. */
   BigDecimal randomBigDecimal() {
-    return BigDecimal.valueOf(random.nextDouble());
+    return BigDecimal.valueOf(RANDOM.nextDouble());
   }
 
   /** Generates a random {@link LocalDate}. */
-  LocalDate randomDate() {
-    return LocalDate.of(random.nextInt(200) + 1800, random.nextInt(12) + 1, random.nextInt(28) + 1);
+  static LocalDate randomDate() {
+    return LocalDate.of(RANDOM.nextInt(200) + 1800, RANDOM.nextInt(12) + 1, RANDOM.nextInt(28) + 1);
   }
 
   /** Generates a random byte array with a length between 4 and 1024 bytes. */
-  byte[] randomBytes() {
-    int size = random.nextInt(1020) + 4;
+  static byte[] randomBytes() {
+    int size = RANDOM.nextInt(1020) + 4;
     byte[] res = new byte[size];
-    random.nextBytes(res);
+    RANDOM.nextBytes(res);
     return res;
   }
 

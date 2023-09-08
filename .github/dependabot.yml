@@ -8,6 +8,10 @@ updates:
     # we use renovate-bot as well as shared-dependencies BOM to update maven dependencies.
     ignore:
       - dependency-name: "*"
+  - package-ecosystem: "maven"
+    directory: "/samples/spring-data-jdbc"
+    schedule:
+      interval: "daily"
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
