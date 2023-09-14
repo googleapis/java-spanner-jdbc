@@ -12,10 +12,10 @@ create sequence if not exists id_generator
 create table if not exists singers (
     id         bigint not null primary key default nextval('id_generator'),
     first_name varchar,
-    last_name  varchar not null,
+    last_name  varchar,
     full_name  varchar generated always as (CASE WHEN first_name IS NULL THEN last_name
-                                                WHEN last_name  IS NULL THEN first_name
-                                                ELSE first_name || ' ' || last_name END) stored,
+                                                 WHEN last_name  IS NULL THEN first_name
+                                                 ELSE first_name || ' ' || last_name END) stored,
     active     boolean default true,
     created_at timestamptz default current_timestamp,
     updated_at timestamptz default current_timestamp

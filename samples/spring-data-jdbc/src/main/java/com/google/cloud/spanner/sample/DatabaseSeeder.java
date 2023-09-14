@@ -103,19 +103,17 @@ public class DatabaseSeeder {
    * array.
    */
   private String[] updateDdlStatements(String[] statements) {
-    for (int i = 0; i < statements.length; i++) {
-      if (!isCloudSpanner()) {
+    if (!isCloudSpanner()) {
+      for (int i = 0; i < statements.length; i++) {
         // Replace any line that starts with '/* skip_on_open_source_pg */' with an empty string.
         statements[i] =
             statements[i].replaceAll("(?m)^\\s*/\\*\\s*skip_on_open_source_pg\\s*\\*/.+$", "");
       }
-      statements[i] = statements[i].trim();
     }
     // Remove any empty statements from the script.
     return Arrays.stream(statements)
-        .filter(statement -> !statement.equals(""))
-        .collect(Collectors.toList())
-        .toArray(new String[0]);
+        .filter(statement -> !statement.isBlank())
+        .toArray(String[]::new);
   }
 
   /** Creates the database schema if it does not yet exist. */
