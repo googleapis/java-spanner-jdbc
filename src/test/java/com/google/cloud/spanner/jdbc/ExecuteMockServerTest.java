@@ -52,7 +52,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.function.ThrowingRunnable;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
@@ -70,9 +69,8 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     return Dialect.values();
   }
 
-  @Parameter
-  public Dialect dialect;
-  
+  @Parameter public Dialect dialect;
+
   private static final String DDL = "create table my_table";
   private static final long LARGE_UPDATE_COUNT = 2L * Integer.MAX_VALUE;
 
@@ -85,31 +83,33 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Before
   public void setupResults() {
-    QUERY = dialect == Dialect.POSTGRESQL
-        ? "/*@ lock_scanned_ranges = exclusive */ select * from my_table"
-        : "select * from my_table";
-    DML = dialect == Dialect.POSTGRESQL
-        ? "/*@ lock_scanned_ranges = exclusive */ insert into my_table (id, value) values (1, 'One')"
-        : "insert into my_table (id, value) values (1, 'One')";
-    DML_THEN_RETURN_ID = DML + (dialect == Dialect.POSTGRESQL
-        ? "\nRETURNING \"id\""
-        : "\nTHEN RETURN `id`");
-    LARGE_DML = dialect == Dialect.POSTGRESQL
-        ? "/*@ lock_scanned_ranges = exclusive */ update my_table set value='new value' where true"
-        : "update my_table set value='new value' where true";
-    LARGE_DML_THEN_RETURN_ID = LARGE_DML + (dialect == Dialect.POSTGRESQL
-        ? "\nRETURNING \"id\""
-        : "\nTHEN RETURN `id`");
+    QUERY =
+        dialect == Dialect.POSTGRESQL
+            ? "/*@ lock_scanned_ranges = exclusive */ select * from my_table"
+            : "select * from my_table";
+    DML =
+        dialect == Dialect.POSTGRESQL
+            ? "/*@ lock_scanned_ranges = exclusive */ insert into my_table (id, value) values (1, 'One')"
+            : "insert into my_table (id, value) values (1, 'One')";
+    DML_THEN_RETURN_ID =
+        DML + (dialect == Dialect.POSTGRESQL ? "\nRETURNING \"id\"" : "\nTHEN RETURN `id`");
+    LARGE_DML =
+        dialect == Dialect.POSTGRESQL
+            ? "/*@ lock_scanned_ranges = exclusive */ update my_table set value='new value' where true"
+            : "update my_table set value='new value' where true";
+    LARGE_DML_THEN_RETURN_ID =
+        LARGE_DML + (dialect == Dialect.POSTGRESQL ? "\nRETURNING \"id\"" : "\nTHEN RETURN `id`");
     DML_RETURNING =
         dialect == Dialect.POSTGRESQL
             ? "/*@ lock_scanned_ranges = exclusive */ insert into my_table (id, value) values (1, 'One') RETURNING *"
             : "insert into my_table (id, value) values (1, 'One') THEN RETURN *";
 
-    // This forces a refresh of the Spanner instance that is used for a connection, which again is needed in order to refresh the dialect of the database.
+    // This forces a refresh of the Spanner instance that is used for a connection, which again is
+    // needed in order to refresh the dialect of the database.
     SpannerPool.closeSpannerPool();
     mockSpanner.putStatementResult(StatementResult.detectDialectResult(dialect));
     super.setupResults();
-    
+
     com.google.spanner.v1.ResultSet resultSet =
         com.google.spanner.v1.ResultSet.newBuilder()
             .setMetadata(

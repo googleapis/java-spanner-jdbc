@@ -46,10 +46,15 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
     super(connection);
     this.sql = sql;
     try {
-      // The PostgreSQL parser allows comments to be present in the SQL string that is used to parse the
-      String sqlForParameterExtraction = getConnection().getDialect() == Dialect.POSTGRESQL ? this.sql : parser.removeCommentsAndTrim(this.sql);
+      // The PostgreSQL parser allows comments to be present in the SQL string that is used to parse
+      // the
+      String sqlForParameterExtraction =
+          getConnection().getDialect() == Dialect.POSTGRESQL
+              ? this.sql
+              : parser.removeCommentsAndTrim(this.sql);
       this.parameters =
-          parser.convertPositionalParametersToNamedParameters(POS_PARAM_CHAR, sqlForParameterExtraction);
+          parser.convertPositionalParametersToNamedParameters(
+              POS_PARAM_CHAR, sqlForParameterExtraction);
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
