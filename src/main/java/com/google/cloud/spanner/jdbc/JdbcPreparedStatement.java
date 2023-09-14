@@ -47,7 +47,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
     this.sql = sql;
     try {
       // The PostgreSQL parser allows comments to be present in the SQL string that is used to parse
-      // the
+      // the query parameters.
       String sqlForParameterExtraction =
           getConnection().getDialect() == Dialect.POSTGRESQL
               ? this.sql
