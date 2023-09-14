@@ -11,7 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-docker:
-  image: gcr.io/cloud-devrel-public-resources/owlbot-java:latest
-  digest: sha256:88ba8dcc5c2c7792e1c3511381f4ab329002a1c42c512f66ca87ced572dfbf9f
-# created: 2023-09-05T18:54:42.225408832Z
+# Github action job to test core java library features on
+# downstream client libraries before they are released.
+on:
+  pull_request:
+name: spring-data-jdbc-sample
+jobs:
+  spring-data-jdbc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Run tests
+        run: mvn test
+        working-directory: samples/spring-data-jdbc

@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Options.QueryOption;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
 import com.google.cloud.spanner.ResultSets;
@@ -24,7 +25,9 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.AbstractStatementParser.ParametersInfo;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.rpc.Code;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -34,19 +37,23 @@ import java.sql.SQLException;
 class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
   private static final char POS_PARAM_CHAR = '?';
   private final String sql;
-  private final String sqlWithoutComments;
   private final ParametersInfo parameters;
+  private final ImmutableList<String> generatedKeysColumns;
 
-  JdbcPreparedStatement(JdbcConnection connection, String sql) throws SQLException {
+  JdbcPreparedStatement(
+      JdbcConnection connection, String sql, ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
     super(connection);
     this.sql = sql;
     try {
-      this.sqlWithoutComments = parser.removeCommentsAndTrim(this.sql);
+      // The PostgreSQL parser allows comments to be present in the SQL string that is used to parse the
+      String sqlForParameterExtraction = getConnection().getDialect() == Dialect.POSTGRESQL ? this.sql : parser.removeCommentsAndTrim(this.sql);
       this.parameters =
-          parser.convertPositionalParametersToNamedParameters(POS_PARAM_CHAR, sqlWithoutComments);
+          parser.convertPositionalParametersToNamedParameters(POS_PARAM_CHAR, sqlForParameterExtraction);
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
+    this.generatedKeysColumns = Preconditions.checkNotNull(generatedKeysColumns);
   }
 
   ParametersInfo getParametersInfo() {
@@ -76,19 +83,22 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement {
 
   @Override
   public int executeUpdate() throws SQLException {
-    checkClosed();
-    return executeUpdate(createStatement());
+    long count = executeLargeUpdate(createStatement(), generatedKeysColumns);
+    if (count > Integer.MAX_VALUE) {
+      throw JdbcSqlExceptionFactory.of(
+          "update count too large for executeUpdate: " + count, Code.OUT_OF_RANGE);
+    }
+    return (int) count;
   }
 
+  @Override
   public long executeLargeUpdate() throws SQLException {
-    checkClosed();
-    return executeLargeUpdate(createStatement());
+    return executeLargeUpdate(createStatement(), generatedKeysColumns);
   }
 
   @Override
   public boolean execute() throws SQLException {
-    checkClosed();
-    return executeStatement(createStatement());
+    return executeStatement(createStatement(), generatedKeysColumns);
   }
 
   @Override
