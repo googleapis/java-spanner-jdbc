@@ -24,7 +24,6 @@ import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.cloud.spanner.connection.StatementResult.ClientSideStatementType;
-import com.google.rpc.Code;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
@@ -213,43 +212,6 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
         resultSet = connection.getSpannerConnection().analyzeQuery(statement, analyzeMode);
       }
       return JdbcResultSet.of(this, resultSet);
-    } catch (SpannerException e) {
-      throw JdbcSqlExceptionFactory.of(e);
-    } finally {
-      resetStatementTimeout(originalTimeout);
-    }
-  }
-
-  /**
-   * Executes a SQL statement on the connection of this {@link Statement} as an update (DML)
-   * statement.
-   *
-   * @param statement The SQL statement to execute
-   * @return the number of rows that was inserted/updated/deleted
-   * @throws SQLException if a database error occurs, or if the number of rows affected is larger
-   *     than {@link Integer#MAX_VALUE}
-   */
-  int executeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
-    long count = executeLargeUpdate(statement);
-    if (count > Integer.MAX_VALUE) {
-      throw JdbcSqlExceptionFactory.of(
-          "update count too large for executeUpdate: " + count, Code.OUT_OF_RANGE);
-    }
-    return (int) count;
-  }
-
-  /**
-   * Executes a SQL statement on the connection of this {@link Statement} as an update (DML)
-   * statement.
-   *
-   * @param statement The SQL statement to execute
-   * @return the number of rows that was inserted/updated/deleted
-   * @throws SQLException if a database error occurs
-   */
-  long executeLargeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
-    StatementTimeout originalTimeout = setTemporaryStatementTimeout();
-    try {
-      return connection.getSpannerConnection().executeUpdate(statement);
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     } finally {

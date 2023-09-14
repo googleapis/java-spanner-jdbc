@@ -16,13 +16,14 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static com.google.cloud.spanner.Type.Code.PG_NUMERIC;
-
+import com.google.cloud.spanner.ResultSets;
+import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.connection.PartitionedQueryResultSet;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
@@ -44,8 +45,11 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import javax.annotation.Nonnull;
 
 /** Implementation of {@link ResultSet} for Cloud Spanner */
 class JdbcResultSet extends AbstractJdbcResultSet {
@@ -63,6 +67,57 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     }
     return new JdbcResultSet(
         Preconditions.checkNotNull(statement), Preconditions.checkNotNull(resultSet));
+  }
+
+  /**
+   * Creates a JDBC result set by copying the given Spanner {@link
+   * com.google.cloud.spanner.ResultSet}. This can be used for result sets that are known not to be
+   * too large. This type of result set should be preferred for results that are unlikely to be
+   * closed by the client application, such as the returned generated keys of an update statement.
+   * The copy will not hold on to a reference to a Cloud Spanner session or result stream. All the
+   * data in the given Spanner {@link com.google.cloud.spanner.ResultSet} have been consumed after
+   * calling this method. The {@link com.google.cloud.spanner.ResultSet} is not closed by this
+   * method.
+   */
+  static JdbcResultSet copyOf(@Nonnull com.google.cloud.spanner.ResultSet resultSet) {
+    Preconditions.checkNotNull(resultSet);
+    // Make the copy first. This ensures that ResultSet#next() has been called at least once, which
+    // is necessary to get the type of the result set.
+    ImmutableList<Struct> rows = ImmutableList.copyOf(new ResultSetIterator(resultSet));
+    return of(ResultSets.forRows(resultSet.getType(), rows));
+  }
+
+  /**
+   * {@link Iterator} implementation for {@link com.google.cloud.spanner.ResultSet}. This is used to
+   * create a copy of an existing result set without the need to iterate the rows more than once.
+   */
+  private static class ResultSetIterator implements Iterator<Struct> {
+    private final com.google.cloud.spanner.ResultSet resultSet;
+    private boolean calculatedHasNext = false;
+    private boolean hasNext = false;
+
+    ResultSetIterator(com.google.cloud.spanner.ResultSet resultSet) {
+      this.resultSet = resultSet;
+    }
+
+    @Override
+    public boolean hasNext() {
+      if (!calculatedHasNext) {
+        calculatedHasNext = true;
+        hasNext = resultSet.next();
+      }
+      return hasNext;
+    }
+
+    @Override
+    public Struct next() {
+      if (hasNext()) {
+        // Indicate that the next call to hasNext() must re-check whether there are more results.
+        calculatedHasNext = false;
+        return resultSet.getCurrentRowAsStruct();
+      }
+      throw new NoSuchElementException();
+    }
   }
 
   private boolean closed = false;

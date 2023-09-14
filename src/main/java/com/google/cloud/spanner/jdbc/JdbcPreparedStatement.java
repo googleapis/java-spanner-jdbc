@@ -25,6 +25,7 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.AbstractStatementParser.ParametersInfo;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
 import java.sql.PreparedStatement;
@@ -39,8 +40,11 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement
   private final String sql;
   private final String sqlWithoutComments;
   private final ParametersInfo parameters;
+  private final ImmutableList<String> generatedKeysColumns;
 
-  JdbcPreparedStatement(JdbcConnection connection, String sql) throws SQLException {
+  JdbcPreparedStatement(
+      JdbcConnection connection, String sql, ImmutableList<String> generatedKeysColumns)
+      throws SQLException {
     super(connection);
     this.sql = sql;
     try {
@@ -50,6 +54,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
+    this.generatedKeysColumns = Preconditions.checkNotNull(generatedKeysColumns);
   }
 
   ParametersInfo getParametersInfo() {
@@ -79,19 +84,22 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement
 
   @Override
   public int executeUpdate() throws SQLException {
-    checkClosed();
-    return executeUpdate(createStatement());
+    long count = executeLargeUpdate(createStatement(), generatedKeysColumns);
+    if (count > Integer.MAX_VALUE) {
+      throw JdbcSqlExceptionFactory.of(
+          "update count too large for executeUpdate: " + count, Code.OUT_OF_RANGE);
+    }
+    return (int) count;
   }
 
+  @Override
   public long executeLargeUpdate() throws SQLException {
-    checkClosed();
-    return executeLargeUpdate(createStatement());
+    return executeLargeUpdate(createStatement(), generatedKeysColumns);
   }
 
   @Override
   public boolean execute() throws SQLException {
-    checkClosed();
-    return executeStatement(createStatement());
+    return executeStatement(createStatement(), generatedKeysColumns);
   }
 
   @Override
