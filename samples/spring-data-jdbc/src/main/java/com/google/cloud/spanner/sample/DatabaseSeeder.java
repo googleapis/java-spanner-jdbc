@@ -33,7 +33,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
