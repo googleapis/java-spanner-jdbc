@@ -63,7 +63,8 @@ public class JdbcConfiguration extends AbstractJdbcConfiguration {
       throw new RuntimeException(
           "The selected Cloud Spanner database does not use the PostgreSQL dialect");
     } catch (DataAccessException exception) {
-      if (exception.getCause() instanceof JdbcSqlException jdbcSqlException) {
+      if (exception.getCause() instanceof JdbcSqlException) {
+        JdbcSqlException jdbcSqlException = (JdbcSqlException) exception;
         if (jdbcSqlException.getCode() == Code.PERMISSION_DENIED
             || jdbcSqlException.getCode() == Code.NOT_FOUND) {
           throw new RuntimeException(
