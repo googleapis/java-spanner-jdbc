@@ -48,7 +48,6 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   @Override
   public int getColumnCount() {
     return spannerResultSet.getColumnCount();
-    //    return spannerResultSet.getType().getStructFields().size();
   }
 
   @Override
