@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.13.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.12.1...v2.13.0) (2023-09-15)
+
+
+### Features
+
+* Support partitioned queries ([#1300](https://github.com/googleapis/java-spanner-jdbc/issues/1300)) ([c50da41](https://github.com/googleapis/java-spanner-jdbc/commit/c50da41e688ff48f8967c0f114f5bac8eaac49f9))
+
+
+### Bug Fixes
+
+* Comments should be sent to Spanner for PostgreSQL databases ([#1331](https://github.com/googleapis/java-spanner-jdbc/issues/1331)) ([7c9e781](https://github.com/googleapis/java-spanner-jdbc/commit/7c9e781bf45b112266e278e1df1586e56043698e))
+
+
+### Documentation
+
+* Create Spring Data JDBC sample ([#1334](https://github.com/googleapis/java-spanner-jdbc/issues/1334)) ([cefea55](https://github.com/googleapis/java-spanner-jdbc/commit/cefea55086eb191f71a1a493e046cb136f9f9f87))
+
+
+### Dependencies
+
+* Update actions/checkout action to v4 - abandoned ([#1333](https://github.com/googleapis/java-spanner-jdbc/issues/1333)) ([ce82b42](https://github.com/googleapis/java-spanner-jdbc/commit/ce82b42d3abb8de0f8b3ee2915c2008673775ea1))
+* Update dependency org.springframework.data:spring-data-bom to v2023.0.4 ([#1347](https://github.com/googleapis/java-spanner-jdbc/issues/1347)) ([893f61a](https://github.com/googleapis/java-spanner-jdbc/commit/893f61ab04e32c690f1ff9fc813bd2ba6ebca328))
+
 ## [2.12.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.12.0...v2.12.1) (2023-09-12)
 
 
