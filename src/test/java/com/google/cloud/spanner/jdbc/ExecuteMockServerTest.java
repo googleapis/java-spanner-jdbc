@@ -295,8 +295,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
         Statement statement = connection.createStatement()) {
       assertEquals(1, statement.executeLargeUpdate(dml, new String[] {"id"}));
       assertEquals(0, statement.executeLargeUpdate(DDL, new String[] {"id"}));
-      assertEquals(
-          LARGE_UPDATE_COUNT, statement.executeLargeUpdate(largeDml, new String[] {"id"}));
+      assertEquals(LARGE_UPDATE_COUNT, statement.executeLargeUpdate(largeDml, new String[] {"id"}));
       verifyException(
           () -> statement.executeLargeUpdate(query, new String[] {"id"}), Code.FAILED_PRECONDITION);
       assertEquals(1L, statement.executeLargeUpdate(dmlReturning, new String[] {"id"}));
@@ -415,8 +414,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       // assertEquals(0, connection.prepareStatement(DDL,
       // Statement.NO_GENERATED_KEYS).executeUpdate());
       verifyOverflow(
-          () ->
-              connection.prepareStatement(largeDml, Statement.NO_GENERATED_KEYS).executeUpdate());
+          () -> connection.prepareStatement(largeDml, Statement.NO_GENERATED_KEYS).executeUpdate());
       verifyException(
           () -> connection.prepareStatement(query, Statement.NO_GENERATED_KEYS).executeUpdate());
       verifyException(
