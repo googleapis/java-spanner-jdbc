@@ -25,6 +25,7 @@ import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
+import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.SavepointSupport;
 import com.google.cloud.spanner.connection.TransactionMode;
@@ -44,6 +45,8 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /** Jdbc Connection class for Google Cloud Spanner */
 class JdbcConnection extends AbstractJdbcConnection {
@@ -590,6 +593,72 @@ class JdbcConnection extends AbstractJdbcConnection {
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
+  }
+
+  /**
+   * Convenience method for calling a setter and translating any {@link SpannerException} to a
+   * {@link SQLException}.
+   */
+  private <T> void set(BiConsumer<Connection, T> setter, T value) throws SQLException {
+    checkClosed();
+    try {
+      setter.accept(getSpannerConnection(), value);
+    } catch (SpannerException spannerException) {
+      throw JdbcSqlExceptionFactory.of(spannerException);
+    }
+  }
+
+  /**
+   * Convenience method for calling a getter and translating any {@link SpannerException} to a
+   * {@link SQLException}.
+   */
+  private <R> R get(Function<Connection, R> getter) throws SQLException {
+    checkClosed();
+    try {
+      return getter.apply(getSpannerConnection());
+    } catch (SpannerException spannerException) {
+      throw JdbcSqlExceptionFactory.of(spannerException);
+    }
+  }
+
+  @Override
+  public void setDataBoostEnabled(boolean dataBoostEnabled) throws SQLException {
+    set(Connection::setDataBoostEnabled, dataBoostEnabled);
+  }
+
+  @Override
+  public boolean isDataBoostEnabled() throws SQLException {
+    return get(Connection::isDataBoostEnabled);
+  }
+
+  @Override
+  public void setAutoPartitionMode(boolean autoPartitionMode) throws SQLException {
+    set(Connection::setAutoPartitionMode, autoPartitionMode);
+  }
+
+  @Override
+  public boolean isAutoPartitionMode() throws SQLException {
+    return get(Connection::isAutoPartitionMode);
+  }
+
+  @Override
+  public void setMaxPartitions(int maxPartitions) throws SQLException {
+    set(Connection::setMaxPartitions, maxPartitions);
+  }
+
+  @Override
+  public int getMaxPartitions() throws SQLException {
+    return get(Connection::getMaxPartitions);
+  }
+
+  @Override
+  public void setMaxPartitionedParallelism(int maxThreads) throws SQLException {
+    set(Connection::setMaxPartitionedParallelism, maxThreads);
+  }
+
+  @Override
+  public int getMaxPartitionedParallelism() throws SQLException {
+    return get(Connection::getMaxPartitionedParallelism);
   }
 
   @SuppressWarnings("deprecation")

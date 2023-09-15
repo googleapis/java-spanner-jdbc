@@ -19,6 +19,8 @@ package com.google.cloud.spanner.jdbc;
 import static com.google.cloud.spanner.jdbc.JdbcConnection.NO_GENERATED_KEY_COLUMNS;
 
 import com.google.cloud.spanner.Options;
+import com.google.cloud.spanner.Options.QueryOption;
+import com.google.cloud.spanner.PartitionOptions;
 import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.SpannerBatchUpdateException;
 import com.google.cloud.spanner.SpannerException;
@@ -40,7 +42,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /** Implementation of {@link java.sql.Statement} for Google Cloud Spanner. */
-class JdbcStatement extends AbstractJdbcStatement {
+class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcStatement {
   static final ImmutableList<String> ALL_COLUMNS = ImmutableList.of("*");
 
   enum BatchType {
@@ -584,5 +586,30 @@ class JdbcStatement extends AbstractJdbcStatement {
 
   static boolean isNullOrEmpty(String[] columnNames) {
     return columnNames == null || columnNames.length == 0;
+  }
+
+  @Override
+  public ResultSet partitionQuery(
+      String query, PartitionOptions partitionOptions, QueryOption... options) throws SQLException {
+    return runWithStatementTimeout(
+        connection ->
+            JdbcResultSet.of(
+                this, connection.partitionQuery(Statement.of(query), partitionOptions, options)));
+  }
+
+  @Override
+  public ResultSet runPartition(String encodedPartitionId) throws SQLException {
+    return runWithStatementTimeout(
+        connection -> JdbcResultSet.of(this, connection.runPartition(encodedPartitionId)));
+  }
+
+  @Override
+  public CloudSpannerJdbcPartitionedQueryResultSet runPartitionedQuery(
+      String query, PartitionOptions partitionOptions, QueryOption... options) throws SQLException {
+    return runWithStatementTimeout(
+        connection ->
+            JdbcPartitionedQueryResultSet.of(
+                this,
+                connection.runPartitionedQuery(Statement.of(query), partitionOptions, options)));
   }
 }

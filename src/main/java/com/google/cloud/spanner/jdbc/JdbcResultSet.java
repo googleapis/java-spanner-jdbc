@@ -21,6 +21,7 @@ import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Value;
+import com.google.cloud.spanner.connection.PartitionedQueryResultSet;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayInputStream;
@@ -59,9 +60,13 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   static JdbcResultSet of(Statement statement, com.google.cloud.spanner.ResultSet resultSet) {
-    Preconditions.checkNotNull(statement);
-    Preconditions.checkNotNull(resultSet);
-    return new JdbcResultSet(statement, resultSet);
+    // Return a JDBC version of a PartitionedQueryResultSet if the Cloud Spanner Java client
+    // returned a PartitionedQueryResultSet.
+    if (resultSet instanceof PartitionedQueryResultSet) {
+      return JdbcPartitionedQueryResultSet.of(statement, (PartitionedQueryResultSet) resultSet);
+    }
+    return new JdbcResultSet(
+        Preconditions.checkNotNull(statement), Preconditions.checkNotNull(resultSet));
   }
 
   /**
@@ -123,7 +128,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   private boolean nextCalledForMetaDataResult = false;
   private long currentRow = 0L;
 
-  private JdbcResultSet(Statement statement, com.google.cloud.spanner.ResultSet spanner) {
+  JdbcResultSet(Statement statement, com.google.cloud.spanner.ResultSet spanner) {
     super(spanner);
     this.statement = statement;
   }
