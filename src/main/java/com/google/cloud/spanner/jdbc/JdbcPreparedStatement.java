@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Options.QueryOption;
 import com.google.cloud.spanner.PartitionOptions;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
@@ -38,7 +39,6 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement
     implements CloudSpannerJdbcPreparedStatement {
   private static final char POS_PARAM_CHAR = '?';
   private final String sql;
-  private final String sqlWithoutComments;
   private final ParametersInfo parameters;
   private final ImmutableList<String> generatedKeysColumns;
 
@@ -48,9 +48,15 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement
     super(connection);
     this.sql = sql;
     try {
-      this.sqlWithoutComments = parser.removeCommentsAndTrim(this.sql);
+      // The PostgreSQL parser allows comments to be present in the SQL string that is used to parse
+      // the query parameters.
+      String sqlForParameterExtraction =
+          getConnection().getDialect() == Dialect.POSTGRESQL
+              ? this.sql
+              : parser.removeCommentsAndTrim(this.sql);
       this.parameters =
-          parser.convertPositionalParametersToNamedParameters(POS_PARAM_CHAR, sqlWithoutComments);
+          parser.convertPositionalParametersToNamedParameters(
+              POS_PARAM_CHAR, sqlForParameterExtraction);
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
