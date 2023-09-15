@@ -79,11 +79,7 @@ class JdbcStatement extends AbstractJdbcStatement {
 
   private int executeUpdate(String sql, ImmutableList<String> generatedKeysColumns)
       throws SQLException {
-    long result = executeLargeUpdate(sql, generatedKeysColumns);
-    if (result > Integer.MAX_VALUE) {
-      throw JdbcSqlExceptionFactory.of("update count too large: " + result, Code.OUT_OF_RANGE);
-    }
-    return (int) result;
+    return checkedCast(executeLargeUpdate(sql, generatedKeysColumns));
   }
 
   /**
@@ -300,11 +296,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   @Override
   public int getUpdateCount() throws SQLException {
     checkClosed();
-    if (currentUpdateCount > Integer.MAX_VALUE) {
-      throw JdbcSqlExceptionFactory.of(
-          "update count too large: " + currentUpdateCount, Code.OUT_OF_RANGE);
-    }
-    return (int) currentUpdateCount;
+    return checkedCast(currentUpdateCount);
   }
 
   /**
@@ -481,12 +473,7 @@ class JdbcStatement extends AbstractJdbcStatement {
   int[] convertUpdateCounts(long[] updateCounts) throws SQLException {
     int[] res = new int[updateCounts.length];
     for (int index = 0; index < updateCounts.length; index++) {
-      if (updateCounts[index] > Integer.MAX_VALUE) {
-        throw JdbcSqlExceptionFactory.of(
-            String.format("Update count too large for int: %d", updateCounts[index]),
-            Code.OUT_OF_RANGE);
-      }
-      res[index] = (int) updateCounts[index];
+      res[index] = checkedCast(updateCounts[index]);
     }
     return res;
   }
