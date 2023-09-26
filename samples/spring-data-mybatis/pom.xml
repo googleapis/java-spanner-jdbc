@@ -35,7 +35,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
-        <version>26.22.0</version>
+        <version>26.23.0</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -58,7 +58,6 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner-jdbc</artifactId>
-      <version>2.12.1</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
