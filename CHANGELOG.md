@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.13.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.13.1...v2.13.2) (2023-09-26)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.16.0 ([#1358](https://github.com/googleapis/java-spanner-jdbc/issues/1358)) ([c4c4925](https://github.com/googleapis/java-spanner-jdbc/commit/c4c492576d3e6c192a1855e8d6b3474bb2ad0c22))
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.16.1 ([#1363](https://github.com/googleapis/java-spanner-jdbc/issues/1363)) ([d574dbb](https://github.com/googleapis/java-spanner-jdbc/commit/d574dbb761fa7d0a7d1977844b48b8e4904f1bb0))
+* Update dependency com.spotify.fmt:fmt-maven-plugin to v2.21.1 ([#1359](https://github.com/googleapis/java-spanner-jdbc/issues/1359)) ([70af99e](https://github.com/googleapis/java-spanner-jdbc/commit/70af99e96451fb0158abb45580eaae09ad0b6210))
+
 ## [2.13.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.13.0...v2.13.1) (2023-09-21)
 
 
