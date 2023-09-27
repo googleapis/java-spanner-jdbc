@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.13.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.13.2...v2.13.3) (2023-09-27)
+
+
+### Dependencies
+
+* Remove specific JDBC version from samples ([#1371](https://github.com/googleapis/java-spanner-jdbc/issues/1371)) ([b30e391](https://github.com/googleapis/java-spanner-jdbc/commit/b30e391792f2c2811038b35a065b35104bc614e7))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.48.0 ([#1370](https://github.com/googleapis/java-spanner-jdbc/issues/1370)) ([376e1c3](https://github.com/googleapis/java-spanner-jdbc/commit/376e1c3ccdd71351a5d6151ce19b9f88df163776))
+* Update dependency com.spotify.fmt:fmt-maven-plugin to v2.21.1 ([#1372](https://github.com/googleapis/java-spanner-jdbc/issues/1372)) ([bf64add](https://github.com/googleapis/java-spanner-jdbc/commit/bf64add3e9ce8148d2fc3ad010b8abd446208e4f))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.1.4 ([#1366](https://github.com/googleapis/java-spanner-jdbc/issues/1366)) ([749d2c3](https://github.com/googleapis/java-spanner-jdbc/commit/749d2c3698c900560b6f85247b0a41a85cd55ac8))
+* Update dependency org.springframework.data:spring-data-bom to v2023.0.4 ([#1367](https://github.com/googleapis/java-spanner-jdbc/issues/1367)) ([916ad4a](https://github.com/googleapis/java-spanner-jdbc/commit/916ad4a9e07b3afc15e53664f175db9e58f06376))
+
+
+### Documentation
+
+* Add sample for Spring Data MyBatis ([#1352](https://github.com/googleapis/java-spanner-jdbc/issues/1352)) ([ce52d07](https://github.com/googleapis/java-spanner-jdbc/commit/ce52d07c308bcde0ed1b0c9f4d3556db2590f722))
+
 ## [2.13.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.13.1...v2.13.2) (2023-09-26)
 
 
