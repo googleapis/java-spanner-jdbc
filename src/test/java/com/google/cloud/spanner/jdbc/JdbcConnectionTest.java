@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
@@ -700,34 +701,33 @@ public class JdbcConnectionTest {
     ConnectionOptions options = mockOptions();
     when(options.getDatabaseName()).thenReturn("test");
     try (JdbcConnection connection = createConnection(options)) {
-      // The connection should always return the empty string as the current catalog, as no other
+      // The connection should always return the default catalog as the current catalog, as no other
       // catalogs exist in the INFORMATION_SCHEMA.
-      assertThat(connection.getCatalog()).isEqualTo("");
+      // The default catalog is the empty string for GoogleSQL databases.
+      // The default catalog is the database name for PostgreSQL databases.
+      assertEquals(connection.getDefaultCatalog(), connection.getCatalog());
       // This should be allowed.
-      connection.setCatalog("");
-      try {
-        // This should cause an exception.
-        connection.setCatalog("other");
-        fail("missing expected exception");
-      } catch (JdbcSqlExceptionImpl e) {
-        assertThat(e.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
-      }
+      connection.setCatalog(connection.getDefaultCatalog());
+      // This should cause an exception.
+      JdbcSqlExceptionImpl exception =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> connection.setCatalog("other"));
+      assertEquals(Code.INVALID_ARGUMENT, exception.getCode());
     }
   }
 
   @Test
   public void testSchema() throws SQLException {
     try (JdbcConnection connection = createConnection(mockOptions())) {
-      assertThat(connection.getSchema()).isEqualTo("");
+      // The connection should always return the default schema as the current schema, as we
+      // currently do not support setting the connection to a different schema.
+      // The default schema is the empty string for GoogleSQL databases.
+      // The default schema is 'public' for PostgreSQL databases.
+      assertEquals(connection.getDefaultSchema(), connection.getSchema());
       // This should be allowed.
-      connection.setSchema("");
-      try {
-        // This should cause an exception.
-        connection.setSchema("other");
-        fail("missing expected exception");
-      } catch (JdbcSqlExceptionImpl e) {
-        assertThat(e.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
-      }
+      connection.setSchema(connection.getDefaultCatalog());
+      JdbcSqlExceptionImpl exception =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> connection.setSchema("other"));
+      assertEquals(Code.INVALID_ARGUMENT, exception.getCode());
     }
   }
 

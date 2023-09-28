@@ -47,6 +47,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import javax.annotation.Nonnull;
 
 /** Jdbc Connection class for Google Cloud Spanner */
 class JdbcConnection extends AbstractJdbcConnection {
@@ -394,31 +395,66 @@ class JdbcConnection extends AbstractJdbcConnection {
   @Override
   public void setCatalog(String catalog) throws SQLException {
     // This method could be changed to allow the user to change to another database.
-    // For now we only support setting an empty string in order to support frameworks
+    // For now, we only support setting the default catalog in order to support frameworks
     // and applications that set this when no catalog has been specified in the connection
     // URL.
     checkClosed();
-    JdbcPreconditions.checkArgument("".equals(catalog), "Only catalog \"\" is supported");
+    checkValidCatalog(catalog);
+  }
+
+  void checkValidCatalog(String catalog) throws SQLException {
+    String defaultCatalog = getDefaultCatalog();
+    JdbcPreconditions.checkArgument(
+        defaultCatalog.equals(catalog),
+        String.format("Only catalog %s is supported", defaultCatalog));
   }
 
   @Override
   public String getCatalog() throws SQLException {
     checkClosed();
-    return "";
+    return getDefaultCatalog();
+  }
+
+  @Nonnull
+  String getDefaultCatalog() {
+    switch (getDialect()) {
+      case POSTGRESQL:
+        String database = getConnectionOptions().getDatabaseName();
+        // It should not be possible that database is null, but it's better to be safe than sorry.
+        return database == null ? "" : database;
+      case GOOGLE_STANDARD_SQL:
+      default:
+        return "";
+    }
   }
 
   @Override
   public void setSchema(String schema) throws SQLException {
     checkClosed();
-    // Cloud Spanner does not support schemas, but does contain a pseudo 'empty string' schema that
-    // might be set by frameworks and applications that read the database metadata.
-    JdbcPreconditions.checkArgument("".equals(schema), "Only schema \"\" is supported");
+    checkValidSchema(schema);
+  }
+
+  void checkValidSchema(String schema) throws SQLException {
+    String defaultSchema = getDefaultCatalog();
+    JdbcPreconditions.checkArgument(
+        defaultSchema.equals(schema), String.format("Only schema %s is supported", defaultSchema));
   }
 
   @Override
   public String getSchema() throws SQLException {
     checkClosed();
-    return "";
+    return getDefaultSchema();
+  }
+
+  @Nonnull
+  String getDefaultSchema() {
+    switch (getDialect()) {
+      case POSTGRESQL:
+        return "public";
+      case GOOGLE_STANDARD_SQL:
+      default:
+        return "";
+    }
   }
 
   @Override
