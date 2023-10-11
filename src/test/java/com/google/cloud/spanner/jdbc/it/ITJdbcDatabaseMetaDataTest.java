@@ -846,7 +846,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
       assertEquals("", connection.getCatalog());
       try (ResultSet rs = connection.getMetaData().getCatalogs()) {
         assertTrue(rs.next());
-        assertEquals("", rs.getString("TABLE_CATALOG"));
+        assertEquals("", rs.getString("TABLE_CAT"));
 
         assertFalse(rs.next());
       }
