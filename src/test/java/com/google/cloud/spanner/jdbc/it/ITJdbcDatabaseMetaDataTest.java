@@ -830,11 +830,9 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
         assertThat(rs.next(), is(true));
         assertThat(rs.getString("TABLE_SCHEM"), is(equalTo("INFORMATION_SCHEMA")));
         assertThat(rs.getString("TABLE_CATALOG"), is(equalTo(DEFAULT_CATALOG)));
-        if (!EmulatorSpannerHelper.isUsingEmulator()) {
-          assertThat(rs.next(), is(true));
-          assertThat(rs.getString("TABLE_SCHEM"), is(equalTo("SPANNER_SYS")));
-          assertThat(rs.getString("TABLE_CATALOG"), is(equalTo(DEFAULT_CATALOG)));
-        }
+        assertThat(rs.next(), is(true));
+        assertThat(rs.getString("TABLE_SCHEM"), is(equalTo("SPANNER_SYS")));
+        assertThat(rs.getString("TABLE_CATALOG"), is(equalTo(DEFAULT_CATALOG)));
         assertFalse(rs.next());
       }
     }
