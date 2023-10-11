@@ -822,6 +822,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
   @Test
   public void testGetSchemas() throws SQLException {
     try (Connection connection = createConnection(env, database)) {
+      assertEquals("", connection.getSchema());
       try (ResultSet rs = connection.getMetaData().getSchemas()) {
         assertThat(rs.next(), is(true));
         assertThat(rs.getString("TABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
@@ -834,6 +835,19 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           assertThat(rs.getString("TABLE_SCHEM"), is(equalTo("SPANNER_SYS")));
           assertThat(rs.getString("TABLE_CATALOG"), is(equalTo(DEFAULT_CATALOG)));
         }
+        assertFalse(rs.next());
+      }
+    }
+  }
+
+  @Test
+  public void testGetCatalogs() throws SQLException {
+    try (Connection connection = createConnection(env, database)) {
+      assertEquals("", connection.getCatalog());
+      try (ResultSet rs = connection.getMetaData().getCatalogs()) {
+        assertTrue(rs.next());
+        assertEquals("", rs.getString("TABLE_CATALOG"));
+
         assertFalse(rs.next());
       }
     }

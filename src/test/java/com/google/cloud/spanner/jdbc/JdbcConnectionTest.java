@@ -724,7 +724,7 @@ public class JdbcConnectionTest {
       // The default schema is 'public' for PostgreSQL databases.
       assertEquals(connection.getDefaultSchema(), connection.getSchema());
       // This should be allowed.
-      connection.setSchema(connection.getDefaultCatalog());
+      connection.setSchema(connection.getDefaultSchema());
       JdbcSqlExceptionImpl exception =
           assertThrows(JdbcSqlExceptionImpl.class, () -> connection.setSchema("other"));
       assertEquals(Code.INVALID_ARGUMENT, exception.getCode());

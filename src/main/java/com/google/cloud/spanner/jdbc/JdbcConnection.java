@@ -435,7 +435,7 @@ class JdbcConnection extends AbstractJdbcConnection {
   }
 
   void checkValidSchema(String schema) throws SQLException {
-    String defaultSchema = getDefaultCatalog();
+    String defaultSchema = getDefaultSchema();
     JdbcPreconditions.checkArgument(
         defaultSchema.equals(schema), String.format("Only schema %s is supported", defaultSchema));
   }
