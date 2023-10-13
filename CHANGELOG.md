@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.14.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.13.4...v2.14.0) (2023-10-12)
+
+
+### Features
+
+* Support default schema and catalog for PostgreSQL databases ([#1375](https://github.com/googleapis/java-spanner-jdbc/issues/1375)) ([2737ece](https://github.com/googleapis/java-spanner-jdbc/commit/2737ecec00abd51b796e13375f2ebdfbf8e1b201))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.17.0 ([#1383](https://github.com/googleapis/java-spanner-jdbc/issues/1383)) ([f0209a7](https://github.com/googleapis/java-spanner-jdbc/commit/f0209a7be923465a30effc30ac23294299e0cd72))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.50.0 ([#1386](https://github.com/googleapis/java-spanner-jdbc/issues/1386)) ([8401ef8](https://github.com/googleapis/java-spanner-jdbc/commit/8401ef868493a83d2c8b8d68a33a118d2b94f769))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.50.1 ([#1388](https://github.com/googleapis/java-spanner-jdbc/issues/1388)) ([8ae3919](https://github.com/googleapis/java-spanner-jdbc/commit/8ae3919e352dbe02a03a41cfbc440619d299454c))
+
 ## [2.13.4](https://github.com/googleapis/java-spanner-jdbc/compare/v2.13.3...v2.13.4) (2023-09-28)
 
 
