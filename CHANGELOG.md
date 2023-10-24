@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.14.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.14.1...v2.14.2) (2023-10-24)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.18.0 ([#1402](https://github.com/googleapis/java-spanner-jdbc/issues/1402)) ([764c9d2](https://github.com/googleapis/java-spanner-jdbc/commit/764c9d244df16307fe3b13e647759b777bb145ab))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.52.1 ([#1401](https://github.com/googleapis/java-spanner-jdbc/issues/1401)) ([cf577ee](https://github.com/googleapis/java-spanner-jdbc/commit/cf577ee89faa84444b37a7b0b7fe931223461836))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.1.5 ([#1399](https://github.com/googleapis/java-spanner-jdbc/issues/1399)) ([ca4b183](https://github.com/googleapis/java-spanner-jdbc/commit/ca4b183c828b1d3cc4496e98ec3b609f7f80c2a8))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.1.5 ([#1400](https://github.com/googleapis/java-spanner-jdbc/issues/1400)) ([9b139aa](https://github.com/googleapis/java-spanner-jdbc/commit/9b139aa200a9ddf436b089555d25274f5ef7ee4a))
+
 ## [2.14.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.14.0...v2.14.1) (2023-10-14)
 
 
