@@ -111,6 +111,12 @@
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.6.0</version>
+    </dependency>
+    
     <!-- TODO: Remove grpc-alts from here once it has been removed as a runtime dependency from java-spanner -->
     <dependency>
       <groupId>io.grpc</groupId>
