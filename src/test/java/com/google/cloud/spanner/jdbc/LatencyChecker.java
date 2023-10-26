@@ -1,3 +1,19 @@
+/*
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.google.cloud.spanner.jdbc;
 
 import static org.junit.Assert.assertNotNull;
@@ -15,7 +31,7 @@ public class LatencyChecker {
     for (String url : new String[] {
         "jdbc:cloudspanner:/projects/cloud-spanner-pg-adapter/instances/pgadapter-ycsb-regional-test/databases/pgadapter-ycsb-test?numChannels=20",
         "jdbc:postgresql://localhost:5432/pgadapter-ycsb-test",
-    }) {
+    }) {  
 
       try (Connection connection = DriverManager.getConnection(url)) {
         System.out.println(url);
