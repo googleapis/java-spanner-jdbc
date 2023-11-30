@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.14.5](https://github.com/googleapis/java-spanner-jdbc/compare/v2.14.4...v2.14.5) (2023-11-30)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.20.0 ([#1430](https://github.com/googleapis/java-spanner-jdbc/issues/1430)) ([5da2d71](https://github.com/googleapis/java-spanner-jdbc/commit/5da2d71c69036a8a4f4033b0bb00c39f98715fd1))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.54.0 ([#1420](https://github.com/googleapis/java-spanner-jdbc/issues/1420)) ([d3f5361](https://github.com/googleapis/java-spanner-jdbc/commit/d3f5361bbe03eca85c1bdba5af0a716dc923a231))
+* Update dependency org.mybatis.spring.boot:mybatis-spring-boot-starter to v3.0.3 ([#1426](https://github.com/googleapis/java-spanner-jdbc/issues/1426)) ([8667ee8](https://github.com/googleapis/java-spanner-jdbc/commit/8667ee8c16841b9a526ac7f1bd025f13f9149dc7))
+* Update dependency org.postgresql:postgresql to v42.7.0 ([#1422](https://github.com/googleapis/java-spanner-jdbc/issues/1422)) ([d107b25](https://github.com/googleapis/java-spanner-jdbc/commit/d107b25b2d6ad1dcf91a94118bd96d5f975be116))
+
 ## [2.14.4](https://github.com/googleapis/java-spanner-jdbc/compare/v2.14.3...v2.14.4) (2023-11-09)
 
 
