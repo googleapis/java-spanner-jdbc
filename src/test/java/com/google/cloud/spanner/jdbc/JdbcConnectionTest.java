@@ -502,7 +502,7 @@ public class JdbcConnectionTest {
         mock(com.google.cloud.spanner.connection.Connection.class);
     when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
-    Statement statement = Statement.of(JdbcConnection.IS_VALID_QUERY);
+    Statement statement = Statement.of(JdbcConnection.LEGACY_IS_VALID_QUERY);
 
     // Verify that an opened connection that returns a result set is valid.
     try (JdbcConnection connection = new JdbcConnection("url", options)) {
@@ -517,7 +517,7 @@ public class JdbcConnectionTest {
       }
 
       // Now let the query return an error. isValid should now return false.
-      when(spannerConnection.executeQuery(statement))
+      when(spannerConnection.getDialect())
           .thenThrow(
               SpannerExceptionFactory.newSpannerException(
                   ErrorCode.ABORTED, "the current transaction has been aborted"));
