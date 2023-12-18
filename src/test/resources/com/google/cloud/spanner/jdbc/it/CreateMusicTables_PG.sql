@@ -74,6 +74,27 @@ CREATE TABLE TableWithAllColumnTypes (
     ColNumeric   NUMERIC NOT NULL,
     ColJson      VARCHAR NOT NULL
 );
+CREATE TABLE all_nullable_types (
+    ColInt64	    bigint primary key,
+    ColFloat64	    float8,
+    ColBool		    boolean,
+    ColString		varchar(100),
+    ColBytes		bytea,
+    ColDate		    date,
+    ColTimestamp	timestamptz,
+    ColNumeric	    numeric,
+    ColJson		    jsonb,
+
+    ColInt64Array		bigint[],
+    ColFloat64Array     float8[],
+    ColBoolArray		boolean[],
+    ColStringArray	    varchar(100)[],
+    ColBytesArray		bytea[],
+    ColDateArray		date[],
+    ColTimestampArray	timestamptz[],
+    ColNumericArray	    numeric[],
+    ColJsonArray		jsonb[]
+);
 
 CREATE TABLE TableWithRef (
     Id          BIGINT NOT NULL PRIMARY KEY,

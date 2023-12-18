@@ -1476,6 +1476,39 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     }
   }
 
+  @Test
+  public void test13_InsertUntypedNullValues() throws SQLException {
+    try (Connection connection = createConnection(env, database)) {
+      try (PreparedStatement preparedStatement =
+          connection.prepareStatement(
+              "insert into all_nullable_types ("
+                  + "ColInt64, ColFloat64, ColBool, ColString, ColBytes, ColDate, ColTimestamp, ColNumeric, ColJson, "
+                  + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColBytesArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray) "
+                  + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        for (int param = 1;
+            param <= preparedStatement.getParameterMetaData().getParameterCount();
+            param++) {
+          preparedStatement.setNull(param, Types.OTHER);
+        }
+        if (getDialect() == Dialect.POSTGRESQL) {
+          // PostgreSQL-dialect databases do not allow NULLs in primary keys.
+          preparedStatement.setLong(1, 1L);
+        }
+        assertEquals(1, preparedStatement.executeUpdate());
+
+        // Verify that calling preparedStatement.setObject(index, null) works.
+        for (int param = 1;
+            param <= preparedStatement.getParameterMetaData().getParameterCount();
+            param++) {
+          preparedStatement.setObject(param, null);
+        }
+        // We need a different primary key value to insert another row.
+        preparedStatement.setLong(1, 2L);
+        assertEquals(1, preparedStatement.executeUpdate());
+      }
+    }
+  }
+
   private List<String> readValuesFromFile(String filename) {
     StringBuilder builder = new StringBuilder();
     try (InputStream stream = ITJdbcPreparedStatementTest.class.getResourceAsStream(filename)) {

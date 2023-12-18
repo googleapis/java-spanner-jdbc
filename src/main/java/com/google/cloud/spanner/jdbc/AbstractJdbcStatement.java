@@ -31,6 +31,8 @@ import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /** Base class for Cloud Spanner JDBC {@link Statement}s */
 abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Statement {
@@ -118,6 +120,25 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
     }
   }
 
+  /** Functional interface that throws {@link SQLException}. */
+  interface JdbcFunction<T, R> {
+    R apply(T t) throws SQLException;
+  }
+
+  /** Runs the given function with the timeout that has been set on this statement. */
+  protected <T> T runWithStatementTimeout(JdbcFunction<Connection, T> function)
+      throws SQLException {
+    checkClosed();
+    StatementTimeout originalTimeout = setTemporaryStatementTimeout();
+    try {
+      return function.apply(getConnection().getSpannerConnection());
+    } catch (SpannerException spannerException) {
+      throw JdbcSqlExceptionFactory.of(spannerException);
+    } finally {
+      resetStatementTimeout(originalTimeout);
+    }
+  }
+
   /**
    * Sets the statement timeout of the Spanner {@link Connection} to the query timeout of this JDBC
    * {@link Statement} and returns the original timeout of the Spanner {@link Connection} so it can
@@ -184,20 +205,36 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       QueryAnalyzeMode analyzeMode,
       QueryOption... options)
       throws SQLException {
+    Options.QueryOption[] queryOptions = getQueryOptions(options);
+    return doWithStatementTimeout(
+        () -> {
+          com.google.cloud.spanner.ResultSet resultSet;
+          if (analyzeMode == null) {
+            resultSet = connection.getSpannerConnection().executeQuery(statement, queryOptions);
+          } else {
+            resultSet = connection.getSpannerConnection().analyzeQuery(statement, analyzeMode);
+          }
+          return JdbcResultSet.of(this, resultSet);
+        });
+  }
+
+  private <T> T doWithStatementTimeout(Supplier<T> runnable) throws SQLException {
+    return doWithStatementTimeout(runnable, ignore -> Boolean.TRUE);
+  }
+
+  private <T> T doWithStatementTimeout(
+      Supplier<T> runnable, Function<T, Boolean> shouldResetTimeout) throws SQLException {
     StatementTimeout originalTimeout = setTemporaryStatementTimeout();
+    T result = null;
     try {
-      com.google.cloud.spanner.ResultSet resultSet;
-      if (analyzeMode == null) {
-        resultSet =
-            connection.getSpannerConnection().executeQuery(statement, getQueryOptions(options));
-      } else {
-        resultSet = connection.getSpannerConnection().analyzeQuery(statement, analyzeMode);
-      }
-      return JdbcResultSet.of(this, resultSet);
-    } catch (SpannerException e) {
-      throw JdbcSqlExceptionFactory.of(e);
+      result = runnable.get();
+      return result;
+    } catch (SpannerException spannerException) {
+      throw JdbcSqlExceptionFactory.of(spannerException);
     } finally {
-      resetStatementTimeout(originalTimeout);
+      if (shouldResetTimeout.apply(result)) {
+        resetStatementTimeout(originalTimeout);
+      }
     }
   }
 
@@ -211,12 +248,19 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    *     than {@link Integer#MAX_VALUE}
    */
   int executeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
-    long count = executeLargeUpdate(statement);
-    if (count > Integer.MAX_VALUE) {
+    return checkedCast(executeLargeUpdate(statement));
+  }
+
+  /**
+   * Do a checked cast from long to int. Throws a {@link SQLException} with code {@link
+   * Code#OUT_OF_RANGE} if the update count is too big to fit in an int.
+   */
+  int checkedCast(long updateCount) throws SQLException {
+    if (updateCount > Integer.MAX_VALUE) {
       throw JdbcSqlExceptionFactory.of(
-          "update count too large for executeUpdate: " + count, Code.OUT_OF_RANGE);
+          "update count too large for executeUpdate: " + updateCount, Code.OUT_OF_RANGE);
     }
-    return (int) count;
+    return (int) updateCount;
   }
 
   /**
@@ -228,14 +272,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    * @throws SQLException if a database error occurs
    */
   long executeLargeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
-    StatementTimeout originalTimeout = setTemporaryStatementTimeout();
-    try {
-      return connection.getSpannerConnection().executeUpdate(statement);
-    } catch (SpannerException e) {
-      throw JdbcSqlExceptionFactory.of(e);
-    } finally {
-      resetStatementTimeout(originalTimeout);
-    }
+    return doWithStatementTimeout(() -> connection.getSpannerConnection().executeUpdate(statement));
   }
 
   /**
@@ -248,24 +285,16 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    * @throws SQLException if a database error occurs.
    */
   StatementResult execute(com.google.cloud.spanner.Statement statement) throws SQLException {
-    StatementTimeout originalTimeout = setTemporaryStatementTimeout();
-    boolean mustResetTimeout = false;
-    try {
-      StatementResult result = connection.getSpannerConnection().execute(statement);
-      mustResetTimeout = !resultIsSetStatementTimeout(result);
-      if (mustResetTimeout && resultIsShowStatementTimeout(result)) {
-        // it was a 'SHOW STATEMENT_TIMEOUT statement, we need to re-run to get the correct value
-        mustResetTimeout = false;
-        result = rerunShowStatementTimeout(statement, originalTimeout);
-      }
-      return result;
-    } catch (SpannerException e) {
-      throw JdbcSqlExceptionFactory.of(e);
-    } finally {
-      if (mustResetTimeout) {
-        resetStatementTimeout(originalTimeout);
-      }
+    StatementResult statementResult =
+        doWithStatementTimeout(
+            () -> connection.getSpannerConnection().execute(statement),
+            result -> !resultIsSetStatementTimeout(result));
+    if (resultIsShowStatementTimeout(statementResult)) {
+      // We can safely re-run it without first resetting the timeout to the original value, as that
+      // has already been done by the 'doWithStatementTimeout' function.
+      return rerunShowStatementTimeout(statement);
     }
+    return statementResult;
   }
 
   /**
@@ -288,18 +317,22 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    *     executed was a SET STATEMENT_TIMEOUT statement.
    */
   private boolean resultIsSetStatementTimeout(StatementResult result) {
-    return result.getClientSideStatementType() == ClientSideStatementType.SET_STATEMENT_TIMEOUT;
+    return result != null
+        && result.getClientSideStatementType() == ClientSideStatementType.SET_STATEMENT_TIMEOUT;
   }
 
   private boolean resultIsShowStatementTimeout(StatementResult result) {
-    return result.getClientSideStatementType() == ClientSideStatementType.SHOW_STATEMENT_TIMEOUT;
+    return result != null
+        && result.getClientSideStatementType() == ClientSideStatementType.SHOW_STATEMENT_TIMEOUT;
   }
 
-  private StatementResult rerunShowStatementTimeout(
-      com.google.cloud.spanner.Statement statement, StatementTimeout originalTimeout)
+  private StatementResult rerunShowStatementTimeout(com.google.cloud.spanner.Statement statement)
       throws SQLException {
-    resetStatementTimeout(originalTimeout);
-    return connection.getSpannerConnection().execute(statement);
+    try {
+      return connection.getSpannerConnection().execute(statement);
+    } catch (SpannerException spannerException) {
+      throw JdbcSqlExceptionFactory.of(spannerException);
+    }
   }
 
   @Override

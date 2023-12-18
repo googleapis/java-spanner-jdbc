@@ -777,11 +777,12 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public ResultSet getCatalogs() {
+  public ResultSet getCatalogs() throws SQLException {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(StructField.of("TABLE_CAT", Type.string())),
-            Collections.singletonList(Struct.newBuilder().set("TABLE_CAT").to("").build())));
+            Collections.singletonList(
+                Struct.newBuilder().set("TABLE_CAT").to(getConnection().getCatalog()).build())));
   }
 
   @Override
@@ -1524,9 +1525,10 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   @Override
   public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
     String sql = readSqlFromFile("DatabaseMetaData_GetSchemas.sql", connection.getDialect());
-    JdbcPreparedStatement statement =
-        prepareStatementReplaceNullWithAnyString(sql, catalog, schemaPattern);
-    return statement.executeQueryWithOptions(InternalMetadataQuery.INSTANCE);
+    try (JdbcPreparedStatement statement =
+        prepareStatementReplaceNullWithAnyString(sql, catalog, schemaPattern)) {
+      return statement.executeQueryWithOptions(InternalMetadataQuery.INSTANCE);
+    }
   }
 
   @Override

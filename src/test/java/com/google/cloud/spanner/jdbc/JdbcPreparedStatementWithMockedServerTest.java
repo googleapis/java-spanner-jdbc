@@ -25,8 +25,16 @@ import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
 import com.google.cloud.spanner.Statement;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlBatchUpdateException;
+import com.google.spanner.v1.ResultSet;
+import com.google.spanner.v1.ResultSetMetadata;
+import com.google.spanner.v1.ResultSetStats;
+import com.google.spanner.v1.StructType;
+import com.google.spanner.v1.StructType.Field;
+import com.google.spanner.v1.Type;
+import com.google.spanner.v1.TypeCode;
 import io.grpc.Server;
 import io.grpc.Status;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
@@ -36,6 +44,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
 import org.junit.After;
@@ -190,6 +199,240 @@ public class JdbcPreparedStatementWithMockedServerTest {
             assertThat(e.getUpdateCounts()).asList().containsExactly(1);
           }
         }
+      }
+    }
+  }
+
+  @Test
+  public void testInsertUntypedNullValues() throws SQLException {
+    String sql =
+        "insert into all_nullable_types (ColInt64, ColFloat64, ColBool, ColString, ColBytes, ColDate, ColTimestamp, ColNumeric, ColJson, ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColBytesArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray) "
+            + "values (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18)";
+    mockSpanner.putStatementResult(
+        StatementResult.query(
+            Statement.of(sql),
+            ResultSet.newBuilder()
+                .setMetadata(
+                    ResultSetMetadata.newBuilder()
+                        .setUndeclaredParameters(
+                            StructType.newBuilder()
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p1")
+                                        .setType(Type.newBuilder().setCode(TypeCode.INT64).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p2")
+                                        .setType(
+                                            Type.newBuilder().setCode(TypeCode.FLOAT64).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p3")
+                                        .setType(Type.newBuilder().setCode(TypeCode.BOOL).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p4")
+                                        .setType(Type.newBuilder().setCode(TypeCode.STRING).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p5")
+                                        .setType(Type.newBuilder().setCode(TypeCode.BYTES).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p6")
+                                        .setType(Type.newBuilder().setCode(TypeCode.DATE).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p7")
+                                        .setType(
+                                            Type.newBuilder().setCode(TypeCode.TIMESTAMP).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p8")
+                                        .setType(
+                                            Type.newBuilder().setCode(TypeCode.NUMERIC).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p9")
+                                        .setType(Type.newBuilder().setCode(TypeCode.JSON).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p10")
+                                        .setType(
+                                            Type.newBuilder()
+                                                .setCode(TypeCode.ARRAY)
+                                                .setArrayElementType(
+                                                    Type.newBuilder()
+                                                        .setCode(TypeCode.INT64)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p11")
+                                        .setType(
+                                            Type.newBuilder()
+                                                .setCode(TypeCode.ARRAY)
+                                                .setArrayElementType(
+                                                    Type.newBuilder()
+                                                        .setCode(TypeCode.FLOAT64)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p12")
+                                        .setType(
+                                            Type.newBuilder()
+                                                .setCode(TypeCode.ARRAY)
+                                                .setArrayElementType(
+                                                    Type.newBuilder()
+                                                        .setCode(TypeCode.BOOL)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p13")
+                                        .setType(
+                                            Type.newBuilder()
+                                                .setCode(TypeCode.ARRAY)
+                                                .setArrayElementType(
+                                                    Type.newBuilder()
+                                                        .setCode(TypeCode.STRING)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p14")
+                                        .setType(
+                                            Type.newBuilder()
+                                                .setCode(TypeCode.ARRAY)
+                                                .setArrayElementType(
+                                                    Type.newBuilder()
+                                                        .setCode(TypeCode.BYTES)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p15")
+                                        .setType(
+                                            Type.newBuilder()
+                                                .setCode(TypeCode.ARRAY)
+                                                .setArrayElementType(
+                                                    Type.newBuilder()
+                                                        .setCode(TypeCode.DATE)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p16")
+                                        .setType(
+                                            Type.newBuilder()
+                                                .setCode(TypeCode.ARRAY)
+                                                .setArrayElementType(
+                                                    Type.newBuilder()
+                                                        .setCode(TypeCode.TIMESTAMP)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p17")
+                                        .setType(
+                                            Type.newBuilder()
+                                                .setCode(TypeCode.ARRAY)
+                                                .setArrayElementType(
+                                                    Type.newBuilder()
+                                                        .setCode(TypeCode.NUMERIC)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("p18")
+                                        .setType(
+                                            Type.newBuilder()
+                                                .setCode(TypeCode.ARRAY)
+                                                .setArrayElementType(
+                                                    Type.newBuilder()
+                                                        .setCode(TypeCode.JSON)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .build())
+                        .build())
+                .setStats(ResultSetStats.newBuilder().build())
+                .build()));
+    mockSpanner.putStatementResult(
+        StatementResult.update(
+            Statement.newBuilder(sql)
+                .bind("p1")
+                .to((Value) null)
+                .bind("p2")
+                .to((Value) null)
+                .bind("p3")
+                .to((Value) null)
+                .bind("p4")
+                .to((Value) null)
+                .bind("p5")
+                .to((Value) null)
+                .bind("p6")
+                .to((Value) null)
+                .bind("p7")
+                .to((Value) null)
+                .bind("p8")
+                .to((Value) null)
+                .bind("p9")
+                .to((Value) null)
+                .bind("p10")
+                .to((Value) null)
+                .bind("p11")
+                .to((Value) null)
+                .bind("p12")
+                .to((Value) null)
+                .bind("p13")
+                .to((Value) null)
+                .bind("p14")
+                .to((Value) null)
+                .bind("p15")
+                .to((Value) null)
+                .bind("p16")
+                .to((Value) null)
+                .bind("p17")
+                .to((Value) null)
+                .bind("p18")
+                .to((Value) null)
+                .build(),
+            1L));
+    try (Connection connection = createConnection()) {
+      for (int type : new int[] {Types.OTHER, Types.NULL}) {
+        try (PreparedStatement statement =
+            connection.prepareStatement(
+                "insert into all_nullable_types ("
+                    + "ColInt64, ColFloat64, ColBool, ColString, ColBytes, ColDate, ColTimestamp, ColNumeric, ColJson, "
+                    + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColBytesArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray) "
+                    + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+          for (int param = 1;
+              param <= statement.getParameterMetaData().getParameterCount();
+              param++) {
+            statement.setNull(param, type);
+          }
+          assertEquals(1, statement.executeUpdate());
+        }
+        mockSpanner.clearRequests();
       }
     }
   }

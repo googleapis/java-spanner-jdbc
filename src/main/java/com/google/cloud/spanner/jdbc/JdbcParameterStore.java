@@ -24,6 +24,7 @@ import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.ValueBinder;
 import com.google.common.io.CharStreams;
+import com.google.protobuf.NullValue;
 import com.google.rpc.Code;
 import java.io.IOException;
 import java.io.InputStream;
@@ -231,6 +232,10 @@ class JdbcParameterStore {
   }
 
   private void checkTypeAndValueSupported(Object value, int sqlType) throws SQLException {
+    if (value == null) {
+      // null is always supported, as we will just fall back to an untyped NULL value.
+      return;
+    }
     if (!isTypeSupported(sqlType)) {
       throw JdbcSqlExceptionFactory.of(
           "Type " + sqlType + " is not supported", Code.INVALID_ARGUMENT);
@@ -775,8 +780,13 @@ class JdbcParameterStore {
         case Types.LONGVARBINARY:
         case Types.BLOB:
           return binder.toBytesArray(null);
+        default:
+          return binder.to(
+              Value.untyped(
+                  com.google.protobuf.Value.newBuilder()
+                      .setNullValue(NullValue.NULL_VALUE)
+                      .build()));
       }
-      throw JdbcSqlExceptionFactory.unsupported("Unknown/unsupported array base type: " + type);
     }
 
     if (boolean[].class.isAssignableFrom(value.getClass())) {
@@ -864,7 +874,9 @@ class JdbcParameterStore {
    */
   private Builder setNullValue(ValueBinder<Builder> binder, Integer sqlType) {
     if (sqlType == null) {
-      return binder.to((String) null);
+      return binder.to(
+          Value.untyped(
+              com.google.protobuf.Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()));
     }
     switch (sqlType) {
       case Types.BIGINT:
@@ -924,8 +936,14 @@ class JdbcParameterStore {
         return binder.to((ByteArray) null);
       case Types.VARCHAR:
         return binder.to((String) null);
+      case JsonType.VENDOR_TYPE_NUMBER:
+        return binder.to(Value.json(null));
+      case PgJsonbType.VENDOR_TYPE_NUMBER:
+        return binder.to(Value.pgJsonb(null));
       default:
-        throw new IllegalArgumentException("Unsupported sql type for setting to null: " + sqlType);
+        return binder.to(
+            Value.untyped(
+                com.google.protobuf.Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()));
     }
   }
 }

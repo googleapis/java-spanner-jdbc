@@ -420,6 +420,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new IndexInfo("albums", false, "PRIMARY_KEY", 1, "singerid", "A"),
           new IndexInfo("albums", false, "PRIMARY_KEY", 2, "albumid", "A"),
           new IndexInfo("albums", true, "albumsbyalbumtitle", 1, "albumtitle", "A"),
+          new IndexInfo("all_nullable_types", false, "PRIMARY_KEY", 1, "colint64", "A"),
           new IndexInfo("concerts", false, "PRIMARY_KEY", 1, "venueid", "A"),
           new IndexInfo("concerts", false, "PRIMARY_KEY", 2, "singerid", "A"),
           new IndexInfo("concerts", false, "PRIMARY_KEY", 3, "concertdate", "A"),
@@ -751,6 +752,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
   @Test
   public void testGetSchemas() throws SQLException {
     try (Connection connection = createConnection(env, database)) {
+      assertEquals("public", connection.getSchema());
       try (ResultSet rs = connection.getMetaData().getSchemas()) {
         assertTrue(rs.next());
         assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CATALOG"));
@@ -767,6 +769,19 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
         assertTrue(rs.next());
         assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CATALOG"));
         assertEquals("spanner_sys", rs.getString("TABLE_SCHEM"));
+
+        assertFalse(rs.next());
+      }
+    }
+  }
+
+  @Test
+  public void testGetCatalogs() throws SQLException {
+    try (Connection connection = createConnection(env, database)) {
+      assertEquals(database.getId().getDatabase(), connection.getCatalog());
+      try (ResultSet rs = connection.getMetaData().getCatalogs()) {
+        assertTrue(rs.next());
+        assertEquals(database.getId().getDatabase(), rs.getString("TABLE_CAT"));
 
         assertFalse(rs.next());
       }
@@ -790,6 +805,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
   private static final List<Table> EXPECTED_TABLES =
       Arrays.asList(
           new Table("albums"),
+          new Table("all_nullable_types"),
           new Table("concerts"),
           new Table("singers"),
           // TODO: Enable when views are supported for PostgreSQL dialect databases.
