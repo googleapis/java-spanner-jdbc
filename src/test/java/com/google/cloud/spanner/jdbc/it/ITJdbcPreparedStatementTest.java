@@ -402,7 +402,12 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                 : ImmutableList.of(
                     Types.BIGINT, Types.NVARCHAR, Types.NVARCHAR, Types.BINARY, Types.DATE),
             dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of("bigint", "varchar", "varchar", "bytea", "varchar")
+                ? ImmutableList.of(
+                    "bigint",
+                    "character varying",
+                    "character varying",
+                    "bytea",
+                    "character varying")
                 : ImmutableList.of("INT64", "STRING", "STRING", "BYTES", "DATE"),
             dialect.dialect == Dialect.POSTGRESQL
                 ? ImmutableList.of(
@@ -428,7 +433,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
             ps.getParameterMetaData(),
             ImmutableList.of(Types.BIGINT, Types.BIGINT, Types.NVARCHAR, Types.BIGINT),
             dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of("bigint", "bigint", "varchar", "bigint")
+                ? ImmutableList.of("bigint", "bigint", "character varying", "bigint")
                 : ImmutableList.of("INT64", "INT64", "STRING", "INT64"),
             ImmutableList.of(Long.class, Long.class, String.class, Long.class));
         for (Album album : createAlbums()) {
@@ -455,7 +460,13 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                 Types.BIGINT,
                 Types.NVARCHAR),
             dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of("bigint", "bigint", "bigint", "varchar", "bigint", "varchar")
+                ? ImmutableList.of(
+                    "bigint",
+                    "bigint",
+                    "bigint",
+                    "character varying",
+                    "bigint",
+                    "character varying")
                 : ImmutableList.of("INT64", "INT64", "INT64", "STRING", "INT64", "STRING"),
             ImmutableList.of(
                 Long.class, Long.class, Long.class, String.class, Long.class, String.class));
@@ -487,7 +498,12 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                     Types.TIMESTAMP,
                     Types.ARRAY),
             dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of("bigint", "bigint", "varchar", "varchar", "varchar")
+                ? ImmutableList.of(
+                    "bigint",
+                    "bigint",
+                    "character varying",
+                    "character varying",
+                    "character varying")
                 : ImmutableList.of(
                     "INT64", "INT64", "DATE", "TIMESTAMP", "TIMESTAMP", "ARRAY<INT64>"),
             dialect.dialect == Dialect.POSTGRESQL
@@ -1348,7 +1364,12 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                 : ImmutableList.of(
                     Types.BIGINT, Types.NVARCHAR, Types.NVARCHAR, Types.BINARY, Types.DATE),
             dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of("bigint", "varchar", "varchar", "bytea", "varchar")
+                ? ImmutableList.of(
+                    "bigint",
+                    "character varying",
+                    "character varying",
+                    "bytea",
+                    "character varying")
                 : ImmutableList.of("INT64", "STRING", "STRING", "BYTES", "DATE"),
             dialect.dialect == Dialect.POSTGRESQL
                 ? ImmutableList.of(
@@ -1373,7 +1394,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
             ps.getParameterMetaData(),
             ImmutableList.of(Types.BIGINT, Types.BIGINT, Types.NVARCHAR, Types.BIGINT),
             dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of("bigint", "bigint", "varchar", "bigint")
+                ? ImmutableList.of("bigint", "bigint", "character varying", "bigint")
                 : ImmutableList.of("INT64", "INT64", "STRING", "INT64"),
             ImmutableList.of(Long.class, Long.class, String.class, Long.class));
         for (Album album : createAlbums()) {
@@ -1405,7 +1426,13 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                 Types.BIGINT,
                 Types.NVARCHAR),
             dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of("bigint", "bigint", "bigint", "varchar", "bigint", "varchar")
+                ? ImmutableList.of(
+                    "bigint",
+                    "bigint",
+                    "bigint",
+                    "character varying",
+                    "bigint",
+                    "character varying")
                 : ImmutableList.of("INT64", "INT64", "INT64", "STRING", "INT64", "STRING"),
             ImmutableList.of(
                 Long.class, Long.class, Long.class, String.class, Long.class, String.class));
@@ -1449,7 +1476,12 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                     Types.TIMESTAMP,
                     Types.ARRAY),
             dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of("bigint", "bigint", "varchar", "varchar", "varchar")
+                ? ImmutableList.of(
+                    "bigint",
+                    "bigint",
+                    "character varying",
+                    "character varying",
+                    "character varying")
                 : ImmutableList.of(
                     "INT64", "INT64", "DATE", "TIMESTAMP", "TIMESTAMP", "ARRAY<INT64>"),
             dialect.dialect == Dialect.POSTGRESQL
