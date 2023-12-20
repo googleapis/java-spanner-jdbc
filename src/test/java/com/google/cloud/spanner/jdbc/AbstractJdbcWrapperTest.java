@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.cloud.spanner.jdbc.AbstractJdbcWrapper.getSpannerTypeName;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,6 +24,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.cloud.Timestamp;
+import com.google.cloud.spanner.Dialect;
+import com.google.cloud.spanner.Type;
 import com.google.rpc.Code;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -425,5 +428,69 @@ public class AbstractJdbcWrapperTest {
       assertThat((Exception) e).isInstanceOf(JdbcSqlException.class);
       assertThat(((JdbcSqlException) e).getCode()).isEqualTo(Code.INVALID_ARGUMENT);
     }
+  }
+
+  @Test
+  public void testGoogleSQLTypeNames() {
+    assertEquals("INT64", getSpannerTypeName(Type.int64(), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals("BOOL", getSpannerTypeName(Type.bool(), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals("FLOAT64", getSpannerTypeName(Type.float64(), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals("STRING", getSpannerTypeName(Type.string(), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals("BYTES", getSpannerTypeName(Type.bytes(), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals("DATE", getSpannerTypeName(Type.date(), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals("TIMESTAMP", getSpannerTypeName(Type.timestamp(), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals("JSON", getSpannerTypeName(Type.json(), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals("NUMERIC", getSpannerTypeName(Type.numeric(), Dialect.GOOGLE_STANDARD_SQL));
+
+    assertEquals(
+        "ARRAY<INT64>", getSpannerTypeName(Type.array(Type.int64()), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals(
+        "ARRAY<BOOL>", getSpannerTypeName(Type.array(Type.bool()), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals(
+        "ARRAY<FLOAT64>",
+        getSpannerTypeName(Type.array(Type.float64()), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals(
+        "ARRAY<STRING>",
+        getSpannerTypeName(Type.array(Type.string()), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals(
+        "ARRAY<BYTES>", getSpannerTypeName(Type.array(Type.bytes()), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals(
+        "ARRAY<DATE>", getSpannerTypeName(Type.array(Type.date()), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals(
+        "ARRAY<TIMESTAMP>",
+        getSpannerTypeName(Type.array(Type.timestamp()), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals(
+        "ARRAY<JSON>", getSpannerTypeName(Type.array(Type.json()), Dialect.GOOGLE_STANDARD_SQL));
+    assertEquals(
+        "ARRAY<NUMERIC>",
+        getSpannerTypeName(Type.array(Type.numeric()), Dialect.GOOGLE_STANDARD_SQL));
+  }
+
+  @Test
+  public void testPostgreSQLTypeNames() {
+    assertEquals("bigint", getSpannerTypeName(Type.int64(), Dialect.POSTGRESQL));
+    assertEquals("boolean", getSpannerTypeName(Type.bool(), Dialect.POSTGRESQL));
+    assertEquals("double precision", getSpannerTypeName(Type.float64(), Dialect.POSTGRESQL));
+    assertEquals("character varying", getSpannerTypeName(Type.string(), Dialect.POSTGRESQL));
+    assertEquals("bytea", getSpannerTypeName(Type.bytes(), Dialect.POSTGRESQL));
+    assertEquals("date", getSpannerTypeName(Type.date(), Dialect.POSTGRESQL));
+    assertEquals(
+        "timestamp with time zone", getSpannerTypeName(Type.timestamp(), Dialect.POSTGRESQL));
+    assertEquals("jsonb", getSpannerTypeName(Type.pgJsonb(), Dialect.POSTGRESQL));
+    assertEquals("numeric", getSpannerTypeName(Type.pgNumeric(), Dialect.POSTGRESQL));
+
+    assertEquals("bigint[]", getSpannerTypeName(Type.array(Type.int64()), Dialect.POSTGRESQL));
+    assertEquals("boolean[]", getSpannerTypeName(Type.array(Type.bool()), Dialect.POSTGRESQL));
+    assertEquals(
+        "double precision[]", getSpannerTypeName(Type.array(Type.float64()), Dialect.POSTGRESQL));
+    assertEquals(
+        "character varying[]", getSpannerTypeName(Type.array(Type.string()), Dialect.POSTGRESQL));
+    assertEquals("bytea[]", getSpannerTypeName(Type.array(Type.bytes()), Dialect.POSTGRESQL));
+    assertEquals("date[]", getSpannerTypeName(Type.array(Type.date()), Dialect.POSTGRESQL));
+    assertEquals(
+        "timestamp with time zone[]",
+        getSpannerTypeName(Type.array(Type.timestamp()), Dialect.POSTGRESQL));
+    assertEquals("jsonb[]", getSpannerTypeName(Type.array(Type.pgJsonb()), Dialect.POSTGRESQL));
+    assertEquals("numeric[]", getSpannerTypeName(Type.array(Type.pgNumeric()), Dialect.POSTGRESQL));
   }
 }

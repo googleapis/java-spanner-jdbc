@@ -71,7 +71,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   }
 
   static String getSpannerTypeName(Type type, Dialect dialect) {
-    // TODO: Move this into the Java Connection API.
+    // TODO: Use com.google.cloud.spanner.Type#getSpannerTypeName() when available.
     Preconditions.checkNotNull(type);
     switch (type.getCode()) {
       case BOOL:
@@ -89,7 +89,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
       case PG_NUMERIC:
         return "numeric";
       case STRING:
-        return dialect == Dialect.POSTGRESQL ? "varchar" : "STRING";
+        return dialect == Dialect.POSTGRESQL ? "character varying" : "STRING";
       case JSON:
         return "JSON";
       case PG_JSONB:
@@ -115,7 +115,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
           case PG_NUMERIC:
             return "numeric[]";
           case STRING:
-            return dialect == Dialect.POSTGRESQL ? "varchar[]" : "ARRAY<STRING>";
+            return dialect == Dialect.POSTGRESQL ? "character varying[]" : "ARRAY<STRING>";
           case JSON:
             return "ARRAY<JSON>";
           case PG_JSONB:

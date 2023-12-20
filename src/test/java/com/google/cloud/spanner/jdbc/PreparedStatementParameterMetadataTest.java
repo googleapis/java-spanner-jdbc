@@ -183,7 +183,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
         assertEquals(Types.NUMERIC, metadata.getParameterType(++index));
         assertEquals("numeric", metadata.getParameterTypeName(index));
         assertEquals(Types.NVARCHAR, metadata.getParameterType(++index));
-        assertEquals("varchar", metadata.getParameterTypeName(index));
+        assertEquals("character varying", metadata.getParameterTypeName(index));
         assertEquals(Types.TIMESTAMP, metadata.getParameterType(++index));
         assertEquals("timestamp with time zone", metadata.getParameterTypeName(index));
 
@@ -202,7 +202,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
         assertEquals("numeric[]", metadata.getParameterTypeName(index));
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
-        assertEquals("varchar[]", metadata.getParameterTypeName(index));
+        assertEquals("character varying[]", metadata.getParameterTypeName(index));
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
         assertEquals("timestamp with time zone[]", metadata.getParameterTypeName(index));
       }
