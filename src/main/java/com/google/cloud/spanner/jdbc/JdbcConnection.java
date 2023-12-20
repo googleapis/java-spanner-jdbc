@@ -29,6 +29,7 @@ import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.SavepointSupport;
 import com.google.cloud.spanner.connection.TransactionMode;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import java.sql.Array;
@@ -57,14 +58,42 @@ class JdbcConnection extends AbstractJdbcConnection {
       "Only result sets with concurrency CONCUR_READ_ONLY are supported";
   private static final String ONLY_CLOSE_CURSORS_AT_COMMIT =
       "Only result sets with holdability CLOSE_CURSORS_AT_COMMIT are supported";
-  static final String IS_VALID_QUERY = "SELECT 1";
+
+  /**
+   * This query is used to check the aliveness of the connection if legacy alive check has been
+   * enabled. As Cloud Spanner JDBC connections do not maintain a physical or logical connection to
+   * Cloud Spanner, there is also no point in repeatedly executing a simple query to check whether a
+   * connection is alive. Instead, we rely on the result from the initial query to Spanner that
+   * determines the dialect to determine whether the connection is alive or not. This result is
+   * cached for all JDBC connections using the same {@link com.google.cloud.spanner.Spanner}
+   * instance.
+   *
+   * <p>The legacy {@link #isValid(int)} check using a SELECT 1 statement can be enabled by setting
+   * the System property spanner.jdbc.use_legacy_is_valid_check to true or setting the environment
+   * variable SPANNER_JDBC_USE_LEGACY_IS_VALID_CHECK to true.
+   */
+  static final String LEGACY_IS_VALID_QUERY = "SELECT 1";
 
   static final ImmutableList<String> NO_GENERATED_KEY_COLUMNS = ImmutableList.of();
 
   private Map<String, Class<?>> typeMap = new HashMap<>();
 
+  private final boolean useLegacyIsValidCheck;
+
   JdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     super(connectionUrl, options);
+    this.useLegacyIsValidCheck = useLegacyValidCheck();
+  }
+
+  static boolean useLegacyValidCheck() {
+    String value = System.getProperty("spanner.jdbc.use_legacy_is_valid_check");
+    if (Strings.isNullOrEmpty(value)) {
+      value = System.getenv("SPANNER_JDBC_USE_LEGACY_IS_VALID_CHECK");
+    }
+    if (!Strings.isNullOrEmpty(value)) {
+      return Boolean.parseBoolean(value);
+    }
+    return false;
   }
 
   @Override
@@ -347,23 +376,38 @@ class JdbcConnection extends AbstractJdbcConnection {
     this.typeMap = new HashMap<>(map);
   }
 
+  boolean isUseLegacyIsValidCheck() {
+    return useLegacyIsValidCheck;
+  }
+
   @Override
   public boolean isValid(int timeout) throws SQLException {
     JdbcPreconditions.checkArgument(timeout >= 0, "timeout must be >= 0");
     if (!isClosed()) {
+      if (isUseLegacyIsValidCheck()) {
+        return legacyIsValid(timeout);
+      }
       try {
-        Statement statement = createStatement();
-        statement.setQueryTimeout(timeout);
-        try (ResultSet rs = statement.executeQuery(IS_VALID_QUERY)) {
-          if (rs.next()) {
-            if (rs.getLong(1) == 1L) {
-              return true;
-            }
+        return getDialect() != null;
+      } catch (Exception ignore) {
+        // ignore and fall through.
+      }
+    }
+    return false;
+  }
+
+  private boolean legacyIsValid(int timeout) throws SQLException {
+    try (Statement statement = createStatement()) {
+      statement.setQueryTimeout(timeout);
+      try (ResultSet rs = statement.executeQuery(LEGACY_IS_VALID_QUERY)) {
+        if (rs.next()) {
+          if (rs.getLong(1) == 1L) {
+            return true;
           }
         }
-      } catch (SQLException e) {
-        // ignore
       }
+    } catch (SQLException e) {
+      // ignore and fall through.
     }
     return false;
   }

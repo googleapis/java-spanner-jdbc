@@ -35,7 +35,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
-        <version>26.27.0</version>
+        <version>26.29.0</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -62,7 +62,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.7.0</version>
+      <version>42.7.1</version>
     </dependency>
 
     <dependency>
