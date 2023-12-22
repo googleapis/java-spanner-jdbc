@@ -390,14 +390,18 @@ enum JdbcDataType {
 
   public static JdbcDataType getType(Class<?> clazz) {
     for (JdbcDataType type : JdbcDataType.values()) {
-      if (type.getSupportedJavaClasses().contains(clazz)) return type;
+      if (type.getSupportedJavaClasses().contains(clazz)) {
+        return type;
+      }
     }
     return null;
   }
 
   public static JdbcDataType getType(Code code) {
     for (JdbcDataType type : JdbcDataType.values()) {
-      if (type.getCode() == code) return type;
+      if (type.getCode() == code) {
+        return type;
+      }
     }
     return null;
   }
