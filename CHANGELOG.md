@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.15.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.14.6...v2.15.0) (2023-12-22)
+
+
+### Features
+
+* Support PreparedStatement#getParameterMetaData() ([#1218](https://github.com/googleapis/java-spanner-jdbc/issues/1218)) ([721ff45](https://github.com/googleapis/java-spanner-jdbc/commit/721ff4552104efba47c19ef511282071c3b334c3))
+
+
+### Performance Improvements
+
+* Optimize isValid implementation ([#1444](https://github.com/googleapis/java-spanner-jdbc/issues/1444)) ([914e973](https://github.com/googleapis/java-spanner-jdbc/commit/914e973ad7fd638fabc3ec130b7618c51f01f401)), closes [#1443](https://github.com/googleapis/java-spanner-jdbc/issues/1443)
+
+
+### Dependencies
+
+* Update dependency org.postgresql:postgresql to v42.7.1 ([#1441](https://github.com/googleapis/java-spanner-jdbc/issues/1441)) ([5997555](https://github.com/googleapis/java-spanner-jdbc/commit/59975553826360b86492e50b9d49c29aecc28bab))
+
 ## [2.14.6](https://github.com/googleapis/java-spanner-jdbc/compare/v2.14.5...v2.14.6) (2023-12-04)
 
 
