@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.sample.entities;
 
 import java.time.OffsetDateTime;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("concerts")
@@ -31,6 +32,9 @@ public class Concert extends AbstractEntity {
   private OffsetDateTime startTime;
 
   private OffsetDateTime endTime;
+
+  @PersistenceCreator
+  public Concert() {}
 
   public Concert(Venue venue, Singer singer, String name) {
     this.venueId = venue.getId();

@@ -18,6 +18,7 @@ package com.google.cloud.spanner.sample.entities;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("albums")
@@ -33,6 +34,7 @@ public class Album extends AbstractEntity {
 
   private Long singerId;
 
+  @PersistenceCreator
   public Album() {}
 
   public Album(String title) {

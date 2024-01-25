@@ -20,6 +20,7 @@ import java.time.OffsetDateTime;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.PersistenceCreator;
 
 public abstract class AbstractEntity {
 
@@ -29,6 +30,9 @@ public abstract class AbstractEntity {
   @CreatedDate private OffsetDateTime createdAt;
 
   @LastModifiedDate private OffsetDateTime updatedAt;
+
+  @PersistenceCreator
+  public AbstractEntity() {}
 
   @Override
   public boolean equals(Object o) {
