@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.sample.entities;
 
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("venues")
@@ -23,6 +24,9 @@ public class Venue extends AbstractEntity {
   private String name;
 
   private String description;
+
+  @PersistenceCreator
+  public Venue() {}
 
   public Venue(String name) {
     this.name = name;
