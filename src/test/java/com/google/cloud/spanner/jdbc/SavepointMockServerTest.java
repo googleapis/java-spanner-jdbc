@@ -28,7 +28,6 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
 import com.google.cloud.spanner.connection.RandomResultSetGenerator;
 import com.google.cloud.spanner.connection.SavepointSupport;
-import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcAbortedDueToConcurrentModificationException;
 import com.google.common.base.Strings;
 import com.google.protobuf.AbstractMessage;
@@ -83,7 +82,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
   private String createUrl() {
     return String.format(
         "jdbc:cloudspanner://localhost:%d/projects/%s/instances/%s/databases/%s?usePlainText=true;autoCommit=false",
-        getPort(), "proj", "inst", "db");
+        getPort(), "proj", "inst", "db" + (dialect == Dialect.POSTGRESQL ? "pg" : ""));
   }
 
   private Connection createConnection() throws SQLException {
