@@ -24,5 +24,7 @@ java.common_templates(excludes=[
     '.kokoro/nightly/integration.cfg',
     '.kokoro/build.sh',
     '.kokoro/requirements.in',
-    '.kokoro/requirements.txt'
+    '.kokoro/requirements.txt',
+    '.kokoro/presubmit/graalvm-native.cfg',
+    '.kokoro/presubmit/graalvm-native-17.cfg'
 ])
