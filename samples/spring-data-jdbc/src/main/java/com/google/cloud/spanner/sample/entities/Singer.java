@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.sample.entities;
 
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -31,6 +32,7 @@ public class Singer extends AbstractEntity {
 
   private Boolean active;
 
+  @PersistenceCreator
   public Singer() {}
 
   public Singer(String firstName, String lastName) {

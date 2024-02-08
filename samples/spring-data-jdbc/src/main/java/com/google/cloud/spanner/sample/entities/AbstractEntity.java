@@ -17,16 +17,22 @@
 package com.google.cloud.spanner.sample.entities;
 
 import java.time.OffsetDateTime;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.PersistenceCreator;
 
 public abstract class AbstractEntity {
 
   /** This ID is generated using a (bit-reversed) sequence. */
   @Id private Long id;
 
-  private OffsetDateTime createdAt;
+  @CreatedDate private OffsetDateTime createdAt;
 
-  private OffsetDateTime updatedAt;
+  @LastModifiedDate private OffsetDateTime updatedAt;
+
+  @PersistenceCreator
+  public AbstractEntity() {}
 
   @Override
   public boolean equals(Object o) {

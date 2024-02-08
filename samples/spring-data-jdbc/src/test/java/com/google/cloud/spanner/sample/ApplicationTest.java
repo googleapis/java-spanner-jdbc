@@ -141,6 +141,11 @@ public class ApplicationTest extends AbstractMockServerTest {
     mockSpanner.putPartialStatementResult(
         StatementResult.update(
             Statement.of(
+                "INSERT INTO \"albums\" (\"cover_picture\", \"created_at\", \"marketing_budget\", \"release_date\", \"singer_id\", \"title\", \"updated_at\") VALUES ($1, $2, $3, $4, $5, $6, $7)"),
+            1L));
+    mockSpanner.putPartialStatementResult(
+        StatementResult.update(
+            Statement.of(
                 "insert into albums (title, marketing_budget, release_date, cover_picture, singer_id) values ($1, $2, $3, $4, $5)"),
             1L));
 
@@ -747,7 +752,7 @@ public class ApplicationTest extends AbstractMockServerTest {
     SpringApplication.run(Application.class).close();
 
     assertEquals(
-        34,
+        37,
         mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
             .filter(request -> !request.getSql().equals("SELECT 1"))
             .count());

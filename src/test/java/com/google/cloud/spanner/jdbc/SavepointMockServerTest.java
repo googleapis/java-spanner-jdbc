@@ -28,7 +28,6 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
 import com.google.cloud.spanner.connection.RandomResultSetGenerator;
 import com.google.cloud.spanner.connection.SavepointSupport;
-import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcAbortedDueToConcurrentModificationException;
 import com.google.common.base.Strings;
 import com.google.protobuf.AbstractMessage;
@@ -43,6 +42,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
@@ -54,6 +54,8 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class SavepointMockServerTest extends AbstractMockServerTest {
+  private static Dialect currentDialect;
+
   @Parameter public Dialect dialect;
 
   @Parameters(name = "dialect = {0}")
@@ -63,19 +65,24 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
 
   @Before
   public void setupDialect() {
-    mockSpanner.putStatementResult(StatementResult.detectDialectResult(this.dialect));
+    // Only reset the dialect result when it has actually changed. This prevents the SpannerPool
+    // from being closed after each test, which again makes the test slower.
+    if (!Objects.equals(this.dialect, currentDialect)) {
+      currentDialect = this.dialect;
+      mockSpanner.putStatementResult(StatementResult.detectDialectResult(this.dialect));
+      SpannerPool.closeSpannerPool();
+    }
   }
 
   @After
   public void clearRequests() {
     mockSpanner.clearRequests();
-    SpannerPool.closeSpannerPool();
   }
 
   private String createUrl() {
     return String.format(
         "jdbc:cloudspanner://localhost:%d/projects/%s/instances/%s/databases/%s?usePlainText=true;autoCommit=false",
-        getPort(), "proj", "inst", "db");
+        getPort(), "proj", "inst", "db" + (dialect == Dialect.POSTGRESQL ? "pg" : ""));
   }
 
   private Connection createConnection() throws SQLException {

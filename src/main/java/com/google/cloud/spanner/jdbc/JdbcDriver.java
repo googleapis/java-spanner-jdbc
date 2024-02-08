@@ -191,6 +191,8 @@ public class JdbcDriver implements Driver {
         if (matcher.matches()) {
           // strip 'jdbc:' from the URL, add any extra properties and pass on to the generic
           // Connection API
+          // TODO: Remove when statement cache should be enabled by default.
+          System.setProperty("spanner.statement_cache_size_mb", "0");
           String connectionUri = appendPropertiesToUrl(url.substring(5), info);
           ConnectionOptions options = ConnectionOptions.newBuilder().setUri(connectionUri).build();
           JdbcConnection connection = new JdbcConnection(url, options);
