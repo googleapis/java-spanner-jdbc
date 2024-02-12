@@ -153,6 +153,11 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
             "Result does not contain an update count", Code.FAILED_PRECONDITION);
       }
       return updateCount;
+    } catch (UnsupportedOperationException unsupportedOperationException) {
+      throw JdbcSqlExceptionFactory.of(
+          unsupportedOperationException.getMessage(),
+          Code.FAILED_PRECONDITION,
+          unsupportedOperationException);
     } finally {
       resultSet.close();
     }
