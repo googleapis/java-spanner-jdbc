@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.15.5](https://github.com/googleapis/java-spanner-jdbc/compare/v2.15.4...v2.15.5) (2024-02-21)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.60.0 ([#1508](https://github.com/googleapis/java-spanner-jdbc/issues/1508)) ([0f7e59c](https://github.com/googleapis/java-spanner-jdbc/commit/0f7e59c7aabdb9fe69fde23f35c5451d19332076))
+* Update dependency org.postgresql:postgresql to v42.7.2 ([#1503](https://github.com/googleapis/java-spanner-jdbc/issues/1503)) ([dd5142f](https://github.com/googleapis/java-spanner-jdbc/commit/dd5142faab667817b9fe6bff7f0388c5e43e7dee))
+* Update dependency org.postgresql:postgresql to v42.7.2 [security] ([#1507](https://github.com/googleapis/java-spanner-jdbc/issues/1507)) ([caacd05](https://github.com/googleapis/java-spanner-jdbc/commit/caacd056f245f1cf57119653627b0c5097730f41))
+* Update dependency org.springframework.data:spring-data-bom to v2023.1.3 ([#1499](https://github.com/googleapis/java-spanner-jdbc/issues/1499)) ([34151b6](https://github.com/googleapis/java-spanner-jdbc/commit/34151b6cae097c97fc49839e2594f5adbd6393c3))
+
 ## [2.15.4](https://github.com/googleapis/java-spanner-jdbc/compare/v2.15.3...v2.15.4) (2024-02-15)
 
 
