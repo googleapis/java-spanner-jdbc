@@ -51,7 +51,7 @@
     <site.installationModule>google-cloud-spanner-jdbc</site.installationModule>
     <junit.version>4.13.2</junit.version>
     <findbugs.version>3.0.2</findbugs.version>
-    <truth.version>1.4.1</truth.version>
+    <truth.version>1.4.2</truth.version>
     <mockito.version>4.11.0</mockito.version>
     <hamcrest.version>2.2</hamcrest.version>
     <opencensus.version>0.31.1</opencensus.version>
