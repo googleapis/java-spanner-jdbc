@@ -95,6 +95,9 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
         return binaryLength == 0 ? DEFAULT_COL_DISPLAY_SIZE_FOR_VARIABLE_LENGTH_COLS : binaryLength;
       case Types.DATE:
         return 10;
+      case Types.REAL:
+        return 7;
+      case Types.FLOAT:
       case Types.DOUBLE:
         return 14;
       case Types.BIGINT:
@@ -134,6 +137,9 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
         return 1;
       case Types.DATE:
         return 10;
+      case Types.REAL:
+        return 7;
+      case Types.FLOAT:
       case Types.DOUBLE:
         return 14;
       case Types.BIGINT:
@@ -155,6 +161,9 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   @Override
   public int getScale(int column) {
     int colType = getColumnType(column);
+    if (colType == Types.REAL) {
+      return 7;
+    }
     if (colType == Types.DOUBLE || colType == Types.NUMERIC) {
       return 15;
     }

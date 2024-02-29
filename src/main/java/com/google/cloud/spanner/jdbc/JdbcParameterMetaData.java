@@ -76,6 +76,7 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
     int type = getParameterType(param);
     return type == Types.DOUBLE
         || type == Types.FLOAT
+        || type == Types.REAL
         || type == Types.BIGINT
         || type == Types.INTEGER
         || type == Types.SMALLINT
@@ -139,7 +140,7 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
     } else if (Long.class.isAssignableFrom(value.getClass())) {
       return Types.BIGINT;
     } else if (Float.class.isAssignableFrom(value.getClass())) {
-      return Types.FLOAT;
+      return Types.REAL;
     } else if (Double.class.isAssignableFrom(value.getClass())) {
       return Types.DOUBLE;
     } else if (BigDecimal.class.isAssignableFrom(value.getClass())) {

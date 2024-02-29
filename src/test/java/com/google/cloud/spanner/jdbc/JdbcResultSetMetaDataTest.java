@@ -73,8 +73,10 @@ public class JdbcResultSetMetaDataTest {
           return 1;
         case DATE:
           return 10;
+        case FLOAT32:
+          return 7;
         case FLOAT64:
-          return 14;
+          return 15;
         case INT64:
           return 10;
         case TIMESTAMP:
@@ -189,6 +191,7 @@ public class JdbcResultSetMetaDataTest {
     types.add(Type.bool());
     types.add(Type.bytes());
     types.add(Type.date());
+    types.add(Type.float32());
     types.add(Type.float64());
     types.add(Type.int64());
     types.add(Type.string());
@@ -237,6 +240,8 @@ public class JdbcResultSetMetaDataTest {
         return Value.numeric(new BigDecimal("3.14"));
       case PG_NUMERIC:
         return Value.pgNumeric("3.14");
+      case FLOAT32:
+        return Value.float32(6.626f);
       case FLOAT64:
         return Value.float64(123.45D);
       case STRING:
@@ -261,6 +266,8 @@ public class JdbcResultSetMetaDataTest {
             return Value.numericArray(Arrays.asList(BigDecimal.ONE, BigDecimal.TEN));
           case PG_NUMERIC:
             return Value.pgNumericArray(Arrays.asList("3.14", null, "NaN", "6.626"));
+          case FLOAT32:
+            return Value.float32Array(Arrays.asList(-3498.31490f, 82.353f));
           case FLOAT64:
             return Value.float64Array(Arrays.asList(123.45D, 543.21D));
           case STRING:
@@ -371,9 +378,10 @@ public class JdbcResultSetMetaDataTest {
         return 5;
       case INT64:
         return 10;
+      case FLOAT32:
+        return 7;
       case NUMERIC:
       case PG_NUMERIC:
-        return 14;
       case FLOAT64:
         return 14;
       case STRING:
@@ -432,6 +440,8 @@ public class JdbcResultSetMetaDataTest {
         return 1;
       case DATE:
         return 10;
+      case FLOAT32:
+        return 7;
       case FLOAT64:
         return 14;
       case INT64:
@@ -460,6 +470,9 @@ public class JdbcResultSetMetaDataTest {
   }
 
   private int getScale(TestColumn col) {
+    if (col.type == Type.float32()) {
+      return 7;
+    }
     if (col.type == Type.float64() || col.type == Type.numeric() || col.type == Type.pgNumeric()) {
       return 15;
     }
@@ -495,6 +508,8 @@ public class JdbcResultSetMetaDataTest {
       case NUMERIC:
       case PG_NUMERIC:
         return Types.NUMERIC;
+      case FLOAT32:
+        return Types.REAL;
       case FLOAT64:
         return Types.DOUBLE;
       case STRING:
@@ -562,6 +577,8 @@ public class JdbcResultSetMetaDataTest {
       case NUMERIC:
       case PG_NUMERIC:
         return BigDecimal.class.getName();
+      case FLOAT32:
+        return Float.class.getName();
       case FLOAT64:
         return Double.class.getName();
       case STRING:
@@ -583,6 +600,8 @@ public class JdbcResultSetMetaDataTest {
           case NUMERIC:
           case PG_NUMERIC:
             return BigDecimal[].class.getName();
+          case FLOAT32:
+            return Float[].class.getName();
           case FLOAT64:
             return Double[].class.getName();
           case STRING:
@@ -610,15 +629,15 @@ public class JdbcResultSetMetaDataTest {
       "Col 1: COL1 BOOL\n"
           + "Col 2: COL2 BYTES\n"
           + "Col 3: COL3 DATE\n"
-          + "Col 4: COL4 FLOAT64\n"
-          + "Col 5: COL5 INT64\n"
-          + "Col 6: COL6 STRING\n"
-          + "Col 7: COL7 JSON\n"
-          + "Col 8: COL8 PG_JSONB\n"
-          + "Col 9: COL9 TIMESTAMP\n"
-          + "Col 10: COL10 NUMERIC\n"
-          + "Col 11: COL11 PG_NUMERIC\n"
-          + "Col 12: COL12 ARRAY\n"
+          + "Col 4: COL4 FLOAT32\n"
+          + "Col 5: COL5 FLOAT64\n"
+          + "Col 6: COL6 INT64\n"
+          + "Col 7: COL7 STRING\n"
+          + "Col 8: COL8 JSON\n"
+          + "Col 9: COL9 PG_JSONB\n"
+          + "Col 10: COL10 TIMESTAMP\n"
+          + "Col 11: COL11 NUMERIC\n"
+          + "Col 12: COL12 PG_NUMERIC\n"
           + "Col 13: COL13 ARRAY\n"
           + "Col 14: COL14 ARRAY\n"
           + "Col 15: COL15 ARRAY\n"
@@ -629,7 +648,9 @@ public class JdbcResultSetMetaDataTest {
           + "Col 20: COL20 ARRAY\n"
           + "Col 21: COL21 ARRAY\n"
           + "Col 22: COL22 ARRAY\n"
-          + "Col 23: CALCULATED INT64\n";
+          + "Col 23: COL23 ARRAY\n"
+          + "Col 24: COL24 ARRAY\n"
+          + "Col 25: CALCULATED INT64\n";
 
   @Test
   public void testToString() {

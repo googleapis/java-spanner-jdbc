@@ -452,8 +452,12 @@ class JdbcParameterStore {
           return binder.to(((Number) value).longValue());
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid long", Code.INVALID_ARGUMENT);
-      case Types.FLOAT:
       case Types.REAL:
+        if (value instanceof Number) {
+          return binder.to(((Number) value).floatValue());
+        }
+        throw JdbcSqlExceptionFactory.of(value + " is not a valid float", Code.INVALID_ARGUMENT);
+      case Types.FLOAT:
       case Types.DOUBLE:
         if (value instanceof Number) {
           return binder.to(((Number) value).doubleValue());
@@ -744,8 +748,9 @@ class JdbcParameterStore {
         case Types.INTEGER:
         case Types.BIGINT:
           return binder.toInt64Array((long[]) null);
-        case Types.FLOAT:
         case Types.REAL:
+          return binder.toFloat32Array((float[]) null);
+        case Types.FLOAT:
         case Types.DOUBLE:
           return binder.toFloat64Array((double[]) null);
         case Types.NUMERIC:
@@ -901,9 +906,8 @@ class JdbcParameterStore {
         } else {
           return binder.to((BigDecimal) null);
         }
-      case Types.DOUBLE:
-        return binder.to((Double) null);
       case Types.FLOAT:
+      case Types.DOUBLE:
         return binder.to((Double) null);
       case Types.INTEGER:
         return binder.to((Long) null);
@@ -920,7 +924,7 @@ class JdbcParameterStore {
       case Types.NVARCHAR:
         return binder.to((String) null);
       case Types.REAL:
-        return binder.to((Double) null);
+        return binder.to((Float) null);
       case Types.SMALLINT:
         return binder.to((Long) null);
       case Types.SQLXML:

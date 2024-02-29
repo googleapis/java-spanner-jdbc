@@ -49,6 +49,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
         return Types.BINARY;
       case DATE:
         return Types.DATE;
+      case FLOAT32:
+        return Types.REAL;
       case FLOAT64:
         return Types.DOUBLE;
       case INT64:
@@ -71,65 +73,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
   }
 
   static String getSpannerTypeName(Type type, Dialect dialect) {
-    // TODO: Use com.google.cloud.spanner.Type#getSpannerTypeName() when available.
-    Preconditions.checkNotNull(type);
-    switch (type.getCode()) {
-      case BOOL:
-        return dialect == Dialect.POSTGRESQL ? "boolean" : "BOOL";
-      case BYTES:
-        return dialect == Dialect.POSTGRESQL ? "bytea" : "BYTES";
-      case DATE:
-        return dialect == Dialect.POSTGRESQL ? "date" : "DATE";
-      case FLOAT64:
-        return dialect == Dialect.POSTGRESQL ? "double precision" : "FLOAT64";
-      case INT64:
-        return dialect == Dialect.POSTGRESQL ? "bigint" : "INT64";
-      case NUMERIC:
-        return "NUMERIC";
-      case PG_NUMERIC:
-        return "numeric";
-      case STRING:
-        return dialect == Dialect.POSTGRESQL ? "character varying" : "STRING";
-      case JSON:
-        return "JSON";
-      case PG_JSONB:
-        return "jsonb";
-      case TIMESTAMP:
-        return dialect == Dialect.POSTGRESQL ? "timestamp with time zone" : "TIMESTAMP";
-      case STRUCT:
-        return "STRUCT";
-      case ARRAY:
-        switch (type.getArrayElementType().getCode()) {
-          case BOOL:
-            return dialect == Dialect.POSTGRESQL ? "boolean[]" : "ARRAY<BOOL>";
-          case BYTES:
-            return dialect == Dialect.POSTGRESQL ? "bytea[]" : "ARRAY<BYTES>";
-          case DATE:
-            return dialect == Dialect.POSTGRESQL ? "date[]" : "ARRAY<DATE>";
-          case FLOAT64:
-            return dialect == Dialect.POSTGRESQL ? "double precision[]" : "ARRAY<FLOAT64>";
-          case INT64:
-            return dialect == Dialect.POSTGRESQL ? "bigint[]" : "ARRAY<INT64>";
-          case NUMERIC:
-            return "ARRAY<NUMERIC>";
-          case PG_NUMERIC:
-            return "numeric[]";
-          case STRING:
-            return dialect == Dialect.POSTGRESQL ? "character varying[]" : "ARRAY<STRING>";
-          case JSON:
-            return "ARRAY<JSON>";
-          case PG_JSONB:
-            return "jsonb[]";
-          case TIMESTAMP:
-            return dialect == Dialect.POSTGRESQL
-                ? "timestamp with time zone[]"
-                : "ARRAY<TIMESTAMP>";
-          case STRUCT:
-            return "ARRAY<STRUCT>";
-        }
-      default:
-        return null;
-    }
+    return Preconditions.checkNotNull(type).getSpannerTypeName(dialect);
   }
 
   /**
@@ -139,9 +83,13 @@ abstract class AbstractJdbcWrapper implements Wrapper {
    */
   @Deprecated
   static String getSpannerTypeName(int sqlType) {
+    // TODO: Re-write to be dialect-aware (or remove all-together).
     if (sqlType == Types.BOOLEAN) return Type.bool().getCode().name();
     if (sqlType == Types.BINARY) return Type.bytes().getCode().name();
     if (sqlType == Types.DATE) return Type.date().getCode().name();
+    if (sqlType == Types.REAL) {
+      return Type.float32().getCode().name();
+    }
     if (sqlType == Types.DOUBLE || sqlType == Types.FLOAT) return Type.float64().getCode().name();
     if (sqlType == Types.BIGINT
         || sqlType == Types.INTEGER
@@ -167,6 +115,9 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     if (sqlType == Types.BOOLEAN) return Boolean.class.getName();
     if (sqlType == Types.BINARY) return Byte[].class.getName();
     if (sqlType == Types.DATE) return Date.class.getName();
+    if (sqlType == Types.REAL) {
+      return Float.class.getName();
+    }
     if (sqlType == Types.DOUBLE || sqlType == Types.FLOAT) return Double.class.getName();
     if (sqlType == Types.BIGINT
         || sqlType == Types.INTEGER
@@ -195,6 +146,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
         return byte[].class.getName();
       case DATE:
         return Date.class.getName();
+      case FLOAT32:
+        return Float.class.getName();
       case FLOAT64:
         return Double.class.getName();
       case INT64:
@@ -216,6 +169,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
             return byte[][].class.getName();
           case DATE:
             return Date[].class.getName();
+          case FLOAT32:
+            return Float[].class.getName();
           case FLOAT64:
             return Double[].class.getName();
           case INT64:

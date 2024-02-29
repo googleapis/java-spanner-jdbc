@@ -110,6 +110,32 @@ enum JdbcDataType {
       return Type.date();
     }
   },
+  FLOAT32 {
+    @Override
+    public int getSqlType() {
+      return Types.REAL;
+    }
+
+    @Override
+    public Class<Float> getJavaClass() {
+      return Float.class;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.FLOAT32;
+    }
+
+    @Override
+    public List<Float> getArrayElements(ResultSet rs, int columnIndex) {
+      return rs.getFloatList(columnIndex);
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.float32();
+    }
+  },
   FLOAT64 {
     private final Set<Class<?>> classes = new HashSet<>(Arrays.asList(Float.class, Double.class));
 
