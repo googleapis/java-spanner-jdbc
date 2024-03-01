@@ -50,6 +50,8 @@ import org.junit.runners.Parameterized.Parameters;
 public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
   @Parameter public Dialect dialect;
 
+  private Dialect currentDialect;
+
   @Parameters(name = "dialect = {0}")
   public static Object[] data() {
     return Dialect.values();
@@ -57,13 +59,21 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
 
   @Before
   public void setupDialect() {
-    mockSpanner.putStatementResult(StatementResult.detectDialectResult(this.dialect));
+    if (currentDialect != dialect) {
+      mockSpanner.putStatementResult(StatementResult.detectDialectResult(this.dialect));
+      currentDialect = dialect;
+      SpannerPool.closeSpannerPool();
+    }
   }
 
   @After
   public void clearRequests() {
     mockSpanner.clearRequests();
-    SpannerPool.closeSpannerPool();
+  }
+
+  private int getExpectedColumnCount(Dialect dialect) {
+    // GoogleSQL also adds 4 PROTO columns.
+    return dialect == Dialect.GOOGLE_STANDARD_SQL ? 24 : 20;
   }
 
   private String createUrl() {
@@ -80,7 +90,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
   public void testPartitionedQueryUsingSql() throws SQLException {
     int numRows = 5;
     int maxPartitions = 4;
-    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
+    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows, dialect);
     Statement statement =
         Statement.newBuilder(
                 String.format(
@@ -158,7 +168,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
         partitionStatement.setBoolean(1, true);
         try (ResultSet results = partitionStatement.executeQuery()) {
           assertNotNull(results.getMetaData());
-          assertEquals(22, results.getMetaData().getColumnCount());
+          assertEquals(getExpectedColumnCount(dialect), results.getMetaData().getColumnCount());
           int rowCount = 0;
           while (results.next()) {
             rowCount++;
@@ -184,7 +194,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
   public void testPartitionedQueryStatement() throws SQLException {
     int numRows = 5;
     int maxPartitions = 4;
-    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
+    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows, dialect);
     Statement statement = Statement.of("select * from my_table where active=true");
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
 
@@ -266,7 +276,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
   public void testPartitionedQueryPreparedStatement() throws SQLException {
     int numRows = 5;
     int maxPartitions = 4;
-    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
+    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows, dialect);
     Statement statement =
         Statement.newBuilder(
                 String.format(
@@ -357,7 +367,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
   public void testAutoPartitionMode() throws SQLException {
     int numRows = 5;
     int maxPartitions = 4;
-    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
+    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows, dialect);
     Statement statement = Statement.of("select * from my_table where active=true");
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
 
@@ -376,7 +386,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
       try (ResultSet results =
           connection.createStatement().executeQuery("select * from my_table where active=true")) {
         assertNotNull(results.getMetaData());
-        assertEquals(22, results.getMetaData().getColumnCount());
+        assertEquals(getExpectedColumnCount(dialect), results.getMetaData().getColumnCount());
         int rowCount = 0;
         while (results.next()) {
           rowCount++;
@@ -463,7 +473,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
   public void testAutoPartitionModeEmptyResult() throws SQLException {
     int numRows = 0;
     int maxPartitions = 1;
-    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
+    RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows, dialect);
     Statement statement = Statement.of("select * from my_table where active=true");
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
 
@@ -482,7 +492,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
       try (ResultSet results =
           connection.createStatement().executeQuery("select * from my_table where active=true")) {
         assertNotNull(results.getMetaData());
-        assertEquals(22, results.getMetaData().getColumnCount());
+        assertEquals(getExpectedColumnCount(dialect), results.getMetaData().getColumnCount());
         int rowCount = 0;
         while (results.next()) {
           rowCount++;
