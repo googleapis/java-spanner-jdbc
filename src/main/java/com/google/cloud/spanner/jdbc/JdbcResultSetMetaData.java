@@ -96,7 +96,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
       case Types.DATE:
         return 10;
       case Types.REAL:
-        return 7;
+        return JdbcDataType.FLOAT32.getDefaultColumnDisplaySize();
       case Types.FLOAT:
       case Types.DOUBLE:
         return 14;
@@ -138,7 +138,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
       case Types.DATE:
         return 10;
       case Types.REAL:
-        return 7;
+        return JdbcDataType.FLOAT32.getPrecision();
       case Types.FLOAT:
       case Types.DOUBLE:
         return 14;
@@ -162,7 +162,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   public int getScale(int column) {
     int colType = getColumnType(column);
     if (colType == Types.REAL) {
-      return 7;
+      return JdbcDataType.FLOAT32.getScale();
     }
     if (colType == Types.DOUBLE || colType == Types.NUMERIC) {
       return 15;

@@ -117,6 +117,21 @@ enum JdbcDataType {
     }
 
     @Override
+    public int getScale() {
+      return 7;
+    }
+
+    @Override
+    public int getPrecision() {
+      return 7;
+    }
+
+    @Override
+    public int getDefaultColumnDisplaySize() {
+      return 7;
+    }
+
+    @Override
     public Class<Float> getJavaClass() {
       return Float.class;
     }
@@ -396,6 +411,21 @@ enum JdbcDataType {
   public abstract Code getCode();
 
   public abstract Type getSpannerType();
+
+  // TODO: Implement and use this method for all types.
+  public int getPrecision() {
+    throw new UnsupportedOperationException();
+  }
+
+  // TODO: Implement and use this method for all types.
+  public int getScale() {
+    throw new UnsupportedOperationException();
+  }
+
+  // TODO: Implement and use this method for all types.
+  public int getDefaultColumnDisplaySize() {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * @param rs the result set to look up the elements

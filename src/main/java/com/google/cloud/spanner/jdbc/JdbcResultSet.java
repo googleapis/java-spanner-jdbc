@@ -464,6 +464,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case NUMERIC:
         return isNull ? 0 : spanner.getBigDecimal(spannerIndex).doubleValue();
       case PG_NUMERIC:
+        return isNull ? 0 : parseDouble(spanner.getString(spannerIndex));
       case STRING:
         return isNull ? 0 : parseDouble(spanner.getString(spannerIndex));
       case BYTES:

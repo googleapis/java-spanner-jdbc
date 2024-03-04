@@ -819,13 +819,13 @@ class JdbcParameterStore {
     } else if (Long[].class.isAssignableFrom(value.getClass())) {
       return binder.toInt64Array(toLongList((Long[]) value));
     } else if (float[].class.isAssignableFrom(value.getClass())) {
-      double[] l = new double[((float[]) value).length];
+      float[] l = new float[((float[]) value).length];
       for (int i = 0; i < l.length; i++) {
         l[i] = ((float[]) value)[i];
       }
-      return binder.toFloat64Array(l);
+      return binder.toFloat32Array(l);
     } else if (Float[].class.isAssignableFrom(value.getClass())) {
-      return binder.toFloat64Array(toDoubleList((Float[]) value));
+      return binder.toFloat32Array(toFloatList((Float[]) value));
     } else if (double[].class.isAssignableFrom(value.getClass())) {
       return binder.toFloat64Array((double[]) value);
     } else if (Double[].class.isAssignableFrom(value.getClass())) {
@@ -861,6 +861,14 @@ class JdbcParameterStore {
     List<Long> res = new ArrayList<>(input.length);
     for (Number number : input) {
       res.add(number == null ? null : number.longValue());
+    }
+    return res;
+  }
+
+  private List<Float> toFloatList(Number[] input) {
+    List<Float> res = new ArrayList<>(input.length);
+    for (Number number : input) {
+      res.add(number == null ? null : number.floatValue());
     }
     return res;
   }

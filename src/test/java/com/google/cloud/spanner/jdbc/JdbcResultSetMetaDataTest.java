@@ -76,7 +76,7 @@ public class JdbcResultSetMetaDataTest {
         case FLOAT32:
           return 7;
         case FLOAT64:
-          return 15;
+          return 14;
         case INT64:
           return 10;
         case TIMESTAMP:
@@ -382,6 +382,7 @@ public class JdbcResultSetMetaDataTest {
         return 7;
       case NUMERIC:
       case PG_NUMERIC:
+        return 14;
       case FLOAT64:
         return 14;
       case STRING:
