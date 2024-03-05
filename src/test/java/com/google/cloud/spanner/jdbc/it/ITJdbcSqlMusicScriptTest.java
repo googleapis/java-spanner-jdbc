@@ -16,7 +16,6 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
