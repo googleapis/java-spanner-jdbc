@@ -229,12 +229,9 @@ public class ITJdbcPgNumericTest {
       preparedStatement.setShort(3, (short) 1);
       preparedStatement.setInt(4, 1);
       preparedStatement.setLong(5, 1L);
-      // The emulator does not yet support float4 / real.
-      if (isUsingEmulator()) {
-        preparedStatement.setDouble(6, 1d);
-      } else {
-        preparedStatement.setFloat(6, 1f);
-      }
+      // TODO: Change to setFloat(..) when float32 is supported.
+      // preparedStatement.setFloat(6, 1f);
+      preparedStatement.setDouble(6, 1d);
       preparedStatement.setDouble(7, 1D);
       preparedStatement.setBigDecimal(8, new BigDecimal("1"));
       preparedStatement.setObject(9, (byte) 1);
@@ -246,11 +243,9 @@ public class ITJdbcPgNumericTest {
       preparedStatement.setObject(15, new BigDecimal("1"));
       preparedStatement.setObject(16, Value.pgNumeric("1"));
 
-      if (isUsingEmulator()) {
-        preparedStatement.setDouble(17, Double.NaN);
-      } else {
-        preparedStatement.setFloat(17, Float.NaN);
-      }
+      // TODO: Change to setFloat(..) when float32 is supported.
+      preparedStatement.setFloat(17, Float.NaN);
+      preparedStatement.setDouble(17, Double.NaN);
       preparedStatement.setDouble(18, Double.NaN);
       preparedStatement.setObject(19, Value.pgNumeric("NaN"));
 
