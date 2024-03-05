@@ -16,13 +16,11 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier;
-import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,9 +62,6 @@ public class ITJdbcDdlTest extends ITAbstractJdbcTest {
 
   @Before
   public void setup() {
-    assumeFalse(
-        "Emulator does not support PostgreSQL",
-        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
     database = env.getOrCreateDatabase(getDialect(), Collections.emptyList());
   }
 
