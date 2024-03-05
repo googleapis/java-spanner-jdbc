@@ -158,7 +158,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
         partitionStatement.setBoolean(1, true);
         try (ResultSet results = partitionStatement.executeQuery()) {
           assertNotNull(results.getMetaData());
-          assertEquals(22, results.getMetaData().getColumnCount());
+          assertEquals(24, results.getMetaData().getColumnCount());
           int rowCount = 0;
           while (results.next()) {
             rowCount++;
@@ -376,7 +376,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
       try (ResultSet results =
           connection.createStatement().executeQuery("select * from my_table where active=true")) {
         assertNotNull(results.getMetaData());
-        assertEquals(22, results.getMetaData().getColumnCount());
+        assertEquals(24, results.getMetaData().getColumnCount());
         int rowCount = 0;
         while (results.next()) {
           rowCount++;
@@ -482,7 +482,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
       try (ResultSet results =
           connection.createStatement().executeQuery("select * from my_table where active=true")) {
         assertNotNull(results.getMetaData());
-        assertEquals(22, results.getMetaData().getColumnCount());
+        assertEquals(24, results.getMetaData().getColumnCount());
         int rowCount = 0;
         while (results.next()) {
           rowCount++;
