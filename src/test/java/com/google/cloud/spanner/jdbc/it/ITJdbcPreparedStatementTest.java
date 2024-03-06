@@ -530,9 +530,6 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   @SuppressWarnings("deprecation")
   @Test
   public void test03_Dates() throws SQLException {
-    //    assumeFalse(
-    //        "Date type is not supported on POSTGRESQL dialect", dialect.dialect ==
-    // Dialect.POSTGRESQL);
     List<String> expectedValues = new ArrayList<>();
     expectedValues.add("2008-01-01");
     expectedValues.add("2000-01-01");

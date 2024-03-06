@@ -67,9 +67,6 @@ public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
 
   @Before
   public void setup() {
-    //    assumeFalse(
-    //        "Emulator does not support PostgreSQL",
-    //        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
     database = env.getOrCreateDatabase(getDialect(), getTestTableDdl(getDialect()));
   }
 

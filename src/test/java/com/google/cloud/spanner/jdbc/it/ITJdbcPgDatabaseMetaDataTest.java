@@ -54,13 +54,6 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
   private static final String TABLE_WITH_ALL_COLS = "TableWithAllColumnTypes";
   private static final String TABLE_WITH_REF = "TableWithRef";
 
-  //  @BeforeClass
-  //  public static void skipOnEmulator() {
-  //    assumeFalse(
-  //        "PostgreSQL dialect is not yet supported on the emulator",
-  //        EmulatorSpannerHelper.isUsingEmulator());
-  //  }
-
   private Database database;
 
   @Before
