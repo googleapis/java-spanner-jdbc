@@ -21,12 +21,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
-import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -35,7 +33,6 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -57,13 +54,6 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
   private static final String TABLE_WITH_ALL_COLS = "TableWithAllColumnTypes";
   private static final String TABLE_WITH_REF = "TableWithRef";
 
-  @BeforeClass
-  public static void skipOnEmulator() {
-    assumeFalse(
-        "PostgreSQL dialect is not yet supported on the emulator",
-        EmulatorSpannerHelper.isUsingEmulator());
-  }
-
   private Database database;
 
   @Before
@@ -71,6 +61,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
     database = env.getOrCreateDatabase(getDialect(), getMusicTablesDdl(getDialect()));
   }
 
+  @Override
   public Dialect getDialect() {
     return Dialect.POSTGRESQL;
   }
