@@ -203,6 +203,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? null : spanner.getBytes(spannerIndex).toBase64();
       case DATE:
         return isNull ? null : spanner.getDate(spannerIndex).toString();
+      case FLOAT32:
+        return isNull ? null : Float.toString(spanner.getFloat(spannerIndex));
       case FLOAT64:
         return isNull ? null : Double.toString(spanner.getDouble(spannerIndex));
       case INT64:
@@ -235,6 +237,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     switch (type) {
       case BOOL:
         return !isNull && spanner.getBoolean(spannerIndex);
+      case FLOAT32:
+        return !isNull && spanner.getFloat(spannerIndex) != 0f;
       case FLOAT64:
         return !isNull && spanner.getDouble(spannerIndex) != 0D;
       case INT64:
@@ -266,6 +270,10 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     switch (type) {
       case BOOL:
         return isNull ? (byte) 0 : (spanner.getBoolean(spannerIndex) ? (byte) 1 : 0);
+      case FLOAT32:
+        return isNull
+            ? (byte) 0
+            : checkedCastToByte(Float.valueOf(spanner.getFloat(spannerIndex)).longValue());
       case FLOAT64:
         return isNull
             ? (byte) 0
@@ -301,6 +309,10 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     switch (type) {
       case BOOL:
         return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? (short) 1 : 0);
+      case FLOAT32:
+        return isNull
+            ? 0
+            : checkedCastToShort(Float.valueOf(spanner.getFloat(spannerIndex)).longValue());
       case FLOAT64:
         return isNull
             ? 0
@@ -336,6 +348,10 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     switch (type) {
       case BOOL:
         return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? 1 : 0);
+      case FLOAT32:
+        return isNull
+            ? 0
+            : checkedCastToInt(Float.valueOf(spanner.getFloat(spannerIndex)).longValue());
       case FLOAT64:
         return isNull
             ? 0
@@ -371,6 +387,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     switch (type) {
       case BOOL:
         return isNull ? 0L : (spanner.getBoolean(spannerIndex) ? 1L : 0L);
+      case FLOAT32:
+        return isNull ? 0L : Float.valueOf(spanner.getFloat(spannerIndex)).longValue();
       case FLOAT64:
         return isNull ? 0L : Double.valueOf(spanner.getDouble(spannerIndex)).longValue();
       case INT64:
@@ -404,6 +422,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     switch (type) {
       case BOOL:
         return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? (float) 1 : 0);
+      case FLOAT32:
+        return isNull ? 0 : spanner.getFloat(spannerIndex);
       case FLOAT64:
         return isNull ? 0 : checkedCastToFloat(spanner.getDouble(spannerIndex));
       case INT64:
@@ -435,6 +455,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     switch (type) {
       case BOOL:
         return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? (double) 1 : 0);
+      case FLOAT32:
+        return isNull ? 0 : spanner.getFloat(spannerIndex);
       case FLOAT64:
         return isNull ? 0 : spanner.getDouble(spannerIndex);
       case INT64:
@@ -481,6 +503,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
             ? null
             : new Date(spanner.getTimestamp(spannerIndex).toSqlTimestamp().getTime());
       case BOOL:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:
@@ -508,6 +531,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? null : JdbcTypeConverter.toSqlTime(spanner.getTimestamp(spannerIndex));
       case BOOL:
       case DATE:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:
@@ -536,6 +560,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case TIMESTAMP:
         return isNull ? null : JdbcTypeConverter.toSqlTimestamp(spanner.getTimestamp(spannerIndex));
       case BOOL:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:
@@ -694,6 +719,9 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     if (type == Type.bool()) return getBoolean(columnIndex);
     if (type == Type.bytes()) return getBytes(columnIndex);
     if (type == Type.date()) return getDate(columnIndex);
+    if (type == Type.float32()) {
+      return getFloat(columnIndex);
+    }
     if (type == Type.float64()) return getDouble(columnIndex);
     if (type == Type.int64()) return getLong(columnIndex);
     if (type == Type.numeric()) return getBigDecimal(columnIndex);
@@ -773,6 +801,9 @@ class JdbcResultSet extends AbstractJdbcResultSet {
             isNull
                 ? null
                 : (spanner.getBoolean(columnIndex - 1) ? BigDecimal.ONE : BigDecimal.ZERO);
+        break;
+      case FLOAT32:
+        res = isNull ? null : BigDecimal.valueOf(spanner.getFloat(spannerIndex));
         break;
       case FLOAT64:
         res = isNull ? null : BigDecimal.valueOf(spanner.getDouble(spannerIndex));
@@ -886,6 +917,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return new Date(
             JdbcTypeConverter.getAsSqlTimestamp(spanner.getTimestamp(spannerIndex), cal).getTime());
       case BOOL:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:
@@ -917,6 +949,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? null : JdbcTypeConverter.toSqlTime(spanner.getTimestamp(spannerIndex), cal);
       case BOOL:
       case DATE:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:
@@ -951,6 +984,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case TIMESTAMP:
         return JdbcTypeConverter.getAsSqlTimestamp(spanner.getTimestamp(spannerIndex), cal);
       case BOOL:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:

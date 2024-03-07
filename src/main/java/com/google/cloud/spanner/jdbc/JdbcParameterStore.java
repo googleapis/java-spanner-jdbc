@@ -452,8 +452,12 @@ class JdbcParameterStore {
           return binder.to(((Number) value).longValue());
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid long", Code.INVALID_ARGUMENT);
-      case Types.FLOAT:
       case Types.REAL:
+        if (value instanceof Number) {
+          return binder.to(((Number) value).floatValue());
+        }
+        throw JdbcSqlExceptionFactory.of(value + " is not a valid float", Code.INVALID_ARGUMENT);
+      case Types.FLOAT:
       case Types.DOUBLE:
         if (value instanceof Number) {
           return binder.to(((Number) value).doubleValue());
@@ -744,8 +748,9 @@ class JdbcParameterStore {
         case Types.INTEGER:
         case Types.BIGINT:
           return binder.toInt64Array((long[]) null);
-        case Types.FLOAT:
         case Types.REAL:
+          return binder.toFloat32Array((float[]) null);
+        case Types.FLOAT:
         case Types.DOUBLE:
           return binder.toFloat64Array((double[]) null);
         case Types.NUMERIC:
@@ -814,13 +819,9 @@ class JdbcParameterStore {
     } else if (Long[].class.isAssignableFrom(value.getClass())) {
       return binder.toInt64Array(toLongList((Long[]) value));
     } else if (float[].class.isAssignableFrom(value.getClass())) {
-      double[] l = new double[((float[]) value).length];
-      for (int i = 0; i < l.length; i++) {
-        l[i] = ((float[]) value)[i];
-      }
-      return binder.toFloat64Array(l);
+      return binder.toFloat32Array((float[]) value);
     } else if (Float[].class.isAssignableFrom(value.getClass())) {
-      return binder.toFloat64Array(toDoubleList((Float[]) value));
+      return binder.toFloat32Array(toFloatList((Float[]) value));
     } else if (double[].class.isAssignableFrom(value.getClass())) {
       return binder.toFloat64Array((double[]) value);
     } else if (Double[].class.isAssignableFrom(value.getClass())) {
@@ -856,6 +857,14 @@ class JdbcParameterStore {
     List<Long> res = new ArrayList<>(input.length);
     for (Number number : input) {
       res.add(number == null ? null : number.longValue());
+    }
+    return res;
+  }
+
+  private List<Float> toFloatList(Number[] input) {
+    List<Float> res = new ArrayList<>(input.length);
+    for (Number number : input) {
+      res.add(number == null ? null : number.floatValue());
     }
     return res;
   }
@@ -901,9 +910,8 @@ class JdbcParameterStore {
         } else {
           return binder.to((BigDecimal) null);
         }
-      case Types.DOUBLE:
-        return binder.to((Double) null);
       case Types.FLOAT:
+      case Types.DOUBLE:
         return binder.to((Double) null);
       case Types.INTEGER:
         return binder.to((Long) null);
@@ -920,7 +928,7 @@ class JdbcParameterStore {
       case Types.NVARCHAR:
         return binder.to((String) null);
       case Types.REAL:
-        return binder.to((Double) null);
+        return binder.to((Float) null);
       case Types.SMALLINT:
         return binder.to((Long) null);
       case Types.SQLXML:

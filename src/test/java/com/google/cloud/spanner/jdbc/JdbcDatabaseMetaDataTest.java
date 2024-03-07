@@ -487,6 +487,8 @@ public class JdbcDatabaseMetaDataTest {
         assertTrue(rs.next());
         assertEquals("BYTES", rs.getString("TYPE_NAME"));
         assertTrue(rs.next());
+        assertEquals("FLOAT32", rs.getString("TYPE_NAME"));
+        assertTrue(rs.next());
         assertEquals("FLOAT64", rs.getString("TYPE_NAME"));
         assertTrue(rs.next());
         assertEquals("BOOL", rs.getString("TYPE_NAME"));

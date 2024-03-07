@@ -110,6 +110,47 @@ enum JdbcDataType {
       return Type.date();
     }
   },
+  FLOAT32 {
+    @Override
+    public int getSqlType() {
+      return Types.REAL;
+    }
+
+    @Override
+    public int getScale() {
+      return 7;
+    }
+
+    @Override
+    public int getPrecision() {
+      return 7;
+    }
+
+    @Override
+    public int getDefaultColumnDisplaySize() {
+      return 7;
+    }
+
+    @Override
+    public Class<Float> getJavaClass() {
+      return Float.class;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.FLOAT32;
+    }
+
+    @Override
+    public List<Float> getArrayElements(ResultSet rs, int columnIndex) {
+      return rs.getFloatList(columnIndex);
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.float32();
+    }
+  },
   FLOAT64 {
     private final Set<Class<?>> classes = new HashSet<>(Arrays.asList(Float.class, Double.class));
 
@@ -370,6 +411,21 @@ enum JdbcDataType {
   public abstract Code getCode();
 
   public abstract Type getSpannerType();
+
+  // TODO: Implement and use this method for all types.
+  public int getPrecision() {
+    throw new UnsupportedOperationException();
+  }
+
+  // TODO: Implement and use this method for all types.
+  public int getScale() {
+    throw new UnsupportedOperationException();
+  }
+
+  // TODO: Implement and use this method for all types.
+  public int getDefaultColumnDisplaySize() {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * @param rs the result set to look up the elements

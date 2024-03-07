@@ -49,6 +49,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
         return Types.BINARY;
       case DATE:
         return Types.DATE;
+      case FLOAT32:
+        return Types.REAL;
       case FLOAT64:
         return Types.DOUBLE;
       case INT64:
@@ -81,9 +83,13 @@ abstract class AbstractJdbcWrapper implements Wrapper {
    */
   @Deprecated
   static String getSpannerTypeName(int sqlType) {
+    // TODO: Re-write to be dialect-aware (or remove all-together).
     if (sqlType == Types.BOOLEAN) return Type.bool().getCode().name();
     if (sqlType == Types.BINARY) return Type.bytes().getCode().name();
     if (sqlType == Types.DATE) return Type.date().getCode().name();
+    if (sqlType == Types.REAL) {
+      return Type.float32().getCode().name();
+    }
     if (sqlType == Types.DOUBLE || sqlType == Types.FLOAT) return Type.float64().getCode().name();
     if (sqlType == Types.BIGINT
         || sqlType == Types.INTEGER
@@ -109,6 +115,9 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     if (sqlType == Types.BOOLEAN) return Boolean.class.getName();
     if (sqlType == Types.BINARY) return Byte[].class.getName();
     if (sqlType == Types.DATE) return Date.class.getName();
+    if (sqlType == Types.REAL) {
+      return Float.class.getName();
+    }
     if (sqlType == Types.DOUBLE || sqlType == Types.FLOAT) return Double.class.getName();
     if (sqlType == Types.BIGINT
         || sqlType == Types.INTEGER
@@ -137,6 +146,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
         return byte[].class.getName();
       case DATE:
         return Date.class.getName();
+      case FLOAT32:
+        return Float.class.getName();
       case FLOAT64:
         return Double.class.getName();
       case INT64:
@@ -158,6 +169,8 @@ abstract class AbstractJdbcWrapper implements Wrapper {
             return byte[][].class.getName();
           case DATE:
             return Date[].class.getName();
+          case FLOAT32:
+            return Float[].class.getName();
           case FLOAT64:
             return Double[].class.getName();
           case INT64:

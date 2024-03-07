@@ -60,18 +60,18 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
         MockSpannerServiceImpl.StatementResult.detectDialectResult(Dialect.GOOGLE_STANDARD_SQL));
 
     String baseSql =
-        "insert into all_types (col_bool, col_bytes, col_date, col_float64, col_int64, "
+        "insert into all_types (col_bool, col_bytes, col_date, col_float32, col_float64, col_int64, "
             + "col_json, col_numeric, col_string, col_timestamp, col_bool_array, col_bytes_array, "
-            + "col_date_array, col_float64_array, col_int64_array, col_json_array, col_numeric_array, "
-            + "col_string_array, col_timestamp_array) values (%s)";
+            + "col_date_array, col_float32_array, col_float64_array, col_int64_array, col_json_array,"
+            + "col_numeric_array, col_string_array, col_timestamp_array) values (%s)";
     String jdbcSql =
         String.format(
             baseSql,
-            IntStream.range(0, 18).mapToObj(ignored -> "?").collect(Collectors.joining(", ")));
+            IntStream.range(0, 20).mapToObj(ignored -> "?").collect(Collectors.joining(", ")));
     String googleSql =
         String.format(
             baseSql,
-            IntStream.range(1, 19)
+            IntStream.range(1, 21)
                 .mapToObj(index -> "@p" + index)
                 .collect(Collectors.joining(", ")));
     mockSpanner.putStatementResult(
@@ -89,7 +89,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
     try (Connection connection = createJdbcConnection()) {
       try (PreparedStatement statement = connection.prepareStatement(jdbcSql)) {
         ParameterMetaData metadata = statement.getParameterMetaData();
-        assertEquals(18, metadata.getParameterCount());
+        assertEquals(20, metadata.getParameterCount());
         int index = 0;
         assertEquals(Types.BOOLEAN, metadata.getParameterType(++index));
         assertEquals("BOOL", metadata.getParameterTypeName(index));
@@ -97,6 +97,8 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
         assertEquals("BYTES", metadata.getParameterTypeName(index));
         assertEquals(Types.DATE, metadata.getParameterType(++index));
         assertEquals("DATE", metadata.getParameterTypeName(index));
+        assertEquals(Types.REAL, metadata.getParameterType(++index));
+        assertEquals("FLOAT32", metadata.getParameterTypeName(index));
         assertEquals(Types.DOUBLE, metadata.getParameterType(++index));
         assertEquals("FLOAT64", metadata.getParameterTypeName(index));
         assertEquals(Types.BIGINT, metadata.getParameterType(++index));
@@ -116,6 +118,8 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
         assertEquals("ARRAY<BYTES>", metadata.getParameterTypeName(index));
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
         assertEquals("ARRAY<DATE>", metadata.getParameterTypeName(index));
+        assertEquals(Types.ARRAY, metadata.getParameterType(++index));
+        assertEquals("ARRAY<FLOAT32>", metadata.getParameterTypeName(index));
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
         assertEquals("ARRAY<FLOAT64>", metadata.getParameterTypeName(index));
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
@@ -166,7 +170,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
     try (Connection connection = createJdbcConnection()) {
       try (PreparedStatement statement = connection.prepareStatement(jdbcSql)) {
         ParameterMetaData metadata = statement.getParameterMetaData();
-        assertEquals(18, metadata.getParameterCount());
+        assertEquals(20, metadata.getParameterCount());
         int index = 0;
         assertEquals(Types.BOOLEAN, metadata.getParameterType(++index));
         assertEquals("boolean", metadata.getParameterTypeName(index));
@@ -174,6 +178,8 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
         assertEquals("bytea", metadata.getParameterTypeName(index));
         assertEquals(Types.DATE, metadata.getParameterType(++index));
         assertEquals("date", metadata.getParameterTypeName(index));
+        assertEquals(Types.REAL, metadata.getParameterType(++index));
+        assertEquals("real", metadata.getParameterTypeName(index));
         assertEquals(Types.DOUBLE, metadata.getParameterType(++index));
         assertEquals("double precision", metadata.getParameterTypeName(index));
         assertEquals(Types.BIGINT, metadata.getParameterType(++index));
@@ -193,6 +199,8 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
         assertEquals("bytea[]", metadata.getParameterTypeName(index));
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
         assertEquals("date[]", metadata.getParameterTypeName(index));
+        assertEquals(Types.ARRAY, metadata.getParameterType(++index));
+        assertEquals("real[]", metadata.getParameterTypeName(index));
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
         assertEquals("double precision[]", metadata.getParameterTypeName(index));
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
@@ -229,16 +237,21 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
         .addFields(
             Field.newBuilder()
                 .setName("p4")
-                .setType(Type.newBuilder().setCode(TypeCode.FLOAT64).build())
+                .setType(Type.newBuilder().setCode(TypeCode.FLOAT32).build())
                 .build())
         .addFields(
             Field.newBuilder()
                 .setName("p5")
-                .setType(Type.newBuilder().setCode(TypeCode.INT64).build())
+                .setType(Type.newBuilder().setCode(TypeCode.FLOAT64).build())
                 .build())
         .addFields(
             Field.newBuilder()
                 .setName("p6")
+                .setType(Type.newBuilder().setCode(TypeCode.INT64).build())
+                .build())
+        .addFields(
+            Field.newBuilder()
+                .setName("p7")
                 .setType(
                     Type.newBuilder()
                         .setCode(TypeCode.JSON)
@@ -250,7 +263,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
                 .build())
         .addFields(
             Field.newBuilder()
-                .setName("p7")
+                .setName("p8")
                 .setType(
                     Type.newBuilder()
                         .setCode(TypeCode.NUMERIC)
@@ -262,21 +275,13 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
                 .build())
         .addFields(
             Field.newBuilder()
-                .setName("p8")
+                .setName("p9")
                 .setType(Type.newBuilder().setCode(TypeCode.STRING).build())
                 .build())
         .addFields(
             Field.newBuilder()
-                .setName("p9")
-                .setType(Type.newBuilder().setCode(TypeCode.TIMESTAMP).build())
-                .build())
-        .addFields(
-            Field.newBuilder()
                 .setName("p10")
-                .setType(
-                    Type.newBuilder()
-                        .setCode(TypeCode.ARRAY)
-                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.BOOL).build()))
+                .setType(Type.newBuilder().setCode(TypeCode.TIMESTAMP).build())
                 .build())
         .addFields(
             Field.newBuilder()
@@ -284,7 +289,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
                 .setType(
                     Type.newBuilder()
                         .setCode(TypeCode.ARRAY)
-                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.BYTES).build()))
+                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.BOOL).build()))
                 .build())
         .addFields(
             Field.newBuilder()
@@ -292,7 +297,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
                 .setType(
                     Type.newBuilder()
                         .setCode(TypeCode.ARRAY)
-                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.DATE).build()))
+                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.BYTES).build()))
                 .build())
         .addFields(
             Field.newBuilder()
@@ -300,7 +305,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
                 .setType(
                     Type.newBuilder()
                         .setCode(TypeCode.ARRAY)
-                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.FLOAT64).build()))
+                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.DATE).build()))
                 .build())
         .addFields(
             Field.newBuilder()
@@ -308,11 +313,27 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
                 .setType(
                     Type.newBuilder()
                         .setCode(TypeCode.ARRAY)
-                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.INT64).build()))
+                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.FLOAT32).build()))
                 .build())
         .addFields(
             Field.newBuilder()
                 .setName("p15")
+                .setType(
+                    Type.newBuilder()
+                        .setCode(TypeCode.ARRAY)
+                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.FLOAT64).build()))
+                .build())
+        .addFields(
+            Field.newBuilder()
+                .setName("p16")
+                .setType(
+                    Type.newBuilder()
+                        .setCode(TypeCode.ARRAY)
+                        .setArrayElementType(Type.newBuilder().setCode(TypeCode.INT64).build()))
+                .build())
+        .addFields(
+            Field.newBuilder()
+                .setName("p17")
                 .setType(
                     Type.newBuilder()
                         .setCode(TypeCode.ARRAY)
@@ -327,7 +348,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
                 .build())
         .addFields(
             Field.newBuilder()
-                .setName("p16")
+                .setName("p18")
                 .setType(
                     Type.newBuilder()
                         .setCode(TypeCode.ARRAY)
@@ -342,7 +363,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
                 .build())
         .addFields(
             Field.newBuilder()
-                .setName("p17")
+                .setName("p19")
                 .setType(
                     Type.newBuilder()
                         .setCode(TypeCode.ARRAY)
@@ -350,7 +371,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
                 .build())
         .addFields(
             Field.newBuilder()
-                .setName("p18")
+                .setName("p20")
                 .setType(
                     Type.newBuilder()
                         .setCode(TypeCode.ARRAY)

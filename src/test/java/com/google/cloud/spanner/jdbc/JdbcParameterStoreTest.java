@@ -147,9 +147,9 @@ public class JdbcParameterStoreTest {
     params.setParameter(1, 1L, Types.BIGINT);
     assertEquals(1, ((Long) params.getParameter(1)).longValue());
     verifyParameter(params, Value.int64(1));
-    params.setParameter(1, (float) 1, Types.FLOAT);
+    params.setParameter(1, (float) 1, Types.REAL);
     assertEquals(1.0f, (Float) params.getParameter(1), 0.0f);
-    verifyParameter(params, Value.float64(1));
+    verifyParameter(params, Value.float32(1));
     params.setParameter(1, (double) 1, Types.DOUBLE);
     assertEquals(1.0d, (Double) params.getParameter(1), 0.0d);
     verifyParameter(params, Value.float64(1));
@@ -266,8 +266,33 @@ public class JdbcParameterStoreTest {
       verifyParameter(params, Value.int64(1));
     }
 
+    // types that should lead to float32
+    for (int type : new int[] {Types.REAL}) {
+      params.setParameter(1, (byte) 1, type);
+      assertEquals(1, ((Byte) params.getParameter(1)).byteValue());
+      verifyParameter(params, Value.float32(1));
+      params.setParameter(1, (short) 1, type);
+      assertEquals(1, ((Short) params.getParameter(1)).shortValue());
+      verifyParameter(params, Value.float32(1));
+      params.setParameter(1, 1, type);
+      assertEquals(1, ((Integer) params.getParameter(1)).intValue());
+      verifyParameter(params, Value.float32(1));
+      params.setParameter(1, 1L, type);
+      assertEquals(1, ((Long) params.getParameter(1)).longValue());
+      verifyParameter(params, Value.float32(1));
+      params.setParameter(1, (float) 1, type);
+      assertEquals(1.0f, (Float) params.getParameter(1), 0.0f);
+      verifyParameter(params, Value.float32(1));
+      params.setParameter(1, (double) 1, type);
+      assertEquals(1.0d, (Double) params.getParameter(1), 0.0d);
+      verifyParameter(params, Value.float32(1));
+      params.setParameter(1, BigDecimal.ONE, type);
+      assertEquals(BigDecimal.ONE, params.getParameter(1));
+      verifyParameter(params, Value.float32(1));
+    }
+
     // types that should lead to float64
-    for (int type : new int[] {Types.FLOAT, Types.REAL, Types.DOUBLE}) {
+    for (int type : new int[] {Types.FLOAT, Types.DOUBLE}) {
       params.setParameter(1, (byte) 1, type);
       assertEquals(1, ((Byte) params.getParameter(1)).byteValue());
       verifyParameter(params, Value.float64(1));
@@ -438,8 +463,15 @@ public class JdbcParameterStoreTest {
       assertInvalidParameter(params, Boolean.TRUE, type);
     }
 
+    // types that should not be valid float32 parameters.
+    for (int type : new int[] {Types.REAL}) {
+      assertInvalidParameter(params, "1", type);
+      assertInvalidParameter(params, new Object(), type);
+      assertInvalidParameter(params, Boolean.TRUE, type);
+    }
+
     // types that should lead to float64
-    for (int type : new int[] {Types.FLOAT, Types.REAL, Types.DOUBLE}) {
+    for (int type : new int[] {Types.FLOAT, Types.DOUBLE}) {
       assertInvalidParameter(params, "1", type);
       assertInvalidParameter(params, new Object(), type);
       assertInvalidParameter(params, Boolean.TRUE, type);
