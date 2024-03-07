@@ -16,6 +16,8 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
+import static com.google.cloud.spanner.testing.EmulatorSpannerHelper.isUsingEmulator;
+
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.GceTestEnvConfig;
@@ -23,7 +25,6 @@ import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
 import com.google.cloud.spanner.connection.ITAbstractSpannerTest;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
-import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import java.nio.file.Files;
@@ -116,7 +117,7 @@ public class ITAbstractJdbcTest {
       default:
         scriptFile = "CreateMusicTables.sql";
     }
-    if (EmulatorSpannerHelper.isUsingEmulator()) {
+    if (dialect != Dialect.POSTGRESQL && isUsingEmulator()) {
       scriptFile = "CreateMusicTables_Emulator.sql";
     }
     return AbstractSqlScriptVerifier.readStatementsFromFile(scriptFile, ITAbstractJdbcTest.class)
@@ -130,7 +131,7 @@ public class ITAbstractJdbcTest {
   }
 
   public String getDefaultCatalog(Database database) {
-    if (getDialect() == Dialect.POSTGRESQL) {
+    if (getDialect() == Dialect.POSTGRESQL && !isUsingEmulator()) {
       return database.getId().getDatabase();
     }
     return "";

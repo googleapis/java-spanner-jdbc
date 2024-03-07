@@ -20,7 +20,6 @@ import static com.google.cloud.spanner.testing.EmulatorSpannerHelper.isUsingEmul
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.DatabaseAdminClient;
@@ -96,7 +95,6 @@ public class ITJdbcPgNumericTest {
 
   @Test
   public void testResultSet() throws SQLException {
-    assumeFalse("PgNumeric is not supported in the emulator", isUsingEmulator());
     final String table = testHelper.getUniqueDatabaseId();
     final String positiveBigNumeric =
         String.join("", Collections.nCopies(131072, "1"))
@@ -124,7 +122,7 @@ public class ITJdbcPgNumericTest {
 
     try (Connection connection = DriverManager.getConnection(url);
         Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("SELECT * FROM " + table)) {
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM " + table + " ORDER BY id")) {
 
       resultSet.next();
       assertEquals("1.23", resultSet.getString("col1"));

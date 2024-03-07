@@ -16,7 +16,6 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import static com.google.cloud.spanner.testing.EmulatorSpannerHelper.isUsingEmulator;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -32,7 +31,6 @@ import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.JsonType;
-import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.BaseEncoding;
@@ -91,9 +89,6 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
 
   @Before
   public void setup() {
-    assumeFalse(
-        "Emulator does not support PostgreSQL",
-        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
     database = env.getOrCreateDatabase(getDialect(), getMusicTablesDdl(getDialect()));
   }
 
@@ -137,11 +132,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       ps.setString(2, this.firstName);
       ps.setString(3, this.lastName);
       ps.setBytes(4, this.singerInfo);
-      if (dialect == Dialect.POSTGRESQL) {
-        ps.setString(5, this.birthDate.toString());
-      } else {
-        ps.setDate(5, this.birthDate);
-      }
+      ps.setDate(5, this.birthDate);
     }
   }
 
@@ -253,34 +244,22 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         throws SQLException {
       ps.setLong(1, this.venueId);
       ps.setLong(2, this.singerId);
-      if (dialect == Dialect.POSTGRESQL) {
-        ps.setString(3, this.concertDate.toString());
-        ps.setString(4, this.beginTime.toString());
-        ps.setString(5, this.endTime.toString());
-      } else {
-        ps.setDate(3, this.concertDate);
-        ps.setTimestamp(4, this.beginTime);
-        ps.setTimestamp(5, this.endTime);
-        ps.setArray(6, connection.createArrayOf("INT64", this.ticketPrices));
-      }
+      ps.setDate(3, this.concertDate);
+      ps.setTimestamp(4, this.beginTime);
+      ps.setTimestamp(5, this.endTime);
+      ps.setArray(6, connection.createArrayOf("INT64", this.ticketPrices));
     }
 
     private void assertEqualsFields(Connection connection, ResultSet rs, Dialect dialect)
         throws SQLException {
       assertEquals(rs.getLong(1), this.venueId);
       assertEquals(rs.getLong(2), this.singerId);
-      if (dialect == Dialect.POSTGRESQL) {
-        assertEquals(rs.getString(3), this.concertDate.toString());
-        assertEquals(rs.getString(4), this.beginTime.toString());
-        assertEquals(rs.getString(5), this.endTime.toString());
-      } else {
-        assertEquals(rs.getDate(3), this.concertDate);
-        assertEquals(rs.getTimestamp(4), this.beginTime);
-        assertEquals(rs.getTimestamp(5), this.endTime);
-        assertArrayEquals(
-            (Object[]) rs.getArray(6).getArray(),
-            (Object[]) connection.createArrayOf("INT64", this.ticketPrices).getArray());
-      }
+      assertEquals(rs.getDate(3), this.concertDate);
+      assertEquals(rs.getTimestamp(4), this.beginTime);
+      assertEquals(rs.getTimestamp(5), this.endTime);
+      assertArrayEquals(
+          (Object[]) rs.getArray(6).getArray(),
+          (Object[]) connection.createArrayOf("INT64", this.ticketPrices).getArray());
     }
   }
 
@@ -346,15 +325,12 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private String getConcertsInsertQuery(Dialect dialect) {
-    if (dialect == Dialect.POSTGRESQL) {
-      return "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime) VALUES (?,?,?,?,?);";
-    }
     return "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime, TicketPrices) VALUES (?,?,?,?,?,?);";
   }
 
   private String getConcertsInsertReturningQuery(Dialect dialect) {
     if (dialect == Dialect.POSTGRESQL) {
-      return "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime) VALUES (?,?,?,?,?) RETURNING *;";
+      return "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime, TicketPrices) VALUES (?,?,?,?,?,?) RETURNING *;";
     }
     return "INSERT INTO Concerts (VenueId, SingerId, ConcertDate, BeginTime, EndTime, TicketPrices) VALUES (?,?,?,?,?,?) THEN RETURN *;";
   }
@@ -380,13 +356,6 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     return "INSERT INTO Songs (SingerId, AlbumId, TrackId, SongName, Duration, SongGenre) VALUES (?,?,?,?,?,?) THEN RETURN *;";
   }
 
-  private int getConcertExpectedParamCount(Dialect dialect) {
-    if (dialect == Dialect.POSTGRESQL) {
-      return 5;
-    }
-    return 6;
-  }
-
   @Test
   public void test01_InsertTestData() throws SQLException {
     try (Connection connection = createConnection(env, database)) {
@@ -396,24 +365,13 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               "INSERT INTO Singers (SingerId, FirstName, LastName, SingerInfo, BirthDate) values (?,?,?,?,?)")) {
         assertParameterMetaData(
             ps.getParameterMetaData(),
+            ImmutableList.of(
+                Types.BIGINT, Types.NVARCHAR, Types.NVARCHAR, Types.BINARY, Types.DATE),
             dialect.dialect == Dialect.POSTGRESQL
                 ? ImmutableList.of(
-                    Types.BIGINT, Types.NVARCHAR, Types.NVARCHAR, Types.BINARY, Types.NVARCHAR)
-                : ImmutableList.of(
-                    Types.BIGINT, Types.NVARCHAR, Types.NVARCHAR, Types.BINARY, Types.DATE),
-            dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of(
-                    "bigint",
-                    "character varying",
-                    "character varying",
-                    "bytea",
-                    "character varying")
+                    "bigint", "character varying", "character varying", "bytea", "date")
                 : ImmutableList.of("INT64", "STRING", "STRING", "BYTES", "DATE"),
-            dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of(
-                    Long.class, String.class, String.class, byte[].class, String.class)
-                : ImmutableList.of(
-                    Long.class, String.class, String.class, byte[].class, Date.class));
+            ImmutableList.of(Long.class, String.class, String.class, byte[].class, Date.class));
         for (Singer singer : createSingers()) {
           singer.setPreparedStatement(ps, getDialect());
           assertInsertSingerParameterMetadata(ps.getParameterMetaData());
@@ -487,39 +445,35 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           connection.prepareStatement(getConcertsInsertQuery(dialect.dialect))) {
         assertParameterMetaData(
             ps.getParameterMetaData(),
-            dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of(
-                    Types.BIGINT, Types.BIGINT, Types.NVARCHAR, Types.NVARCHAR, Types.NVARCHAR)
-                : ImmutableList.of(
-                    Types.BIGINT,
-                    Types.BIGINT,
-                    Types.DATE,
-                    Types.TIMESTAMP,
-                    Types.TIMESTAMP,
-                    Types.ARRAY),
+            ImmutableList.of(
+                Types.BIGINT,
+                Types.BIGINT,
+                Types.DATE,
+                Types.TIMESTAMP,
+                Types.TIMESTAMP,
+                Types.ARRAY),
             dialect.dialect == Dialect.POSTGRESQL
                 ? ImmutableList.of(
                     "bigint",
                     "bigint",
-                    "character varying",
-                    "character varying",
-                    "character varying")
+                    "date",
+                    "timestamp with time zone",
+                    "timestamp with time zone",
+                    "bigint[]")
                 : ImmutableList.of(
                     "INT64", "INT64", "DATE", "TIMESTAMP", "TIMESTAMP", "ARRAY<INT64>"),
-            dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of(Long.class, Long.class, String.class, String.class, String.class)
-                : ImmutableList.of(
-                    Long.class,
-                    Long.class,
-                    Date.class,
-                    Timestamp.class,
-                    Timestamp.class,
-                    Long[].class));
+            ImmutableList.of(
+                Long.class,
+                Long.class,
+                Date.class,
+                Timestamp.class,
+                Timestamp.class,
+                Long[].class));
         for (Concert concert : createConcerts()) {
           concert.setPreparedStatement(connection, ps, getDialect());
           assertInsertConcertParameterMetadata(ps.getParameterMetaData());
           assertEquals(1, ps.executeUpdate());
-          // check that calling executeUpdate will not reset the meta data
+          // check that calling executeUpdate will not reset the metadata.
           assertInsertConcertParameterMetadata(ps.getParameterMetaData());
         }
       }
@@ -564,17 +518,10 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           assertTrue(rs.next());
           assertEquals(1L, rs.getLong(1));
           assertEquals(1L, rs.getLong(2));
-          if (dialect.dialect == Dialect.POSTGRESQL) {
-            assertEquals("2003-06-19", rs.getString(3));
-            assertEquals("2003-06-19 12:30:05.0", rs.getString(4));
-            assertEquals("2003-06-19 18:57:15.0", rs.getString(5));
-          } else {
-            assertEquals(Date.valueOf("2003-06-19"), rs.getDate(3));
-            assertEquals(Timestamp.valueOf("2003-06-19 12:30:05"), rs.getTimestamp(4));
-            assertEquals(Timestamp.valueOf("2003-06-19 18:57:15"), rs.getTimestamp(5));
-            assertArrayEquals(
-                new Long[] {11L, 93L, 140L, 923L}, (Long[]) rs.getArray(6).getArray());
-          }
+          assertEquals(Date.valueOf("2003-06-19"), rs.getDate(3));
+          assertEquals(Timestamp.valueOf("2003-06-19 12:30:05"), rs.getTimestamp(4));
+          assertEquals(Timestamp.valueOf("2003-06-19 18:57:15"), rs.getTimestamp(5));
+          assertArrayEquals(new Long[] {11L, 93L, 140L, 923L}, (Long[]) rs.getArray(6).getArray());
         }
       }
     }
@@ -583,8 +530,6 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   @SuppressWarnings("deprecation")
   @Test
   public void test03_Dates() throws SQLException {
-    assumeFalse(
-        "Date type is not supported on POSTGRESQL dialect", dialect.dialect == Dialect.POSTGRESQL);
     List<String> expectedValues = new ArrayList<>();
     expectedValues.add("2008-01-01");
     expectedValues.add("2000-01-01");
@@ -645,8 +590,16 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                     Types.TIMESTAMP,
                     Types.TIMESTAMP,
                     Types.ARRAY),
-                ImmutableList.of(
-                    "INT64", "INT64", "DATE", "TIMESTAMP", "TIMESTAMP", "ARRAY<INT64>"),
+                dialect.dialect == Dialect.POSTGRESQL
+                    ? ImmutableList.of(
+                        "bigint",
+                        "bigint",
+                        "date",
+                        "timestamp with time zone",
+                        "timestamp with time zone",
+                        "bigint[]")
+                    : ImmutableList.of(
+                        "INT64", "INT64", "DATE", "TIMESTAMP", "TIMESTAMP", "ARRAY<INT64>"),
                 ImmutableList.of(
                     Long.class,
                     Long.class,
@@ -1140,7 +1093,6 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     assumeFalse(
         "TableWithAllColumnTypes type is not supported on POSTGRESQL dialect",
         dialect.dialect == Dialect.POSTGRESQL);
-    assumeFalse("The emulator does not support PLAN mode", isUsingEmulator());
     try (Connection con = createConnection(env, database)) {
       try (PreparedStatement ps =
           con.prepareStatement("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=?")) {
@@ -1341,9 +1293,6 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
 
   @Test
   public void test12_InsertReturningTestData() throws SQLException {
-    assumeFalse(
-        "Emulator does not support DML with returning clause",
-        EmulatorSpannerHelper.isUsingEmulator());
     try (Connection connection = createConnection(env, database)) {
       connection.setAutoCommit(false);
       // Delete existing rows from tables populated by other tests,
@@ -1358,24 +1307,13 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           connection.prepareStatement(getSingersInsertReturningQuery(dialect.dialect))) {
         assertParameterMetaData(
             ps.getParameterMetaData(),
+            ImmutableList.of(
+                Types.BIGINT, Types.NVARCHAR, Types.NVARCHAR, Types.BINARY, Types.DATE),
             dialect.dialect == Dialect.POSTGRESQL
                 ? ImmutableList.of(
-                    Types.BIGINT, Types.NVARCHAR, Types.NVARCHAR, Types.BINARY, Types.NVARCHAR)
-                : ImmutableList.of(
-                    Types.BIGINT, Types.NVARCHAR, Types.NVARCHAR, Types.BINARY, Types.DATE),
-            dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of(
-                    "bigint",
-                    "character varying",
-                    "character varying",
-                    "bytea",
-                    "character varying")
+                    "bigint", "character varying", "character varying", "bytea", "date")
                 : ImmutableList.of("INT64", "STRING", "STRING", "BYTES", "DATE"),
-            dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of(
-                    Long.class, String.class, String.class, byte[].class, String.class)
-                : ImmutableList.of(
-                    Long.class, String.class, String.class, byte[].class, Date.class));
+            ImmutableList.of(Long.class, String.class, String.class, byte[].class, Date.class));
         for (Singer singer : createSingers()) {
           singer.setPreparedStatement(ps, getDialect());
           assertInsertSingerParameterMetadata(ps.getParameterMetaData());
@@ -1465,34 +1403,30 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
           connection.prepareStatement(getConcertsInsertReturningQuery(dialect.dialect))) {
         assertParameterMetaData(
             ps.getParameterMetaData(),
-            dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of(
-                    Types.BIGINT, Types.BIGINT, Types.NVARCHAR, Types.NVARCHAR, Types.NVARCHAR)
-                : ImmutableList.of(
-                    Types.BIGINT,
-                    Types.BIGINT,
-                    Types.DATE,
-                    Types.TIMESTAMP,
-                    Types.TIMESTAMP,
-                    Types.ARRAY),
+            ImmutableList.of(
+                Types.BIGINT,
+                Types.BIGINT,
+                Types.DATE,
+                Types.TIMESTAMP,
+                Types.TIMESTAMP,
+                Types.ARRAY),
             dialect.dialect == Dialect.POSTGRESQL
                 ? ImmutableList.of(
                     "bigint",
                     "bigint",
-                    "character varying",
-                    "character varying",
-                    "character varying")
+                    "date",
+                    "timestamp with time zone",
+                    "timestamp with time zone",
+                    "bigint[]")
                 : ImmutableList.of(
                     "INT64", "INT64", "DATE", "TIMESTAMP", "TIMESTAMP", "ARRAY<INT64>"),
-            dialect.dialect == Dialect.POSTGRESQL
-                ? ImmutableList.of(Long.class, Long.class, String.class, String.class, String.class)
-                : ImmutableList.of(
-                    Long.class,
-                    Long.class,
-                    Date.class,
-                    Timestamp.class,
-                    Timestamp.class,
-                    Long[].class));
+            ImmutableList.of(
+                Long.class,
+                Long.class,
+                Date.class,
+                Timestamp.class,
+                Timestamp.class,
+                Long[].class));
         for (Concert concert : createConcerts()) {
           concert.setPreparedStatement(connection, ps, getDialect());
           assertInsertConcertParameterMetadata(ps.getParameterMetaData());
@@ -1500,7 +1434,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
             rs.next();
             concert.assertEqualsFields(connection, rs, dialect.dialect);
           }
-          // check that calling executeQuery will not reset the meta data
+          // check that calling executeQuery will not reset the metadata.
           assertInsertConcertParameterMetadata(ps.getParameterMetaData());
         }
       }
@@ -1569,11 +1503,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
     assertStringParam(pmd, 2);
     assertStringParam(pmd, 3);
     assertBytesParam(pmd, 4);
-    if (dialect.dialect == Dialect.POSTGRESQL) {
-      assertStringParam(pmd, 5);
-    } else {
-      assertDateParam(pmd, 5);
-    }
+    assertDateParam(pmd, 5);
   }
 
   private void assertInsertAlbumParameterMetadata(ParameterMetaData pmd) throws SQLException {
@@ -1595,20 +1525,13 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
   }
 
   private void assertInsertConcertParameterMetadata(ParameterMetaData pmd) throws SQLException {
-    int expectedParamCount = getConcertExpectedParamCount(getDialect());
-    assertEquals(expectedParamCount, pmd.getParameterCount());
+    assertEquals(6, pmd.getParameterCount());
     assertLongParam(pmd, 1);
     assertLongParam(pmd, 2);
-    if (dialect.dialect == Dialect.POSTGRESQL) {
-      assertStringParam(pmd, 3);
-      assertStringParam(pmd, 4);
-      assertStringParam(pmd, 5);
-    } else {
-      assertDateParam(pmd, 3);
-      assertTimestampParam(pmd, 4);
-      assertTimestampParam(pmd, 5);
-      assertLongArrayParam(pmd, 6);
-    }
+    assertDateParam(pmd, 3);
+    assertTimestampParam(pmd, 4);
+    assertTimestampParam(pmd, 5);
+    assertLongArrayParam(pmd, 6);
   }
 
   private void assertLongParam(ParameterMetaData pmd, int param) throws SQLException {
