@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.16.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.15.5...v2.16.0) (2024-03-07)
+
+
+### Features
+
+* Support float32 ([#1518](https://github.com/googleapis/java-spanner-jdbc/issues/1518)) ([635ac41](https://github.com/googleapis/java-spanner-jdbc/commit/635ac41e054814cf3b58d37cbc42b01ac183b2a1))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-shared-dependencies to v3.27.0 ([#1521](https://github.com/googleapis/java-spanner-jdbc/issues/1521)) ([a8eecfb](https://github.com/googleapis/java-spanner-jdbc/commit/a8eecfb3a731505ba309b4a359dea7b88990c88a))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.60.1 ([#1514](https://github.com/googleapis/java-spanner-jdbc/issues/1514)) ([cf8fe9e](https://github.com/googleapis/java-spanner-jdbc/commit/cf8fe9eea2423f64867c9ecd790916b81165e575))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.61.0 ([#1523](https://github.com/googleapis/java-spanner-jdbc/issues/1523)) ([0c1e281](https://github.com/googleapis/java-spanner-jdbc/commit/0c1e28177131f30405b09cf38fa7a78645a3508a))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.27.0 ([#1522](https://github.com/googleapis/java-spanner-jdbc/issues/1522)) ([28986f9](https://github.com/googleapis/java-spanner-jdbc/commit/28986f9dddabfe2d89b2e3155885434413c3941e))
+* Update dependency com.spotify.fmt:fmt-maven-plugin to v2.23 ([#1527](https://github.com/googleapis/java-spanner-jdbc/issues/1527)) ([1e7a4f7](https://github.com/googleapis/java-spanner-jdbc/commit/1e7a4f73339479134868206730c275fe752e8d0d))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.2.3 ([#1512](https://github.com/googleapis/java-spanner-jdbc/issues/1512)) ([e5825c9](https://github.com/googleapis/java-spanner-jdbc/commit/e5825c9a4aa9df68b1ca911430ef37cb6d3549c4))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.2.3 ([#1513](https://github.com/googleapis/java-spanner-jdbc/issues/1513)) ([8cfaa1a](https://github.com/googleapis/java-spanner-jdbc/commit/8cfaa1a523c32ebed307f747fd939bd900c28b34))
+
 ## [2.15.5](https://github.com/googleapis/java-spanner-jdbc/compare/v2.15.4...v2.15.5) (2024-02-21)
 
 
