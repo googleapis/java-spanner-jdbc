@@ -242,7 +242,7 @@ public class ITJdbcPgNumericTest {
       preparedStatement.setObject(16, Value.pgNumeric("1"));
 
       // TODO: Change to setFloat(..) when float32 is supported.
-      preparedStatement.setFloat(17, Float.NaN);
+      // preparedStatement.setFloat(17, Float.NaN);
       preparedStatement.setDouble(17, Double.NaN);
       preparedStatement.setDouble(18, Double.NaN);
       preparedStatement.setObject(19, Value.pgNumeric("NaN"));

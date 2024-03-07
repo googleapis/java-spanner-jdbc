@@ -463,7 +463,7 @@ public class JdbcParameterStoreTest {
       assertInvalidParameter(params, Boolean.TRUE, type);
     }
 
-    // types that should lead to float32
+    // types that should not be valid float32 parameters.
     for (int type : new int[] {Types.REAL}) {
       assertInvalidParameter(params, "1", type);
       assertInvalidParameter(params, new Object(), type);

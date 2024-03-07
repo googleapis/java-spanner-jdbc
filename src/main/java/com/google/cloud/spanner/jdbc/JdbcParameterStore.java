@@ -819,11 +819,7 @@ class JdbcParameterStore {
     } else if (Long[].class.isAssignableFrom(value.getClass())) {
       return binder.toInt64Array(toLongList((Long[]) value));
     } else if (float[].class.isAssignableFrom(value.getClass())) {
-      float[] l = new float[((float[]) value).length];
-      for (int i = 0; i < l.length; i++) {
-        l[i] = ((float[]) value)[i];
-      }
-      return binder.toFloat32Array(l);
+      return binder.toFloat32Array((float[]) value);
     } else if (Float[].class.isAssignableFrom(value.getClass())) {
       return binder.toFloat32Array(toFloatList((Float[]) value));
     } else if (double[].class.isAssignableFrom(value.getClass())) {
