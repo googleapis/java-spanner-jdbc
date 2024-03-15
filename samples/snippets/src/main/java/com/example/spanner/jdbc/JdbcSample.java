@@ -19,10 +19,12 @@ package com.example.spanner.jdbc;
 import com.google.api.gax.core.NoCredentialsProvider;
 import com.google.api.gax.grpc.InstantiatingGrpcChannelProvider;
 import com.google.cloud.spanner.DatabaseId;
+import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerExceptionFactory;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.admin.database.v1.DatabaseAdminClient;
 import com.google.cloud.spanner.admin.database.v1.DatabaseAdminSettings;
+import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.common.base.Strings;
 import com.google.spanner.admin.database.v1.CreateDatabaseRequest;
 import com.google.spanner.admin.database.v1.DatabaseDialect;
@@ -35,10 +37,59 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
 public class JdbcSample {
+  static class Singer {
+
+    final long singerId;
+    final String firstName;
+    final String lastName;
+
+    Singer(long singerId, String firstName, String lastName) {
+      this.singerId = singerId;
+      this.firstName = firstName;
+      this.lastName = lastName;
+    }
+  }
+
+  static class Album {
+
+    final long singerId;
+    final long albumId;
+    final String albumTitle;
+
+    Album(long singerId, long albumId, String albumTitle) {
+      this.singerId = singerId;
+      this.albumId = albumId;
+      this.albumTitle = albumTitle;
+    }
+  }
+
+  // [START spanner_insert_data]
+  // [START spanner_postgresql_insert_data]
+  static final List<Singer> SINGERS =
+      Arrays.asList(
+          new Singer(1, "Marc", "Richards"),
+          new Singer(2, "Catalina", "Smith"),
+          new Singer(3, "Alice", "Trentor"),
+          new Singer(4, "Lea", "Martin"),
+          new Singer(5, "David", "Lomond"));
+
+  static final List<Album> ALBUMS =
+      Arrays.asList(
+          new Album(1, 1, "Total Junk"),
+          new Album(1, 2, "Go, Go, Go"),
+          new Album(2, 1, "Green"),
+          new Album(2, 2, "Forever Hold Your Peace"),
+          new Album(2, 3, "Terrified"));
+  // [END spanner_insert_data]
+  // [END spanner_postgresql_insert_data]
+
   // [START spanner_create_database]
   static void createDatabase(
       DatabaseAdminClient dbAdminClient,
@@ -256,6 +307,92 @@ public class JdbcSample {
     }
   }
   // [END spanner_postgresql_dml_getting_started_insert]
+
+  // [START spanner_insert_data]
+  static void writeDataWithMutations(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Unwrap the CloudSpannerJdbcConnection interface from the java.sql.Connection.
+      CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
+          connection.unwrap(CloudSpannerJdbcConnection.class);
+
+      List<Mutation> mutations = new ArrayList<>();
+      for (Singer singer : SINGERS) {
+        mutations.add(
+            Mutation.newInsertBuilder("Singers")
+                .set("SingerId")
+                .to(singer.singerId)
+                .set("FirstName")
+                .to(singer.firstName)
+                .set("LastName")
+                .to(singer.lastName)
+                .build());
+      }
+      for (Album album : ALBUMS) {
+        mutations.add(
+            Mutation.newInsertBuilder("Albums")
+                .set("SingerId")
+                .to(album.singerId)
+                .set("AlbumId")
+                .to(album.albumId)
+                .set("AlbumTitle")
+                .to(album.albumTitle)
+                .build());
+      }
+      // Apply the mutations atomically to Spanner.
+      cloudSpannerJdbcConnection.write(mutations);
+      System.out.printf("Inserted %d rows.\n", mutations.size());
+    }
+  }
+  // [END spanner_insert_data]
+
+  // [START spanner_postgresql_insert_data]
+  static void writeDataWithMutationsPostgreSQL(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Unwrap the CloudSpannerJdbcConnection interface from the java.sql.Connection.
+      CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
+          connection.unwrap(CloudSpannerJdbcConnection.class);
+
+      List<Mutation> mutations = new ArrayList<>();
+      for (Singer singer : SINGERS) {
+        mutations.add(
+            Mutation.newInsertBuilder("singers")
+                .set("singer_id")
+                .to(singer.singerId)
+                .set("first_name")
+                .to(singer.firstName)
+                .set("last_name")
+                .to(singer.lastName)
+                .build());
+      }
+      for (Album album : ALBUMS) {
+        mutations.add(
+            Mutation.newInsertBuilder("albums")
+                .set("singer_id")
+                .to(album.singerId)
+                .set("album_id")
+                .to(album.albumId)
+                .set("album_title")
+                .to(album.albumTitle)
+                .build());
+      }
+      // Apply the mutations atomically to Spanner.
+      cloudSpannerJdbcConnection.write(mutations);
+      System.out.printf("Inserted %d rows.\n", mutations.size());
+    }
+  }
+  // [END spanner_postgresql_insert_data]
 
   public static void main(String[] args) throws Exception {
     if (args.length != 3 && args.length != 4) {

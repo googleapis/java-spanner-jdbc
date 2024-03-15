@@ -21,6 +21,8 @@ import static com.example.spanner.jdbc.JdbcSample.createDatabase;
 import static com.example.spanner.jdbc.JdbcSample.createPostgreSQLDatabase;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDml;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDmlPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.writeDataWithMutations;
+import static com.example.spanner.jdbc.JdbcSample.writeDataWithMutationsPostgreSQL;
 import static org.junit.Assert.assertEquals;
 
 import com.google.api.gax.core.NoCredentialsProvider;
@@ -133,6 +135,10 @@ public class JdbcSampleTest {
 
     result = runSample(() -> writeDataWithDml(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("4 records inserted.\n", result);
+
+    result =
+        runSample(() -> writeDataWithMutations(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Inserted 10 rows.\n", result);
   }
 
   @Test
@@ -154,6 +160,13 @@ public class JdbcSampleTest {
         runSample(
             () -> writeDataWithDmlPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
     assertEquals("4 records inserted.\n", result);
+
+    result =
+        runSample(
+            () ->
+                writeDataWithMutationsPostgreSQL(
+                    PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("Inserted 10 rows.\n", result);
   }
 
   interface Sample {
