@@ -16,6 +16,7 @@
 
 package com.example.spanner.jdbc;
 
+import static com.example.spanner.jdbc.JdbcSample.createConnection;
 import static com.example.spanner.jdbc.JdbcSample.createDatabase;
 import static com.example.spanner.jdbc.JdbcSample.createPostgreSQLDatabase;
 import static org.junit.Assert.assertEquals;
@@ -116,26 +117,33 @@ public class JdbcSampleTest {
   }
 
   @Test
-  public void testCreateDatabase() throws Exception {
+  public void testGoogleSQLSamples() throws Exception {
+    String result;
     try (DatabaseAdminClient client = createDatabaseAdminClient()) {
-      String result =
-          runSample(() -> createDatabase(client, INSTANCE_NAME, DATABASE_ID, properties));
-      assertEquals(
-          "Created database [" + DatabaseName.of(PROJECT_ID, INSTANCE_ID, DATABASE_ID) + "]\n",
-          result);
+      result = runSample(() -> createDatabase(client, INSTANCE_NAME, DATABASE_ID, properties));
     }
+    assertEquals(
+        "Created database [" + DatabaseName.of(PROJECT_ID, INSTANCE_ID, DATABASE_ID) + "]\n",
+        result);
+
+    result = runSample(() -> createConnection(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Hello World!\n", result);
   }
 
   @Test
-  public void testCreatePgDatabase() throws Exception {
+  public void testPostgreSQLSamples() throws Exception {
+    String result;
     try (DatabaseAdminClient client = createDatabaseAdminClient()) {
-      String result =
+      result =
           runSample(
               () -> createPostgreSQLDatabase(client, INSTANCE_NAME, PG_DATABASE_ID, properties));
-      assertEquals(
-          "Created database [" + DatabaseName.of(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID) + "]\n",
-          result);
     }
+    assertEquals(
+        "Created database [" + DatabaseName.of(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID) + "]\n",
+        result);
+
+    result = runSample(() -> createConnection(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Hello World!\n", result);
   }
 
   interface Sample {

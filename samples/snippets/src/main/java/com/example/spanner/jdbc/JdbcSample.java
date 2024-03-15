@@ -31,6 +31,7 @@ import com.google.spanner.v1.DatabaseName;
 import io.grpc.ManagedChannelBuilder;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
@@ -143,6 +144,29 @@ public class JdbcSample {
     System.out.println("Created database [" + databaseName + "]");
   }
   // [END spanner_postgresql_create_database]
+
+  // [START create_jdbc_connection]
+  static void createConnection(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    // Connection properties can be specified both with in a Properties object
+    // and in the connection URL.
+    properties.put("numChannels", "8");
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s"
+                    + ";minSessions=400;maxSessions=400",
+                project, instance, database),
+            properties)) {
+      try (ResultSet resultSet =
+          connection.createStatement().executeQuery("select 'Hello World!'")) {
+        while (resultSet.next()) {
+          System.out.println(resultSet.getString(1));
+        }
+      }
+    }
+  }
+  // [END create_jdbc_connection]
 
   public static void main(String[] args) throws Exception {
     if (args.length != 3 && args.length != 4) {
