@@ -19,6 +19,8 @@ package com.example.spanner.jdbc;
 import static com.example.spanner.jdbc.JdbcSample.createConnection;
 import static com.example.spanner.jdbc.JdbcSample.createDatabase;
 import static com.example.spanner.jdbc.JdbcSample.createPostgreSQLDatabase;
+import static com.example.spanner.jdbc.JdbcSample.writeDataWithDml;
+import static com.example.spanner.jdbc.JdbcSample.writeDataWithDmlPostgreSQL;
 import static org.junit.Assert.assertEquals;
 
 import com.google.api.gax.core.NoCredentialsProvider;
@@ -128,6 +130,9 @@ public class JdbcSampleTest {
 
     result = runSample(() -> createConnection(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("Hello World!\n", result);
+
+    result = runSample(() -> writeDataWithDml(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("4 records inserted.\n", result);
   }
 
   @Test
@@ -142,8 +147,13 @@ public class JdbcSampleTest {
         "Created database [" + DatabaseName.of(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID) + "]\n",
         result);
 
-    result = runSample(() -> createConnection(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    result = runSample(() -> createConnection(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
     assertEquals("Hello World!\n", result);
+
+    result =
+        runSample(
+            () -> writeDataWithDmlPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("4 records inserted.\n", result);
   }
 
   interface Sample {

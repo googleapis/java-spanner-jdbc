@@ -31,6 +31,7 @@ import com.google.spanner.v1.DatabaseName;
 import io.grpc.ManagedChannelBuilder;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -167,6 +168,94 @@ public class JdbcSample {
     }
   }
   // [END create_jdbc_connection]
+
+  // [START spanner_dml_getting_started_insert]
+  static void writeDataWithDml(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Add 4 rows in one statement.
+      // JDBC always uses '?' as a parameter placeholder.
+      try (PreparedStatement preparedStatement =
+          connection.prepareStatement(
+              "INSERT INTO Singers (SingerId, FirstName, LastName) VALUES "
+                  + "(?, ?, ?), "
+                  + "(?, ?, ?), "
+                  + "(?, ?, ?), "
+                  + "(?, ?, ?)")) {
+
+        // Note that JDBC parameters start at index 1.
+        int paramIndex = 0;
+        preparedStatement.setLong(++paramIndex, 12L);
+        preparedStatement.setString(++paramIndex, "Melissa");
+        preparedStatement.setString(++paramIndex, "Garcia");
+
+        preparedStatement.setLong(++paramIndex, 13L);
+        preparedStatement.setString(++paramIndex, "Russel");
+        preparedStatement.setString(++paramIndex, "Morales");
+
+        preparedStatement.setLong(++paramIndex, 14L);
+        preparedStatement.setString(++paramIndex, "Jacqueline");
+        preparedStatement.setString(++paramIndex, "Long");
+
+        preparedStatement.setLong(++paramIndex, 15L);
+        preparedStatement.setString(++paramIndex, "Dylan");
+        preparedStatement.setString(++paramIndex, "Shaw");
+
+        int updateCount = preparedStatement.executeUpdate();
+        System.out.printf("%d records inserted.\n", updateCount);
+      }
+    }
+  }
+  // [END spanner_dml_getting_started_insert]
+
+  // [START spanner_postgresql_dml_getting_started_insert]
+  static void writeDataWithDmlPostgreSQL(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Add 4 rows in one statement.
+      // JDBC always uses '?' as a parameter placeholder.
+      try (PreparedStatement preparedStatement =
+          connection.prepareStatement(
+              "INSERT INTO singers (singer_id, first_name, last_name) VALUES "
+                  + "(?, ?, ?), "
+                  + "(?, ?, ?), "
+                  + "(?, ?, ?), "
+                  + "(?, ?, ?)")) {
+
+        // Note that JDBC parameters start at index 1.
+        int paramIndex = 0;
+        preparedStatement.setLong(++paramIndex, 12L);
+        preparedStatement.setString(++paramIndex, "Melissa");
+        preparedStatement.setString(++paramIndex, "Garcia");
+
+        preparedStatement.setLong(++paramIndex, 13L);
+        preparedStatement.setString(++paramIndex, "Russel");
+        preparedStatement.setString(++paramIndex, "Morales");
+
+        preparedStatement.setLong(++paramIndex, 14L);
+        preparedStatement.setString(++paramIndex, "Jacqueline");
+        preparedStatement.setString(++paramIndex, "Long");
+
+        preparedStatement.setLong(++paramIndex, 15L);
+        preparedStatement.setString(++paramIndex, "Dylan");
+        preparedStatement.setString(++paramIndex, "Shaw");
+
+        int updateCount = preparedStatement.executeUpdate();
+        System.out.printf("%d records inserted.\n", updateCount);
+      }
+    }
+  }
+  // [END spanner_postgresql_dml_getting_started_insert]
 
   public static void main(String[] args) throws Exception {
     if (args.length != 3 && args.length != 4) {
