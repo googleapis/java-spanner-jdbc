@@ -25,14 +25,22 @@ import static com.example.spanner.jdbc.JdbcSample.ddlBatch;
 import static com.example.spanner.jdbc.JdbcSample.ddlBatchPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.queryData;
 import static com.example.spanner.jdbc.JdbcSample.queryDataPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.queryDataWithNewColumn;
+import static com.example.spanner.jdbc.JdbcSample.queryDataWithNewColumnPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.queryWithParameter;
 import static com.example.spanner.jdbc.JdbcSample.queryWithParameterPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.readOnlyTransaction;
+import static com.example.spanner.jdbc.JdbcSample.readOnlyTransactionPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.updateDataWithMutations;
+import static com.example.spanner.jdbc.JdbcSample.updateDataWithMutationsPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDml;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDmlBatch;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDmlBatchPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDmlPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithMutations;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithMutationsPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.writeWithTransactionUsingDml;
+import static com.example.spanner.jdbc.JdbcSample.writeWithTransactionUsingDmlPostgreSQL;
 import static org.junit.Assert.assertEquals;
 
 import com.google.api.gax.core.NoCredentialsProvider;
@@ -171,6 +179,34 @@ public class JdbcSampleTest {
 
     result = runSample(() -> ddlBatch(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("Added Venues and Concerts tables\n", result);
+
+    result =
+        runSample(() -> updateDataWithMutations(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Updated albums\n", result);
+
+    result =
+        runSample(() -> queryDataWithNewColumn(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals(
+        "1 2 null\n" + "2 2 500000\n" + "1 1 100000\n" + "2 1 null\n" + "2 3 null\n", result);
+
+    result =
+        runSample(
+            () -> writeWithTransactionUsingDml(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Transferred marketing budget from Album 2 to Album 1\n", result);
+
+    result = runSample(() -> readOnlyTransaction(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals(
+        "1 1 Total Junk\n"
+            + "1 2 Go, Go, Go\n"
+            + "2 1 Green\n"
+            + "2 2 Forever Hold Your Peace\n"
+            + "2 3 Terrified\n"
+            + "2 2 Forever Hold Your Peace\n"
+            + "1 2 Go, Go, Go\n"
+            + "2 1 Green\n"
+            + "2 3 Terrified\n"
+            + "1 1 Total Junk\n",
+        result);
   }
 
   @Test
@@ -230,6 +266,45 @@ public class JdbcSampleTest {
     result =
         runSample(() -> ddlBatchPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
     assertEquals("Added venues and concerts tables\n", result);
+
+    result =
+        runSample(
+            () ->
+                updateDataWithMutationsPostgreSQL(
+                    PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("Updated albums\n", result);
+
+    result =
+        runSample(
+            () ->
+                queryDataWithNewColumnPostgreSQL(
+                    PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals(
+        "1 2 null\n" + "2 2 500000\n" + "1 1 100000\n" + "2 1 null\n" + "2 3 null\n", result);
+
+    result =
+        runSample(
+            () ->
+                writeWithTransactionUsingDmlPostgreSQL(
+                    PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("Transferred marketing budget from Album 2 to Album 1\n", result);
+
+    result =
+        runSample(
+            () ->
+                readOnlyTransactionPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals(
+        "1 1 Total Junk\n"
+            + "1 2 Go, Go, Go\n"
+            + "2 1 Green\n"
+            + "2 2 Forever Hold Your Peace\n"
+            + "2 3 Terrified\n"
+            + "2 2 Forever Hold Your Peace\n"
+            + "1 2 Go, Go, Go\n"
+            + "2 1 Green\n"
+            + "2 3 Terrified\n"
+            + "1 1 Total Junk\n",
+        result);
   }
 
   interface Sample {
