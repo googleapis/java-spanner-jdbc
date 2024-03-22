@@ -16,9 +16,17 @@
 
 package com.example.spanner.jdbc;
 
+import static com.example.spanner.jdbc.JdbcSample.addColumn;
+import static com.example.spanner.jdbc.JdbcSample.addColumnPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.createConnection;
 import static com.example.spanner.jdbc.JdbcSample.createDatabase;
 import static com.example.spanner.jdbc.JdbcSample.createPostgreSQLDatabase;
+import static com.example.spanner.jdbc.JdbcSample.ddlBatch;
+import static com.example.spanner.jdbc.JdbcSample.ddlBatchPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.queryData;
+import static com.example.spanner.jdbc.JdbcSample.queryDataPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.queryWithParameter;
+import static com.example.spanner.jdbc.JdbcSample.queryWithParameterPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDml;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDmlBatch;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDmlBatchPostgreSQL;
@@ -138,12 +146,31 @@ public class JdbcSampleTest {
     result = runSample(() -> writeDataWithDml(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("4 records inserted.\n", result);
 
-    result = runSample(() -> writeDataWithDmlBatch(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    result =
+        runSample(() -> writeDataWithDmlBatch(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("3 records inserted.\n", result);
 
     result =
         runSample(() -> writeDataWithMutations(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("Inserted 10 rows.\n", result);
+
+    result = runSample(() -> queryData(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals(
+        "1 2 Go, Go, Go\n"
+            + "2 2 Forever Hold Your Peace\n"
+            + "1 1 Total Junk\n"
+            + "2 1 Green\n"
+            + "2 3 Terrified\n",
+        result);
+
+    result = runSample(() -> queryWithParameter(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("12 Melissa Garcia\n", result);
+
+    result = runSample(() -> addColumn(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Added MarketingBudget column\n", result);
+
+    result = runSample(() -> ddlBatch(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Added Venues and Concerts tables\n", result);
   }
 
   @Test
@@ -168,7 +195,9 @@ public class JdbcSampleTest {
 
     result =
         runSample(
-            () -> writeDataWithDmlBatchPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+            () ->
+                writeDataWithDmlBatchPostgreSQL(
+                    PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
     assertEquals("3 records inserted.\n", result);
 
     result =
@@ -177,6 +206,30 @@ public class JdbcSampleTest {
                 writeDataWithMutationsPostgreSQL(
                     PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
     assertEquals("Inserted 10 rows.\n", result);
+
+    result =
+        runSample(() -> queryDataPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals(
+        "1 2 Go, Go, Go\n"
+            + "2 2 Forever Hold Your Peace\n"
+            + "1 1 Total Junk\n"
+            + "2 1 Green\n"
+            + "2 3 Terrified\n",
+        result);
+
+    result =
+        runSample(
+            () ->
+                queryWithParameterPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("12 Melissa Garcia\n", result);
+
+    result =
+        runSample(() -> addColumnPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("Added marketing_budget column\n", result);
+
+    result =
+        runSample(() -> ddlBatchPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("Added venues and concerts tables\n", result);
   }
 
   interface Sample {

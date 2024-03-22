@@ -324,10 +324,11 @@ public class JdbcSample {
       try (PreparedStatement preparedStatement =
           connection.prepareStatement(
               "INSERT INTO Singers (SingerId, FirstName, LastName) VALUES (?, ?, ?)")) {
-        ImmutableList<Singer> singers = ImmutableList.of(
-            new Singer(16L, "Sarah", "Wilson"),
-            new Singer(17L, "Ethan", "Miller"),
-            new Singer(18L, "Maya", "Patel"));
+        ImmutableList<Singer> singers =
+            ImmutableList.of(
+                new Singer(16L, "Sarah", "Wilson"),
+                new Singer(17L, "Ethan", "Miller"),
+                new Singer(18L, "Maya", "Patel"));
 
         for (Singer singer : singers) {
           // Note that JDBC parameters start at index 1.
@@ -358,10 +359,11 @@ public class JdbcSample {
       try (PreparedStatement preparedStatement =
           connection.prepareStatement(
               "INSERT INTO singers (singer_id, first_name, last_name) VALUES (?, ?, ?)")) {
-        ImmutableList<Singer> singers = ImmutableList.of(
-            new Singer(16L, "Sarah", "Wilson"),
-            new Singer(17L, "Ethan", "Miller"),
-            new Singer(18L, "Maya", "Patel"));
+        ImmutableList<Singer> singers =
+            ImmutableList.of(
+                new Singer(16L, "Sarah", "Wilson"),
+                new Singer(17L, "Ethan", "Miller"),
+                new Singer(18L, "Maya", "Patel"));
 
         for (Singer singer : singers) {
           // Note that JDBC parameters start at index 1.
@@ -463,6 +465,204 @@ public class JdbcSample {
     }
   }
   // [END spanner_postgresql_insert_data]
+
+  // [START spanner_query_data]
+  static void queryData(String project, String instance, String database, Properties properties)
+      throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      try (ResultSet resultSet =
+          connection
+              .createStatement()
+              .executeQuery("SELECT SingerId, AlbumId, AlbumTitle FROM Albums")) {
+        while (resultSet.next()) {
+          System.out.printf(
+              "%d %d %s\n", resultSet.getLong(1), resultSet.getLong(2), resultSet.getString(3));
+        }
+      }
+    }
+  }
+  // [END spanner_query_data]
+
+  // [START spanner_postgresql_query_data]
+  static void queryDataPostgreSQL(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      try (ResultSet resultSet =
+          connection
+              .createStatement()
+              .executeQuery("SELECT singer_id, album_id, album_title FROM albums")) {
+        while (resultSet.next()) {
+          System.out.printf(
+              "%d %d %s\n", resultSet.getLong(1), resultSet.getLong(2), resultSet.getString(3));
+        }
+      }
+    }
+  }
+  // [END spanner_postgresql_query_data]
+
+  // [START spanner_query_with_parameter]
+  static void queryWithParameter(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      try (PreparedStatement statement =
+          connection.prepareStatement(
+              "SELECT SingerId, FirstName, LastName FROM Singers WHERE LastName = ?")) {
+        statement.setString(1, "Garcia");
+        try (ResultSet resultSet = statement.executeQuery()) {
+          while (resultSet.next()) {
+            System.out.printf(
+                "%d %s %s\n",
+                resultSet.getLong("SingerId"),
+                resultSet.getString("FirstName"),
+                resultSet.getString("LastName"));
+          }
+        }
+      }
+    }
+  }
+  // [END spanner_query_data]
+
+  // [START spanner_postgresql_query_with_parameter]
+  static void queryWithParameterPostgreSQL(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      try (PreparedStatement statement =
+          connection.prepareStatement(
+              "SELECT singer_id, first_name, last_name "
+                  + "FROM singers "
+                  + "WHERE last_name = ?")) {
+        statement.setString(1, "Garcia");
+        try (ResultSet resultSet = statement.executeQuery()) {
+          while (resultSet.next()) {
+            System.out.printf(
+                "%d %s %s\n",
+                resultSet.getLong("singer_id"),
+                resultSet.getString("first_name"),
+                resultSet.getString("last_name"));
+          }
+        }
+      }
+    }
+  }
+  // [END spanner_postgresql_query_data]
+
+  // [START spanner_add_column]
+  static void addColumn(String project, String instance, String database, Properties properties)
+      throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      connection.createStatement().execute("ALTER TABLE Albums ADD COLUMN MarketingBudget INT64");
+      System.out.println("Added MarketingBudget column");
+    }
+  }
+  // [END spanner_add_column]
+
+  // [START spanner_postgresql_add_column]
+  static void addColumnPostgreSQL(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      connection.createStatement().execute("alter table albums add column marketing_budget bigint");
+      System.out.println("Added marketing_budget column");
+    }
+  }
+  // [END spanner_postgresql_add_column]
+
+  // [START spanner_ddl_batch]
+  static void ddlBatch(String project, String instance, String database, Properties properties)
+      throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      try (Statement statement = connection.createStatement()) {
+        // Create two new tables in one batch.
+        statement.addBatch(
+            "CREATE TABLE Venues ("
+                + "  VenueId     INT64 NOT NULL,"
+                + "  Name        STRING(1024),"
+                + "  Description JSON"
+                + ") PRIMARY KEY (VenueId)");
+        statement.addBatch(
+            "CREATE TABLE Concerts ("
+                + "  ConcertId INT64 NOT NULL,"
+                + "  VenueId   INT64 NOT NULL,"
+                + "  SingerId  INT64 NOT NULL,"
+                + "  StartTime TIMESTAMP,"
+                + "  EndTime   TIMESTAMP,"
+                + "  CONSTRAINT Fk_Concerts_Venues FOREIGN KEY (VenueId) REFERENCES Venues (VenueId),"
+                + "  CONSTRAINT Fk_Concerts_Singers FOREIGN KEY (SingerId) REFERENCES Singers (SingerId),"
+                + ") PRIMARY KEY (ConcertId)");
+        statement.executeBatch();
+      }
+      System.out.println("Added Venues and Concerts tables");
+    }
+  }
+  // [END spanner_ddl_batch]
+
+  // [START spanner_postgresql_ddl_batch]
+  static void ddlBatchPostgreSQL(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      try (Statement statement = connection.createStatement()) {
+        // Create two new tables in one batch.
+        statement.addBatch(
+            "CREATE TABLE venues ("
+                + "  venue_id    bigint not null primary key,"
+                + "  name        varchar(1024),"
+                + "  description jsonb"
+                + ")");
+        statement.addBatch(
+            "CREATE TABLE concerts ("
+                + "  concert_id bigint not null primary key ,"
+                + "  venue_id   bigint not null,"
+                + "  singer_id  bigint not null,"
+                + "  start_time timestamptz,"
+                + "  end_time   timestamptz,"
+                + "  constraint fk_concerts_venues foreign key (venue_id) references venues (venue_id),"
+                + "  constraint fk_concerts_singers foreign key (singer_id) references singers (singer_id)"
+                + ")");
+        statement.executeBatch();
+      }
+      System.out.println("Added venues and concerts tables");
+    }
+  }
+  // [END spanner_postgresql_ddl_batch]
 
   public static void main(String[] args) throws Exception {
     if (args.length != 3 && args.length != 4) {
