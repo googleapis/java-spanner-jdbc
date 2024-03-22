@@ -21,6 +21,8 @@ import static com.example.spanner.jdbc.JdbcSample.addColumnPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.createConnection;
 import static com.example.spanner.jdbc.JdbcSample.createDatabase;
 import static com.example.spanner.jdbc.JdbcSample.createPostgreSQLDatabase;
+import static com.example.spanner.jdbc.JdbcSample.dataBoost;
+import static com.example.spanner.jdbc.JdbcSample.dataBoostPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.ddlBatch;
 import static com.example.spanner.jdbc.JdbcSample.ddlBatchPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.queryData;
@@ -207,6 +209,22 @@ public class JdbcSampleTest {
             + "2 3 Terrified\n"
             + "1 1 Total Junk\n",
         result);
+
+    result = runSample(() -> dataBoost(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals(
+        "2 Catalina Smith\n"
+            + "4 Lea Martin\n"
+            + "12 Melissa Garcia\n"
+            + "14 Jacqueline Long\n"
+            + "16 Sarah Wilson\n"
+            + "18 Maya Patel\n"
+            + "1 Marc Richards\n"
+            + "3 Alice Trentor\n"
+            + "5 David Lomond\n"
+            + "13 Russel Morales\n"
+            + "15 Dylan Shaw\n"
+            + "17 Ethan Miller\n",
+        result);
   }
 
   @Test
@@ -304,6 +322,23 @@ public class JdbcSampleTest {
             + "2 1 Green\n"
             + "2 3 Terrified\n"
             + "1 1 Total Junk\n",
+        result);
+
+    result =
+        runSample(() -> dataBoostPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals(
+        "2 Catalina Smith\n"
+            + "4 Lea Martin\n"
+            + "12 Melissa Garcia\n"
+            + "14 Jacqueline Long\n"
+            + "16 Sarah Wilson\n"
+            + "18 Maya Patel\n"
+            + "1 Marc Richards\n"
+            + "3 Alice Trentor\n"
+            + "5 David Lomond\n"
+            + "13 Russel Morales\n"
+            + "15 Dylan Shaw\n"
+            + "17 Ethan Miller\n",
         result);
   }
 

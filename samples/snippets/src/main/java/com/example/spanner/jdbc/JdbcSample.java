@@ -1028,6 +1028,60 @@ public class JdbcSample {
   }
   // [END spanner_postgresql_read_only_transaction]
 
+  // [START spanner_data_boost]
+  static void dataBoost(String project, String instance, String database, Properties properties)
+      throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // This enables Data Boost for all partitioned queries on this connection.
+      connection.createStatement().execute("SET DATA_BOOST_ENABLED=TRUE");
+
+      // Run a partitioned query. This query will use Data Boost.
+      try (ResultSet resultSet =
+          connection
+              .createStatement()
+              .executeQuery(
+                  "RUN PARTITIONED QUERY SELECT SingerId, FirstName, LastName FROM Singers")) {
+        while (resultSet.next()) {
+          System.out.printf(
+              "%d %s %s\n", resultSet.getLong(1), resultSet.getString(2), resultSet.getString(3));
+        }
+      }
+    }
+  }
+  // [END spanner_data_boost]
+
+  // [START spanner_postgresql_data_boost]
+  static void dataBoostPostgreSQL(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // This enables Data Boost for all partitioned queries on this connection.
+      connection.createStatement().execute("set spanner.data_boost_enabled=true");
+
+      // Run a partitioned query. This query will use Data Boost.
+      try (ResultSet resultSet =
+          connection
+              .createStatement()
+              .executeQuery(
+                  "run partitioned query select singer_id, first_name, last_name from singers")) {
+        while (resultSet.next()) {
+          System.out.printf(
+              "%d %s %s\n", resultSet.getLong(1), resultSet.getString(2), resultSet.getString(3));
+        }
+      }
+    }
+  }
+  // [END spanner_postgresql_data_boost]
+
   public static void main(String[] args) throws Exception {
     if (args.length != 3 && args.length != 4) {
       printUsageAndExit();
