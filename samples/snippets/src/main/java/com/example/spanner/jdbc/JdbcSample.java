@@ -26,6 +26,7 @@ import com.google.cloud.spanner.admin.database.v1.DatabaseAdminClient;
 import com.google.cloud.spanner.admin.database.v1.DatabaseAdminSettings;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.spanner.admin.database.v1.CreateDatabaseRequest;
 import com.google.spanner.admin.database.v1.DatabaseDialect;
 import com.google.spanner.admin.instance.v1.InstanceName;
@@ -87,6 +88,7 @@ public class JdbcSample {
           new Album(2, 1, "Green"),
           new Album(2, 2, "Forever Hold Your Peace"),
           new Album(2, 3, "Terrified"));
+
   // [END spanner_insert_data]
   // [END spanner_postgresql_insert_data]
 
@@ -307,6 +309,74 @@ public class JdbcSample {
     }
   }
   // [END spanner_postgresql_dml_getting_started_insert]
+
+  // [START spanner_dml_batch]
+  static void writeDataWithDmlBatch(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Add multiple rows in one DML batch.
+      // JDBC always uses '?' as a parameter placeholder.
+      try (PreparedStatement preparedStatement =
+          connection.prepareStatement(
+              "INSERT INTO Singers (SingerId, FirstName, LastName) VALUES (?, ?, ?)")) {
+        ImmutableList<Singer> singers = ImmutableList.of(
+            new Singer(16L, "Sarah", "Wilson"),
+            new Singer(17L, "Ethan", "Miller"),
+            new Singer(18L, "Maya", "Patel"));
+
+        for (Singer singer : singers) {
+          // Note that JDBC parameters start at index 1.
+          preparedStatement.setLong(1, singer.singerId);
+          preparedStatement.setString(2, singer.firstName);
+          preparedStatement.setString(3, singer.lastName);
+          preparedStatement.addBatch();
+        }
+
+        int[] updateCounts = preparedStatement.executeBatch();
+        System.out.printf("%d records inserted.\n", Arrays.stream(updateCounts).sum());
+      }
+    }
+  }
+  // [END spanner_dml_batch]
+
+  // [START spanner_postgresql_dml_batch]
+  static void writeDataWithDmlBatchPostgreSQL(
+      String project, String instance, String database, Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Add multiple rows in one DML batch.
+      // JDBC always uses '?' as a parameter placeholder.
+      try (PreparedStatement preparedStatement =
+          connection.prepareStatement(
+              "INSERT INTO singers (singer_id, first_name, last_name) VALUES (?, ?, ?)")) {
+        ImmutableList<Singer> singers = ImmutableList.of(
+            new Singer(16L, "Sarah", "Wilson"),
+            new Singer(17L, "Ethan", "Miller"),
+            new Singer(18L, "Maya", "Patel"));
+
+        for (Singer singer : singers) {
+          // Note that JDBC parameters start at index 1.
+          preparedStatement.setLong(1, singer.singerId);
+          preparedStatement.setString(2, singer.firstName);
+          preparedStatement.setString(3, singer.lastName);
+          preparedStatement.addBatch();
+        }
+
+        int[] updateCounts = preparedStatement.executeBatch();
+        System.out.printf("%d records inserted.\n", Arrays.stream(updateCounts).sum());
+      }
+    }
+  }
+  // [END spanner_postgresql_dml_batch]
 
   // [START spanner_insert_data]
   static void writeDataWithMutations(

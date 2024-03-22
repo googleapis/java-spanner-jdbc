@@ -20,6 +20,8 @@ import static com.example.spanner.jdbc.JdbcSample.createConnection;
 import static com.example.spanner.jdbc.JdbcSample.createDatabase;
 import static com.example.spanner.jdbc.JdbcSample.createPostgreSQLDatabase;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDml;
+import static com.example.spanner.jdbc.JdbcSample.writeDataWithDmlBatch;
+import static com.example.spanner.jdbc.JdbcSample.writeDataWithDmlBatchPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDmlPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithMutations;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithMutationsPostgreSQL;
@@ -136,6 +138,9 @@ public class JdbcSampleTest {
     result = runSample(() -> writeDataWithDml(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("4 records inserted.\n", result);
 
+    result = runSample(() -> writeDataWithDmlBatch(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("3 records inserted.\n", result);
+
     result =
         runSample(() -> writeDataWithMutations(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("Inserted 10 rows.\n", result);
@@ -160,6 +165,11 @@ public class JdbcSampleTest {
         runSample(
             () -> writeDataWithDmlPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
     assertEquals("4 records inserted.\n", result);
+
+    result =
+        runSample(
+            () -> writeDataWithDmlBatchPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("3 records inserted.\n", result);
 
     result =
         runSample(
