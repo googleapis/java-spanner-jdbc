@@ -1417,6 +1417,20 @@ public final class JdbcSample {
       final DatabaseAdminClient dbAdminClient,
       final String command,
       final DatabaseId database) throws Exception {
+    if (
+        !runGoogleSQLSample(dbAdminClient, command, database)
+        && !runPostgreSQLSample(dbAdminClient, command, database)) {
+        System.err.println();
+        System.err.println("Unknown command: " + command);
+        System.err.println();
+        printUsageAndExit();
+    }
+  }
+
+  static boolean runGoogleSQLSample(
+      final DatabaseAdminClient dbAdminClient,
+      final String command,
+      final DatabaseId database) throws Exception {
     switch (command) {
       case "createdatabase":
         createDatabase(
@@ -1426,7 +1440,94 @@ public final class JdbcSample {
                 database.getInstanceId().getInstance()),
             database.getDatabase(),
             createProperties());
-        break;
+        return true;
+      case "writeusingdml":
+        writeDataWithDml(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "writeusingdmlbatch":
+        writeDataWithDmlBatch(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "write":
+        writeDataWithMutations(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "query":
+        queryData(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "querywithparameter":
+        queryWithParameter(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "addmarketingbudget":
+        addColumn(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "ddlbatch":
+        ddlBatch(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "update":
+        updateDataWithMutations(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "querymarketingbudget":
+        queryDataWithNewColumn(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "writewithtransactionusingdml":
+        writeWithTransactionUsingDml(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "readonlytransaction":
+        readOnlyTransaction(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  static boolean runPostgreSQLSample(
+      final DatabaseAdminClient dbAdminClient,
+      final String command,
+      final DatabaseId database) throws Exception {
+    switch (command) {
       case "createpgdatabase":
         createPostgreSQLDatabase(
             dbAdminClient,
@@ -1435,166 +1536,86 @@ public final class JdbcSample {
                 database.getInstanceId().getInstance()),
             database.getDatabase(),
             createProperties());
-        break;
-      case "writeusingdml":
-        writeDataWithDml(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "writeusingdmlpg":
         writeDataWithDmlPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
-      case "writeusingdmlbatch":
-        writeDataWithDmlBatch(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "writeusingdmlbatchpg":
         writeDataWithDmlBatchPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
-      case "write":
-        writeDataWithMutations(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "writepg":
         writeDataWithMutationsPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
-      case "query":
-        queryData(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "querypg":
         queryDataPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
-      case "querywithparameter":
-        queryWithParameter(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "querywithparameterpg":
         queryWithParameterPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
-      case "addmarketingbudget":
-        addColumn(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "addmarketingbudgetpg":
         addColumnPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
-      case "ddlbatch":
-        ddlBatch(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "ddlbatchpg":
         ddlBatchPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
-      case "update":
-        updateDataWithMutations(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "updatepg":
         updateDataWithMutationsPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
-      case "querymarketingbudget":
-        queryDataWithNewColumn(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "querymarketingbudgetpg":
         queryDataWithNewColumnPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
-      case "writewithtransactionusingdml":
-        writeWithTransactionUsingDml(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "writewithtransactionusingdmlpg":
         writeWithTransactionUsingDmlPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
-      case "readonlytransaction":
-        readOnlyTransaction(
-            database.getInstanceId().getProject(),
-            database.getInstanceId().getInstance(),
-            database.getDatabase(),
-            createProperties());
-        break;
+        return true;
       case "readonlytransactionpg":
         readOnlyTransactionPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
             createProperties());
-        break;
+        return true;
       default:
-        System.err.println();
-        System.err.println("Unknown command: " + command);
-        System.err.println();
-        printUsageAndExit();
+        return false;
     }
   }
 
