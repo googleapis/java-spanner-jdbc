@@ -28,3 +28,6 @@ jobs:
       - name: Run checkstyle
         run: mvn -P lint --quiet --batch-mode checkstyle:check
         working-directory: samples/snippets
+      - name: Run tests
+        run: mvn --quiet --batch-mode test
+        working-directory: samples/snippets

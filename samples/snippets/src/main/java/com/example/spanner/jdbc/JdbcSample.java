@@ -44,35 +44,70 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-public class JdbcSample {
+public final class JdbcSample {
   static class Singer {
 
-    final long singerId;
-    final String firstName;
-    final String lastName;
+    /** Primary key in the Singers table. */
+    private final long singerId;
 
-    Singer(long singerId, String firstName, String lastName) {
-      this.singerId = singerId;
-      this.firstName = firstName;
-      this.lastName = lastName;
+    /** Mapped to the FirstName column. */
+    private final String firstName;
+
+    /** Mapped to the FirstName column. */
+    private final String lastName;
+
+    Singer(final long id, final String first, final String last) {
+      this.singerId = id;
+      this.firstName = first;
+      this.lastName = last;
+    }
+
+    public long getSingerId() {
+      return singerId;
+    }
+
+    public String getFirstName() {
+      return firstName;
+    }
+
+    public String getLastName() {
+      return lastName;
     }
   }
 
   static class Album {
 
-    final long singerId;
-    final long albumId;
-    final String albumTitle;
+    /** The first part of the primary key of Albums. */
+    private final long singerId;
 
-    Album(long singerId, long albumId, String albumTitle) {
-      this.singerId = singerId;
-      this.albumId = albumId;
-      this.albumTitle = albumTitle;
+    /** The second part of the primary key of Albums. */
+    private final long albumId;
+
+    /** Mapped to the AlbumTitle column. */
+    private final String albumTitle;
+
+    Album(final long singer, final long album, final String title) {
+      this.singerId = singer;
+      this.albumId = album;
+      this.albumTitle = title;
+    }
+
+    public long getSingerId() {
+      return singerId;
+    }
+
+    public long getAlbumId() {
+      return albumId;
+    }
+
+    public String getAlbumTitle() {
+      return albumTitle;
     }
   }
 
   // [START spanner_insert_data]
   // [START spanner_postgresql_insert_data]
+  /** The list of Singers to insert. */
   static final List<Singer> SINGERS =
       Arrays.asList(
           new Singer(1, "Marc", "Richards"),
@@ -81,6 +116,7 @@ public class JdbcSample {
           new Singer(4, "Lea", "Martin"),
           new Singer(5, "David", "Lomond"));
 
+  /** The list of Albums to insert. */
   static final List<Album> ALBUMS =
       Arrays.asList(
           new Album(1, 1, "Total Junk"),
@@ -92,13 +128,15 @@ public class JdbcSample {
   // [END spanner_insert_data]
   // [END spanner_postgresql_insert_data]
 
+  private JdbcSample() {
+  }
+
   // [START spanner_create_database]
   static void createDatabase(
-      DatabaseAdminClient dbAdminClient,
-      InstanceName instanceName,
-      String databaseId,
-      Properties properties)
-      throws SQLException {
+      final DatabaseAdminClient dbAdminClient,
+      final InstanceName instanceName,
+      final String databaseId,
+      final Properties properties) throws SQLException {
     // Use the Spanner admin client to create a database.
     CreateDatabaseRequest createDatabaseRequest =
         CreateDatabaseRequest.newBuilder()
@@ -114,10 +152,14 @@ public class JdbcSample {
     }
 
     // Connect to the database with the JDBC driver and create two test tables.
-    DatabaseName databaseName =
-        DatabaseName.of(instanceName.getProject(), instanceName.getInstance(), databaseId);
+    String projectId = instanceName.getProject();
+    String instanceId = instanceName.getInstance();
     try (Connection connection =
-        DriverManager.getConnection("jdbc:cloudspanner:/" + databaseName, properties)) {
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                projectId, instanceId, databaseId),
+            properties)) {
       try (Statement statement = connection.createStatement()) {
         // Create the tables in one batch.
         statement.addBatch(
@@ -139,21 +181,23 @@ public class JdbcSample {
         statement.executeBatch();
       }
     }
-    System.out.println("Created database [" + databaseName + "]");
+    System.out.printf(
+        "Created database [%s]\n",
+        DatabaseName.of(projectId, instanceId, databaseId));
   }
   // [END spanner_create_database]
 
   // [START spanner_postgresql_create_database]
   static void createPostgreSQLDatabase(
-      DatabaseAdminClient dbAdminClient,
-      InstanceName instanceName,
-      String databaseId,
-      Properties properties)
-      throws SQLException {
+      final DatabaseAdminClient dbAdminClient,
+      final InstanceName instanceName,
+      final String databaseId,
+      final Properties properties) throws SQLException {
     // Use the Spanner admin client to create a database.
     CreateDatabaseRequest createDatabaseRequest =
         CreateDatabaseRequest.newBuilder()
-            // PostgreSQL database names and other identifiers should be quoted using double quotes.
+            // PostgreSQL database names and other identifiers
+            // must be quoted using double quotes.
             .setCreateStatement("create database \"" + databaseId + "\"")
             .setParent(instanceName.toString())
             .setDatabaseDialect(DatabaseDialect.POSTGRESQL)
@@ -167,10 +211,14 @@ public class JdbcSample {
     }
 
     // Connect to the database with the JDBC driver and create two test tables.
-    DatabaseName databaseName =
-        DatabaseName.of(instanceName.getProject(), instanceName.getInstance(), databaseId);
+    String projectId = instanceName.getProject();
+    String instanceId = instanceName.getInstance();
     try (Connection connection =
-        DriverManager.getConnection("jdbc:cloudspanner:/" + databaseName, properties)) {
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                projectId, instanceId, databaseId),
+            properties)) {
       try (Statement statement = connection.createStatement()) {
         // Create the tables in one batch.
         statement.addBatch(
@@ -195,13 +243,18 @@ public class JdbcSample {
         statement.executeBatch();
       }
     }
-    System.out.println("Created database [" + databaseName + "]");
+    System.out.printf(
+        "Created database [%s]\n",
+        DatabaseName.of(projectId, instanceId, databaseId));
   }
   // [END spanner_postgresql_create_database]
 
   // [START create_jdbc_connection]
   static void createConnection(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     // Connection properties can be specified both with in a Properties object
     // and in the connection URL.
     properties.put("numChannels", "8");
@@ -224,7 +277,10 @@ public class JdbcSample {
 
   // [START spanner_dml_getting_started_insert]
   static void writeDataWithDml(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -241,23 +297,21 @@ public class JdbcSample {
                   + "(?, ?, ?), "
                   + "(?, ?, ?)")) {
 
+
+        final ImmutableList<Singer> singers =
+            ImmutableList.of(
+                new Singer(/* SingerId = */ 12L, "Melissa", "Garcia"),
+                new Singer(/* SingerId = */ 13L, "Russel", "Morales"),
+                new Singer(/* SingerId = */ 14L, "Jacqueline", "Long"),
+                new Singer(/* SingerId = */ 15L, "Dylan", "Shaw"));
+
         // Note that JDBC parameters start at index 1.
         int paramIndex = 0;
-        preparedStatement.setLong(++paramIndex, 12L);
-        preparedStatement.setString(++paramIndex, "Melissa");
-        preparedStatement.setString(++paramIndex, "Garcia");
-
-        preparedStatement.setLong(++paramIndex, 13L);
-        preparedStatement.setString(++paramIndex, "Russel");
-        preparedStatement.setString(++paramIndex, "Morales");
-
-        preparedStatement.setLong(++paramIndex, 14L);
-        preparedStatement.setString(++paramIndex, "Jacqueline");
-        preparedStatement.setString(++paramIndex, "Long");
-
-        preparedStatement.setLong(++paramIndex, 15L);
-        preparedStatement.setString(++paramIndex, "Dylan");
-        preparedStatement.setString(++paramIndex, "Shaw");
+        for (Singer singer : singers) {
+          preparedStatement.setLong(++paramIndex, singer.singerId);
+          preparedStatement.setString(++paramIndex, singer.firstName);
+          preparedStatement.setString(++paramIndex, singer.lastName);
+        }
 
         int updateCount = preparedStatement.executeUpdate();
         System.out.printf("%d records inserted.\n", updateCount);
@@ -268,7 +322,10 @@ public class JdbcSample {
 
   // [START spanner_postgresql_dml_getting_started_insert]
   static void writeDataWithDmlPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -285,23 +342,20 @@ public class JdbcSample {
                   + "(?, ?, ?), "
                   + "(?, ?, ?)")) {
 
+        final ImmutableList<Singer> singers =
+            ImmutableList.of(
+                new Singer(/* SingerId = */ 12L, "Melissa", "Garcia"),
+                new Singer(/* SingerId = */ 13L, "Russel", "Morales"),
+                new Singer(/* SingerId = */ 14L, "Jacqueline", "Long"),
+                new Singer(/* SingerId = */ 15L, "Dylan", "Shaw"));
+
         // Note that JDBC parameters start at index 1.
         int paramIndex = 0;
-        preparedStatement.setLong(++paramIndex, 12L);
-        preparedStatement.setString(++paramIndex, "Melissa");
-        preparedStatement.setString(++paramIndex, "Garcia");
-
-        preparedStatement.setLong(++paramIndex, 13L);
-        preparedStatement.setString(++paramIndex, "Russel");
-        preparedStatement.setString(++paramIndex, "Morales");
-
-        preparedStatement.setLong(++paramIndex, 14L);
-        preparedStatement.setString(++paramIndex, "Jacqueline");
-        preparedStatement.setString(++paramIndex, "Long");
-
-        preparedStatement.setLong(++paramIndex, 15L);
-        preparedStatement.setString(++paramIndex, "Dylan");
-        preparedStatement.setString(++paramIndex, "Shaw");
+        for (Singer singer : singers) {
+          preparedStatement.setLong(++paramIndex, singer.singerId);
+          preparedStatement.setString(++paramIndex, singer.firstName);
+          preparedStatement.setString(++paramIndex, singer.lastName);
+        }
 
         int updateCount = preparedStatement.executeUpdate();
         System.out.printf("%d records inserted.\n", updateCount);
@@ -312,7 +366,10 @@ public class JdbcSample {
 
   // [START spanner_dml_batch]
   static void writeDataWithDmlBatch(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -323,23 +380,27 @@ public class JdbcSample {
       // JDBC always uses '?' as a parameter placeholder.
       try (PreparedStatement preparedStatement =
           connection.prepareStatement(
-              "INSERT INTO Singers (SingerId, FirstName, LastName) VALUES (?, ?, ?)")) {
-        ImmutableList<Singer> singers =
+              "INSERT INTO Singers (SingerId, FirstName, LastName) "
+                  + "VALUES (?, ?, ?)")) {
+        final ImmutableList<Singer> singers =
             ImmutableList.of(
-                new Singer(16L, "Sarah", "Wilson"),
-                new Singer(17L, "Ethan", "Miller"),
-                new Singer(18L, "Maya", "Patel"));
+                new Singer(/* SingerId = */ 16L, "Sarah", "Wilson"),
+                new Singer(/* SingerId = */ 17L, "Ethan", "Miller"),
+                new Singer(/* SingerId = */ 18L, "Maya", "Patel"));
 
         for (Singer singer : singers) {
           // Note that JDBC parameters start at index 1.
-          preparedStatement.setLong(1, singer.singerId);
-          preparedStatement.setString(2, singer.firstName);
-          preparedStatement.setString(3, singer.lastName);
+          int paramIndex = 0;
+          preparedStatement.setLong(++paramIndex, singer.singerId);
+          preparedStatement.setString(++paramIndex, singer.firstName);
+          preparedStatement.setString(++paramIndex, singer.lastName);
           preparedStatement.addBatch();
         }
 
         int[] updateCounts = preparedStatement.executeBatch();
-        System.out.printf("%d records inserted.\n", Arrays.stream(updateCounts).sum());
+        System.out.printf(
+            "%d records inserted.\n",
+            Arrays.stream(updateCounts).sum());
       }
     }
   }
@@ -347,7 +408,10 @@ public class JdbcSample {
 
   // [START spanner_postgresql_dml_batch]
   static void writeDataWithDmlBatchPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -358,23 +422,27 @@ public class JdbcSample {
       // JDBC always uses '?' as a parameter placeholder.
       try (PreparedStatement preparedStatement =
           connection.prepareStatement(
-              "INSERT INTO singers (singer_id, first_name, last_name) VALUES (?, ?, ?)")) {
-        ImmutableList<Singer> singers =
+              "INSERT INTO singers (singer_id, first_name, last_name)"
+                  + " VALUES (?, ?, ?)")) {
+        final ImmutableList<Singer> singers =
             ImmutableList.of(
-                new Singer(16L, "Sarah", "Wilson"),
-                new Singer(17L, "Ethan", "Miller"),
-                new Singer(18L, "Maya", "Patel"));
+                new Singer(/* SingerId = */ 16L, "Sarah", "Wilson"),
+                new Singer(/* SingerId = */ 17L, "Ethan", "Miller"),
+                new Singer(/* SingerId = */ 18L, "Maya", "Patel"));
 
         for (Singer singer : singers) {
           // Note that JDBC parameters start at index 1.
-          preparedStatement.setLong(1, singer.singerId);
-          preparedStatement.setString(2, singer.firstName);
-          preparedStatement.setString(3, singer.lastName);
+          int paramIndex = 0;
+          preparedStatement.setLong(++paramIndex, singer.singerId);
+          preparedStatement.setString(++paramIndex, singer.firstName);
+          preparedStatement.setString(++paramIndex, singer.lastName);
           preparedStatement.addBatch();
         }
 
         int[] updateCounts = preparedStatement.executeBatch();
-        System.out.printf("%d records inserted.\n", Arrays.stream(updateCounts).sum());
+        System.out.printf(
+            "%d records inserted.\n",
+            Arrays.stream(updateCounts).sum());
       }
     }
   }
@@ -382,14 +450,18 @@ public class JdbcSample {
 
   // [START spanner_insert_data]
   static void writeDataWithMutations(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
                 "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
                 project, instance, database),
             properties)) {
-      // Unwrap the CloudSpannerJdbcConnection interface from the java.sql.Connection.
+      // Unwrap the CloudSpannerJdbcConnection interface
+      // from the java.sql.Connection.
       CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
           connection.unwrap(CloudSpannerJdbcConnection.class);
 
@@ -425,14 +497,18 @@ public class JdbcSample {
 
   // [START spanner_postgresql_insert_data]
   static void writeDataWithMutationsPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
                 "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
                 project, instance, database),
             properties)) {
-      // Unwrap the CloudSpannerJdbcConnection interface from the java.sql.Connection.
+      // Unwrap the CloudSpannerJdbcConnection interface
+      // from the java.sql.Connection.
       CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
           connection.unwrap(CloudSpannerJdbcConnection.class);
 
@@ -467,8 +543,11 @@ public class JdbcSample {
   // [END spanner_postgresql_insert_data]
 
   // [START spanner_query_data]
-  static void queryData(String project, String instance, String database, Properties properties)
-      throws SQLException {
+  static void queryData(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -478,10 +557,15 @@ public class JdbcSample {
       try (ResultSet resultSet =
           connection
               .createStatement()
-              .executeQuery("SELECT SingerId, AlbumId, AlbumTitle FROM Albums")) {
+              .executeQuery(
+                  "SELECT SingerId, AlbumId, AlbumTitle "
+                  + "FROM Albums")) {
         while (resultSet.next()) {
           System.out.printf(
-              "%d %d %s\n", resultSet.getLong(1), resultSet.getLong(2), resultSet.getString(3));
+              "%d %d %s\n",
+              resultSet.getLong("SingerId"),
+              resultSet.getLong("AlbumId"),
+              resultSet.getString("AlbumTitle"));
         }
       }
     }
@@ -490,7 +574,10 @@ public class JdbcSample {
 
   // [START spanner_postgresql_query_data]
   static void queryDataPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -500,10 +587,15 @@ public class JdbcSample {
       try (ResultSet resultSet =
           connection
               .createStatement()
-              .executeQuery("SELECT singer_id, album_id, album_title FROM albums")) {
+              .executeQuery(
+                  "SELECT singer_id, album_id, album_title "
+                      + "FROM albums")) {
         while (resultSet.next()) {
           System.out.printf(
-              "%d %d %s\n", resultSet.getLong(1), resultSet.getLong(2), resultSet.getString(3));
+              "%d %d %s\n",
+              resultSet.getLong("singer_id"),
+              resultSet.getLong("album_id"),
+              resultSet.getString("album_title"));
         }
       }
     }
@@ -512,7 +604,10 @@ public class JdbcSample {
 
   // [START spanner_query_with_parameter]
   static void queryWithParameter(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -521,7 +616,9 @@ public class JdbcSample {
             properties)) {
       try (PreparedStatement statement =
           connection.prepareStatement(
-              "SELECT SingerId, FirstName, LastName FROM Singers WHERE LastName = ?")) {
+              "SELECT SingerId, FirstName, LastName "
+                  + "FROM Singers "
+                  + "WHERE LastName = ?")) {
         statement.setString(1, "Garcia");
         try (ResultSet resultSet = statement.executeQuery()) {
           while (resultSet.next()) {
@@ -539,7 +636,10 @@ public class JdbcSample {
 
   // [START spanner_postgresql_query_with_parameter]
   static void queryWithParameterPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -567,15 +667,20 @@ public class JdbcSample {
   // [END spanner_postgresql_query_with_parameter]
 
   // [START spanner_add_column]
-  static void addColumn(String project, String instance, String database, Properties properties)
-      throws SQLException {
+  static void addColumn(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
                 "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
                 project, instance, database),
             properties)) {
-      connection.createStatement().execute("ALTER TABLE Albums ADD COLUMN MarketingBudget INT64");
+      connection
+          .createStatement()
+          .execute("ALTER TABLE Albums ADD COLUMN MarketingBudget INT64");
       System.out.println("Added MarketingBudget column");
     }
   }
@@ -583,22 +688,30 @@ public class JdbcSample {
 
   // [START spanner_postgresql_add_column]
   static void addColumnPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
                 "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
                 project, instance, database),
             properties)) {
-      connection.createStatement().execute("alter table albums add column marketing_budget bigint");
+      connection
+          .createStatement()
+          .execute("alter table albums add column marketing_budget bigint");
       System.out.println("Added marketing_budget column");
     }
   }
   // [END spanner_postgresql_add_column]
 
   // [START spanner_ddl_batch]
-  static void ddlBatch(String project, String instance, String database, Properties properties)
-      throws SQLException {
+  static void ddlBatch(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -620,8 +733,10 @@ public class JdbcSample {
                 + "  SingerId  INT64 NOT NULL,"
                 + "  StartTime TIMESTAMP,"
                 + "  EndTime   TIMESTAMP,"
-                + "  CONSTRAINT Fk_Concerts_Venues FOREIGN KEY (VenueId) REFERENCES Venues (VenueId),"
-                + "  CONSTRAINT Fk_Concerts_Singers FOREIGN KEY (SingerId) REFERENCES Singers (SingerId),"
+                + "  CONSTRAINT Fk_Concerts_Venues FOREIGN KEY"
+                + "    (VenueId) REFERENCES Venues (VenueId),"
+                + "  CONSTRAINT Fk_Concerts_Singers FOREIGN KEY"
+                + "    (SingerId) REFERENCES Singers (SingerId),"
                 + ") PRIMARY KEY (ConcertId)");
         statement.executeBatch();
       }
@@ -632,7 +747,10 @@ public class JdbcSample {
 
   // [START spanner_postgresql_ddl_batch]
   static void ddlBatchPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -654,8 +772,10 @@ public class JdbcSample {
                 + "  singer_id  bigint not null,"
                 + "  start_time timestamptz,"
                 + "  end_time   timestamptz,"
-                + "  constraint fk_concerts_venues foreign key (venue_id) references venues (venue_id),"
-                + "  constraint fk_concerts_singers foreign key (singer_id) references singers (singer_id)"
+                + "  constraint fk_concerts_venues foreign key"
+                + "    (venue_id) references venues (venue_id),"
+                + "  constraint fk_concerts_singers foreign key"
+                + "    (singer_id) references singers (singer_id)"
                 + ")");
         statement.executeBatch();
       }
@@ -666,19 +786,25 @@ public class JdbcSample {
 
   // [START spanner_update_data]
   static void updateDataWithMutations(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
                 "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
                 project, instance, database),
             properties)) {
-      // Unwrap the CloudSpannerJdbcConnection interface from the java.sql.Connection.
+      // Unwrap the CloudSpannerJdbcConnection interface
+      // from the java.sql.Connection.
       CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
           connection.unwrap(CloudSpannerJdbcConnection.class);
 
-      // Mutation can be used to update/insert/delete a single row in a table. Here we use
-      // newUpdateBuilder to create update mutations.
+      final long marketingBudgetAlbum1 = 100000L;
+      final long marketingBudgetAlbum2 = 500000L;
+      // Mutation can be used to update/insert/delete a single row in a table.
+      // Here we use newUpdateBuilder to create update mutations.
       List<Mutation> mutations =
           Arrays.asList(
               Mutation.newUpdateBuilder("Albums")
@@ -687,7 +813,7 @@ public class JdbcSample {
                   .set("AlbumId")
                   .to(1)
                   .set("MarketingBudget")
-                  .to(100000)
+                  .to(marketingBudgetAlbum1)
                   .build(),
               Mutation.newUpdateBuilder("Albums")
                   .set("SingerId")
@@ -695,7 +821,7 @@ public class JdbcSample {
                   .set("AlbumId")
                   .to(2)
                   .set("MarketingBudget")
-                  .to(500000)
+                  .to(marketingBudgetAlbum2)
                   .build());
       // This writes all the mutations to Cloud Spanner atomically.
       cloudSpannerJdbcConnection.write(mutations);
@@ -706,19 +832,25 @@ public class JdbcSample {
 
   // [START spanner_postgresql_update_data]
   static void updateDataWithMutationsPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
                 "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
                 project, instance, database),
             properties)) {
-      // Unwrap the CloudSpannerJdbcConnection interface from the java.sql.Connection.
+      // Unwrap the CloudSpannerJdbcConnection interface
+      // from the java.sql.Connection.
       CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
           connection.unwrap(CloudSpannerJdbcConnection.class);
 
-      // Mutation can be used to update/insert/delete a single row in a table. Here we use
-      // newUpdateBuilder to create update mutations.
+      final long marketingBudgetAlbum1 = 100000L;
+      final long marketingBudgetAlbum2 = 500000L;
+      // Mutation can be used to update/insert/delete a single row in a table.
+      // Here we use newUpdateBuilder to create update mutations.
       List<Mutation> mutations =
           Arrays.asList(
               Mutation.newUpdateBuilder("albums")
@@ -727,7 +859,7 @@ public class JdbcSample {
                   .set("album_id")
                   .to(1)
                   .set("marketing_budget")
-                  .to(100000)
+                  .to(marketingBudgetAlbum1)
                   .build(),
               Mutation.newUpdateBuilder("albums")
                   .set("singer_id")
@@ -735,7 +867,7 @@ public class JdbcSample {
                   .set("album_id")
                   .to(2)
                   .set("marketing_budget")
-                  .to(500000)
+                  .to(marketingBudgetAlbum2)
                   .build());
       // This writes all the mutations to Cloud Spanner atomically.
       cloudSpannerJdbcConnection.write(mutations);
@@ -746,24 +878,32 @@ public class JdbcSample {
 
   // [START spanner_query_data_with_new_column]
   static void queryDataWithNewColumn(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
                 "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
                 project, instance, database),
             properties)) {
-      // Rows without an explicit value for MarketingBudget will have a MarketingBudget equal to
-      // null. A try-with-resource block is used to automatically release resources held by
-      // ResultSet.
+      // Rows without an explicit value for MarketingBudget will have a
+      // MarketingBudget equal to null.
       try (ResultSet resultSet =
           connection
               .createStatement()
-              .executeQuery("SELECT SingerId, AlbumId, MarketingBudget FROM Albums")) {
+              .executeQuery(
+                  "SELECT SingerId, AlbumId, MarketingBudget "
+                  + "FROM Albums")) {
         while (resultSet.next()) {
-          // Use the ResultSet#getObject(int) method to get data of any type from the ResultSet.
+          // Use the ResultSet#getObject(String) method to get data
+          // of any type from the ResultSet.
           System.out.printf(
-              "%s %s %s\n", resultSet.getObject(1), resultSet.getObject(2), resultSet.getObject(3));
+              "%s %s %s\n",
+              resultSet.getObject("SingerId"),
+              resultSet.getObject("AlbumId"),
+              resultSet.getObject("MarketingBudget"));
         }
       }
     }
@@ -772,24 +912,32 @@ public class JdbcSample {
 
   // [START spanner_postgresql_query_data_with_new_column]
   static void queryDataWithNewColumnPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
                 "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
                 project, instance, database),
             properties)) {
-      // Rows without an explicit value for marketing_budget will have a marketing_budget equal to
-      // null. A try-with-resource block is used to automatically release resources held by
-      // ResultSet.
+      // Rows without an explicit value for marketing_budget will have a
+      // marketing_budget equal to null.
       try (ResultSet resultSet =
           connection
               .createStatement()
-              .executeQuery("SELECT singer_id, album_id, marketing_budget FROM albums")) {
+              .executeQuery(
+                  "select singer_id, album_id, marketing_budget "
+                      + "from albums")) {
         while (resultSet.next()) {
-          // Use the ResultSet#getObject(int) method to get data of any type from the ResultSet.
+          // Use the ResultSet#getObject(String) method to get data
+          // of any type from the ResultSet.
           System.out.printf(
-              "%s %s %s\n", resultSet.getObject(1), resultSet.getObject(2), resultSet.getObject(3));
+              "%s %s %s\n",
+              resultSet.getObject("singer_id"),
+              resultSet.getObject("album_id"),
+              resultSet.getObject("marketing_budget"));
         }
       }
     }
@@ -798,7 +946,10 @@ public class JdbcSample {
 
   // [START spanner_dml_getting_started_update]
   static void writeWithTransactionUsingDml(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -808,33 +959,39 @@ public class JdbcSample {
       // Set AutoCommit=false to enable transactions.
       connection.setAutoCommit(false);
 
-      // Transfer marketing budget from one album to another. We do it in a transaction to
-      // ensure that the transfer is atomic. There is no need to explicitly start the transaction.
-      // The first statement on the connection will start a transaction when AutoCommit=false.
+      // Transfer marketing budget from one album to another.
+      // We do it in a transaction to ensure that the transfer is atomic.
+      // There is no need to explicitly start the transaction. The first
+      // statement on the connection will start a transaction when
+      // AutoCommit=false.
       String selectMarketingBudgetSql =
-          "SELECT MarketingBudget from Albums WHERE SingerId = ? and AlbumId = ?";
+          "SELECT MarketingBudget "
+          + "FROM Albums "
+          + "WHERE SingerId = ? AND AlbumId = ?";
       long album2Budget = 0;
       try (PreparedStatement selectMarketingBudgetStatement =
           connection.prepareStatement(selectMarketingBudgetSql)) {
         // Bind the query parameters to SingerId=2 and AlbumId=2.
         selectMarketingBudgetStatement.setLong(1, 2);
         selectMarketingBudgetStatement.setLong(2, 2);
-        try (ResultSet resultSet = selectMarketingBudgetStatement.executeQuery()) {
+        try (ResultSet resultSet =
+            selectMarketingBudgetStatement.executeQuery()) {
           while (resultSet.next()) {
             album2Budget = resultSet.getLong("MarketingBudget");
           }
         }
-        // The transaction will only be committed if this condition still holds at the time of
-        // commit. Otherwise, the transaction will be aborted.
-        long transfer = 200000;
+        // The transaction will only be committed if this condition still holds
+        // at the time of commit. Otherwise, the transaction will be aborted.
+        final long transfer = 200000;
         if (album2Budget >= transfer) {
           long album1Budget = 0;
-          // Re-use the existing PreparedStatement for selecting the MarketingBudget to get the
-          // budget for Album 1.
+          // Re-use the existing PreparedStatement for selecting the
+          // MarketingBudget to get the budget for Album 1.
           // Bind the query parameters to SingerId=1 and AlbumId=1.
           selectMarketingBudgetStatement.setLong(1, 1);
           selectMarketingBudgetStatement.setLong(2, 1);
-          try (ResultSet resultSet = selectMarketingBudgetStatement.executeQuery()) {
+          try (ResultSet resultSet =
+              selectMarketingBudgetStatement.executeQuery()) {
             while (resultSet.next()) {
               album1Budget = resultSet.getLong("MarketingBudget");
             }
@@ -844,19 +1001,25 @@ public class JdbcSample {
           album1Budget += transfer;
           album2Budget -= transfer;
           String updateSql =
-              "UPDATE Albums " + "SET MarketingBudget = ? " + "WHERE SingerId = ? and AlbumId = ?";
-          try (PreparedStatement updateStatement = connection.prepareStatement(updateSql)) {
+              "UPDATE Albums "
+                  + "SET MarketingBudget = ? "
+                  + "WHERE SingerId = ? and AlbumId = ?";
+          try (PreparedStatement updateStatement =
+              connection.prepareStatement(updateSql)) {
             // Update Album 1.
-            updateStatement.setLong(1, album1Budget);
-            updateStatement.setLong(2, 1);
-            updateStatement.setLong(3, 1);
-            // Create a DML batch by calling addBatch on the current PreparedStatement.
+            int paramIndex = 0;
+            updateStatement.setLong(++paramIndex, album1Budget);
+            updateStatement.setLong(++paramIndex, 1);
+            updateStatement.setLong(++paramIndex, 1);
+            // Create a DML batch by calling addBatch on
+            // the current PreparedStatement.
             updateStatement.addBatch();
 
             // Update Album 2 in the same DML batch.
-            updateStatement.setLong(1, album2Budget);
-            updateStatement.setLong(2, 2);
-            updateStatement.setLong(3, 2);
+            paramIndex = 0;
+            updateStatement.setLong(++paramIndex, album2Budget);
+            updateStatement.setLong(++paramIndex, 2);
+            updateStatement.setLong(++paramIndex, 2);
             updateStatement.addBatch();
 
             // Execute both DML statements in one batch.
@@ -866,14 +1029,18 @@ public class JdbcSample {
       }
       // Commit the current transaction.
       connection.commit();
-      System.out.println("Transferred marketing budget from Album 2 to Album 1");
+      System.out.println(
+          "Transferred marketing budget from Album 2 to Album 1");
     }
   }
   // [END spanner_dml_getting_started_update]
 
   // [START spanner_postgresql_dml_getting_started_update]
   static void writeWithTransactionUsingDmlPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -883,33 +1050,38 @@ public class JdbcSample {
       // Set AutoCommit=false to enable transactions.
       connection.setAutoCommit(false);
 
-      // Transfer marketing budget from one album to another. We do it in a transaction to
-      // ensure that the transfer is atomic. There is no need to explicitly start the transaction.
-      // The first statement on the connection will start a transaction when AutoCommit=false.
+      // Transfer marketing budget from one album to another. We do it in a
+      // transaction to ensure that the transfer is atomic. There is no need
+      // to explicitly start the transaction. The first statement on the
+      // connection will start a transaction when AutoCommit=false.
       String selectMarketingBudgetSql =
-          "SELECT marketing_budget from albums WHERE singer_id = ? and album_id = ?";
+          "SELECT marketing_budget "
+              + "from albums "
+              + "WHERE singer_id = ? and album_id = ?";
       long album2Budget = 0;
       try (PreparedStatement selectMarketingBudgetStatement =
           connection.prepareStatement(selectMarketingBudgetSql)) {
         // Bind the query parameters to SingerId=2 and AlbumId=2.
         selectMarketingBudgetStatement.setLong(1, 2);
         selectMarketingBudgetStatement.setLong(2, 2);
-        try (ResultSet resultSet = selectMarketingBudgetStatement.executeQuery()) {
+        try (ResultSet resultSet =
+            selectMarketingBudgetStatement.executeQuery()) {
           while (resultSet.next()) {
             album2Budget = resultSet.getLong("marketing_budget");
           }
         }
-        // The transaction will only be committed if this condition still holds at the time of
-        // commit. Otherwise, the transaction will be aborted.
-        long transfer = 200000;
+        // The transaction will only be committed if this condition still holds
+        // at the time of commit. Otherwise, the transaction will be aborted.
+        final long transfer = 200000;
         if (album2Budget >= transfer) {
           long album1Budget = 0;
-          // Re-use the existing PreparedStatement for selecting the marketing_budget to get the
-          // budget for Album 1.
+          // Re-use the existing PreparedStatement for selecting the
+          // marketing_budget to get the budget for Album 1.
           // Bind the query parameters to SingerId=1 and AlbumId=1.
           selectMarketingBudgetStatement.setLong(1, 1);
           selectMarketingBudgetStatement.setLong(2, 1);
-          try (ResultSet resultSet = selectMarketingBudgetStatement.executeQuery()) {
+          try (ResultSet resultSet =
+              selectMarketingBudgetStatement.executeQuery()) {
             while (resultSet.next()) {
               album1Budget = resultSet.getLong("marketing_budget");
             }
@@ -922,18 +1094,22 @@ public class JdbcSample {
               "UPDATE albums "
                   + "SET marketing_budget = ? "
                   + "WHERE singer_id = ? and album_id = ?";
-          try (PreparedStatement updateStatement = connection.prepareStatement(updateSql)) {
+          try (PreparedStatement updateStatement =
+              connection.prepareStatement(updateSql)) {
             // Update Album 1.
-            updateStatement.setLong(1, album1Budget);
-            updateStatement.setLong(2, 1);
-            updateStatement.setLong(3, 1);
-            // Create a DML batch by calling addBatch on the current PreparedStatement.
+            int paramIndex = 0;
+            updateStatement.setLong(++paramIndex, album1Budget);
+            updateStatement.setLong(++paramIndex, 1);
+            updateStatement.setLong(++paramIndex, 1);
+            // Create a DML batch by calling addBatch
+            // on the current PreparedStatement.
             updateStatement.addBatch();
 
             // Update Album 2 in the same DML batch.
-            updateStatement.setLong(1, album2Budget);
-            updateStatement.setLong(2, 2);
-            updateStatement.setLong(3, 2);
+            paramIndex = 0;
+            updateStatement.setLong(++paramIndex, album2Budget);
+            updateStatement.setLong(++paramIndex, 2);
+            updateStatement.setLong(++paramIndex, 2);
             updateStatement.addBatch();
 
             // Execute both DML statements in one batch.
@@ -943,14 +1119,18 @@ public class JdbcSample {
       }
       // Commit the current transaction.
       connection.commit();
-      System.out.println("Transferred marketing budget from Album 2 to Album 1");
+      System.out.println(
+          "Transferred marketing budget from Album 2 to Album 1");
     }
   }
   // [END spanner_postgresql_dml_getting_started_update]
 
   // [START spanner_read_only_transaction]
   static void readOnlyTransaction(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -959,27 +1139,38 @@ public class JdbcSample {
             properties)) {
       // Set AutoCommit=false to enable transactions.
       connection.setAutoCommit(false);
-      // This SQL statement instructs the JDBC driver to create a read-only transaction.
+      // This SQL statement instructs the JDBC driver to use
+      // a read-only transaction.
       connection.createStatement().execute("SET TRANSACTION READ ONLY");
 
       try (ResultSet resultSet =
           connection
               .createStatement()
               .executeQuery(
-                  "SELECT SingerId, AlbumId, AlbumTitle FROM Albums ORDER BY SingerId, AlbumId")) {
+                  "SELECT SingerId, AlbumId, AlbumTitle "
+                      + "FROM Albums "
+                      + "ORDER BY SingerId, AlbumId")) {
         while (resultSet.next()) {
           System.out.printf(
-              "%d %d %s\n", resultSet.getLong(1), resultSet.getLong(2), resultSet.getString(3));
+              "%d %d %s\n",
+              resultSet.getLong("SingerId"),
+              resultSet.getLong("AlbumId"),
+              resultSet.getString("AlbumTitle"));
         }
       }
       try (ResultSet resultSet =
           connection
               .createStatement()
               .executeQuery(
-                  "SELECT SingerId, AlbumId, AlbumTitle FROM Albums ORDER BY AlbumTitle")) {
+                  "SELECT SingerId, AlbumId, AlbumTitle "
+                      + "FROM Albums "
+                      + "ORDER BY AlbumTitle")) {
         while (resultSet.next()) {
           System.out.printf(
-              "%d %d %s\n", resultSet.getLong(1), resultSet.getLong(2), resultSet.getString(3));
+              "%d %d %s\n",
+              resultSet.getLong("SingerId"),
+              resultSet.getLong("AlbumId"),
+              resultSet.getString("AlbumTitle"));
         }
       }
       // End the read-only transaction by calling commit().
@@ -990,7 +1181,10 @@ public class JdbcSample {
 
   // [START spanner_postgresql_read_only_transaction]
   static void readOnlyTransactionPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -999,27 +1193,38 @@ public class JdbcSample {
             properties)) {
       // Set AutoCommit=false to enable transactions.
       connection.setAutoCommit(false);
-      // This SQL statement instructs the JDBC driver to create a read-only transaction.
+      // This SQL statement instructs the JDBC driver to use
+      // a read-only transaction.
       connection.createStatement().execute("set transaction read only");
 
       try (ResultSet resultSet =
           connection
               .createStatement()
               .executeQuery(
-                  "SELECT singer_id, album_id, album_title FROM albums ORDER BY singer_id, album_id")) {
+                  "SELECT singer_id, album_id, album_title "
+                      + "FROM albums "
+                      + "ORDER BY singer_id, album_id")) {
         while (resultSet.next()) {
           System.out.printf(
-              "%d %d %s\n", resultSet.getLong(1), resultSet.getLong(2), resultSet.getString(3));
+              "%d %d %s\n",
+              resultSet.getLong("singer_id"),
+              resultSet.getLong("album_id"),
+              resultSet.getString("album_title"));
         }
       }
       try (ResultSet resultSet =
           connection
               .createStatement()
               .executeQuery(
-                  "SELECT singer_id, album_id, album_title FROM albums ORDER BY album_title")) {
+                  "SELECT singer_id, album_id, album_title "
+                      + "FROM albums "
+                      + "ORDER BY album_title")) {
         while (resultSet.next()) {
           System.out.printf(
-              "%d %d %s\n", resultSet.getLong(1), resultSet.getLong(2), resultSet.getString(3));
+              "%d %d %s\n",
+              resultSet.getLong("singer_id"),
+              resultSet.getLong("album_id"),
+              resultSet.getString("album_title"));
         }
       }
       // End the read-only transaction by calling commit().
@@ -1029,8 +1234,11 @@ public class JdbcSample {
   // [END spanner_postgresql_read_only_transaction]
 
   // [START spanner_data_boost]
-  static void dataBoost(String project, String instance, String database, Properties properties)
-      throws SQLException {
+  static void dataBoost(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -1045,10 +1253,15 @@ public class JdbcSample {
           connection
               .createStatement()
               .executeQuery(
-                  "RUN PARTITIONED QUERY SELECT SingerId, FirstName, LastName FROM Singers")) {
+                  "RUN PARTITIONED QUERY "
+                      + "SELECT SingerId, FirstName, LastName "
+                      + "FROM Singers")) {
         while (resultSet.next()) {
           System.out.printf(
-              "%d %s %s\n", resultSet.getLong(1), resultSet.getString(2), resultSet.getString(3));
+              "%d %s %s\n",
+              resultSet.getLong("SingerId"),
+              resultSet.getString("FirstName"),
+              resultSet.getString("LastName"));
         }
       }
     }
@@ -1057,7 +1270,10 @@ public class JdbcSample {
 
   // [START spanner_postgresql_data_boost]
   static void dataBoostPostgreSQL(
-      String project, String instance, String database, Properties properties) throws SQLException {
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
@@ -1065,31 +1281,104 @@ public class JdbcSample {
                 project, instance, database),
             properties)) {
       // This enables Data Boost for all partitioned queries on this connection.
-      connection.createStatement().execute("set spanner.data_boost_enabled=true");
+      connection
+          .createStatement()
+          .execute("set spanner.data_boost_enabled=true");
 
       // Run a partitioned query. This query will use Data Boost.
       try (ResultSet resultSet =
           connection
               .createStatement()
               .executeQuery(
-                  "run partitioned query select singer_id, first_name, last_name from singers")) {
+                  "run partitioned query "
+                      + "select singer_id, first_name, last_name "
+                      + "from singers")) {
         while (resultSet.next()) {
           System.out.printf(
-              "%d %s %s\n", resultSet.getLong(1), resultSet.getString(2), resultSet.getString(3));
+              "%d %s %s\n",
+              resultSet.getLong("singer_id"),
+              resultSet.getString("first_name"),
+              resultSet.getString("last_name"));
         }
       }
     }
   }
   // [END spanner_postgresql_data_boost]
 
-  public static void main(String[] args) throws Exception {
-    if (args.length != 3 && args.length != 4) {
+  // [START spanner_partitioned_dml]
+  static void partitionedDml(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Enable Partitioned DML on this connection.
+      connection
+          .createStatement()
+          .execute("SET AUTOCOMMIT_DML_MODE='PARTITIONED_NON_ATOMIC'");
+      // Back-fill a default value for the MarketingBudget column.
+      long lowerBoundUpdateCount =
+          connection
+              .createStatement()
+              .executeUpdate("UPDATE Albums "
+                  + "SET MarketingBudget=0 "
+                  + "WHERE MarketingBudget IS NULL");
+      System.out.printf("Updated at least %d albums\n", lowerBoundUpdateCount);
+    }
+  }
+  // [END spanner_partitioned_dml]
+
+  // [START spanner_postgresql_partitioned_dml]
+  static void partitionedDmlPostgreSQL(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Enable Partitioned DML on this connection.
+      connection
+          .createStatement()
+          .execute("set spanner.autocommit_dml_mode='partitioned_non_atomic'");
+      // Back-fill a default value for the MarketingBudget column.
+      long lowerBoundUpdateCount =
+          connection
+              .createStatement()
+              .executeUpdate("update albums "
+                  + "set marketing_budget=0 "
+                  + "where marketing_budget is null");
+      System.out.printf("Updated at least %d albums\n", lowerBoundUpdateCount);
+    }
+  }
+  // [END spanner_postgresql_partitioned_dml]
+
+  /** The expected number of command line arguments. */
+  private static final int NUM_EXPECTED_ARGS = 3;
+
+  /**
+   * Main method for running a sample.
+   *
+   * @param args the command line arguments
+   */
+  public static void main(final String[] args) throws Exception {
+    if (args.length != NUM_EXPECTED_ARGS) {
       printUsageAndExit();
     }
     try (DatabaseAdminClient dbAdminClient = createDatabaseAdminClient()) {
       final String command = args[0];
-      DatabaseId databaseId =
-          DatabaseId.of(SpannerOptions.getDefaultInstance().getProjectId(), args[1], args[2]);
+      DatabaseId databaseId = DatabaseId.of(
+          SpannerOptions.getDefaultInstance().getProjectId(),
+          args[1],
+          args[2]);
 
       run(dbAdminClient, command, databaseId);
     }
@@ -1105,7 +1394,8 @@ public class JdbcSample {
               .setTransportChannelProvider(
                   InstantiatingGrpcChannelProvider.newBuilder()
                       .setEndpoint(emulatorHost)
-                      .setChannelConfigurator(ManagedChannelBuilder::usePlaintext)
+                      .setChannelConfigurator(
+                          ManagedChannelBuilder::usePlaintext)
                       .build())
               .setCredentialsProvider(NoCredentialsProvider.create())
               .build());
@@ -1123,14 +1413,17 @@ public class JdbcSample {
     return properties;
   }
 
-  static void run(DatabaseAdminClient dbAdminClient, String command, DatabaseId database)
-      throws Exception {
+  static void run(
+      final DatabaseAdminClient dbAdminClient,
+      final String command,
+      final DatabaseId database) throws Exception {
     switch (command) {
       case "createdatabase":
         createDatabase(
             dbAdminClient,
             InstanceName.of(
-                database.getInstanceId().getProject(), database.getInstanceId().getInstance()),
+                database.getInstanceId().getProject(),
+                database.getInstanceId().getInstance()),
             database.getDatabase(),
             createProperties());
         break;
@@ -1138,7 +1431,8 @@ public class JdbcSample {
         createPostgreSQLDatabase(
             dbAdminClient,
             InstanceName.of(
-                database.getInstanceId().getProject(), database.getInstanceId().getInstance()),
+                database.getInstanceId().getProject(),
+                database.getInstanceId().getInstance()),
             database.getDatabase(),
             createProperties());
         break;

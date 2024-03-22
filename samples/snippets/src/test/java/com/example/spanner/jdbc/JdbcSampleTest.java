@@ -25,6 +25,8 @@ import static com.example.spanner.jdbc.JdbcSample.dataBoost;
 import static com.example.spanner.jdbc.JdbcSample.dataBoostPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.ddlBatch;
 import static com.example.spanner.jdbc.JdbcSample.ddlBatchPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.partitionedDml;
+import static com.example.spanner.jdbc.JdbcSample.partitionedDmlPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.queryData;
 import static com.example.spanner.jdbc.JdbcSample.queryDataPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.queryDataWithNewColumn;
@@ -225,6 +227,9 @@ public class JdbcSampleTest {
             + "15 Dylan Shaw\n"
             + "17 Ethan Miller\n",
         result);
+
+    result = runSample(() -> partitionedDml(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Updated at least 3 albums\n", result);
   }
 
   @Test
@@ -340,6 +345,11 @@ public class JdbcSampleTest {
             + "15 Dylan Shaw\n"
             + "17 Ethan Miller\n",
         result);
+
+    result =
+        runSample(
+            () -> partitionedDmlPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("Updated at least 3 albums\n", result);
   }
 
   interface Sample {
