@@ -17,7 +17,7 @@ on:
   pull_request:
 name: samples
 jobs:
-  checkstyle:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
