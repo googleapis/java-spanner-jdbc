@@ -1436,7 +1436,164 @@ public final class JdbcSample {
             database.getDatabase(),
             createProperties());
         break;
+      case "writeusingdml":
+        writeDataWithDml(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "writeusingdmlpg":
+        writeDataWithDmlPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "writeusingdmlbatch":
+        writeDataWithDmlBatch(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "writeusingdmlbatchpg":
+        writeDataWithDmlBatchPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "write":
+        writeDataWithMutations(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "writepg":
+        writeDataWithMutationsPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "query":
+        queryData(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "querypg":
+        queryDataPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "querywithparameter":
+        queryWithParameter(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "querywithparameterpg":
+        queryWithParameterPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "addmarketingbudget":
+        addColumn(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "addmarketingbudgetpg":
+        addColumnPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "ddlbatch":
+        ddlBatch(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "ddlbatchpg":
+        ddlBatchPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "update":
+        updateDataWithMutations(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "updatepg":
+        updateDataWithMutationsPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "querymarketingbudget":
+        queryDataWithNewColumn(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "querymarketingbudgetpg":
+        queryDataWithNewColumnPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "writewithtransactionusingdml":
+        writeWithTransactionUsingDml(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "writewithtransactionusingdmlpg":
+        writeWithTransactionUsingDmlPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "readonlytransaction":
+        readOnlyTransaction(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
+      case "readonlytransactionpg":
+        readOnlyTransactionPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        break;
       default:
+        System.err.println();
+        System.err.println("Unknown command: " + command);
+        System.err.println();
         printUsageAndExit();
     }
   }
