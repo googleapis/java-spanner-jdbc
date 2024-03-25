@@ -36,6 +36,8 @@ import static com.example.spanner.jdbc.JdbcSample.queryWithParameter;
 import static com.example.spanner.jdbc.JdbcSample.queryWithParameterPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.readOnlyTransaction;
 import static com.example.spanner.jdbc.JdbcSample.readOnlyTransactionPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.tags;
+import static com.example.spanner.jdbc.JdbcSample.tagsPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.updateDataWithMutations;
 import static com.example.spanner.jdbc.JdbcSample.updateDataWithMutationsPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.writeDataWithDml;
@@ -202,6 +204,11 @@ public class JdbcSampleTest {
             () -> writeWithTransactionUsingDml(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("Transferred marketing budget from Album 2 to Album 1\n", result);
 
+    result =
+        runSample(
+            () -> tags(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Reduced marketing budget\n", result);
+
     result = runSample(() -> readOnlyTransaction(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals(
         "1 1 Total Junk\n"
@@ -318,6 +325,12 @@ public class JdbcSampleTest {
                 writeWithTransactionUsingDmlPostgreSQL(
                     PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
     assertEquals("Transferred marketing budget from Album 2 to Album 1\n", result);
+
+    result =
+        runSample(
+            () ->
+                tagsPostgreSQL(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("Reduced marketing budget\n", result);
 
     result =
         runSample(

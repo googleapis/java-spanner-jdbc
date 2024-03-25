@@ -324,7 +324,6 @@ public final class JdbcSample {
                   + "(?, ?, ?), "
                   + "(?, ?, ?)")) {
 
-
         final ImmutableList<Singer> singers =
             ImmutableList.of(
                 new Singer(/* SingerId = */ 12L, "Melissa", "Garcia"),
@@ -1152,6 +1151,138 @@ public final class JdbcSample {
   }
   // [END spanner_postgresql_dml_getting_started_update]
 
+  // [START spanner_transaction_and_statement_tag]
+  static void tags(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Set AutoCommit=false to enable transactions.
+      connection.setAutoCommit(false);
+      // Set the TRANSACTION_TAG session variable to set a transaction tag
+      // for the current transaction.
+      connection
+          .createStatement()
+          .execute("SET TRANSACTION_TAG='example-tx-tag'");
+
+      // Set the STATEMENT_TAG session variable to set the request tag
+      // that should be included with the next SQL statement.
+      connection
+          .createStatement()
+          .execute("SET STATEMENT_TAG='query-marketing-budget'");
+      long marketingBudget = 0L;
+      long singerId = 1L;
+      long albumId = 1L;
+      try (PreparedStatement statement = connection.prepareStatement(
+          "SELECT MarketingBudget "
+          + "FROM Albums "
+          + "WHERE SingerId=? AND AlbumId=?")) {
+        statement.setLong(1, singerId);
+        statement.setLong(2, albumId);
+        try (ResultSet albumResultSet = statement.executeQuery()) {
+          while (albumResultSet.next()) {
+            marketingBudget = albumResultSet.getLong(1);
+          }
+        }
+      }
+      // Reduce the marketing budget by 10% if it is more than 1,000.
+      final long maxMarketingBudget = 1000L;
+      final float reduction = 0.1f;
+      if (marketingBudget > maxMarketingBudget) {
+        marketingBudget -= (long) (marketingBudget * reduction);
+        connection
+            .createStatement()
+            .execute("SET STATEMENT_TAG='reduce-marketing-budget'");
+        try (PreparedStatement statement = connection.prepareStatement(
+            "UPDATE Albums SET MarketingBudget=? "
+                + "WHERE SingerId=? AND AlbumId=?")) {
+          int paramIndex = 0;
+          statement.setLong(++paramIndex, marketingBudget);
+          statement.setLong(++paramIndex, singerId);
+          statement.setLong(++paramIndex, albumId);
+          statement.executeUpdate();
+        }
+      }
+
+      // Commit the current transaction.
+      connection.commit();
+      System.out.println("Reduced marketing budget");
+    }
+  }
+  // [END spanner_transaction_and_statement_tag]
+
+  // [START spanner_postgresql_transaction_and_statement_tag]
+  static void tagsPostgreSQL(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Set AutoCommit=false to enable transactions.
+      connection.setAutoCommit(false);
+      // Set the TRANSACTION_TAG session variable to set a transaction tag
+      // for the current transaction.
+      connection
+          .createStatement()
+          .execute("set spanner.transaction_TAG='example-tx-tag'");
+
+      // Set the STATEMENT_TAG session variable to set the request tag
+      // that should be included with the next SQL statement.
+      connection
+          .createStatement()
+          .execute("set spanner.statement_tag='query-marketing-budget'");
+      long marketingBudget = 0L;
+      long singerId = 1L;
+      long albumId = 1L;
+      try (PreparedStatement statement = connection.prepareStatement(
+          "select marketing_budget "
+              + "from albums "
+              + "where singer_id=? and album_id=?")) {
+        statement.setLong(1, singerId);
+        statement.setLong(2, albumId);
+        try (ResultSet albumResultSet = statement.executeQuery()) {
+          while (albumResultSet.next()) {
+            marketingBudget = albumResultSet.getLong(1);
+          }
+        }
+      }
+      // Reduce the marketing budget by 10% if it is more than 1,000.
+      final long maxMarketingBudget = 1000L;
+      final float reduction = 0.1f;
+      if (marketingBudget > maxMarketingBudget) {
+        marketingBudget -= (long) (marketingBudget * reduction);
+        connection
+            .createStatement()
+            .execute("set spanner.statement_tag='reduce-marketing-budget'");
+        try (PreparedStatement statement = connection.prepareStatement(
+            "update albums set marketing_budget=? "
+                + "where singer_id=? AND album_id=?")) {
+          int paramIndex = 0;
+          statement.setLong(++paramIndex, marketingBudget);
+          statement.setLong(++paramIndex, singerId);
+          statement.setLong(++paramIndex, albumId);
+          statement.executeUpdate();
+        }
+      }
+
+      // Commit the current transaction.
+      connection.commit();
+      System.out.println("Reduced marketing budget");
+    }
+  }
+  // [END spanner_postgresql_transaction_and_statement_tag]
+
   // [START spanner_read_only_transaction]
   static void readOnlyTransaction(
       final String project,
@@ -1538,6 +1669,13 @@ public final class JdbcSample {
             database.getDatabase(),
             createProperties());
         return true;
+      case "tags":
+        tags(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
       case "readonlytransaction":
         readOnlyTransaction(
             database.getInstanceId().getProject(),
@@ -1643,6 +1781,13 @@ public final class JdbcSample {
         return true;
       case "writewithtransactionusingdmlpg":
         writeWithTransactionUsingDmlPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "tagspg":
+        tagsPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
