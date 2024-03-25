@@ -1518,6 +1518,20 @@ public final class JdbcSample {
             database.getDatabase(),
             createProperties());
         return true;
+      case "databoost":
+        dataBoost(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "pdml":
+        partitionedDml(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
       default:
         return false;
     }
@@ -1609,6 +1623,20 @@ public final class JdbcSample {
         return true;
       case "readonlytransactionpg":
         readOnlyTransactionPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "databoostpg":
+        dataBoostPostgreSQL(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "pdmlpg":
+        partitionedDmlPostgreSQL(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
