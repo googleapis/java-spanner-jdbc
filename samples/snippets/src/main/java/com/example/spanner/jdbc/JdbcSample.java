@@ -249,7 +249,7 @@ public final class JdbcSample {
   }
   // [END spanner_postgresql_create_database]
 
-  // [START create_jdbc_connection]
+  // [START spanner_create_jdbc_connection]
   static void createConnection(
       final String project,
       final String instance,
@@ -273,7 +273,7 @@ public final class JdbcSample {
       }
     }
   }
-  // [END create_jdbc_connection]
+  // [END spanner_create_jdbc_connection]
 
   // [START spanner_dml_getting_started_insert]
   static void writeDataWithDml(

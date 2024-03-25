@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 
+/** Sample package for the Spanner JDBC driver. */
 package com.example.spanner.jdbc;
