@@ -275,6 +275,33 @@ public final class JdbcSample {
   }
   // [END spanner_create_jdbc_connection]
 
+  // [START spanner_create_jdbc_connection_with_emulator]
+  static void createConnectionWithEmulator(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
+    // Add autoConfigEmulator=true to the connection URL to instruct the JDBC
+    // driver to connect to the Spanner emulator on localhost:9010.
+    // The Spanner instance and database are automatically created if these
+    // don't already exist.
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s"
+                    + ";autoConfigEmulator=true",
+                project, instance, database),
+            properties)) {
+      try (ResultSet resultSet =
+          connection.createStatement().executeQuery("select 'Hello World!'")) {
+        while (resultSet.next()) {
+          System.out.println(resultSet.getString(1));
+        }
+      }
+    }
+  }
+  // [END spanner_create_jdbc_connection_with_emulator]
+
   // [START spanner_dml_getting_started_insert]
   static void writeDataWithDml(
       final String project,

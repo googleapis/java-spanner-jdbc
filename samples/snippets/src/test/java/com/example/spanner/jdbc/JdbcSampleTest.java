@@ -19,6 +19,7 @@ package com.example.spanner.jdbc;
 import static com.example.spanner.jdbc.JdbcSample.addColumn;
 import static com.example.spanner.jdbc.JdbcSample.addColumnPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.createConnection;
+import static com.example.spanner.jdbc.JdbcSample.createConnectionWithEmulator;
 import static com.example.spanner.jdbc.JdbcSample.createDatabase;
 import static com.example.spanner.jdbc.JdbcSample.createPostgreSQLDatabase;
 import static com.example.spanner.jdbc.JdbcSample.dataBoost;
@@ -155,6 +156,9 @@ public class JdbcSampleTest {
     result = runSample(() -> createConnection(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("Hello World!\n", result);
 
+    result = runSample(() -> createConnectionWithEmulator(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Hello World!\n", result);
+
     result = runSample(() -> writeDataWithDml(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("4 records inserted.\n", result);
 
@@ -245,6 +249,9 @@ public class JdbcSampleTest {
         result);
 
     result = runSample(() -> createConnection(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
+    assertEquals("Hello World!\n", result);
+
+    result = runSample(() -> createConnectionWithEmulator(PROJECT_ID, INSTANCE_ID, PG_DATABASE_ID, properties));
     assertEquals("Hello World!\n", result);
 
     result =
