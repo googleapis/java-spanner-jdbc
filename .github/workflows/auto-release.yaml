@@ -99,5 +99,5 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.payload.pull_request.number,
-            labels: ['kokoro:force-run', 'automerge']
+            labels: ['kokoro:force-run']
           });
