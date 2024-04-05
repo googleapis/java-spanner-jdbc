@@ -16,12 +16,13 @@ jobs:
           - 9020:9020
 
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+    - uses: actions/checkout@v4
     - uses: stCarolas/setup-maven@v4
       with:
         maven-version: 3.8.1
     - uses: actions/setup-java@v4
       with:
+        distribution: temurin
         java-version: 8
     - run: java -version
     - run: .kokoro/build.sh
