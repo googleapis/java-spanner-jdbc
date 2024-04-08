@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.16.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.16.0...v2.16.1) (2024-03-22)
+
+
+### Dependencies
+
+* Bump Spanner client to 6.62.0 ([#1539](https://github.com/googleapis/java-spanner-jdbc/issues/1539)) ([ca274fb](https://github.com/googleapis/java-spanner-jdbc/commit/ca274fb22cbbb974fe71fffbe9f8c3a56f40628c))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.28.1 ([#1537](https://github.com/googleapis/java-spanner-jdbc/issues/1537)) ([4d1d38e](https://github.com/googleapis/java-spanner-jdbc/commit/4d1d38ea4312d637d1cad61b8230d12cdbf0ba51))
+* Update dependency org.postgresql:postgresql to v42.7.3 ([#1532](https://github.com/googleapis/java-spanner-jdbc/issues/1532)) ([b09da60](https://github.com/googleapis/java-spanner-jdbc/commit/b09da609950b94157564f4f9987a3ce60221568e))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.2.4 ([#1540](https://github.com/googleapis/java-spanner-jdbc/issues/1540)) ([21faff8](https://github.com/googleapis/java-spanner-jdbc/commit/21faff8d72ad209835971162caadb694c602175d))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.2.4 ([#1541](https://github.com/googleapis/java-spanner-jdbc/issues/1541)) ([2c76488](https://github.com/googleapis/java-spanner-jdbc/commit/2c76488e5e80ecad2824311ed399142495bfc2e4))
+* Update dependency org.springframework.data:spring-data-bom to v2023.1.4 ([#1533](https://github.com/googleapis/java-spanner-jdbc/issues/1533)) ([ec7d3b0](https://github.com/googleapis/java-spanner-jdbc/commit/ec7d3b04fd0bf97ea17ebd1849d02fdfdb31ded3))
+
 ## [2.16.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.15.5...v2.16.0) (2024-03-07)
 
 
