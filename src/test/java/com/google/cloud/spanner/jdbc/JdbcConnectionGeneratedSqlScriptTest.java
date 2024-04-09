@@ -19,6 +19,7 @@ package com.google.cloud.spanner.jdbc;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.SpannerExceptionFactory;
 import com.google.cloud.spanner.connection.AbstractConnectionImplTest;
@@ -64,6 +65,7 @@ public class JdbcConnectionGeneratedSqlScriptTest {
           ConnectionImplTest.createConnection(options, dialect);
       when(spannerConnection.getDialect()).thenReturn(dialect);
       when(options.getConnection()).thenReturn(spannerConnection);
+      when(options.getDatabaseId()).thenReturn(DatabaseId.of("project", "instance", "database"));
       try {
         JdbcConnection connection =
             new JdbcConnection(
