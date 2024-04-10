@@ -21,7 +21,6 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptions.ConnectionProperty;
-import com.google.common.base.Strings;
 import com.google.rpc.Code;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -192,8 +191,7 @@ public class JdbcDriver implements Driver {
         if (matcher.matches()) {
           // strip 'jdbc:' from the URL, add any extra properties and pass on to the generic
           // Connection API
-          String connectionUri = addEndpoint(matcher, url.substring(5), info);
-          connectionUri = appendPropertiesToUrl(connectionUri, info);
+          String connectionUri = appendPropertiesToUrl(url.substring(5), info);
           ConnectionOptions options = ConnectionOptions.newBuilder().setUri(connectionUri).build();
           JdbcConnection connection = new JdbcConnection(url, options);
           if (options.getWarnings() != null) {
@@ -213,23 +211,10 @@ public class JdbcDriver implements Driver {
     return null;
   }
 
-  private String addEndpoint(Matcher matcher, String url, Properties properties) {
-    if (properties != null
-        && properties.containsKey("endpoint")
-        && Strings.isNullOrEmpty(matcher.group("HOSTGROUP"))) {
-      return "cloudspanner://"
-          + properties.get("endpoint")
-          + url.substring("cloudspanner:".length());
-    }
-    return url;
-  }
-
   private String appendPropertiesToUrl(String url, Properties info) {
     StringBuilder res = new StringBuilder(url);
     for (Entry<Object, Object> entry : info.entrySet()) {
-      if (!"endpoint".equals(entry.getKey())
-          && entry.getValue() != null
-          && !"".equals(entry.getValue())) {
+      if (entry.getValue() != null && !"".equals(entry.getValue())) {
         res.append(";").append(entry.getKey()).append("=").append(entry.getValue());
       }
     }
