@@ -57,6 +57,7 @@ import com.google.cloud.spanner.admin.database.v1.DatabaseAdminSettings;
 import com.google.cloud.spanner.admin.instance.v1.InstanceAdminClient;
 import com.google.cloud.spanner.admin.instance.v1.InstanceAdminSettings;
 import com.google.cloud.spanner.connection.SpannerPool;
+import com.google.common.collect.ImmutableList;
 import com.google.spanner.admin.instance.v1.Instance;
 import com.google.spanner.admin.instance.v1.InstanceConfig;
 import com.google.spanner.admin.instance.v1.InstanceName;
@@ -95,8 +96,11 @@ public class JdbcSampleTest {
     emulator =
         new GenericContainer<>(
                 DockerImageName.parse("gcr.io/cloud-spanner-emulator/emulator:latest"))
-            .withExposedPorts(9010)
+            // .withExposedPorts(9010)
             .waitingFor(Wait.forListeningPort());
+    // TODO: Remove and replace with dynamic port binding when Spanner client library 6.64.0 has
+    //       been released.
+    emulator.setPortBindings(ImmutableList.of("9010:9010"));
     emulator.start();
     try (InstanceAdminClient client =
         InstanceAdminClient.create(
@@ -124,6 +128,7 @@ public class JdbcSampleTest {
     // Create properties for the JDBC driver to connect to the emulator.
     properties = new Properties();
     properties.put("autoConfigEmulator", "true");
+    properties.put("lenient", "true");
     properties.put("endpoint", emulator.getHost() + ":" + emulator.getMappedPort(9010));
   }
 
