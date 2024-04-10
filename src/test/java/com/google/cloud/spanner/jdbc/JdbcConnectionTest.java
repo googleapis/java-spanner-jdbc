@@ -23,10 +23,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.ResultSets;
@@ -80,13 +82,16 @@ public class JdbcConnectionTest {
         ConnectionImplTest.createConnection(options, dialect);
     when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
+    when(options.getDatabaseId()).thenReturn(DatabaseId.of("project", "instance", "database"));
     return new JdbcConnection(
         "jdbc:cloudspanner://localhost/projects/project/instances/instance/databases/database;credentialsUrl=url",
         options);
   }
 
   private ConnectionOptions mockOptions() {
-    return mock(ConnectionOptions.class);
+    ConnectionOptions options = mock(ConnectionOptions.class);
+    when(options.getDatabaseId()).thenReturn(DatabaseId.of("project", "instance", "database"));
+    return options;
   }
 
   @Test

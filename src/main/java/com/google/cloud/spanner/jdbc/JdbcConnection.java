@@ -21,17 +21,23 @@ import static com.google.cloud.spanner.jdbc.JdbcStatement.isNullOrEmpty;
 
 import com.google.api.client.util.Preconditions;
 import com.google.cloud.spanner.CommitResponse;
+import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerException;
+import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.SavepointSupport;
 import com.google.cloud.spanner.connection.TransactionMode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributesBuilder;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -80,9 +86,21 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   private final boolean useLegacyIsValidCheck;
 
+  private final Metrics metrics;
+
+  private final Attributes metricAttributes;
+
   JdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     super(connectionUrl, options);
     this.useLegacyIsValidCheck = useLegacyValidCheck();
+    OpenTelemetry openTelemetry;
+    if (SpannerOptions.isEnabledOpenTelemetryMetrics()) {
+      openTelemetry = this.getSpanner().getOptions().getOpenTelemetry();
+    } else {
+      openTelemetry = OpenTelemetry.noop();
+    }
+    this.metrics = new Metrics(openTelemetry);
+    this.metricAttributes = createMetricAttributes(this.getConnectionOptions().getDatabaseId());
   }
 
   static boolean useLegacyValidCheck() {
@@ -94,6 +112,19 @@ class JdbcConnection extends AbstractJdbcConnection {
       return Boolean.parseBoolean(value);
     }
     return false;
+  }
+
+  @VisibleForTesting
+  static Attributes createMetricAttributes(DatabaseId databaseId) {
+    AttributesBuilder attributesBuilder = Attributes.builder();
+    attributesBuilder.put("database", databaseId.getDatabase());
+    attributesBuilder.put("instance_id", databaseId.getInstanceId().getInstance());
+    attributesBuilder.put("project_id", databaseId.getInstanceId().getProject());
+    return attributesBuilder.build();
+  }
+
+  public void recordClientLibLatencyMetric(long value) {
+    metrics.recordClientLibLatency(value, metricAttributes);
   }
 
   @Override
