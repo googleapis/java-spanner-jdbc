@@ -1235,7 +1235,7 @@ public final class JdbcSample {
       // for the current transaction.
       connection
           .createStatement()
-          .execute("set spanner.transaction_TAG='example-tx-tag'");
+          .execute("set spanner.transaction_tag='example-tx-tag'");
 
       // Set the STATEMENT_TAG session variable to set the request tag
       // that should be included with the next SQL statement.
