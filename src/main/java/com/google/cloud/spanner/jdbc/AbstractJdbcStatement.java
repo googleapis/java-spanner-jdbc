@@ -359,7 +359,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   @Override
-  public void close() {
+  public void close() throws SQLException {
     this.closed = true;
   }
 
