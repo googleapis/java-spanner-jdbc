@@ -75,6 +75,9 @@ public class AllTypesMockServerTest
                 DATE_VALUE.getYear() - 1900, DATE_VALUE.getMonth() - 1, DATE_VALUE.getDayOfMonth()),
             resultSet.getDate(++col));
         assertEquals(TIMESTAMP_VALUE.toSqlTimestamp(), resultSet.getTimestamp(++col));
+        if (dialect == Dialect.POSTGRESQL) {
+          assertEquals(PG_OID_VALUE, resultSet.getLong(++col));
+        }
 
         assertEquals(
             BOOL_ARRAY_VALUE, Arrays.asList((Boolean[]) resultSet.getArray(++col).getArray()));
@@ -122,6 +125,10 @@ public class AllTypesMockServerTest
                 .map(timestamp -> timestamp == null ? null : timestamp.toSqlTimestamp())
                 .collect(Collectors.toList()),
             Arrays.asList((Timestamp[]) resultSet.getArray(++col).getArray()));
+        if (dialect == Dialect.POSTGRESQL) {
+          assertEquals(
+              PG_OID_ARRAY_VALUE, Arrays.asList((Long[]) resultSet.getArray(++col).getArray()));
+        }
 
         assertFalse(resultSet.next());
       }
@@ -140,7 +147,7 @@ public class AllTypesMockServerTest
           insertStatement
               .toBuilder()
               .replace(insertStatement.getSql().replaceAll("@p", "\\$"))
-              .bind("p15")
+              .bind("p16")
               .to(
                   com.google.cloud.spanner.Value.pgNumericArray(
                       NUMERIC_ARRAY_VALUE.stream()
@@ -179,6 +186,9 @@ public class AllTypesMockServerTest
                 DATE_VALUE.getMonth() - 1,
                 DATE_VALUE.getDayOfMonth()));
         statement.setTimestamp(++param, TIMESTAMP_VALUE.toSqlTimestamp());
+        if (dialect == Dialect.POSTGRESQL) {
+          statement.setLong(++param, PG_OID_VALUE);
+        }
 
         // TODO: Support PostgreSQL type names for creating arrays.
         statement.setArray(
@@ -241,6 +251,10 @@ public class AllTypesMockServerTest
                 TIMESTAMP_ARRAY_VALUE.stream()
                     .map(timestamp -> timestamp == null ? null : timestamp.toSqlTimestamp())
                     .toArray(Timestamp[]::new)));
+        if (dialect == Dialect.POSTGRESQL) {
+          statement.setArray(
+              ++param, connection.createArrayOf("INT64", PG_OID_ARRAY_VALUE.toArray(new Long[0])));
+        }
 
         assertEquals(1, statement.executeUpdate());
       }
@@ -249,8 +263,8 @@ public class AllTypesMockServerTest
       ExecuteSqlRequest request = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0);
       Map<String, Type> paramTypes = request.getParamTypesMap();
       Map<String, Value> params = request.getParams().getFieldsMap();
-      assertEquals(20, paramTypes.size());
-      assertEquals(20, params.size());
+      assertEquals(dialect == Dialect.POSTGRESQL ? 22 : 20, paramTypes.size());
+      assertEquals(dialect == Dialect.POSTGRESQL ? 22 : 20, params.size());
 
       // Verify param types.
       ImmutableList<TypeCode> expectedTypes =
@@ -265,6 +279,10 @@ public class AllTypesMockServerTest
               TypeCode.BYTES,
               TypeCode.DATE,
               TypeCode.TIMESTAMP);
+      if (dialect == Dialect.POSTGRESQL) {
+        expectedTypes =
+            ImmutableList.<TypeCode>builder().addAll(expectedTypes).add(TypeCode.INT64).build();
+      }
       for (int col = 0; col < expectedTypes.size(); col++) {
         assertEquals(expectedTypes.get(col), paramTypes.get("p" + (col + 1)).getCode());
         int arrayCol = col + expectedTypes.size();
@@ -290,6 +308,9 @@ public class AllTypesMockServerTest
           params.get("p" + ++col).getStringValue());
       assertEquals(DATE_VALUE.toString(), params.get("p" + ++col).getStringValue());
       assertEquals(TIMESTAMP_VALUE.toString(), params.get("p" + ++col).getStringValue());
+      if (dialect == Dialect.POSTGRESQL) {
+        assertEquals(String.valueOf(PG_OID_VALUE), params.get("p" + ++col).getStringValue());
+      }
 
       assertEquals(
           BOOL_ARRAY_VALUE,
@@ -365,6 +386,13 @@ public class AllTypesMockServerTest
                           ? null
                           : com.google.cloud.Timestamp.parseTimestamp(value.getStringValue()))
               .collect(Collectors.toList()));
+      if (dialect == Dialect.POSTGRESQL) {
+        assertEquals(
+            PG_OID_ARRAY_VALUE,
+            params.get("p" + ++col).getListValue().getValuesList().stream()
+                .map(value -> value.hasNullValue() ? null : Long.valueOf(value.getStringValue()))
+                .collect(Collectors.toList()));
+      }
     } catch (SQLException sqlException) {
       throw new RuntimeException(sqlException);
     }

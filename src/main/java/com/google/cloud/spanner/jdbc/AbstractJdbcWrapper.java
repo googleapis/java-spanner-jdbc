@@ -16,6 +16,8 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.getMainTypeCode;
+
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
@@ -42,7 +44,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
    */
   static int extractColumnType(Type type) {
     Preconditions.checkNotNull(type);
-    switch (type.getCode()) {
+    switch (getMainTypeCode(type)) {
       case BOOL:
         return Types.BOOLEAN;
       case BYTES:
@@ -139,7 +141,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
    */
   static String getClassName(Type type) {
     Preconditions.checkNotNull(type);
-    switch (type.getCode()) {
+    switch (getMainTypeCode(type)) {
       case BOOL:
         return Boolean.class.getName();
       case BYTES:
@@ -162,7 +164,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
       case TIMESTAMP:
         return Timestamp.class.getName();
       case ARRAY:
-        switch (type.getArrayElementType().getCode()) {
+        switch (getMainTypeCode(type.getArrayElementType())) {
           case BOOL:
             return Boolean[].class.getName();
           case BYTES:

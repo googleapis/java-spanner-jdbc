@@ -22,6 +22,7 @@ import com.google.cloud.Timestamp;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Value;
+import com.google.common.base.Preconditions;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -45,6 +46,17 @@ import java.util.concurrent.TimeUnit;
 class JdbcTypeConverter {
   private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
   private static final Charset UTF8 = StandardCharsets.UTF_8;
+
+  // TODO: Remove when this is supported in the Java client library.
+  static Code getMainTypeCode(Type type) {
+    Preconditions.checkNotNull(type);
+    switch (type.getCode()) {
+      case PG_OID:
+        return Code.INT64;
+      default:
+        return type.getCode();
+    }
+  }
 
   /**
    * Converts the given value from the Google {@link Type} to the Java {@link Class} type. The input
@@ -205,6 +217,8 @@ class JdbcTypeConverter {
                 Arrays.asList((Double[]) ((java.sql.Array) value).getArray()));
           case INT64:
             return Value.int64Array(Arrays.asList((Long[]) ((java.sql.Array) value).getArray()));
+          case PG_OID:
+            return Value.pgOidArray(Arrays.asList((Long[]) ((java.sql.Array) value).getArray()));
           case NUMERIC:
             return Value.numericArray(
                 Arrays.asList((BigDecimal[]) ((java.sql.Array) value).getArray()));
@@ -238,6 +252,8 @@ class JdbcTypeConverter {
         return Value.float64((Double) value);
       case INT64:
         return Value.int64((Long) value);
+      case PG_OID:
+        return Value.pgOid((Long) value);
       case NUMERIC:
         return Value.numeric((BigDecimal) value);
       case PG_NUMERIC:
