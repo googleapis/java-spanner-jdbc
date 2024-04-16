@@ -78,6 +78,9 @@ public class RandomResultSetTest extends AbstractMockServerTest {
         assertEquals(Types.BINARY, metadata.getColumnType(++col));
         assertEquals(Types.DATE, metadata.getColumnType(++col));
         assertEquals(Types.TIMESTAMP, metadata.getColumnType(++col));
+        if (dialect == Dialect.POSTGRESQL) {
+          assertEquals(Types.BIGINT, metadata.getColumnType(++col));
+        }
 
         assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // boolean
         assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // bigint
@@ -89,6 +92,9 @@ public class RandomResultSetTest extends AbstractMockServerTest {
         assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // binary
         assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // date
         assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // timestamp
+        if (dialect == Dialect.POSTGRESQL) {
+          assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // oid
+        }
 
         // GoogleSQL also includes proto columns.
         if (dialect == Dialect.GOOGLE_STANDARD_SQL) {
@@ -108,9 +114,7 @@ public class RandomResultSetTest extends AbstractMockServerTest {
           for (col = 1; col <= resultSet.getMetaData().getColumnCount(); col++) {
             if (dialect == Dialect.GOOGLE_STANDARD_SQL && col > 20) {
               // Proto columns are not yet supported, so skipping.
-            } else if (dialect == Dialect.POSTGRESQL && col == 7) {
-              // PG_JSONB is not yet recognized by the JDBC driver, so skipping.
-            } else if (dialect == Dialect.POSTGRESQL && col == 15) {
+            } else if (dialect == Dialect.POSTGRESQL && col == 16) {
               // getObject for ARRAY<PG_NUMERIC> tries to get the array as a List<BigDecimal>.
               // That fails if the array contains a NaN, so skipping.
             } else {
@@ -130,6 +134,9 @@ public class RandomResultSetTest extends AbstractMockServerTest {
           resultSet.getBytes(++col);
           resultSet.getDate(++col);
           resultSet.getTimestamp(++col);
+          if (dialect == Dialect.POSTGRESQL) {
+            resultSet.getLong(++col); // oid
+          }
 
           resultSet.getArray(++col);
           resultSet.getArray(++col);
@@ -147,6 +154,9 @@ public class RandomResultSetTest extends AbstractMockServerTest {
           resultSet.getArray(++col);
           resultSet.getArray(++col);
           resultSet.getArray(++col);
+          if (dialect == Dialect.POSTGRESQL) {
+            resultSet.getArray(++col); // oid[]
+          }
 
           // GoogleSQL also includes proto columns.
           if (dialect == Dialect.GOOGLE_STANDARD_SQL) {

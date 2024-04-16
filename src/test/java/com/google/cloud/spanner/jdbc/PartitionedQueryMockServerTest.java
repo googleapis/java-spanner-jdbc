@@ -73,7 +73,8 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
 
   private int getExpectedColumnCount(Dialect dialect) {
     // GoogleSQL also adds 4 PROTO columns.
-    return dialect == Dialect.GOOGLE_STANDARD_SQL ? 24 : 20;
+    // PostgreSQL adds 2 OID columns.
+    return dialect == Dialect.GOOGLE_STANDARD_SQL ? 24 : 22;
   }
 
   private String createUrl() {
