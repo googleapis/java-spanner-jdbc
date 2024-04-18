@@ -112,7 +112,7 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
     checkClosed();
     Statement statementWithReturningClause =
         addReturningToStatement(statement, generatedKeysColumns);
-    StatementResult result = execute(statementWithReturningClause);
+    StatementResult result = execute("executeUpdate", statementWithReturningClause);
     switch (result.getResultType()) {
       case RESULT_SET:
         if (generatedKeysColumns.isEmpty()) {
@@ -265,7 +265,7 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
     // This will return the same Statement instance if no THEN RETURN clause is added to the
     // statement.
     Statement statementWithReturning = addReturningToStatement(statement, generatedKeysColumns);
-    StatementResult result = execute(statementWithReturning);
+    StatementResult result = execute("execute", statementWithReturning);
     switch (result.getResultType()) {
       case RESULT_SET:
         // Check whether the statement was modified to include a RETURNING clause for generated
@@ -442,7 +442,10 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
       switch (this.currentBatchType) {
         case DML:
           try {
-            return getConnection().getSpannerConnection().executeBatchUpdate(batchedStatements);
+            return trace(
+                "executeBatchUpdate",
+                batchedStatements,
+                () -> getConnection().getSpannerConnection().executeBatchUpdate(batchedStatements));
           } catch (SpannerBatchUpdateException e) {
             if (large) {
               throw JdbcSqlExceptionFactory.batchException(e.getUpdateCounts(), e);
@@ -457,9 +460,12 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
           try {
             getConnection().getSpannerConnection().startBatchDdl();
             for (Statement statement : batchedStatements) {
-              execute(statement);
+              execute(/* traceName = */ null, statement);
             }
-            getConnection().getSpannerConnection().runBatch();
+            trace(
+                "executeBatchDdl",
+                batchedStatements,
+                () -> getConnection().getSpannerConnection().runBatch());
             long[] res = new long[batchedStatements.size()];
             Arrays.fill(res, java.sql.Statement.SUCCESS_NO_INFO);
             return res;

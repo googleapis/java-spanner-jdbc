@@ -36,6 +36,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /** Base class for all JDBC integration tests. */
@@ -80,6 +81,11 @@ public class ITAbstractJdbcTest {
    */
   public CloudSpannerJdbcConnection createConnection(JdbcIntegrationTestEnv env, Database database)
       throws SQLException {
+    return createConnection(env, database, new Properties());
+  }
+
+  public CloudSpannerJdbcConnection createConnection(
+      JdbcIntegrationTestEnv env, Database database, Properties properties) throws SQLException {
     // Create a connection URL for the generic connection API.
     StringBuilder url =
         ITAbstractSpannerTest.extractConnectionUrl(env.getTestHelper().getOptions(), database);
@@ -90,7 +96,8 @@ public class ITAbstractJdbcTest {
     }
     appendConnectionUri(url);
 
-    return DriverManager.getConnection(url.toString()).unwrap(CloudSpannerJdbcConnection.class);
+    return DriverManager.getConnection(url.toString(), properties)
+        .unwrap(CloudSpannerJdbcConnection.class);
   }
 
   protected void appendConnectionUri(StringBuilder uri) {}

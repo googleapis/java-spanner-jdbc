@@ -24,17 +24,25 @@ import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.cloud.spanner.connection.StatementResult.ClientSideStatementType;
+import com.google.cloud.spanner.jdbc.StatementBatchAttributeKey.StatementBatch;
 import com.google.common.base.Stopwatch;
 import com.google.rpc.Code;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.semconv.SemanticAttributes;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 /** Base class for Cloud Spanner JDBC {@link Statement}s */
 abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Statement {
@@ -55,6 +63,14 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   @Override
   public JdbcConnection getConnection() {
     return connection;
+  }
+
+  Tracer getTracer() {
+    return connection.getTracer();
+  }
+
+  Attributes getOpenTelemetryAttributes() {
+    return connection.getOpenTelemetryAttributes();
   }
 
   private Options.QueryOption[] getQueryOptions(QueryOption... options) throws SQLException {
@@ -208,7 +224,10 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       QueryOption... options)
       throws SQLException {
     Options.QueryOption[] queryOptions = getQueryOptions(options);
+    String name = analyzeMode == QueryAnalyzeMode.PLAN ? "analyzeQuery" : "executeQuery";
     return doWithStatementTimeout(
+        name,
+        statement,
         () -> {
           com.google.cloud.spanner.ResultSet resultSet;
           if (analyzeMode == null) {
@@ -220,17 +239,56 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
         });
   }
 
-  private <T> T doWithStatementTimeout(Supplier<T> runnable) throws SQLException {
-    return doWithStatementTimeout(runnable, ignore -> Boolean.TRUE);
+  <T> T trace(String traceName, String sql, Supplier<T> runnable) {
+    //noinspection deprecation
+    return trace(traceName, Attributes.of(SemanticAttributes.DB_STATEMENT, sql), runnable);
+  }
+
+  <T> T trace(
+      String traceName, List<com.google.cloud.spanner.Statement> statements, Supplier<T> runnable) {
+    return trace(
+        traceName,
+        Attributes.of(StatementBatchAttributeKey.INSTANCE, new StatementBatch(statements)),
+        runnable);
+  }
+
+  private <S, T> T trace(String traceName, Attributes attributes, Supplier<T> runnable) {
+    Span span =
+        getTracer()
+            .spanBuilder(traceName)
+            .setAllAttributes(getOpenTelemetryAttributes())
+            .setAllAttributes(attributes)
+            .startSpan();
+    try {
+      return runnable.get();
+    } catch (Throwable exception) {
+      span.setStatus(StatusCode.ERROR, exception.getMessage());
+      span.recordException(exception);
+      throw exception;
+    } finally {
+      span.end();
+    }
   }
 
   private <T> T doWithStatementTimeout(
-      Supplier<T> runnable, Function<T, Boolean> shouldResetTimeout) throws SQLException {
+      @Nullable String traceName,
+      com.google.cloud.spanner.Statement statement,
+      Supplier<T> runnable)
+      throws SQLException {
+    return doWithStatementTimeout(traceName, statement, runnable, ignore -> Boolean.TRUE);
+  }
+
+  private <T> T doWithStatementTimeout(
+      @Nullable String traceName,
+      com.google.cloud.spanner.Statement statement,
+      Supplier<T> runnable,
+      Function<T, Boolean> shouldResetTimeout)
+      throws SQLException {
     StatementTimeout originalTimeout = setTemporaryStatementTimeout();
     T result = null;
     try {
       Stopwatch stopwatch = Stopwatch.createStarted();
-      result = runnable.get();
+      result = traceName == null ? runnable.get() : trace(traceName, statement.getSql(), runnable);
       Duration executionDuration = stopwatch.elapsed();
       connection.recordClientLibLatencyMetric(executionDuration.toMillis());
       return result;
@@ -241,19 +299,6 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
         resetStatementTimeout(originalTimeout);
       }
     }
-  }
-
-  /**
-   * Executes a SQL statement on the connection of this {@link Statement} as an update (DML)
-   * statement.
-   *
-   * @param statement The SQL statement to execute
-   * @return the number of rows that was inserted/updated/deleted
-   * @throws SQLException if a database error occurs, or if the number of rows affected is larger
-   *     than {@link Integer#MAX_VALUE}
-   */
-  int executeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
-    return checkedCast(executeLargeUpdate(statement));
   }
 
   /**
@@ -269,29 +314,21 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   /**
-   * Executes a SQL statement on the connection of this {@link Statement} as an update (DML)
-   * statement.
-   *
-   * @param statement The SQL statement to execute
-   * @return the number of rows that was inserted/updated/deleted
-   * @throws SQLException if a database error occurs
-   */
-  long executeLargeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
-    return doWithStatementTimeout(() -> connection.getSpannerConnection().executeUpdate(statement));
-  }
-
-  /**
    * Executes a SQL statement on the connection of this {@link Statement}. The SQL statement can be
    * any supported SQL statement, including client side statements such as SET AUTOCOMMIT ON|OFF.
    *
+   * @param traceName The traceName to use for tracing, or null if no trace should be created.
    * @param statement The SQL statement to execute.
    * @return a {@link StatementResult} containing either a {@link ResultSet}, an update count or
    *     nothing depending on the type of SQL statement.
    * @throws SQLException if a database error occurs.
    */
-  StatementResult execute(com.google.cloud.spanner.Statement statement) throws SQLException {
+  StatementResult execute(@Nullable String traceName, com.google.cloud.spanner.Statement statement)
+      throws SQLException {
     StatementResult statementResult =
         doWithStatementTimeout(
+            traceName,
+            statement,
             () -> connection.getSpannerConnection().execute(statement),
             result -> !resultIsSetStatementTimeout(result));
     if (resultIsShowStatementTimeout(statementResult)) {

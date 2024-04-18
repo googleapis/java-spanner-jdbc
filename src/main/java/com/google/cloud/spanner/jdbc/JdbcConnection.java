@@ -38,6 +38,7 @@ import com.google.common.collect.Iterators;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.trace.Tracer;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -52,6 +53,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
@@ -86,9 +88,11 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   private final boolean useLegacyIsValidCheck;
 
+  private final Tracer tracer;
+
   private final Metrics metrics;
 
-  private final Attributes metricAttributes;
+  private final Attributes openTelemetryAttributes;
 
   JdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     super(connectionUrl, options);
@@ -99,8 +103,15 @@ class JdbcConnection extends AbstractJdbcConnection {
     } else {
       openTelemetry = OpenTelemetry.noop();
     }
+    this.tracer = openTelemetry.getTracer(Metrics.INSTRUMENTATION_SCOPE, getLibraryVersion());
     this.metrics = new Metrics(openTelemetry);
-    this.metricAttributes = createMetricAttributes(this.getConnectionOptions().getDatabaseId());
+    this.openTelemetryAttributes =
+        createOpenTelemetryAttributes(getConnectionOptions().getDatabaseId());
+  }
+
+  static String getLibraryVersion() {
+    String version = JdbcConnection.class.getPackage().getImplementationVersion();
+    return version != null ? version : "";
   }
 
   static boolean useLegacyValidCheck() {
@@ -114,9 +125,18 @@ class JdbcConnection extends AbstractJdbcConnection {
     return false;
   }
 
+  Tracer getTracer() {
+    return this.tracer;
+  }
+
+  Attributes getOpenTelemetryAttributes() {
+    return this.openTelemetryAttributes;
+  }
+
   @VisibleForTesting
-  static Attributes createMetricAttributes(DatabaseId databaseId) {
+  static Attributes createOpenTelemetryAttributes(DatabaseId databaseId) {
     AttributesBuilder attributesBuilder = Attributes.builder();
+    attributesBuilder.put("connection_id", UUID.randomUUID().toString());
     attributesBuilder.put("database", databaseId.getDatabase());
     attributesBuilder.put("instance_id", databaseId.getInstanceId().getInstance());
     attributesBuilder.put("project_id", databaseId.getInstanceId().getProject());
@@ -124,7 +144,7 @@ class JdbcConnection extends AbstractJdbcConnection {
   }
 
   public void recordClientLibLatencyMetric(long value) {
-    metrics.recordClientLibLatency(value, metricAttributes);
+    metrics.recordClientLibLatency(value, openTelemetryAttributes);
   }
 
   @Override
