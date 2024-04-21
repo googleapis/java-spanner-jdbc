@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.google.cloud.spanner.Dialect;
@@ -40,7 +41,13 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class TagMockServerTest extends AbstractMockServerTest {
+  private static final String SELECT_RANDOM_SQL = SELECT_RANDOM_STATEMENT.getSql();
+
+  private static final String INSERT_SQL = INSERT_STATEMENT.getSql();
+
   @Parameter public Dialect dialect;
+
+  private Dialect currentDialect;
 
   @Parameters(name = "dialect = {0}")
   public static Object[] data() {
@@ -49,7 +56,10 @@ public class TagMockServerTest extends AbstractMockServerTest {
 
   @Before
   public void setupDialect() {
-    mockSpanner.putStatementResult(StatementResult.detectDialectResult(this.dialect));
+    if (this.dialect != currentDialect) {
+      mockSpanner.putStatementResult(StatementResult.detectDialectResult(this.dialect));
+      this.currentDialect = dialect;
+    }
   }
 
   @After
@@ -77,8 +87,7 @@ public class TagMockServerTest extends AbstractMockServerTest {
       connection
           .createStatement()
           .execute(String.format("set %sstatement_tag='my-tag'", getVariablePrefix()));
-      try (ResultSet resultSet =
-          connection.createStatement().executeQuery(SELECT_RANDOM_STATEMENT.getSql())) {
+      try (ResultSet resultSet = connection.createStatement().executeQuery(SELECT_RANDOM_SQL)) {
         assertTrue(resultSet.next());
       }
       assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
@@ -87,8 +96,7 @@ public class TagMockServerTest extends AbstractMockServerTest {
 
       // Verify that the tag is cleared after having been used.
       mockSpanner.clearRequests();
-      try (ResultSet resultSet =
-          connection.createStatement().executeQuery(SELECT_RANDOM_STATEMENT.getSql())) {
+      try (ResultSet resultSet = connection.createStatement().executeQuery(SELECT_RANDOM_SQL)) {
         assertTrue(resultSet.next());
       }
       assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
@@ -103,8 +111,7 @@ public class TagMockServerTest extends AbstractMockServerTest {
       connection
           .createStatement()
           .execute(String.format("set %stransaction_tag='my-tag'", getVariablePrefix()));
-      try (ResultSet resultSet =
-          connection.createStatement().executeQuery(SELECT_RANDOM_STATEMENT.getSql())) {
+      try (ResultSet resultSet = connection.createStatement().executeQuery(SELECT_RANDOM_SQL)) {
         assertTrue(resultSet.next());
       }
       assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
@@ -113,8 +120,7 @@ public class TagMockServerTest extends AbstractMockServerTest {
 
       // Verify that the tag is used for the entire transaction.
       mockSpanner.clearRequests();
-      try (ResultSet resultSet =
-          connection.createStatement().executeQuery(SELECT_RANDOM_STATEMENT.getSql())) {
+      try (ResultSet resultSet = connection.createStatement().executeQuery(SELECT_RANDOM_SQL)) {
         assertTrue(resultSet.next());
       }
       assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
@@ -125,8 +131,7 @@ public class TagMockServerTest extends AbstractMockServerTest {
       connection.commit();
 
       mockSpanner.clearRequests();
-      try (ResultSet resultSet =
-          connection.createStatement().executeQuery(SELECT_RANDOM_STATEMENT.getSql())) {
+      try (ResultSet resultSet = connection.createStatement().executeQuery(SELECT_RANDOM_SQL)) {
         assertTrue(resultSet.next());
       }
       assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
@@ -143,8 +148,8 @@ public class TagMockServerTest extends AbstractMockServerTest {
           .execute(String.format("set %sstatement_tag='my-tag'", getVariablePrefix()));
 
       try (Statement statement = connection.createStatement()) {
-        statement.addBatch(INSERT_STATEMENT.getSql());
-        statement.addBatch(INSERT_STATEMENT.getSql());
+        statement.addBatch(INSERT_SQL);
+        statement.addBatch(INSERT_SQL);
         assertArrayEquals(new int[] {1, 1}, statement.executeBatch());
       }
       assertEquals(1, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
@@ -155,8 +160,8 @@ public class TagMockServerTest extends AbstractMockServerTest {
       // Verify that the tag is cleared after having been used.
       mockSpanner.clearRequests();
       try (Statement statement = connection.createStatement()) {
-        statement.addBatch(INSERT_STATEMENT.getSql());
-        statement.addBatch(INSERT_STATEMENT.getSql());
+        statement.addBatch(INSERT_SQL);
+        statement.addBatch(INSERT_SQL);
         assertArrayEquals(new int[] {1, 1}, statement.executeBatch());
       }
       assertEquals(1, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
@@ -173,8 +178,8 @@ public class TagMockServerTest extends AbstractMockServerTest {
           .execute(String.format("set %stransaction_tag='my-tag'", getVariablePrefix()));
 
       try (Statement statement = connection.createStatement()) {
-        statement.addBatch(INSERT_STATEMENT.getSql());
-        statement.addBatch(INSERT_STATEMENT.getSql());
+        statement.addBatch(INSERT_SQL);
+        statement.addBatch(INSERT_SQL);
         assertArrayEquals(new int[] {1, 1}, statement.executeBatch());
       }
       assertEquals(1, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
@@ -185,8 +190,8 @@ public class TagMockServerTest extends AbstractMockServerTest {
       // Verify that the tag is used for the entire transaction.
       mockSpanner.clearRequests();
       try (Statement statement = connection.createStatement()) {
-        statement.addBatch(INSERT_STATEMENT.getSql());
-        statement.addBatch(INSERT_STATEMENT.getSql());
+        statement.addBatch(INSERT_SQL);
+        statement.addBatch(INSERT_SQL);
         assertArrayEquals(new int[] {1, 1}, statement.executeBatch());
       }
       assertEquals(1, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
@@ -197,13 +202,33 @@ public class TagMockServerTest extends AbstractMockServerTest {
       connection.commit();
       mockSpanner.clearRequests();
       try (Statement statement = connection.createStatement()) {
-        statement.addBatch(INSERT_STATEMENT.getSql());
-        statement.addBatch(INSERT_STATEMENT.getSql());
+        statement.addBatch(INSERT_SQL);
+        statement.addBatch(INSERT_SQL);
         assertArrayEquals(new int[] {1, 1}, statement.executeBatch());
       }
       assertEquals(1, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
       request = mockSpanner.getRequestsOfType(ExecuteBatchDmlRequest.class).get(0);
       assertEquals("", request.getRequestOptions().getTransactionTag());
     }
+  }
+
+  @Test
+  public void testStatementTagInHint() throws SQLException {
+    try (Connection connection = createConnection()) {
+      try (ResultSet resultSet =
+          connection
+              .createStatement()
+              .executeQuery(
+                  dialect == Dialect.POSTGRESQL
+                      ? "/*@statement_tag='test-tag'*/SELECT 1"
+                      : "@{statement_tag='test-tag'}SELECT 1")) {
+        assertTrue(resultSet.next());
+        assertEquals(1L, resultSet.getLong(1));
+        assertFalse(resultSet.next());
+      }
+    }
+    assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+    ExecuteSqlRequest request = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0);
+    assertEquals("test-tag", request.getRequestOptions().getRequestTag());
   }
 }
