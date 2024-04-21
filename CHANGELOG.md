@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.17.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.16.3...v2.17.0) (2024-04-21)
+
+
+### Features
+
+* Concurrent transactions on emulator ([#1578](https://github.com/googleapis/java-spanner-jdbc/issues/1578)) ([0234fb3](https://github.com/googleapis/java-spanner-jdbc/commit/0234fb3eb43695c657b845946e6d1122827dcae5))
+* Support endpoint connection URL property ([#1582](https://github.com/googleapis/java-spanner-jdbc/issues/1582)) ([b589c96](https://github.com/googleapis/java-spanner-jdbc/commit/b589c96a3187390e9ffa576d1e0ee285e223c559))
+* Support max_commit_delay ([#1581](https://github.com/googleapis/java-spanner-jdbc/issues/1581)) ([06e43c0](https://github.com/googleapis/java-spanner-jdbc/commit/06e43c05a65f25da9a4dbff73e2e75c1b5ec155b))
+* Support statement tags in hints ([#1579](https://github.com/googleapis/java-spanner-jdbc/issues/1579)) ([0c3aec1](https://github.com/googleapis/java-spanner-jdbc/commit/0c3aec1a5eec212e9ecacc7bec7f2a8980c9af78))
+
 ## [2.16.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.16.2...v2.16.3) (2024-04-20)
 
 
