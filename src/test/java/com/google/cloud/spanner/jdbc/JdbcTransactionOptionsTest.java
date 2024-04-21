@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -25,16 +26,18 @@ import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
 import com.google.cloud.spanner.connection.SpannerPool;
+import com.google.spanner.v1.CommitRequest;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class JdbcCommitStatsTest extends AbstractMockServerTest {
+public class JdbcTransactionOptionsTest extends AbstractMockServerTest {
 
   @After
   public void closeSpannerPool() {
@@ -118,6 +121,21 @@ public class JdbcCommitStatsTest extends AbstractMockServerTest {
         assertThat(rs.getLong("MUTATION_COUNT")).isAtLeast(1L);
         assertFalse(rs.next());
       }
+    }
+  }
+
+  @Test
+  public void testMaxCommitDelay() throws SQLException {
+    try (java.sql.Connection connection = createJdbcConnection()) {
+      connection.createStatement().execute("SET max_commit_delay='50ms'");
+      connection
+          .unwrap(CloudSpannerJdbcConnection.class)
+          .bufferedWrite(Mutation.newInsertBuilder("FOO").set("ID").to(1L).build());
+      connection.commit();
+
+      assertEquals(1, mockSpanner.countRequestsOfType(CommitRequest.class));
+      CommitRequest request = mockSpanner.getRequestsOfType(CommitRequest.class).get(0);
+      assertEquals(Duration.ofMillis(50).toNanos(), request.getMaxCommitDelay().getNanos());
     }
   }
 }
