@@ -57,6 +57,25 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
     return connection;
   }
 
+  String maybeAddWhereClause(String sql) {
+    String lowerCaseSql = sql.toLowerCase();
+    if (lowerCaseSql.startsWith("delete") || lowerCaseSql.startsWith("update")) {
+      if (!lowerCaseSql.contains(" where ")) {
+        return sql + " where true";
+      }
+    }
+    return sql;
+  }
+
+  boolean isAllowedDdlStatementInTransaction(String sql) throws SQLException {
+    if (!getConnection().getAutoCommit() && getConnection().getParser().isDdlStatement(sql)) {
+      if (!getConnection().isTransactionStarted()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private Options.QueryOption[] getQueryOptions(QueryOption... options) throws SQLException {
     QueryOption[] res = options == null ? new QueryOption[0] : options;
     if (getFetchSize() > 0) {
