@@ -47,7 +47,7 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement
       JdbcConnection connection, String sql, ImmutableList<String> generatedKeysColumns)
       throws SQLException {
     super(connection);
-    this.sql = sql;
+    this.sql = maybeAddWhereClause(sql);
     try {
       // The PostgreSQL parser allows comments to be present in the SQL string that is used to parse
       // the query parameters.

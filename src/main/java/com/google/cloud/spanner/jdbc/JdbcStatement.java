@@ -103,7 +103,7 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
 
   private long executeLargeUpdate(String sql, ImmutableList<String> generatedKeysColumns)
       throws SQLException {
-    return executeLargeUpdate(Statement.of(sql), generatedKeysColumns);
+    return executeLargeUpdate(Statement.of(maybeAddWhereClause(sql)), generatedKeysColumns);
   }
 
   protected long executeLargeUpdate(Statement statement, ImmutableList<String> generatedKeysColumns)
@@ -112,7 +112,19 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
     checkClosed();
     Statement statementWithReturningClause =
         addReturningToStatement(statement, generatedKeysColumns);
-    StatementResult result = execute(statementWithReturningClause);
+    boolean allowedDdlStatementInTransaction =
+        isAllowedDdlStatementInTransaction(statement.getSql());
+    StatementResult result;
+    if (allowedDdlStatementInTransaction) {
+      getConnection().setAutoCommit(true);
+    }
+    try {
+      result = execute(statementWithReturningClause);
+    } finally {
+      if (allowedDdlStatementInTransaction) {
+        getConnection().setAutoCommit(false);
+      }
+    }
     switch (result.getResultType()) {
       case RESULT_SET:
         if (generatedKeysColumns.isEmpty()) {
@@ -256,7 +268,7 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
 
   @Override
   public boolean execute(String sql) throws SQLException {
-    return executeStatement(Statement.of(sql), NO_GENERATED_KEY_COLUMNS);
+    return executeStatement(Statement.of(maybeAddWhereClause(sql)), NO_GENERATED_KEY_COLUMNS);
   }
 
   boolean executeStatement(Statement statement, ImmutableList<String> generatedKeysColumns)
