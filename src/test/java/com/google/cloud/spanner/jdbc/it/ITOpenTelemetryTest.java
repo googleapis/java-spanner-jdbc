@@ -28,6 +28,7 @@ import com.google.cloud.opentelemetry.trace.TraceExporter;
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.SpannerOptions;
+import com.google.cloud.spanner.SpannerOptionsHelper;
 import com.google.cloud.spanner.jdbc.JdbcDriver;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.cloud.trace.v1.TraceServiceClient;
@@ -67,6 +68,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
   static {
+    SpannerOptionsHelper.resetActiveTracingFramework();
     SpannerOptions.enableOpenTelemetryMetrics();
     SpannerOptions.enableOpenTelemetryTraces();
   }
