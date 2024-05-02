@@ -35,38 +35,40 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OpenTelemetryConfiguration {
-  
+
   @Value("${open_telemetry.project}")
   private String project;
-  
+
   @Bean
   public OpenTelemetry openTelemetry() throws IOException {
     // Enable OpenTelemetry tracing in Spanner.
     SpannerOptions.enableOpenTelemetryTraces();
-    
+
     TraceConfiguration.Builder traceConfigurationBuilder = TraceConfiguration.builder();
-    TraceConfiguration traceConfiguration =
-        traceConfigurationBuilder.setProjectId(project).build();
+    TraceConfiguration traceConfiguration = traceConfigurationBuilder.setProjectId(project).build();
     SpanExporter traceExporter = TraceExporter.createWithConfiguration(traceConfiguration);
-    
-    return OpenTelemetrySdk.builder().setTracerProvider(SdkTracerProvider.builder()
-        // Set sampling to 'AlwaysOn' in this example. In production, you want to reduce this to a
-        // smaller fraction to limit the number of traces that are being collected.
-        .setSampler(Sampler.alwaysOn())
-        .setResource(
-            Resource.builder()
-                .put(
-                    "service.name",
-                    "spanner-jdbc-spring-data-sample-"
-                        + ThreadLocalRandom.current().nextInt())
+
+    return OpenTelemetrySdk.builder()
+        .setTracerProvider(
+            SdkTracerProvider.builder()
+                // Set sampling to 'AlwaysOn' in this example. In production, you want to reduce
+                // this to a
+                // smaller fraction to limit the number of traces that are being collected.
+                .setSampler(Sampler.alwaysOn())
+                .setResource(
+                    Resource.builder()
+                        .put(
+                            "service.name",
+                            "spanner-jdbc-spring-data-sample-"
+                                + ThreadLocalRandom.current().nextInt())
+                        .build())
+                .addSpanProcessor(BatchSpanProcessor.builder(traceExporter).build())
                 .build())
-        .addSpanProcessor(BatchSpanProcessor.builder(traceExporter).build())
-        .build()).buildAndRegisterGlobal();
+        .buildAndRegisterGlobal();
   }
-  
+
   @Bean
   public Tracer tracer(OpenTelemetry openTelemetry) {
     return openTelemetry.getTracer("com.google.cloud.spanner.jdbc.sample.spring-data-jdbc");
   }
-
 }

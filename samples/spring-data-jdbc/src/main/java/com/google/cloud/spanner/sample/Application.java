@@ -23,7 +23,6 @@ import com.google.cloud.spanner.sample.repositories.AlbumRepository;
 import com.google.cloud.spanner.sample.repositories.SingerRepository;
 import com.google.cloud.spanner.sample.repositories.TrackRepository;
 import com.google.cloud.spanner.sample.service.SingerService;
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,7 @@ public class Application implements CommandLineRunner {
   private final AlbumRepository albumRepository;
 
   private final TrackRepository trackRepository;
-  
+
   private final OpenTelemetry openTelemetry;
 
   public Application(

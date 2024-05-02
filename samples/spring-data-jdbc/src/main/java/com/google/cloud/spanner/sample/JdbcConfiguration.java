@@ -32,8 +32,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 
 @Configuration
 public class JdbcConfiguration extends AbstractJdbcConfiguration {
-  
-  // OpenTelemetry is added to the constructor here to ensure the OpenTelemetry configuration is initialized before this configuration.
+
+  // OpenTelemetry is added to the constructor here to ensure the OpenTelemetry configuration is
+  // initialized before this configuration.
   public JdbcConfiguration(OpenTelemetry ignore) {}
 
   /** Override the dialect auto-detection, so it also returns PostgreSQL for Cloud Spanner. */

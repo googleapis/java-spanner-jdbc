@@ -1,5 +1,3 @@
 package com.google.cloud.spanner.sample;
 
-public class Application {
-
-}
+public class Application {}

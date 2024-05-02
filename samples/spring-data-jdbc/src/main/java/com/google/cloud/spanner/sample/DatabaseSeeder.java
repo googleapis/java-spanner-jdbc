@@ -21,11 +21,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.cloud.spanner.sample.entities.Singer;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
-import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -68,7 +65,7 @@ public class DatabaseSeeder {
   private static final Random RANDOM = new Random();
 
   private final JdbcTemplate jdbcTemplate;
-  
+
   private final Tracer tracer;
 
   @Value("classpath:create_schema.sql")
