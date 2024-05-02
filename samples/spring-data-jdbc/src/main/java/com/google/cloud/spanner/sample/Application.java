@@ -23,6 +23,8 @@ import com.google.cloud.spanner.sample.repositories.AlbumRepository;
 import com.google.cloud.spanner.sample.repositories.SingerRepository;
 import com.google.cloud.spanner.sample.repositories.TrackRepository;
 import com.google.cloud.spanner.sample.service.SingerService;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -46,23 +48,26 @@ public class Application implements CommandLineRunner {
   private final AlbumRepository albumRepository;
 
   private final TrackRepository trackRepository;
+  
+  private final OpenTelemetry openTelemetry;
 
   public Application(
       SingerService singerService,
       DatabaseSeeder databaseSeeder,
       SingerRepository singerRepository,
       AlbumRepository albumRepository,
-      TrackRepository trackRepository) {
+      TrackRepository trackRepository,
+      OpenTelemetry openTelemetry) {
     this.databaseSeeder = databaseSeeder;
     this.singerService = singerService;
     this.singerRepository = singerRepository;
     this.albumRepository = albumRepository;
     this.trackRepository = trackRepository;
+    this.openTelemetry = openTelemetry;
   }
 
   @Override
   public void run(String... args) {
-
     // Set the system property 'drop_schema' to true to drop any existing database
     // schema when the application is executed.
     if (Boolean.parseBoolean(System.getProperty("drop_schema", "false"))) {

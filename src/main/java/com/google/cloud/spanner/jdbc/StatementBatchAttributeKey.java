@@ -16,31 +16,15 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import com.google.cloud.spanner.Statement;
-import com.google.cloud.spanner.jdbc.StatementBatchAttributeKey.StatementBatch;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.semconv.SemanticAttributes;
 import java.util.List;
-import java.util.stream.Collectors;
 
-class StatementBatchAttributeKey implements AttributeKey<StatementBatch> {
+class StatementBatchAttributeKey implements AttributeKey<List<String>> {
   @SuppressWarnings("deprecation")
   static final StatementBatchAttributeKey INSTANCE =
       new StatementBatchAttributeKey(SemanticAttributes.DB_STATEMENT.getKey());
-
-  static class StatementBatch {
-    private final List<Statement> statements;
-
-    StatementBatch(List<Statement> statements) {
-      this.statements = statements;
-    }
-
-    @Override
-    public String toString() {
-      return statements.stream().map(Statement::getSql).collect(Collectors.joining(";\n"));
-    }
-  }
 
   private final String key;
 
@@ -55,6 +39,6 @@ class StatementBatchAttributeKey implements AttributeKey<StatementBatch> {
 
   @Override
   public AttributeType getType() {
-    return AttributeType.STRING;
+    return AttributeType.STRING_ARRAY;
   }
 }

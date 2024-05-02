@@ -21,6 +21,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.cloud.spanner.sample.entities.Singer;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -62,6 +68,8 @@ public class DatabaseSeeder {
   private static final Random RANDOM = new Random();
 
   private final JdbcTemplate jdbcTemplate;
+  
+  private final Tracer tracer;
 
   @Value("classpath:create_schema.sql")
   private Resource createSchemaFile;
@@ -72,8 +80,9 @@ public class DatabaseSeeder {
   /** This value is determined once using a system query, and then cached. */
   private final Supplier<Boolean> isCloudSpannerPG;
 
-  public DatabaseSeeder(JdbcTemplate jdbcTemplate) {
+  public DatabaseSeeder(JdbcTemplate jdbcTemplate, Tracer tracer) {
     this.jdbcTemplate = jdbcTemplate;
+    this.tracer = tracer;
     this.isCloudSpannerPG =
         Suppliers.memoize(() -> JdbcConfiguration.isCloudSpannerPG(jdbcTemplate));
   }
@@ -139,13 +148,21 @@ public class DatabaseSeeder {
 
   /** Deletes all data currently in the sample tables. */
   public void deleteTestData() {
-    // Delete all data in one batch.
-    jdbcTemplate.batchUpdate(
-        "delete from concerts",
-        "delete from venues",
-        "delete from tracks",
-        "delete from albums",
-        "delete from singers");
+    Span span = tracer.spanBuilder("deleteTestData").startSpan();
+    try (Scope ignore = span.makeCurrent()) {
+      // Delete all data in one batch.
+      jdbcTemplate.batchUpdate(
+          "delete from concerts",
+          "delete from venues",
+          "delete from tracks",
+          "delete from albums",
+          "delete from singers");
+    } catch (Throwable t) {
+      span.recordException(t);
+      throw t;
+    } finally {
+      span.end();
+    }
   }
 
   /** Inserts some initial test data into the database. */

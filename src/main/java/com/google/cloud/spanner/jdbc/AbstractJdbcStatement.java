@@ -24,13 +24,13 @@ import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.cloud.spanner.connection.StatementResult.ClientSideStatementType;
-import com.google.cloud.spanner.jdbc.StatementBatchAttributeKey.StatementBatch;
 import com.google.common.base.Stopwatch;
 import com.google.rpc.Code;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import io.opentelemetry.semconv.SemanticAttributes;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -42,10 +42,19 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /** Base class for Cloud Spanner JDBC {@link Statement}s */
 abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Statement {
+
+  static final String BATCH_UPDATE = "CloudSpannerJdbcOperation.BatchUpdate";
+  static final String BATCH_DDL = "CloudSpannerJdbcOperation.BatchDdl";
+  static final String EXECUTE_UPDATE = "CloudSpannerJdbcOperation.ExecuteUpdate";
+  static final String EXECUTE = "CloudSpannerJdbcOperation.Execute";
+  static final String EXECUTE_QUERY = "CloudSpannerJdbcOperation.ExecuteQuery";
+  static final String ANALYZE_QUERY = "CloudSpannerJdbcOperation.AnalyzeQuery";
+
   private static final String CURSORS_NOT_SUPPORTED = "Cursors are not supported";
   private static final String ONLY_FETCH_FORWARD_SUPPORTED = "Only fetch_forward is supported";
   final AbstractStatementParser parser;
@@ -224,7 +233,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       QueryOption... options)
       throws SQLException {
     Options.QueryOption[] queryOptions = getQueryOptions(options);
-    String name = analyzeMode == QueryAnalyzeMode.PLAN ? "analyzeQuery" : "executeQuery";
+    String name = analyzeMode == QueryAnalyzeMode.PLAN ? ANALYZE_QUERY : EXECUTE_QUERY;
     return doWithStatementTimeout(
         name,
         statement,
@@ -248,7 +257,11 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       String traceName, List<com.google.cloud.spanner.Statement> statements, Supplier<T> runnable) {
     return trace(
         traceName,
-        Attributes.of(StatementBatchAttributeKey.INSTANCE, new StatementBatch(statements)),
+        Attributes.of(
+            StatementBatchAttributeKey.INSTANCE,
+            statements.stream()
+                .map(com.google.cloud.spanner.Statement::getSql)
+                .collect(Collectors.toList())),
         runnable);
   }
 
@@ -259,7 +272,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
             .setAllAttributes(getOpenTelemetryAttributes())
             .setAllAttributes(attributes)
             .startSpan();
-    try {
+    try (Scope ignore = span.makeCurrent()) {
       return runnable.get();
     } catch (Throwable exception) {
       span.setStatus(StatusCode.ERROR, exception.getMessage());

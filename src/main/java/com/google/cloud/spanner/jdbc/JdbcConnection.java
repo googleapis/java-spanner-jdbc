@@ -24,7 +24,6 @@ import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerException;
-import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
 import com.google.cloud.spanner.connection.Connection;
@@ -97,12 +96,7 @@ class JdbcConnection extends AbstractJdbcConnection {
   JdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     super(connectionUrl, options);
     this.useLegacyIsValidCheck = useLegacyValidCheck();
-    OpenTelemetry openTelemetry;
-    if (SpannerOptions.isEnabledOpenTelemetryMetrics()) {
-      openTelemetry = this.getSpanner().getOptions().getOpenTelemetry();
-    } else {
-      openTelemetry = OpenTelemetry.noop();
-    }
+    OpenTelemetry openTelemetry = getSpanner().getOptions().getOpenTelemetry();
     this.tracer = openTelemetry.getTracer(Metrics.INSTRUMENTATION_SCOPE, getLibraryVersion());
     this.metrics = new Metrics(openTelemetry);
     this.openTelemetryAttributes =

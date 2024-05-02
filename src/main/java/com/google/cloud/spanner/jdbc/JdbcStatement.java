@@ -112,7 +112,7 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
     checkClosed();
     Statement statementWithReturningClause =
         addReturningToStatement(statement, generatedKeysColumns);
-    StatementResult result = execute("executeUpdate", statementWithReturningClause);
+    StatementResult result = execute(EXECUTE_UPDATE, statementWithReturningClause);
     switch (result.getResultType()) {
       case RESULT_SET:
         if (generatedKeysColumns.isEmpty()) {
@@ -265,7 +265,7 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
     // This will return the same Statement instance if no THEN RETURN clause is added to the
     // statement.
     Statement statementWithReturning = addReturningToStatement(statement, generatedKeysColumns);
-    StatementResult result = execute("execute", statementWithReturning);
+    StatementResult result = execute(EXECUTE, statementWithReturning);
     switch (result.getResultType()) {
       case RESULT_SET:
         // Check whether the statement was modified to include a RETURNING clause for generated
@@ -443,7 +443,7 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
         case DML:
           try {
             return trace(
-                "executeBatchUpdate",
+                BATCH_UPDATE,
                 batchedStatements,
                 () -> getConnection().getSpannerConnection().executeBatchUpdate(batchedStatements));
           } catch (SpannerBatchUpdateException e) {
@@ -463,7 +463,7 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
               execute(/* traceName = */ null, statement);
             }
             trace(
-                "executeBatchDdl",
+                BATCH_DDL,
                 batchedStatements,
                 () -> getConnection().getSpannerConnection().runBatch());
             long[] res = new long[batchedStatements.size()];
