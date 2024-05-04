@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.18.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.17.1...v2.18.0) (2024-05-04)
+
+
+### Features
+
+* Allow DDL with autocommit=false ([#1600](https://github.com/googleapis/java-spanner-jdbc/issues/1600)) ([a61c25d](https://github.com/googleapis/java-spanner-jdbc/commit/a61c25d8f90460ec507b383dbaee0ca686104ba8))
+* Support concurrent transactions on the emulator ([#1601](https://github.com/googleapis/java-spanner-jdbc/issues/1601)) ([7123991](https://github.com/googleapis/java-spanner-jdbc/commit/71239912a8078569dcd985314810131e593c0ed7))
+
+
+### Bug Fixes
+
+* ClassCastException in Spring Data JDBC sample ([#1595](https://github.com/googleapis/java-spanner-jdbc/issues/1595)) ([e96a86a](https://github.com/googleapis/java-spanner-jdbc/commit/e96a86a4b82ac4b47bd1ce25e810f01299597339))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.66.0 ([#1599](https://github.com/googleapis/java-spanner-jdbc/issues/1599)) ([84ea11a](https://github.com/googleapis/java-spanner-jdbc/commit/84ea11ac27635dbe6fb101134767d14488dde8c2))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.30.0 ([#1597](https://github.com/googleapis/java-spanner-jdbc/issues/1597)) ([40a7212](https://github.com/googleapis/java-spanner-jdbc/commit/40a721237c79882e55d86d48402c64cc09782522))
+* Update dependency org.mybatis.dynamic-sql:mybatis-dynamic-sql to v1.5.1 ([#1596](https://github.com/googleapis/java-spanner-jdbc/issues/1596)) ([f54beb2](https://github.com/googleapis/java-spanner-jdbc/commit/f54beb20d6bbe3f4974385c4758ba77d31d25ce3))
+
 ## [2.17.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.17.0...v2.17.1) (2024-04-30)
 
 
