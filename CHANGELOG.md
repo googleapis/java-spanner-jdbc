@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.18.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.18.0...v2.18.1) (2024-05-22)
+
+
+### Dependencies
+
+* Remove open-telemetry dependency import ([#1608](https://github.com/googleapis/java-spanner-jdbc/issues/1608)) ([fcb32ef](https://github.com/googleapis/java-spanner-jdbc/commit/fcb32efb4945807e0933341874644f042b7f33af))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.67.0 ([#1613](https://github.com/googleapis/java-spanner-jdbc/issues/1613)) ([12080e0](https://github.com/googleapis/java-spanner-jdbc/commit/12080e0579269fd9b893440d2f6ff3e784fb52ec))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.30.1 ([#1609](https://github.com/googleapis/java-spanner-jdbc/issues/1609)) ([46aed65](https://github.com/googleapis/java-spanner-jdbc/commit/46aed65c39cd9c6e60733fdf9cfd11f770e77019))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.38.0 ([#1606](https://github.com/googleapis/java-spanner-jdbc/issues/1606)) ([b45bed5](https://github.com/googleapis/java-spanner-jdbc/commit/b45bed575bc53898205aa183d7d8554b336a68f9))
+* Update dependency org.springframework.data:spring-data-bom to v2023.1.6 ([#1610](https://github.com/googleapis/java-spanner-jdbc/issues/1610)) ([aac170d](https://github.com/googleapis/java-spanner-jdbc/commit/aac170db26f8018b44f97d17f92faecb11117269))
+* Update dependency org.springframework.data:spring-data-bom to v2024 ([#1611](https://github.com/googleapis/java-spanner-jdbc/issues/1611)) ([6669c7a](https://github.com/googleapis/java-spanner-jdbc/commit/6669c7af373160fa9396a6dbcf2adff091d3c46a))
+* Update dependency org.testcontainers:testcontainers to v1.19.8 ([#1604](https://github.com/googleapis/java-spanner-jdbc/issues/1604)) ([e155a46](https://github.com/googleapis/java-spanner-jdbc/commit/e155a4624a021cb7959e72f7eb138ff8c685eaef))
+
 ## [2.18.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.17.1...v2.18.0) (2024-05-04)
 
 
