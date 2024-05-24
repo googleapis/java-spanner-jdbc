@@ -81,7 +81,8 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   @Override
   public void setNull(int parameterIndex, int sqlType) throws SQLException {
     checkClosed();
-    parameters.setParameter(parameterIndex, null, sqlType, null);
+    parameters.setParameter(
+        parameterIndex, /* value = */ null, sqlType, /* scaleOrLength = */ null);
   }
 
   @Override
@@ -117,7 +118,7 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   @Override
   public void setFloat(int parameterIndex, float value) throws SQLException {
     checkClosed();
-    parameters.setParameter(parameterIndex, value, Types.FLOAT);
+    parameters.setParameter(parameterIndex, value, Types.REAL);
   }
 
   @Override

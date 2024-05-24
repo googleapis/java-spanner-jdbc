@@ -22,6 +22,7 @@ import com.google.cloud.Timestamp;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Value;
+import com.google.common.base.Preconditions;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
 import java.lang.reflect.Method;
@@ -48,6 +49,17 @@ import java.util.concurrent.TimeUnit;
 class JdbcTypeConverter {
   private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
   private static final Charset UTF8 = StandardCharsets.UTF_8;
+
+  // TODO: Remove when this is supported in the Java client library.
+  static Code getMainTypeCode(Type type) {
+    Preconditions.checkNotNull(type);
+    switch (type.getCode()) {
+      case PG_OID:
+        return Code.INT64;
+      default:
+        return type.getCode();
+    }
+  }
 
   /**
    * Converts the given value from the Google {@link Type} to the Java {@link Class} type. The input
@@ -95,6 +107,9 @@ class JdbcTypeConverter {
       if (targetType.equals(Boolean.class)) {
         if (type.getCode() == Code.BOOL) return value;
         if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM) return (Long) value != 0;
+        if (type.getCode() == Code.FLOAT32) {
+          return (Float) value != 0f;
+        }
         if (type.getCode() == Code.FLOAT64) return (Double) value != 0d;
         if (type.getCode() == Code.NUMERIC) return !value.equals(BigDecimal.ZERO);
       }
@@ -141,6 +156,9 @@ class JdbcTypeConverter {
       if (targetType.equals(Float.class)) {
         if (type.getCode() == Code.BOOL)
           return (Boolean) value ? Float.valueOf(1f) : Float.valueOf(0f);
+        if (type.getCode() == Code.FLOAT32) {
+          return value;
+        }
         if (type.getCode() == Code.FLOAT64)
           return AbstractJdbcWrapper.checkedCastToFloat((Double) value);
         if (type.getCode() == Code.NUMERIC) return ((BigDecimal) value).floatValue();
@@ -148,7 +166,9 @@ class JdbcTypeConverter {
       if (targetType.equals(Double.class)) {
         if (type.getCode() == Code.BOOL)
           return (Boolean) value ? Double.valueOf(1d) : Double.valueOf(0d);
-        if (type.getCode() == Code.FLOAT64) return value;
+        if (type.getCode() == Code.FLOAT64 || type.getCode() == Code.FLOAT32) {
+          return value;
+        }
         if (type.getCode() == Code.NUMERIC) return ((BigDecimal) value).doubleValue();
       }
       if (targetType.equals(java.sql.Date.class)) {
@@ -273,6 +293,8 @@ class JdbcTypeConverter {
           case DATE:
             return Value.dateArray(
                 toGoogleDates((java.sql.Date[]) ((java.sql.Array) value).getArray()));
+          case FLOAT32:
+            return Value.float32Array(Arrays.asList((Float[]) ((java.sql.Array) value).getArray()));
           case FLOAT64:
             return Value.float64Array(
                 Arrays.asList((Double[]) ((java.sql.Array) value).getArray()));
@@ -282,6 +304,8 @@ class JdbcTypeConverter {
             return Value.protoEnumArray(
                 Arrays.asList((Long[]) ((java.sql.Array) value).getArray()),
                 type.getArrayElementType().getProtoTypeFqn());
+          case PG_OID:
+            return Value.pgOidArray(Arrays.asList((Long[]) ((java.sql.Array) value).getArray()));
           case NUMERIC:
             return Value.numericArray(
                 Arrays.asList((BigDecimal[]) ((java.sql.Array) value).getArray()));
@@ -309,10 +333,14 @@ class JdbcTypeConverter {
         return Value.bytes(ByteArray.copyFrom((byte[]) value));
       case DATE:
         return Value.date(toGoogleDate((java.sql.Date) value));
+      case FLOAT32:
+        return Value.float32((Float) value);
       case FLOAT64:
         return Value.float64((Double) value);
       case INT64:
         return Value.int64((Long) value);
+      case PG_OID:
+        return Value.pgOid((Long) value);
       case NUMERIC:
         return Value.numeric((BigDecimal) value);
       case PG_NUMERIC:
@@ -351,6 +379,9 @@ class JdbcTypeConverter {
     JdbcPreconditions.checkArgument(
         type.getCode() != Code.DATE || value.getClass().equals(java.sql.Date.class),
         "input type is date, but input value is not an instance of java.sql.Date");
+    JdbcPreconditions.checkArgument(
+        type.getCode() != Code.FLOAT32 || value.getClass().equals(Float.class),
+        "input type is float32, but input value is not an instance of Float");
     JdbcPreconditions.checkArgument(
         type.getCode() != Code.FLOAT64 || value.getClass().equals(Double.class),
         "input type is float64, but input value is not an instance of Double");

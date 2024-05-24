@@ -16,10 +16,10 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
+import static com.google.cloud.spanner.testing.EmulatorSpannerHelper.isUsingEmulator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.DatabaseAdminClient;
@@ -30,7 +30,6 @@ import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
-import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.cloud.spanner.testing.RemoteSpannerHelper;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -64,8 +63,6 @@ public class ITJdbcPgNumericTest {
 
   @BeforeClass
   public static void setup() throws Exception {
-    assumeFalse(
-        "PgNumeric is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
     testHelper = env.getTestHelper();
     final String projectId = testHelper.getInstanceId().getProject();
     final String instanceId = testHelper.getInstanceId().getInstance();
@@ -83,6 +80,9 @@ public class ITJdbcPgNumericTest {
             .createDatabase(databaseToCreate, Collections.emptyList())
             .get(OPERATION_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
     url = "jdbc:cloudspanner://" + host + "/" + database.getId() + "?dialect=postgresql";
+    if (isUsingEmulator()) {
+      url += ";usePlainText=true";
+    }
   }
 
   @AfterClass
@@ -95,8 +95,6 @@ public class ITJdbcPgNumericTest {
 
   @Test
   public void testResultSet() throws SQLException {
-    assumeFalse(
-        "PgNumeric is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
     final String table = testHelper.getUniqueDatabaseId();
     final String positiveBigNumeric =
         String.join("", Collections.nCopies(131072, "1"))
@@ -124,7 +122,7 @@ public class ITJdbcPgNumericTest {
 
     try (Connection connection = DriverManager.getConnection(url);
         Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("SELECT * FROM " + table)) {
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM " + table + " ORDER BY id")) {
 
       resultSet.next();
       assertEquals("1.23", resultSet.getString("col1"));
@@ -190,8 +188,6 @@ public class ITJdbcPgNumericTest {
 
   @Test
   public void testPreparedStatement() throws Exception {
-    assumeFalse(
-        "PgNumeric is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
     final String table = testHelper.getUniqueDatabaseId();
     try (Connection connection = DriverManager.getConnection(url);
         Statement statement = connection.createStatement(); ) {
@@ -231,7 +227,9 @@ public class ITJdbcPgNumericTest {
       preparedStatement.setShort(3, (short) 1);
       preparedStatement.setInt(4, 1);
       preparedStatement.setLong(5, 1L);
-      preparedStatement.setFloat(6, 1F);
+      // TODO: Change to setFloat(..) when float32 is supported.
+      // preparedStatement.setFloat(6, 1f);
+      preparedStatement.setDouble(6, 1d);
       preparedStatement.setDouble(7, 1D);
       preparedStatement.setBigDecimal(8, new BigDecimal("1"));
       preparedStatement.setObject(9, (byte) 1);
@@ -243,7 +241,9 @@ public class ITJdbcPgNumericTest {
       preparedStatement.setObject(15, new BigDecimal("1"));
       preparedStatement.setObject(16, Value.pgNumeric("1"));
 
-      preparedStatement.setFloat(17, Float.NaN);
+      // TODO: Change to setFloat(..) when float32 is supported.
+      // preparedStatement.setFloat(17, Float.NaN);
+      preparedStatement.setDouble(17, Double.NaN);
       preparedStatement.setDouble(18, Double.NaN);
       preparedStatement.setObject(19, Value.pgNumeric("NaN"));
 
@@ -253,7 +253,7 @@ public class ITJdbcPgNumericTest {
 
     try (Connection connection = DriverManager.getConnection(url);
         Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("SELECT * FROM " + table)) {
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM " + table + " ORDER BY id")) {
       resultSet.next();
       assertNull(resultSet.getObject("col1"));
 

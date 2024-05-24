@@ -222,6 +222,9 @@ class JdbcArray implements Array {
           case DATE:
             builder = binder.to(JdbcTypeConverter.toGoogleDate((Date) value));
             break;
+          case FLOAT32:
+            builder = binder.to((Float) value);
+            break;
           case FLOAT64:
             builder = binder.to((Double) value);
             break;

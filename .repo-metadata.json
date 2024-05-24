@@ -10,6 +10,7 @@
   "repo_short": "java-spanner-jdbc",
   "distribution_name": "com.google.cloud:google-cloud-spanner-jdbc",
   "library_type": "OTHER",
-  "codeowner_team": "@googleapis/api-spanner-java"
+  "codeowner_team": "@googleapis/api-spanner-java",
+  "recommended_package": "com.google.cloud.spanner.jdbc"
 }
 

@@ -21,12 +21,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
-import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -35,7 +33,6 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -57,13 +54,6 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
   private static final String TABLE_WITH_ALL_COLS = "TableWithAllColumnTypes";
   private static final String TABLE_WITH_REF = "TableWithRef";
 
-  @BeforeClass
-  public static void skipOnEmulator() {
-    assumeFalse(
-        "PostgreSQL dialect is not yet supported on the emulator",
-        EmulatorSpannerHelper.isUsingEmulator());
-  }
-
   private Database database;
 
   @Before
@@ -71,6 +61,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
     database = env.getOrCreateDatabase(getDialect(), getMusicTablesDdl(getDialect()));
   }
 
+  @Override
   public Dialect getDialect() {
     return Dialect.POSTGRESQL;
   }
@@ -420,6 +411,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new IndexInfo("albums", false, "PRIMARY_KEY", 1, "singerid", "A"),
           new IndexInfo("albums", false, "PRIMARY_KEY", 2, "albumid", "A"),
           new IndexInfo("albums", true, "albumsbyalbumtitle", 1, "albumtitle", "A"),
+          new IndexInfo("all_nullable_types", false, "PRIMARY_KEY", 1, "colint64", "A"),
           new IndexInfo("concerts", false, "PRIMARY_KEY", 1, "venueid", "A"),
           new IndexInfo("concerts", false, "PRIMARY_KEY", 2, "singerid", "A"),
           new IndexInfo("concerts", false, "PRIMARY_KEY", 3, "concertdate", "A"),
@@ -751,6 +743,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
   @Test
   public void testGetSchemas() throws SQLException {
     try (Connection connection = createConnection(env, database)) {
+      assertEquals("public", connection.getSchema());
       try (ResultSet rs = connection.getMetaData().getSchemas()) {
         assertTrue(rs.next());
         assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CATALOG"));
@@ -767,6 +760,19 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
         assertTrue(rs.next());
         assertEquals(getDefaultCatalog(database), rs.getString("TABLE_CATALOG"));
         assertEquals("spanner_sys", rs.getString("TABLE_SCHEM"));
+
+        assertFalse(rs.next());
+      }
+    }
+  }
+
+  @Test
+  public void testGetCatalogs() throws SQLException {
+    try (Connection connection = createConnection(env, database)) {
+      assertEquals(database.getId().getDatabase(), connection.getCatalog());
+      try (ResultSet rs = connection.getMetaData().getCatalogs()) {
+        assertTrue(rs.next());
+        assertEquals(database.getId().getDatabase(), rs.getString("TABLE_CAT"));
 
         assertFalse(rs.next());
       }
@@ -790,6 +796,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
   private static final List<Table> EXPECTED_TABLES =
       Arrays.asList(
           new Table("albums"),
+          new Table("all_nullable_types"),
           new Table("concerts"),
           new Table("singers"),
           // TODO: Enable when views are supported for PostgreSQL dialect databases.

@@ -20,12 +20,15 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.ResultSets;
@@ -79,13 +82,16 @@ public class JdbcConnectionTest {
         ConnectionImplTest.createConnection(options, dialect);
     when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
+    when(options.getDatabaseId()).thenReturn(DatabaseId.of("project", "instance", "database"));
     return new JdbcConnection(
         "jdbc:cloudspanner://localhost/projects/project/instances/instance/databases/database;credentialsUrl=url",
         options);
   }
 
   private ConnectionOptions mockOptions() {
-    return mock(ConnectionOptions.class);
+    ConnectionOptions options = mock(ConnectionOptions.class);
+    when(options.getDatabaseId()).thenReturn(DatabaseId.of("project", "instance", "database"));
+    return options;
   }
 
   @Test
@@ -501,7 +507,7 @@ public class JdbcConnectionTest {
         mock(com.google.cloud.spanner.connection.Connection.class);
     when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
-    Statement statement = Statement.of(JdbcConnection.IS_VALID_QUERY);
+    Statement statement = Statement.of(JdbcConnection.LEGACY_IS_VALID_QUERY);
 
     // Verify that an opened connection that returns a result set is valid.
     try (JdbcConnection connection = new JdbcConnection("url", options)) {
@@ -516,7 +522,7 @@ public class JdbcConnectionTest {
       }
 
       // Now let the query return an error. isValid should now return false.
-      when(spannerConnection.executeQuery(statement))
+      when(spannerConnection.getDialect())
           .thenThrow(
               SpannerExceptionFactory.newSpannerException(
                   ErrorCode.ABORTED, "the current transaction has been aborted"));
@@ -686,14 +692,12 @@ public class JdbcConnectionTest {
     try (JdbcConnection connection = createConnection(mockOptions())) {
       PreparedStatement statement =
           connection.prepareStatement(sql, java.sql.Statement.NO_GENERATED_KEYS);
-      ResultSet rs = statement.getGeneratedKeys();
-      assertThat(rs.next()).isFalse();
-      try {
-        statement = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
-        fail("missing expected SQLFeatureNotSupportedException");
-      } catch (SQLFeatureNotSupportedException e) {
-        // ignore, this is the expected exception.
-      }
+      ResultSet generatedKeys = statement.getGeneratedKeys();
+      assertFalse(generatedKeys.next());
+
+      statement = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
+      generatedKeys = statement.getGeneratedKeys();
+      assertFalse(generatedKeys.next());
     }
   }
 
@@ -702,34 +706,33 @@ public class JdbcConnectionTest {
     ConnectionOptions options = mockOptions();
     when(options.getDatabaseName()).thenReturn("test");
     try (JdbcConnection connection = createConnection(options)) {
-      // The connection should always return the empty string as the current catalog, as no other
+      // The connection should always return the default catalog as the current catalog, as no other
       // catalogs exist in the INFORMATION_SCHEMA.
-      assertThat(connection.getCatalog()).isEqualTo("");
+      // The default catalog is the empty string for GoogleSQL databases.
+      // The default catalog is the database name for PostgreSQL databases.
+      assertEquals(connection.getDefaultCatalog(), connection.getCatalog());
       // This should be allowed.
-      connection.setCatalog("");
-      try {
-        // This should cause an exception.
-        connection.setCatalog("other");
-        fail("missing expected exception");
-      } catch (JdbcSqlExceptionImpl e) {
-        assertThat(e.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
-      }
+      connection.setCatalog(connection.getDefaultCatalog());
+      // This should cause an exception.
+      JdbcSqlExceptionImpl exception =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> connection.setCatalog("other"));
+      assertEquals(Code.INVALID_ARGUMENT, exception.getCode());
     }
   }
 
   @Test
   public void testSchema() throws SQLException {
     try (JdbcConnection connection = createConnection(mockOptions())) {
-      assertThat(connection.getSchema()).isEqualTo("");
+      // The connection should always return the default schema as the current schema, as we
+      // currently do not support setting the connection to a different schema.
+      // The default schema is the empty string for GoogleSQL databases.
+      // The default schema is 'public' for PostgreSQL databases.
+      assertEquals(connection.getDefaultSchema(), connection.getSchema());
       // This should be allowed.
-      connection.setSchema("");
-      try {
-        // This should cause an exception.
-        connection.setSchema("other");
-        fail("missing expected exception");
-      } catch (JdbcSqlExceptionImpl e) {
-        assertThat(e.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
-      }
+      connection.setSchema(connection.getDefaultSchema());
+      JdbcSqlExceptionImpl exception =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> connection.setSchema("other"));
+      assertEquals(Code.INVALID_ARGUMENT, exception.getCode());
     }
   }
 

@@ -16,17 +16,29 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.cloud.spanner.jdbc.JdbcStatement.ALL_COLUMNS;
+import static com.google.cloud.spanner.jdbc.JdbcStatement.isNullOrEmpty;
+
 import com.google.api.client.util.Preconditions;
 import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.CommitResponse;
+import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerException;
+import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
+import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.SavepointSupport;
 import com.google.cloud.spanner.connection.TransactionMode;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributesBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Array;
@@ -43,6 +55,8 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
 
 /** Jdbc Connection class for Google Cloud Spanner */
@@ -53,13 +67,67 @@ class JdbcConnection extends AbstractJdbcConnection {
       "Only result sets with concurrency CONCUR_READ_ONLY are supported";
   private static final String ONLY_CLOSE_CURSORS_AT_COMMIT =
       "Only result sets with holdability CLOSE_CURSORS_AT_COMMIT are supported";
-  static final String ONLY_NO_GENERATED_KEYS = "Only NO_GENERATED_KEYS are supported";
-  static final String IS_VALID_QUERY = "SELECT 1";
+
+  /**
+   * This query is used to check the aliveness of the connection if legacy alive check has been
+   * enabled. As Cloud Spanner JDBC connections do not maintain a physical or logical connection to
+   * Cloud Spanner, there is also no point in repeatedly executing a simple query to check whether a
+   * connection is alive. Instead, we rely on the result from the initial query to Spanner that
+   * determines the dialect to determine whether the connection is alive or not. This result is
+   * cached for all JDBC connections using the same {@link com.google.cloud.spanner.Spanner}
+   * instance.
+   *
+   * <p>The legacy {@link #isValid(int)} check using a SELECT 1 statement can be enabled by setting
+   * the System property spanner.jdbc.use_legacy_is_valid_check to true or setting the environment
+   * variable SPANNER_JDBC_USE_LEGACY_IS_VALID_CHECK to true.
+   */
+  static final String LEGACY_IS_VALID_QUERY = "SELECT 1";
+
+  static final ImmutableList<String> NO_GENERATED_KEY_COLUMNS = ImmutableList.of();
 
   private Map<String, Class<?>> typeMap = new HashMap<>();
 
+  private final boolean useLegacyIsValidCheck;
+
+  private final Metrics metrics;
+
+  private final Attributes metricAttributes;
+
   JdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     super(connectionUrl, options);
+    this.useLegacyIsValidCheck = useLegacyValidCheck();
+    OpenTelemetry openTelemetry;
+    if (SpannerOptions.isEnabledOpenTelemetryMetrics()) {
+      openTelemetry = this.getSpanner().getOptions().getOpenTelemetry();
+    } else {
+      openTelemetry = OpenTelemetry.noop();
+    }
+    this.metrics = new Metrics(openTelemetry);
+    this.metricAttributes = createMetricAttributes(this.getConnectionOptions().getDatabaseId());
+  }
+
+  static boolean useLegacyValidCheck() {
+    String value = System.getProperty("spanner.jdbc.use_legacy_is_valid_check");
+    if (Strings.isNullOrEmpty(value)) {
+      value = System.getenv("SPANNER_JDBC_USE_LEGACY_IS_VALID_CHECK");
+    }
+    if (!Strings.isNullOrEmpty(value)) {
+      return Boolean.parseBoolean(value);
+    }
+    return false;
+  }
+
+  @VisibleForTesting
+  static Attributes createMetricAttributes(DatabaseId databaseId) {
+    AttributesBuilder attributesBuilder = Attributes.builder();
+    attributesBuilder.put("database", databaseId.getDatabase());
+    attributesBuilder.put("instance_id", databaseId.getInstanceId().getInstance());
+    attributesBuilder.put("project_id", databaseId.getInstanceId().getProject());
+    return attributesBuilder.build();
+  }
+
+  public void recordClientLibLatencyMetric(long value) {
+    metrics.recordClientLibLatency(value, metricAttributes);
   }
 
   @Override
@@ -70,8 +138,13 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   @Override
   public JdbcPreparedStatement prepareStatement(String sql) throws SQLException {
+    return prepareStatement(sql, NO_GENERATED_KEY_COLUMNS);
+  }
+
+  private JdbcPreparedStatement prepareStatement(
+      String sql, ImmutableList<String> generatedKeyColumns) throws SQLException {
     checkClosed();
-    return new JdbcPreparedStatement(this, sql);
+    return new JdbcPreparedStatement(this, sql, generatedKeyColumns);
   }
 
   @Override
@@ -303,22 +376,26 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   @Override
   public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-    checkClosed();
-    JdbcPreconditions.checkSqlFeatureSupported(
-        autoGeneratedKeys == Statement.NO_GENERATED_KEYS, ONLY_NO_GENERATED_KEYS);
-    return prepareStatement(sql);
+    return prepareStatement(
+        sql,
+        autoGeneratedKeys == Statement.RETURN_GENERATED_KEYS
+            ? ALL_COLUMNS
+            : NO_GENERATED_KEY_COLUMNS);
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-    checkClosed();
-    return prepareStatement(sql);
+    // This should preferably have returned an error, but the initial version of the driver just
+    // accepted and ignored this. Starting to throw an error now would be a breaking change.
+    // TODO: Consider throwing an Unsupported error for the next major version bump.
+    return prepareStatement(sql, NO_GENERATED_KEY_COLUMNS);
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-    checkClosed();
-    return prepareStatement(sql);
+    return prepareStatement(
+        sql,
+        isNullOrEmpty(columnNames) ? NO_GENERATED_KEY_COLUMNS : ImmutableList.copyOf(columnNames));
   }
 
   @Override
@@ -333,23 +410,38 @@ class JdbcConnection extends AbstractJdbcConnection {
     this.typeMap = new HashMap<>(map);
   }
 
+  boolean isUseLegacyIsValidCheck() {
+    return useLegacyIsValidCheck;
+  }
+
   @Override
   public boolean isValid(int timeout) throws SQLException {
     JdbcPreconditions.checkArgument(timeout >= 0, "timeout must be >= 0");
     if (!isClosed()) {
+      if (isUseLegacyIsValidCheck()) {
+        return legacyIsValid(timeout);
+      }
       try {
-        Statement statement = createStatement();
-        statement.setQueryTimeout(timeout);
-        try (ResultSet rs = statement.executeQuery(IS_VALID_QUERY)) {
-          if (rs.next()) {
-            if (rs.getLong(1) == 1L) {
-              return true;
-            }
+        return getDialect() != null;
+      } catch (Exception ignore) {
+        // ignore and fall through.
+      }
+    }
+    return false;
+  }
+
+  private boolean legacyIsValid(int timeout) throws SQLException {
+    try (Statement statement = createStatement()) {
+      statement.setQueryTimeout(timeout);
+      try (ResultSet rs = statement.executeQuery(LEGACY_IS_VALID_QUERY)) {
+        if (rs.next()) {
+          if (rs.getLong(1) == 1L) {
+            return true;
           }
         }
-      } catch (SQLException e) {
-        // ignore
       }
+    } catch (SQLException e) {
+      // ignore and fall through.
     }
     return false;
   }
@@ -381,31 +473,67 @@ class JdbcConnection extends AbstractJdbcConnection {
   @Override
   public void setCatalog(String catalog) throws SQLException {
     // This method could be changed to allow the user to change to another database.
-    // For now we only support setting an empty string in order to support frameworks
+    // For now, we only support setting the default catalog in order to support frameworks
     // and applications that set this when no catalog has been specified in the connection
     // URL.
     checkClosed();
-    JdbcPreconditions.checkArgument("".equals(catalog), "Only catalog \"\" is supported");
+    checkValidCatalog(catalog);
+  }
+
+  void checkValidCatalog(String catalog) throws SQLException {
+    String defaultCatalog = getDefaultCatalog();
+    JdbcPreconditions.checkArgument(
+        defaultCatalog.equals(catalog),
+        String.format("Only catalog %s is supported", defaultCatalog));
   }
 
   @Override
   public String getCatalog() throws SQLException {
     checkClosed();
-    return "";
+    return getDefaultCatalog();
+  }
+
+  @Nonnull
+  String getDefaultCatalog() {
+    switch (getDialect()) {
+      case POSTGRESQL:
+        String database = getConnectionOptions().getDatabaseName();
+        // It should not be possible that database is null, but it's better to be safe than sorry.
+        return database == null ? "" : database;
+      case GOOGLE_STANDARD_SQL:
+      default:
+        return "";
+    }
   }
 
   @Override
   public void setSchema(String schema) throws SQLException {
     checkClosed();
-    // Cloud Spanner does not support schemas, but does contain a pseudo 'empty string' schema that
-    // might be set by frameworks and applications that read the database metadata.
-    JdbcPreconditions.checkArgument("".equals(schema), "Only schema \"\" is supported");
+    checkValidSchema(schema);
+  }
+
+  void checkValidSchema(String schema) throws SQLException {
+    String defaultSchema = getDefaultSchema();
+    JdbcPreconditions.checkArgument(
+        defaultSchema.equals(schema), String.format("Only schema %s is supported", defaultSchema));
   }
 
   @Override
   public String getSchema() throws SQLException {
     checkClosed();
-    return "";
+    return getDefaultSchema();
+  }
+
+  @Nonnull
+  String getDefaultSchema() {
+    // TODO: Update to use getDialect()#getDefaultSchema() when available.
+    switch (getDialect()) {
+      case POSTGRESQL:
+        return "public";
+      case GOOGLE_STANDARD_SQL:
+      default:
+        return "";
+    }
   }
 
   @Override
@@ -580,6 +708,72 @@ class JdbcConnection extends AbstractJdbcConnection {
     } catch (SpannerException e) {
       throw JdbcSqlExceptionFactory.of(e);
     }
+  }
+
+  /**
+   * Convenience method for calling a setter and translating any {@link SpannerException} to a
+   * {@link SQLException}.
+   */
+  private <T> void set(BiConsumer<Connection, T> setter, T value) throws SQLException {
+    checkClosed();
+    try {
+      setter.accept(getSpannerConnection(), value);
+    } catch (SpannerException spannerException) {
+      throw JdbcSqlExceptionFactory.of(spannerException);
+    }
+  }
+
+  /**
+   * Convenience method for calling a getter and translating any {@link SpannerException} to a
+   * {@link SQLException}.
+   */
+  private <R> R get(Function<Connection, R> getter) throws SQLException {
+    checkClosed();
+    try {
+      return getter.apply(getSpannerConnection());
+    } catch (SpannerException spannerException) {
+      throw JdbcSqlExceptionFactory.of(spannerException);
+    }
+  }
+
+  @Override
+  public void setDataBoostEnabled(boolean dataBoostEnabled) throws SQLException {
+    set(Connection::setDataBoostEnabled, dataBoostEnabled);
+  }
+
+  @Override
+  public boolean isDataBoostEnabled() throws SQLException {
+    return get(Connection::isDataBoostEnabled);
+  }
+
+  @Override
+  public void setAutoPartitionMode(boolean autoPartitionMode) throws SQLException {
+    set(Connection::setAutoPartitionMode, autoPartitionMode);
+  }
+
+  @Override
+  public boolean isAutoPartitionMode() throws SQLException {
+    return get(Connection::isAutoPartitionMode);
+  }
+
+  @Override
+  public void setMaxPartitions(int maxPartitions) throws SQLException {
+    set(Connection::setMaxPartitions, maxPartitions);
+  }
+
+  @Override
+  public int getMaxPartitions() throws SQLException {
+    return get(Connection::getMaxPartitions);
+  }
+
+  @Override
+  public void setMaxPartitionedParallelism(int maxThreads) throws SQLException {
+    set(Connection::setMaxPartitionedParallelism, maxThreads);
+  }
+
+  @Override
+  public int getMaxPartitionedParallelism() throws SQLException {
+    return get(Connection::getMaxPartitionedParallelism);
   }
 
   @SuppressWarnings("deprecation")

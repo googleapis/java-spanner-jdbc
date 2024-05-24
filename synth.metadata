@@ -85,7 +85,6 @@
     "renovate.json",
     "samples/install-without-bom/pom.xml",
     "samples/pom.xml",
-    "samples/snapshot/pom.xml",
-    "samples/snippets/pom.xml"
+    "samples/snapshot/pom.xml"
   ]
 }

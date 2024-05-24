@@ -100,6 +100,24 @@ public class JdbcArrayTest {
       assertThat(rs.next()).isFalse();
     }
 
+    array =
+        JdbcArray.createArray(
+            "FLOAT32", new Float[] {1.1f, 2.2f, Double.valueOf(Math.PI).floatValue()});
+    assertEquals(Types.REAL, array.getBaseType());
+    assertThat(((Float[]) array.getArray(1, 3))[2]).isEqualTo(Double.valueOf(Math.PI).floatValue());
+    assertEquals(Double.valueOf(Math.PI).floatValue(), ((Float[]) array.getArray(1, 3))[2], 0.0f);
+    try (ResultSet resultSet = array.getResultSet()) {
+      assertTrue(resultSet.next());
+      // Column index 2 of a JDBC array is the value.
+      // Column index 1 of a JDBC array is the index.
+      assertEquals(1.1f, resultSet.getFloat(2), 0.0f);
+      assertTrue(resultSet.next());
+      assertEquals(2.2f, resultSet.getFloat(2), 0.0f);
+      assertTrue(resultSet.next());
+      assertEquals(Double.valueOf(Math.PI).floatValue(), resultSet.getFloat(2), 0.0f);
+      assertFalse(resultSet.next());
+    }
+
     array = JdbcArray.createArray("FLOAT64", new Double[] {1.1D, 2.2D, Math.PI});
     assertThat(array.getBaseType()).isEqualTo(Types.DOUBLE);
     assertThat(((Double[]) array.getArray(1, 3))[2]).isEqualTo(Math.PI);

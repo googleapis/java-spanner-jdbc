@@ -37,6 +37,7 @@ import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
+import com.google.common.collect.ImmutableList;
 import com.google.cloud.spanner.jdbc.it.SingerProto.Genre;
 import com.google.cloud.spanner.jdbc.it.SingerProto.SingerInfo;
 import com.google.rpc.Code;
@@ -48,9 +49,11 @@ import java.math.RoundingMode;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
+import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -1880,5 +1883,58 @@ public class JdbcResultSetTest {
             ZoneOffset.systemDefault()),
         offsetDateTime);
     assertFalse(subject.wasNull());
+  }
+
+  @Test
+  public void testCopyOf() throws SQLException {
+    ResultSet original =
+        ResultSets.forRows(
+            Type.struct(StructField.of("id", Type.int64()), StructField.of("value", Type.string())),
+            ImmutableList.of(
+                Struct.newBuilder().set("id").to(1L).set("value").to("One").build(),
+                Struct.newBuilder().set("id").to(2L).set("value").to("Two").build()));
+    java.sql.ResultSet copy = JdbcResultSet.copyOf(original);
+    // The original result set has been fully consumed.
+    assertFalse(original.next());
+    // We can safely close the original result set and still use the copy.
+    original.close();
+
+    ResultSetMetaData metadata = copy.getMetaData();
+    assertEquals(2, metadata.getColumnCount());
+    assertEquals("id", metadata.getColumnName(1));
+    assertEquals("value", metadata.getColumnName(2));
+    assertEquals(Types.BIGINT, metadata.getColumnType(1));
+    assertEquals(Types.NVARCHAR, metadata.getColumnType(2));
+
+    assertTrue(copy.next());
+    assertEquals(1L, copy.getLong(1));
+    assertEquals("One", copy.getString(2));
+    assertTrue(copy.next());
+    assertEquals(2L, copy.getLong("id"));
+    assertEquals("Two", copy.getString("value"));
+    assertFalse(copy.next());
+  }
+
+  @Test
+  public void testCopyOfEmpty() throws SQLException {
+    ResultSet original =
+        ResultSets.forRows(
+            Type.struct(StructField.of("id", Type.int64()), StructField.of("value", Type.string())),
+            ImmutableList.of());
+    java.sql.ResultSet copy = JdbcResultSet.copyOf(original);
+    // The original result set has been fully consumed.
+    assertFalse(original.next());
+    // We can safely close the original result set and still use the copy.
+    original.close();
+
+    ResultSetMetaData metadata = copy.getMetaData();
+    assertEquals(2, metadata.getColumnCount());
+    assertEquals("id", metadata.getColumnName(1));
+    assertEquals("value", metadata.getColumnName(2));
+    assertEquals(Types.BIGINT, metadata.getColumnType(1));
+    assertEquals(Types.NVARCHAR, metadata.getColumnType(2));
+
+    // The copy should not contain any rows.
+    assertFalse(copy.next());
   }
 }

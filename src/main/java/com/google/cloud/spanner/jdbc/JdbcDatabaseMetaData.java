@@ -777,11 +777,12 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   }
 
   @Override
-  public ResultSet getCatalogs() {
+  public ResultSet getCatalogs() throws SQLException {
     return JdbcResultSet.of(
         ResultSets.forRows(
             Type.struct(StructField.of("TABLE_CAT", Type.string())),
-            Collections.singletonList(Struct.newBuilder().set("TABLE_CAT").to("").build())));
+            Collections.singletonList(
+                Struct.newBuilder().set("TABLE_CAT").to(getConnection().getCatalog()).build())));
   }
 
   @Override
@@ -1054,6 +1055,44 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                     .to((Long) null)
                     .set("NUM_PREC_RADIX")
                     .to((Long) null)
+                    .build(),
+                Struct.newBuilder()
+                    .set("TYPE_NAME")
+                    .to("FLOAT32")
+                    .set("DATA_TYPE")
+                    .to(Types.REAL) // 8
+                    .set("PRECISION")
+                    .to(7L)
+                    .set("LITERAL_PREFIX")
+                    .to((String) null)
+                    .set("LITERAL_SUFFIX")
+                    .to((String) null)
+                    .set("CREATE_PARAMS")
+                    .to((String) null)
+                    .set("NULLABLE")
+                    .to(DatabaseMetaData.typeNullable)
+                    .set("CASE_SENSITIVE")
+                    .to(false)
+                    .set("SEARCHABLE")
+                    .to(DatabaseMetaData.typePredBasic)
+                    .set("UNSIGNED_ATTRIBUTE")
+                    .to(false)
+                    .set("FIXED_PREC_SCALE")
+                    .to(false)
+                    .set("AUTO_INCREMENT")
+                    .to(false)
+                    .set("LOCAL_TYPE_NAME")
+                    .to("FLOAT32")
+                    .set("MINIMUM_SCALE")
+                    .to(0)
+                    .set("MAXIMUM_SCALE")
+                    .to(0)
+                    .set("SQL_DATA_TYPE")
+                    .to((Long) null)
+                    .set("SQL_DATETIME_SUB")
+                    .to((Long) null)
+                    .set("NUM_PREC_RADIX")
+                    .to(2)
                     .build(),
                 Struct.newBuilder()
                     .set("TYPE_NAME")
@@ -1524,9 +1563,10 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   @Override
   public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
     String sql = readSqlFromFile("DatabaseMetaData_GetSchemas.sql", connection.getDialect());
-    JdbcPreparedStatement statement =
-        prepareStatementReplaceNullWithAnyString(sql, catalog, schemaPattern);
-    return statement.executeQueryWithOptions(InternalMetadataQuery.INSTANCE);
+    try (JdbcPreparedStatement statement =
+        prepareStatementReplaceNullWithAnyString(sql, catalog, schemaPattern)) {
+      return statement.executeQueryWithOptions(InternalMetadataQuery.INSTANCE);
+    }
   }
 
   @Override

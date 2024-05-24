@@ -92,6 +92,29 @@ CREATE TABLE TableWithAllColumnTypes (
 ) PRIMARY KEY (ColInt64)
 ;
 
+CREATE TABLE all_nullable_types (
+    ColInt64	    INT64,
+    ColFloat64	    FLOAT64,
+    ColBool		    BOOL,
+    ColString		STRING(100),
+    ColBytes		BYTES(100),
+    ColDate		    DATE,
+    ColTimestamp	TIMESTAMP,
+    ColNumeric	    NUMERIC,
+    ColJson		    JSON,
+
+    ColInt64Array		ARRAY<INT64>,
+    ColFloat64Array     ARRAY<FLOAT64>,
+    ColBoolArray		ARRAY<BOOL>,
+    ColStringArray	    ARRAY<STRING(100)>,
+    ColBytesArray		ARRAY<BYTES(100)>,
+    ColDateArray		ARRAY<DATE>,
+    ColTimestampArray	ARRAY<TIMESTAMP>,
+    ColNumericArray	    ARRAY<NUMERIC>,
+    ColJsonArray		ARRAY<JSON>,
+) PRIMARY KEY (ColInt64)
+;
+
 CREATE TABLE TableWithRef (
   Id          INT64       NOT NULL,
   RefFloat    FLOAT64     NOT NULL,

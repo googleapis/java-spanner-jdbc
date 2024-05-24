@@ -21,7 +21,7 @@ CREATE TABLE Singers (
     FirstName  VARCHAR(1024),
     LastName   VARCHAR(1024),
     SingerInfo BYTEA,
-    BirthDate  VARCHAR
+    BirthDate  DATE
 );
 
 CREATE INDEX SingersByFirstLastName ON Singers(FirstName, LastName);
@@ -55,9 +55,10 @@ CREATE INDEX SongsBySongName ON Songs(SongName);
 CREATE TABLE Concerts (
     VenueId      BIGINT NOT NULL,
     SingerId     BIGINT NOT NULL,
-    ConcertDate  VARCHAR NOT NULL,
-    BeginTime    VARCHAR,
-    EndTime      VARCHAR,
+    ConcertDate  DATE   NOT NULL,
+    BeginTime    TIMESTAMPTZ,
+    EndTime      TIMESTAMPTZ,
+    TicketPrices BIGINT[],
     PRIMARY KEY(VenueId, SingerId, ConcertDate),
     FOREIGN KEY(SingerId) REFERENCES Singers(SingerId)
 );
@@ -73,6 +74,27 @@ CREATE TABLE TableWithAllColumnTypes (
     ColTimestamp TIMESTAMP WITH TIME ZONE,
     ColNumeric   NUMERIC NOT NULL,
     ColJson      VARCHAR NOT NULL
+);
+CREATE TABLE all_nullable_types (
+    ColInt64	    bigint primary key,
+    ColFloat64	    float8,
+    ColBool		    boolean,
+    ColString		varchar(100),
+    ColBytes		bytea,
+    ColDate		    date,
+    ColTimestamp	timestamptz,
+    ColNumeric	    numeric,
+    ColJson		    jsonb,
+
+    ColInt64Array		bigint[],
+    ColFloat64Array     float8[],
+    ColBoolArray		boolean[],
+    ColStringArray	    varchar(100)[],
+    ColBytesArray		bytea[],
+    ColDateArray		date[],
+    ColTimestampArray	timestamptz[],
+    ColNumericArray	    numeric[],
+    ColJsonArray		jsonb[]
 );
 
 CREATE TABLE TableWithRef (

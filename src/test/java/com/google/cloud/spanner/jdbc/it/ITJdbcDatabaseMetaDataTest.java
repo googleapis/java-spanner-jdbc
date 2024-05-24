@@ -512,7 +512,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new IndexInfo("TableWithRef", false, "PRIMARY_KEY", 1, "Id", "A"),
           new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 1, "RefFloat", "A"),
           new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 2, "RefString", "A"),
-          new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 3, "RefDate", "A"));
+          new IndexInfo("TableWithRef", true, "FOREIGN_KEY", 3, "RefDate", "A"),
+          new IndexInfo("all_nullable_types", false, "PRIMARY_KEY", 1, "ColInt64", "A"));
 
   @Test
   public void testGetIndexInfo() throws SQLException {
@@ -821,6 +822,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
   @Test
   public void testGetSchemas() throws SQLException {
     try (Connection connection = createConnection(env, database)) {
+      assertEquals("", connection.getSchema());
       try (ResultSet rs = connection.getMetaData().getSchemas()) {
         assertThat(rs.next(), is(true));
         assertThat(rs.getString("TABLE_SCHEM"), is(equalTo(DEFAULT_SCHEMA)));
@@ -828,11 +830,22 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
         assertThat(rs.next(), is(true));
         assertThat(rs.getString("TABLE_SCHEM"), is(equalTo("INFORMATION_SCHEMA")));
         assertThat(rs.getString("TABLE_CATALOG"), is(equalTo(DEFAULT_CATALOG)));
-        if (!EmulatorSpannerHelper.isUsingEmulator()) {
-          assertThat(rs.next(), is(true));
-          assertThat(rs.getString("TABLE_SCHEM"), is(equalTo("SPANNER_SYS")));
-          assertThat(rs.getString("TABLE_CATALOG"), is(equalTo(DEFAULT_CATALOG)));
-        }
+        assertThat(rs.next(), is(true));
+        assertThat(rs.getString("TABLE_SCHEM"), is(equalTo("SPANNER_SYS")));
+        assertThat(rs.getString("TABLE_CATALOG"), is(equalTo(DEFAULT_CATALOG)));
+        assertFalse(rs.next());
+      }
+    }
+  }
+
+  @Test
+  public void testGetCatalogs() throws SQLException {
+    try (Connection connection = createConnection(env, database)) {
+      assertEquals("", connection.getCatalog());
+      try (ResultSet rs = connection.getMetaData().getCatalogs()) {
+        assertTrue(rs.next());
+        assertEquals("", rs.getString("TABLE_CAT"));
+
         assertFalse(rs.next());
       }
     }
@@ -860,7 +873,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new Table("SingersView", "VIEW"),
           new Table("Songs"),
           new Table("TableWithAllColumnTypes"),
-          new Table("TableWithRef"));
+          new Table("TableWithRef"),
+          new Table("all_nullable_types"));
 
   @Test
   public void testGetTables() throws SQLException {

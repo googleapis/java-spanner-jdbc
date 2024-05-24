@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.example</groupId>
+  <artifactId>cloud-spanner-spring-data-mybatis-example</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <description>
+    Sample application showing how to use Spring Data MyBatis with Cloud Spanner PostgreSQL.
+  </description>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.3.0</version>
+    <relativePath/>
+  </parent>
+  <properties>
+    <java.version>17</java.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-bom</artifactId>
+        <version>2024.0.0</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>libraries-bom</artifactId>
+        <version>26.39.0</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter</artifactId>
+      <version>3.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mybatis.dynamic-sql</groupId>
+      <artifactId>mybatis-dynamic-sql</artifactId>
+      <version>1.5.1</version>
+    </dependency>
+
+    <!-- Add both the Cloud Spanner and the PostgreSQL JDBC driver. -->
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-spanner-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.7.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.collections</groupId>
+      <artifactId>google-collections</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-spanner</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.api</groupId>
+      <artifactId>gax-grpc</artifactId>
+      <classifier>testlib</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.spotify.fmt</groupId>
+        <artifactId>fmt-maven-plugin</artifactId>
+        <version>2.23</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

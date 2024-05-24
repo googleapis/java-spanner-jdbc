@@ -29,8 +29,7 @@ branchProtectionRules:
   requiresStrictStatusChecks: false
   # List of required status check contexts that must pass for commits to be accepted to matching branches.
   requiredStatusCheckContexts:
-    - "dependencies (8)"
-    - "dependencies (11)"
+    - "dependencies (17)"
     - "lint"
     - "clirr"
     - "units (8)"
@@ -40,6 +39,7 @@ branchProtectionRules:
     - OwlBot Post Processor
     - 'Kokoro - Test: Java GraalVM Native Image'
     - 'Kokoro - Test: Java 17 GraalVM Native Image'
+    - javadoc
 
 # Identifies the protection rule pattern. Name of the branch to be protected.
 # Defaults to `main`

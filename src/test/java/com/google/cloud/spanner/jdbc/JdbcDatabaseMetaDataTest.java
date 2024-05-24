@@ -41,10 +41,19 @@ import java.sql.Types;
 import java.util.Objects;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class JdbcDatabaseMetaDataTest {
+  @Parameter public Dialect dialect;
+
+  @Parameters(name = "dialect = {0}")
+  public static Object[] data() {
+    return Dialect.values();
+  }
+
   private static final String DEFAULT_CATALOG = "";
   private static final String DEFAULT_SCHEMA = "";
   private static final String TEST_TABLE = "FOO";
@@ -314,10 +323,12 @@ public class JdbcDatabaseMetaDataTest {
   @Test
   public void testGetCatalogs() throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
+    when(connection.getDialect()).thenReturn(dialect);
+    when(connection.getCatalog()).thenCallRealMethod();
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getCatalogs()) {
       assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TABLE_CAT"), is(equalTo("")));
+      assertThat(rs.getString("TABLE_CAT"), is(equalTo(connection.getDefaultCatalog())));
       assertThat(rs.next(), is(false));
       ResultSetMetaData rsmd = rs.getMetaData();
       assertThat(rsmd.getColumnCount(), is(equalTo(1)));
@@ -475,6 +486,8 @@ public class JdbcDatabaseMetaDataTest {
         assertEquals("INT64", rs.getString("TYPE_NAME"));
         assertTrue(rs.next());
         assertEquals("BYTES", rs.getString("TYPE_NAME"));
+        assertTrue(rs.next());
+        assertEquals("FLOAT32", rs.getString("TYPE_NAME"));
         assertTrue(rs.next());
         assertEquals("FLOAT64", rs.getString("TYPE_NAME"));
         assertTrue(rs.next());

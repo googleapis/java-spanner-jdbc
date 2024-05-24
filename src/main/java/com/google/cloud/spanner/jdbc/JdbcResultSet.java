@@ -16,12 +16,16 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static com.google.cloud.spanner.Type.Code.PG_NUMERIC;
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.getMainTypeCode;
 
+import com.google.cloud.spanner.ResultSets;
+import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Value;
+import com.google.cloud.spanner.connection.PartitionedQueryResultSet;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
@@ -43,8 +47,11 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import javax.annotation.Nonnull;
 
 /** Implementation of {@link ResultSet} for Cloud Spanner */
 class JdbcResultSet extends AbstractJdbcResultSet {
@@ -55,9 +62,64 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   static JdbcResultSet of(Statement statement, com.google.cloud.spanner.ResultSet resultSet) {
-    Preconditions.checkNotNull(statement);
+    // Return a JDBC version of a PartitionedQueryResultSet if the Cloud Spanner Java client
+    // returned a PartitionedQueryResultSet.
+    if (resultSet instanceof PartitionedQueryResultSet) {
+      return JdbcPartitionedQueryResultSet.of(statement, (PartitionedQueryResultSet) resultSet);
+    }
+    return new JdbcResultSet(
+        Preconditions.checkNotNull(statement), Preconditions.checkNotNull(resultSet));
+  }
+
+  /**
+   * Creates a JDBC result set by copying the given Spanner {@link
+   * com.google.cloud.spanner.ResultSet}. This can be used for result sets that are known not to be
+   * too large. This type of result set should be preferred for results that are unlikely to be
+   * closed by the client application, such as the returned generated keys of an update statement.
+   * The copy will not hold on to a reference to a Cloud Spanner session or result stream. All the
+   * data in the given Spanner {@link com.google.cloud.spanner.ResultSet} have been consumed after
+   * calling this method. The {@link com.google.cloud.spanner.ResultSet} is not closed by this
+   * method.
+   */
+  static JdbcResultSet copyOf(@Nonnull com.google.cloud.spanner.ResultSet resultSet) {
     Preconditions.checkNotNull(resultSet);
-    return new JdbcResultSet(statement, resultSet);
+    // Make the copy first. This ensures that ResultSet#next() has been called at least once, which
+    // is necessary to get the type of the result set.
+    ImmutableList<Struct> rows = ImmutableList.copyOf(new ResultSetIterator(resultSet));
+    return of(ResultSets.forRows(resultSet.getType(), rows));
+  }
+
+  /**
+   * {@link Iterator} implementation for {@link com.google.cloud.spanner.ResultSet}. This is used to
+   * create a copy of an existing result set without the need to iterate the rows more than once.
+   */
+  private static class ResultSetIterator implements Iterator<Struct> {
+    private final com.google.cloud.spanner.ResultSet resultSet;
+    private boolean calculatedHasNext = false;
+    private boolean hasNext = false;
+
+    ResultSetIterator(com.google.cloud.spanner.ResultSet resultSet) {
+      this.resultSet = resultSet;
+    }
+
+    @Override
+    public boolean hasNext() {
+      if (!calculatedHasNext) {
+        calculatedHasNext = true;
+        hasNext = resultSet.next();
+      }
+      return hasNext;
+    }
+
+    @Override
+    public Struct next() {
+      if (hasNext()) {
+        // Indicate that the next call to hasNext() must re-check whether there are more results.
+        calculatedHasNext = false;
+        return resultSet.getCurrentRowAsStruct();
+      }
+      throw new NoSuchElementException();
+    }
   }
 
   private boolean closed = false;
@@ -68,7 +130,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   private boolean nextCalledForMetaDataResult = false;
   private long currentRow = 0L;
 
-  private JdbcResultSet(Statement statement, com.google.cloud.spanner.ResultSet spanner) {
+  JdbcResultSet(Statement statement, com.google.cloud.spanner.ResultSet spanner) {
     super(spanner);
     this.statement = statement;
   }
@@ -135,7 +197,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case BOOL:
         return isNull ? null : String.valueOf(spanner.getBoolean(spannerIndex));
@@ -144,6 +206,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? null : spanner.getBytes(spannerIndex).toBase64();
       case DATE:
         return isNull ? null : spanner.getDate(spannerIndex).toString();
+      case FLOAT32:
+        return isNull ? null : Float.toString(spanner.getFloat(spannerIndex));
       case FLOAT64:
         return isNull ? null : Double.toString(spanner.getDouble(spannerIndex));
       case INT64:
@@ -173,10 +237,12 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case BOOL:
         return !isNull && spanner.getBoolean(spannerIndex);
+      case FLOAT32:
+        return !isNull && spanner.getFloat(spannerIndex) != 0f;
       case FLOAT64:
         return !isNull && spanner.getDouble(spannerIndex) != 0D;
       case INT64:
@@ -206,10 +272,14 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case BOOL:
         return isNull ? (byte) 0 : (spanner.getBoolean(spannerIndex) ? (byte) 1 : 0);
+      case FLOAT32:
+        return isNull
+            ? (byte) 0
+            : checkedCastToByte(Float.valueOf(spanner.getFloat(spannerIndex)).longValue());
       case FLOAT64:
         return isNull
             ? (byte) 0
@@ -243,10 +313,14 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case BOOL:
         return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? (short) 1 : 0);
+      case FLOAT32:
+        return isNull
+            ? 0
+            : checkedCastToShort(Float.valueOf(spanner.getFloat(spannerIndex)).longValue());
       case FLOAT64:
         return isNull
             ? 0
@@ -280,10 +354,14 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case BOOL:
         return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? 1 : 0);
+      case FLOAT32:
+        return isNull
+            ? 0
+            : checkedCastToInt(Float.valueOf(spanner.getFloat(spannerIndex)).longValue());
       case FLOAT64:
         return isNull
             ? 0
@@ -317,10 +395,12 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case BOOL:
         return isNull ? 0L : (spanner.getBoolean(spannerIndex) ? 1L : 0L);
+      case FLOAT32:
+        return isNull ? 0L : Float.valueOf(spanner.getFloat(spannerIndex)).longValue();
       case FLOAT64:
         return isNull ? 0L : Double.valueOf(spanner.getDouble(spannerIndex)).longValue();
       case INT64:
@@ -352,10 +432,12 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case BOOL:
         return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? (float) 1 : 0);
+      case FLOAT32:
+        return isNull ? 0 : spanner.getFloat(spannerIndex);
       case FLOAT64:
         return isNull ? 0 : checkedCastToFloat(spanner.getDouble(spannerIndex));
       case INT64:
@@ -385,10 +467,12 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case BOOL:
         return isNull ? 0 : (spanner.getBoolean(spannerIndex) ? (double) 1 : 0);
+      case FLOAT32:
+        return isNull ? 0 : spanner.getFloat(spannerIndex);
       case FLOAT64:
         return isNull ? 0 : spanner.getDouble(spannerIndex);
       case INT64:
@@ -426,7 +510,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case DATE:
         return isNull ? null : JdbcTypeConverter.toSqlDate(spanner.getDate(spannerIndex));
@@ -437,6 +521,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
             ? null
             : new Date(spanner.getTimestamp(spannerIndex).toSqlTimestamp().getTime());
       case BOOL:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:
@@ -458,7 +543,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case STRING:
         return isNull ? null : parseTime(spanner.getString(spannerIndex));
@@ -466,6 +551,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? null : JdbcTypeConverter.toSqlTime(spanner.getTimestamp(spannerIndex));
       case BOOL:
       case DATE:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:
@@ -487,7 +573,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case DATE:
         return isNull ? null : JdbcTypeConverter.toSqlTimestamp(spanner.getDate(spannerIndex));
@@ -496,6 +582,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case TIMESTAMP:
         return isNull ? null : JdbcTypeConverter.toSqlTimestamp(spanner.getTimestamp(spannerIndex));
       case BOOL:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:
@@ -653,11 +740,17 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   private Object getObject(Type type, int columnIndex) throws SQLException {
+    // TODO: Refactor to check based on type code.
     if (type == Type.bool()) return getBoolean(columnIndex);
     if (type == Type.bytes()) return getBytes(columnIndex);
     if (type == Type.date()) return getDate(columnIndex);
+    if (type == Type.float32()) {
+      return getFloat(columnIndex);
+    }
     if (type == Type.float64()) return getDouble(columnIndex);
-    if (type == Type.int64()) return getLong(columnIndex);
+    if (type == Type.int64() || type == Type.pgOid()) {
+      return getLong(columnIndex);
+    }
     if (type == Type.numeric()) return getBigDecimal(columnIndex);
     if (type == Type.pgNumeric()) {
       final String value = getString(columnIndex);
@@ -668,7 +761,9 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       }
     }
     if (type == Type.string()) return getString(columnIndex);
-    if (type == Type.json()) return getString(columnIndex);
+    if (type == Type.json() || type == Type.pgJsonb()) {
+      return getString(columnIndex);
+    }
     if (type == Type.timestamp()) return getTimestamp(columnIndex);
     if (type.getCode() == Code.PROTO) return getBytes(columnIndex);
     if (type.getCode() == Code.ENUM) return getLong(columnIndex);
@@ -728,7 +823,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   private BigDecimal getBigDecimal(int columnIndex, boolean fixedScale, int scale)
       throws SQLException {
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     boolean isNull = isNull(columnIndex);
     BigDecimal res;
     switch (type) {
@@ -737,6 +832,9 @@ class JdbcResultSet extends AbstractJdbcResultSet {
             isNull
                 ? null
                 : (spanner.getBoolean(columnIndex - 1) ? BigDecimal.ONE : BigDecimal.ZERO);
+        break;
+      case FLOAT32:
+        res = isNull ? null : BigDecimal.valueOf(spanner.getFloat(spannerIndex));
         break;
       case FLOAT64:
         res = isNull ? null : BigDecimal.valueOf(spanner.getDouble(spannerIndex));
@@ -823,7 +921,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       throw JdbcSqlExceptionFactory.of(
           "Column with index " + columnIndex + " does not contain an array",
           com.google.rpc.Code.INVALID_ARGUMENT);
-    final Code elementCode = type.getArrayElementType().getCode();
+    final Code elementCode = getMainTypeCode(type.getArrayElementType());
     final JdbcDataType dataType = JdbcDataType.getType(elementCode);
     try {
       List<?> elements = dataType.getArrayElements(spanner, columnIndex - 1);
@@ -842,7 +940,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       return null;
     }
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case DATE:
         return JdbcTypeConverter.toSqlDate(spanner.getDate(spannerIndex), cal);
@@ -852,6 +950,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return new Date(
             JdbcTypeConverter.getAsSqlTimestamp(spanner.getTimestamp(spannerIndex), cal).getTime());
       case BOOL:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:
@@ -877,7 +976,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     checkClosedAndValidRow();
     boolean isNull = isNull(columnIndex);
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case STRING:
         return isNull ? null : parseTime(spanner.getString(spannerIndex), cal);
@@ -885,6 +984,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         return isNull ? null : JdbcTypeConverter.toSqlTime(spanner.getTimestamp(spannerIndex), cal);
       case BOOL:
       case DATE:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:
@@ -912,7 +1012,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       return null;
     }
     int spannerIndex = columnIndex - 1;
-    Code type = spanner.getColumnType(spannerIndex).getCode();
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
     switch (type) {
       case DATE:
         return JdbcTypeConverter.toSqlTimestamp(spanner.getDate(spannerIndex), cal);
@@ -921,6 +1021,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case TIMESTAMP:
         return JdbcTypeConverter.getAsSqlTimestamp(spanner.getTimestamp(spannerIndex), cal);
       case BOOL:
+      case FLOAT32:
       case FLOAT64:
       case INT64:
       case NUMERIC:

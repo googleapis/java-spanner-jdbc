@@ -84,6 +84,19 @@ import java.util.regex.Pattern;
  *       instance and database in the connection string will automatically be created if these do
  *       not yet exist on the emulator. This means that you do not need to execute any `gcloud`
  *       commands on the emulator to create the instance and database before you can connect to it.
+ *       Setting this property to true also enables running concurrent transactions on the emulator.
+ *       The emulator aborts any concurrent transaction on the emulator, and the JDBC driver works
+ *       around this by automatically setting a savepoint after each statement that is executed.
+ *       When the transaction has been aborted by the emulator and the JDBC connection wants to
+ *       continue with that transaction, the transaction is replayed up until the savepoint that had
+ *       automatically been set after the last statement that was executed before the transaction
+ *       was aborted by the emulator.
+ *   <li>endpoint (string): Set this property to specify a custom endpoint that the JDBC driver
+ *       should connect to. You can use this property in combination with the autoConfigEmulator
+ *       property to instruct the JDBC driver to connect to an emulator instance that uses a
+ *       randomly assigned port numer. See <a
+ *       href="https://github.com/googleapis/java-spanner-jdbc/blob/main/src/test/java/com/google/cloud/spanner/jdbc/ConcurrentTransactionOnEmulatorTest.java">ConcurrentTransactionOnEmulatorTest</a>
+ *       for a concrete example of how to use this property.
  *   <li>usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted
  *       connection to the server. This option can only be used when connecting to a local emulator
  *       that does not require an encrypted connection, and that does not require authentication.
@@ -101,8 +114,7 @@ import java.util.regex.Pattern;
  *       connection.
  *   <li>retryAbortsInternally (boolean): Sets the initial retryAbortsInternally mode for the
  *       connection. Default is true. @see {@link
- *       com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection#setRetryAbortsInternally(boolean)}
- *       for more information.
+ *       CloudSpannerJdbcConnection#setRetryAbortsInternally(boolean)} for more information.
  *   <li>minSessions (int): Sets the minimum number of sessions in the backing session pool.
  *       Defaults to 100.
  *   <li>maxSessions (int): Sets the maximum number of sessions in the backing session pool.

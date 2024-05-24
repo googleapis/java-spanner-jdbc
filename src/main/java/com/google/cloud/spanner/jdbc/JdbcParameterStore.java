@@ -237,6 +237,10 @@ class JdbcParameterStore {
   }
 
   private void checkTypeAndValueSupported(Object value, int sqlType) throws SQLException {
+    if (value == null) {
+      // null is always supported, as we will just fall back to an untyped NULL value.
+      return;
+    }
     if (!isTypeSupported(sqlType)) {
       throw JdbcSqlExceptionFactory.of(
           "Type " + sqlType + " is not supported", Code.INVALID_ARGUMENT);
@@ -459,8 +463,12 @@ class JdbcParameterStore {
           return binder.to(((Number) value).longValue());
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid long", Code.INVALID_ARGUMENT);
-      case Types.FLOAT:
       case Types.REAL:
+        if (value instanceof Number) {
+          return binder.to(((Number) value).floatValue());
+        }
+        throw JdbcSqlExceptionFactory.of(value + " is not a valid float", Code.INVALID_ARGUMENT);
+      case Types.FLOAT:
       case Types.DOUBLE:
         if (value instanceof Number) {
           return binder.to(((Number) value).doubleValue());
@@ -772,8 +780,9 @@ class JdbcParameterStore {
         case Types.INTEGER:
         case Types.BIGINT:
           return binder.toInt64Array((long[]) null);
-        case Types.FLOAT:
         case Types.REAL:
+          return binder.toFloat32Array((float[]) null);
+        case Types.FLOAT:
         case Types.DOUBLE:
           return binder.toFloat64Array((double[]) null);
         case Types.NUMERIC:
@@ -815,8 +824,13 @@ class JdbcParameterStore {
                   com.google.protobuf.Value.newBuilder()
                       .setNullValue(NullValue.NULL_VALUE)
                       .build()));
+        default:
+          return binder.to(
+              Value.untyped(
+                  com.google.protobuf.Value.newBuilder()
+                      .setNullValue(NullValue.NULL_VALUE)
+                      .build()));
       }
-      throw JdbcSqlExceptionFactory.unsupported("Unknown/unsupported array base type: " + type);
     }
 
     if (boolean[].class.isAssignableFrom(value.getClass())) {
@@ -844,13 +858,9 @@ class JdbcParameterStore {
     } else if (Long[].class.isAssignableFrom(value.getClass())) {
       return binder.toInt64Array(toLongList((Long[]) value));
     } else if (float[].class.isAssignableFrom(value.getClass())) {
-      double[] l = new double[((float[]) value).length];
-      for (int i = 0; i < l.length; i++) {
-        l[i] = ((float[]) value)[i];
-      }
-      return binder.toFloat64Array(l);
+      return binder.toFloat32Array((float[]) value);
     } else if (Float[].class.isAssignableFrom(value.getClass())) {
-      return binder.toFloat64Array(toDoubleList((Float[]) value));
+      return binder.toFloat32Array(toFloatList((Float[]) value));
     } else if (double[].class.isAssignableFrom(value.getClass())) {
       return binder.toFloat64Array((double[]) value);
     } else if (Double[].class.isAssignableFrom(value.getClass())) {
@@ -947,6 +957,14 @@ class JdbcParameterStore {
     return res;
   }
 
+  private List<Float> toFloatList(Number[] input) {
+    List<Float> res = new ArrayList<>(input.length);
+    for (Number number : input) {
+      res.add(number == null ? null : number.floatValue());
+    }
+    return res;
+  }
+
   private List<Double> toDoubleList(Number[] input) {
     List<Double> res = new ArrayList<>(input.length);
     for (Number number : input) {
@@ -961,7 +979,9 @@ class JdbcParameterStore {
    */
   private Builder setNullValue(ValueBinder<Builder> binder, Integer sqlType) {
     if (sqlType == null) {
-      return binder.to((String) null);
+      return binder.to(
+          Value.untyped(
+              com.google.protobuf.Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()));
     }
     switch (sqlType) {
       case Types.BIGINT:
@@ -987,9 +1007,8 @@ class JdbcParameterStore {
         } else {
           return binder.to((BigDecimal) null);
         }
-      case Types.DOUBLE:
-        return binder.to((Double) null);
       case Types.FLOAT:
+      case Types.DOUBLE:
         return binder.to((Double) null);
       case Types.INTEGER:
       case ProtoEnumType.VENDOR_TYPE_NUMBER:
@@ -1007,7 +1026,7 @@ class JdbcParameterStore {
       case Types.NVARCHAR:
         return binder.to((String) null);
       case Types.REAL:
-        return binder.to((Double) null);
+        return binder.to((Float) null);
       case Types.SMALLINT:
         return binder.to((Long) null);
       case Types.SQLXML:
@@ -1023,8 +1042,14 @@ class JdbcParameterStore {
         return binder.to((ByteArray) null);
       case Types.VARCHAR:
         return binder.to((String) null);
+      case JsonType.VENDOR_TYPE_NUMBER:
+        return binder.to(Value.json(null));
+      case PgJsonbType.VENDOR_TYPE_NUMBER:
+        return binder.to(Value.pgJsonb(null));
       default:
-        throw new IllegalArgumentException("Unsupported sql type for setting to null: " + sqlType);
+        return binder.to(
+            Value.untyped(
+                com.google.protobuf.Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()));
     }
   }
 }

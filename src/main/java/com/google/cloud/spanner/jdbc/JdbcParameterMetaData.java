@@ -16,7 +16,13 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import com.google.cloud.spanner.connection.AbstractStatementParser.ParametersInfo;
+import com.google.cloud.spanner.JdbcDataTypeConverter;
+import com.google.cloud.spanner.ResultSet;
+import com.google.rpc.Code;
+import com.google.spanner.v1.StructType;
+import com.google.spanner.v1.StructType.Field;
+import com.google.spanner.v1.Type;
+import com.google.spanner.v1.TypeCode;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ParameterMetaData;
@@ -29,9 +35,23 @@ import java.sql.Types;
 class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMetaData {
   private final JdbcPreparedStatement statement;
 
-  JdbcParameterMetaData(JdbcPreparedStatement statement) throws SQLException {
+  private final StructType parameters;
+
+  JdbcParameterMetaData(JdbcPreparedStatement statement, ResultSet resultSet) {
     this.statement = statement;
-    statement.getParameters().fetchMetaData(statement.getConnection());
+    this.parameters = resultSet.getMetadata().getUndeclaredParameters();
+  }
+
+  private Field getField(int param) throws SQLException {
+    JdbcPreconditions.checkArgument(param > 0 && param <= parameters.getFieldsCount(), param);
+    String paramName = "p" + param;
+    return parameters.getFieldsList().stream()
+        .filter(field -> field.getName().equals(paramName))
+        .findAny()
+        .orElseThrow(
+            () ->
+                JdbcSqlExceptionFactory.of(
+                    "Unknown parameter: " + paramName, Code.INVALID_ARGUMENT));
   }
 
   @Override
@@ -41,8 +61,7 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
 
   @Override
   public int getParameterCount() {
-    ParametersInfo info = statement.getParametersInfo();
-    return info.numberOfParameters;
+    return parameters.getFieldsCount();
   }
 
   @Override
@@ -53,10 +72,11 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
   }
 
   @Override
-  public boolean isSigned(int param) {
+  public boolean isSigned(int param) throws SQLException {
     int type = getParameterType(param);
     return type == Types.DOUBLE
         || type == Types.FLOAT
+        || type == Types.REAL
         || type == Types.BIGINT
         || type == Types.INTEGER
         || type == Types.SMALLINT
@@ -77,9 +97,34 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
   }
 
   @Override
-  public int getParameterType(int param) {
+  public int getParameterType(int param) throws SQLException {
+    JdbcPreconditions.checkArgument(param > 0 && param <= parameters.getFieldsCount(), param);
+    int typeFromValue = getParameterTypeFromValue(param);
+    if (typeFromValue != Types.OTHER) {
+      return typeFromValue;
+    }
+
+    Type type = getField(param).getType();
+    // JDBC only has a generic ARRAY type.
+    if (type.getCode() == TypeCode.ARRAY) {
+      return Types.ARRAY;
+    }
+    JdbcDataType jdbcDataType =
+        JdbcDataType.getType(JdbcDataTypeConverter.toSpannerType(type).getCode());
+    return jdbcDataType == null ? Types.OTHER : jdbcDataType.getSqlType();
+  }
+
+  /**
+   * This method returns the parameter type based on the parameter value that has been set. This was
+   * previously the only way to get the parameter types of a statement. Cloud Spanner can now return
+   * the types and names of parameters in a SQL string, which is what this method should return.
+   */
+  // TODO: Remove this method for the next major version bump.
+  private int getParameterTypeFromValue(int param) {
     Integer type = statement.getParameters().getType(param);
-    if (type != null) return type;
+    if (type != null) {
+      return type;
+    }
 
     Object value = statement.getParameters().getParameter(param);
     if (value == null) {
@@ -95,7 +140,7 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
     } else if (Long.class.isAssignableFrom(value.getClass())) {
       return Types.BIGINT;
     } else if (Float.class.isAssignableFrom(value.getClass())) {
-      return Types.FLOAT;
+      return Types.REAL;
     } else if (Double.class.isAssignableFrom(value.getClass())) {
       return Types.DOUBLE;
     } else if (BigDecimal.class.isAssignableFrom(value.getClass())) {
@@ -116,16 +161,49 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
   }
 
   @Override
-  public String getParameterTypeName(int param) {
-    return getSpannerTypeName(getParameterType(param));
+  public String getParameterTypeName(int param) throws SQLException {
+    JdbcPreconditions.checkArgument(param > 0 && param <= parameters.getFieldsCount(), param);
+    String typeNameFromValue = getParameterTypeNameFromValue(param);
+    if (typeNameFromValue != null) {
+      return typeNameFromValue;
+    }
+
+    com.google.cloud.spanner.Type type =
+        JdbcDataTypeConverter.toSpannerType(getField(param).getType());
+    return getSpannerTypeName(type, statement.getConnection().getDialect());
+  }
+
+  private String getParameterTypeNameFromValue(int param) {
+    int type = getParameterTypeFromValue(param);
+    if (type != Types.OTHER) {
+      return getSpannerTypeName(type);
+    }
+    return null;
   }
 
   @Override
-  public String getParameterClassName(int param) {
+  public String getParameterClassName(int param) throws SQLException {
+    JdbcPreconditions.checkArgument(param > 0 && param <= parameters.getFieldsCount(), param);
+    String classNameFromValue = getParameterClassNameFromValue(param);
+    if (classNameFromValue != null) {
+      return classNameFromValue;
+    }
+
+    com.google.cloud.spanner.Type type =
+        JdbcDataTypeConverter.toSpannerType(getField(param).getType());
+    return getClassName(type);
+  }
+
+  // TODO: Remove this method for the next major version bump.
+  private String getParameterClassNameFromValue(int param) {
     Object value = statement.getParameters().getParameter(param);
-    if (value != null) return value.getClass().getName();
+    if (value != null) {
+      return value.getClass().getName();
+    }
     Integer type = statement.getParameters().getType(param);
-    if (type != null) return getClassName(type);
+    if (type != null) {
+      return getClassName(type);
+    }
     return null;
   }
 
@@ -136,22 +214,26 @@ class JdbcParameterMetaData extends AbstractJdbcWrapper implements ParameterMeta
 
   @Override
   public String toString() {
-    StringBuilder res = new StringBuilder();
-    res.append("CloudSpannerPreparedStatementParameterMetaData, parameter count: ")
-        .append(getParameterCount());
-    for (int param = 1; param <= getParameterCount(); param++) {
-      res.append("\nParameter ")
-          .append(param)
-          .append(":\n\t Class name: ")
-          .append(getParameterClassName(param));
-      res.append(",\n\t Parameter type name: ").append(getParameterTypeName(param));
-      res.append(",\n\t Parameter type: ").append(getParameterType(param));
-      res.append(",\n\t Parameter precision: ").append(getPrecision(param));
-      res.append(",\n\t Parameter scale: ").append(getScale(param));
-      res.append(",\n\t Parameter signed: ").append(isSigned(param));
-      res.append(",\n\t Parameter nullable: ").append(isNullable(param));
-      res.append(",\n\t Parameter mode: ").append(getParameterMode(param));
+    try {
+      StringBuilder res = new StringBuilder();
+      res.append("CloudSpannerPreparedStatementParameterMetaData, parameter count: ")
+          .append(getParameterCount());
+      for (int param = 1; param <= getParameterCount(); param++) {
+        res.append("\nParameter ")
+            .append(param)
+            .append(":\n\t Class name: ")
+            .append(getParameterClassName(param));
+        res.append(",\n\t Parameter type name: ").append(getParameterTypeName(param));
+        res.append(",\n\t Parameter type: ").append(getParameterType(param));
+        res.append(",\n\t Parameter precision: ").append(getPrecision(param));
+        res.append(",\n\t Parameter scale: ").append(getScale(param));
+        res.append(",\n\t Parameter signed: ").append(isSigned(param));
+        res.append(",\n\t Parameter nullable: ").append(isNullable(param));
+        res.append(",\n\t Parameter mode: ").append(getParameterMode(param));
+      }
+      return res.toString();
+    } catch (SQLException exception) {
+      return "Failed to get parameter metadata: " + exception;
     }
-    return res.toString();
   }
 }
