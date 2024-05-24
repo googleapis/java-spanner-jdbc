@@ -1,0 +1,132 @@
+package com.google.cloud.jdbc.quickperf.config;
+
+import java.util.List;
+
+public class Config {
+    private String project;
+    private String instance;
+    private String database;
+    private int threads;
+    private int iterations;
+    private String query;
+    private String samplingQuery;
+    private boolean writeMetricToFile;
+    private int batchSize;
+    private boolean isEmulator;
+    private List<QueryParam> queryParams;
+
+    public String paramsToString() {
+        String retVal = "";
+
+        if (queryParams != null) {
+
+            for (QueryParam param : queryParams) {
+                retVal = retVal + String.format("%s:%s ", param.getOrder(), param.getValue());
+            }
+        }
+
+        return retVal;
+    }
+
+    // Getters and setters
+
+
+    public int getBatchSize() {
+        return this.batchSize;
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+    }
+   
+
+    public String getProject() {
+        return project;
+    }
+
+    public void setProject(String project) {
+        this.project = project;
+    }
+
+    public String getInstance() {
+        return instance;
+    }
+
+    public void setInstance(String instance) {
+        this.instance = instance;
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    public int getThreads() {
+        return threads;
+    }
+
+    public void setThreads(int threads) {
+        this.threads = threads;
+    }
+
+    public int getIterations() {
+        return iterations;
+    }
+
+    public void setIterations(int iterations) {
+        this.iterations = iterations;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
+    public boolean isWriteMetricToFile() {
+        return writeMetricToFile;
+    }
+
+    public void setWriteMetricToFile(boolean writeMetricToFile) {
+        this.writeMetricToFile = writeMetricToFile;
+    }
+
+    public List<QueryParam> getQueryParams() {
+        return queryParams;
+    }
+
+    public void setQueryParams(List<QueryParam> queryParams) {
+        this.queryParams = queryParams;
+    }
+
+    public String getSamplingQuery() {
+        return this.samplingQuery;
+    }
+
+    public void setSamplingQuery(String samplingQuery) {
+        this.samplingQuery = samplingQuery;
+    }
+
+    public boolean getWriteMetricToFile() {
+        return this.writeMetricToFile;
+    }
+
+
+    public boolean isIsEmulator() {
+        return this.isEmulator;
+    }
+
+    public boolean getIsEmulator() {
+        return this.isEmulator;
+    }
+
+    public void setIsEmulator(boolean isEmulator) {
+        this.isEmulator = isEmulator;
+    }
+
+}
