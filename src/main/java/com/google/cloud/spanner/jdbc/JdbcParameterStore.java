@@ -308,7 +308,7 @@ class JdbcParameterStore {
       case Types.DOUBLE:
       case Types.NUMERIC:
       case Types.DECIMAL:
-        return value instanceof Number;
+        return value instanceof Number || value instanceof ProtocolMessageEnum;
       case Types.CHAR:
       case Types.VARCHAR:
       case Types.LONGVARCHAR:
@@ -335,7 +335,9 @@ class JdbcParameterStore {
       case Types.BINARY:
       case Types.VARBINARY:
       case Types.LONGVARBINARY:
-        return value instanceof byte[] || value instanceof InputStream;
+        return value instanceof byte[]
+            || value instanceof InputStream
+            || value instanceof AbstractMessage;
       case Types.ARRAY:
         return value instanceof Array;
       case Types.BLOB:
@@ -461,6 +463,8 @@ class JdbcParameterStore {
       case Types.BIGINT:
         if (value instanceof Number) {
           return binder.to(((Number) value).longValue());
+        } else if (value instanceof ProtocolMessageEnum) {
+          return binder.to((ProtocolMessageEnum) value);
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid long", Code.INVALID_ARGUMENT);
       case Types.REAL:
@@ -579,6 +583,8 @@ class JdbcParameterStore {
                 Code.INVALID_ARGUMENT,
                 e);
           }
+        } else if (value instanceof AbstractMessage) {
+          return binder.to((AbstractMessage) value);
         }
         throw JdbcSqlExceptionFactory.of(
             value + " is not a valid byte array", Code.INVALID_ARGUMENT);
