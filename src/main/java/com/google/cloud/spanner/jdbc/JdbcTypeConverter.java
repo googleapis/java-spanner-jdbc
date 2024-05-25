@@ -211,12 +211,16 @@ class JdbcTypeConverter {
         if (type.getArrayElementType().getCode() == Code.PROTO
             || type.getArrayElementType().getCode() == Code.BYTES) {
           Object res = convertArrayOfProtoMessage(value, targetType);
-          if (res != null) return res;
+          if (res != null) {
+            return res;
+          }
         }
         if (type.getArrayElementType().getCode() == Code.ENUM
             || type.getArrayElementType().getCode() == Code.INT64) {
           Object res = convertArrayOfProtoEnum(value, targetType);
-          if (res != null) return res;
+          if (res != null) {
+            return res;
+          }
         }
       }
     } catch (SQLException e) {
