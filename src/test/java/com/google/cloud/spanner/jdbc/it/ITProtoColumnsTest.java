@@ -89,15 +89,15 @@ public class ITProtoColumnsTest {
                 databaseToCreate,
                 Arrays.asList(
                     "CREATE PROTO BUNDLE ("
-                        + "spanner.examples.music.SingerInfo,"
-                        + "spanner.examples.music.Genre,"
+                        + "examples.spanner.music.SingerInfo,"
+                        + "examples.spanner.music.Genre,"
                         + ")",
                     "CREATE TABLE Types ("
                         + "  RowID INT64 NOT NULL,"
-                        + "  ProtoMessage    spanner.examples.music.SingerInfo,"
-                        + "  ProtoEnum   spanner.examples.music.Genre,"
-                        + "  ProtoMessageArray   ARRAY<spanner.examples.music.SingerInfo>,"
-                        + "  ProtoEnumArray  ARRAY<spanner.examples.music.Genre>,"
+                        + "  ProtoMessage    examples.spanner.music.SingerInfo,"
+                        + "  ProtoEnum   examples.spanner.music.Genre,"
+                        + "  ProtoMessageArray   ARRAY<examples.spanner.music.SingerInfo>,"
+                        + "  ProtoEnumArray  ARRAY<examples.spanner.music.Genre>,"
                         + "  ) PRIMARY KEY (RowID)"))
             .get(OPERATION_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
 
