@@ -61,10 +61,16 @@ public class ITProtoColumnsTest {
   private static Database database;
   private static String url;
 
+  public static boolean isUsingGraalVm() {
+    String jobType = System.getenv("JOB_TYPE");
+    return jobType != null && jobType.contains("graalvm");
+  }
+
   @BeforeClass
   public static void setup() throws Exception {
     assumeFalse(
         "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
+    assumeFalse("Skipping tests on GraalVM", isUsingGraalVm());
     RemoteSpannerHelper testHelper = env.getTestHelper();
     final String projectId = testHelper.getInstanceId().getProject();
     final String instanceId = testHelper.getInstanceId().getInstance();
@@ -117,6 +123,7 @@ public class ITProtoColumnsTest {
   public void testNonNullElements() throws Exception {
     assumeFalse(
         "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
+    assumeFalse("Skipping tests on GraalVM", isUsingGraalVm());
     SingerInfo singerInfo =
         SingerInfo.newBuilder()
             .setSingerId(1)
@@ -161,6 +168,7 @@ public class ITProtoColumnsTest {
   public void testNullElements() throws Exception {
     assumeFalse(
         "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
+    assumeFalse("Skipping tests on GraalVM", isUsingGraalVm());
     try (Connection connection = DriverManager.getConnection(url);
         PreparedStatement ps =
             connection.prepareStatement(
@@ -195,6 +203,7 @@ public class ITProtoColumnsTest {
   public void testUntypedNullElements() throws Exception {
     assumeFalse(
         "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
+    assumeFalse("Skipping tests on GraalVM", isUsingGraalVm());
     try (Connection connection = DriverManager.getConnection(url);
         PreparedStatement ps =
             connection.prepareStatement(
@@ -224,6 +233,7 @@ public class ITProtoColumnsTest {
   public void testInterCompatibility() throws Exception {
     assumeFalse(
         "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
+    assumeFalse("Skipping tests on GraalVM", isUsingGraalVm());
     SingerInfo singerInfo =
         SingerInfo.newBuilder()
             .setSingerId(1)
