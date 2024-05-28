@@ -404,6 +404,65 @@ enum JdbcDataType {
     public Type getSpannerType() {
       return Type.struct();
     }
+  },
+  PROTO {
+    @Override
+    public int getSqlType() {
+      return ProtoMessageType.VENDOR_TYPE_NUMBER;
+    }
+
+    @Override
+    public Class<byte[]> getJavaClass() {
+      return byte[].class;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.PROTO;
+    }
+
+    @Override
+    public List<byte[]> getArrayElements(ResultSet rs, int columnIndex) {
+      return JdbcTypeConverter.toJavaByteArrays(rs.getBytesList(columnIndex));
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.bytes();
+    }
+  },
+  ENUM {
+    private final Set<Class<?>> classes = new HashSet<>(Arrays.asList(Integer.class, Long.class));
+
+    @Override
+    public int getSqlType() {
+      return ProtoEnumType.VENDOR_TYPE_NUMBER;
+    }
+
+    @Override
+    public Class<Long> getJavaClass() {
+      return Long.class;
+    }
+
+    @Override
+    public Set<Class<?>> getSupportedJavaClasses() {
+      return classes;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.ENUM;
+    }
+
+    @Override
+    public List<Long> getArrayElements(ResultSet rs, int columnIndex) {
+      return rs.getLongList(columnIndex);
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.int64();
+    }
   };
 
   public abstract int getSqlType();

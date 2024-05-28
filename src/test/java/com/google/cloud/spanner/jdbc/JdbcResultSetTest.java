@@ -37,6 +37,8 @@ import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
+import com.google.cloud.spanner.jdbc.it.SingerProto.Genre;
+import com.google.cloud.spanner.jdbc.it.SingerProto.SingerInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
 import java.io.IOException;
@@ -145,6 +147,18 @@ public class JdbcResultSetTest {
   private static final int JSON_COLINDEX_NOT_NULL = 28;
   private static final String JSON_VALUE = "{\"name\":\"John\", \"age\":30, \"car\":null}";
 
+  private static final String PROTO_MSG_COL_NULL = "PROTO_MSG_COL_NULL";
+  private static final String PROTO_MSG_COL_NOT_NULL = "PROTO_MSG_COL_NOT_NULL";
+  private static final int PROTO_MSG_COLINDEX_NULL = 29;
+  private static final int PROTO_MSG_COLINDEX_NOT_NULL = 30;
+  private static final ByteArray PROTO_MSG_VALUE =
+      ByteArray.copyFrom(SingerInfo.newBuilder().setSingerId(1).build().toByteArray());
+  private static final String PROTO_ENUM_COL_NULL = "PROTO_ENUM_COL_NULL";
+  private static final String PROTO_ENUM_COL_NOT_NULL = "PROTO_ENUM_COL_NOT_NULL";
+  private static final int PROTO_ENUM_COLINDEX_NULL = 31;
+  private static final int PROTO_ENUM_COLINDEX_NOT_NULL = 32;
+  private static final long PROTO_ENUM_VALUE = Genre.ROCK.getNumber();
+
   private static final String BOOL_ARRAY_COL = "BOOL_ARRAY";
   private static final List<Boolean> BOOL_ARRAY_VALUE = Arrays.asList(true, null, false);
   private static final String BYTES_ARRAY_COL = "BYTES_ARRAY";
@@ -163,6 +177,10 @@ public class JdbcResultSetTest {
   private static final List<Timestamp> TIMESTAMP_ARRAY_VALUE = Arrays.asList(TIMESTAMP_VALUE, null);
   private static final String JSON_ARRAY_COL = "JSON_ARRAY";
   private static final List<String> JSON_ARRAY_VALUE = Arrays.asList(JSON_VALUE, null);
+  private static final String PROTO_MSG_ARRAY_COL = "PROTO_MSG_ARRAY";
+  private static final List<ByteArray> PROTO_MSG_ARRAY_VALUE = Arrays.asList(PROTO_MSG_VALUE, null);
+  private static final String PROTO_ENUM_ARRAY_COL = "PROTO_ENUM_ARRAY";
+  private static final List<Long> PROTO_ENUM_ARRAY_VALUE = Arrays.asList(PROTO_ENUM_VALUE, null);
 
   private final JdbcResultSet subject;
 
@@ -197,6 +215,14 @@ public class JdbcResultSetTest {
             StructField.of(NUMERIC_COL_NOT_NULL, Type.numeric()),
             StructField.of(JSON_COL_NULL, Type.json()),
             StructField.of(JSON_COL_NOT_NULL, Type.json()),
+            StructField.of(
+                PROTO_MSG_COL_NULL, Type.proto(SingerInfo.getDescriptor().getFullName())),
+            StructField.of(
+                PROTO_MSG_COL_NOT_NULL, Type.proto(SingerInfo.getDescriptor().getFullName())),
+            StructField.of(
+                PROTO_ENUM_COL_NULL, Type.protoEnum(Genre.getDescriptor().getFullName())),
+            StructField.of(
+                PROTO_ENUM_COL_NOT_NULL, Type.protoEnum(Genre.getDescriptor().getFullName())),
             StructField.of(BOOL_ARRAY_COL, Type.array(Type.bool())),
             StructField.of(BYTES_ARRAY_COL, Type.array(Type.bytes())),
             StructField.of(DATE_ARRAY_COL, Type.array(Type.date())),
@@ -205,7 +231,13 @@ public class JdbcResultSetTest {
             StructField.of(NUMERIC_ARRAY_COL, Type.array(Type.numeric())),
             StructField.of(JSON_ARRAY_COL, Type.array(Type.json())),
             StructField.of(STRING_ARRAY_COL, Type.array(Type.string())),
-            StructField.of(TIMESTAMP_ARRAY_COL, Type.array(Type.timestamp()))),
+            StructField.of(TIMESTAMP_ARRAY_COL, Type.array(Type.timestamp())),
+            StructField.of(
+                PROTO_MSG_ARRAY_COL,
+                Type.array(Type.proto(SingerInfo.getDescriptor().getFullName()))),
+            StructField.of(
+                PROTO_ENUM_ARRAY_COL,
+                Type.array(Type.protoEnum(Genre.getDescriptor().getFullName())))),
         Collections.singletonList(
             Struct.newBuilder()
                 .set(STRING_COL_NULL)
@@ -264,6 +296,14 @@ public class JdbcResultSetTest {
                 .to(Value.json(null))
                 .set(JSON_COL_NOT_NULL)
                 .to(Value.json(JSON_VALUE))
+                .set(PROTO_MSG_COL_NULL)
+                .to((ByteArray) null, SingerInfo.getDescriptor().getFullName())
+                .set(PROTO_MSG_COL_NOT_NULL)
+                .to(PROTO_MSG_VALUE, SingerInfo.getDescriptor().getFullName())
+                .set(PROTO_ENUM_COL_NULL)
+                .to((Long) null, Genre.getDescriptor().getFullName())
+                .set(PROTO_ENUM_COL_NOT_NULL)
+                .to(PROTO_ENUM_VALUE, Genre.getDescriptor().getFullName())
                 .set(BOOL_ARRAY_COL)
                 .toBoolArray(BOOL_ARRAY_VALUE)
                 .set(BYTES_ARRAY_COL)
@@ -282,6 +322,11 @@ public class JdbcResultSetTest {
                 .toStringArray(STRING_ARRAY_VALUE)
                 .set(TIMESTAMP_ARRAY_COL)
                 .toTimestampArray(TIMESTAMP_ARRAY_VALUE)
+                .set(PROTO_MSG_ARRAY_COL)
+                .toProtoMessageArray(
+                    PROTO_MSG_ARRAY_VALUE, SingerInfo.getDescriptor().getFullName())
+                .set(PROTO_ENUM_ARRAY_COL)
+                .toProtoEnumArray(PROTO_ENUM_ARRAY_VALUE, Genre.getDescriptor().getFullName())
                 .build()));
   }
 
@@ -651,6 +696,77 @@ public class JdbcResultSetTest {
     assertFalse(subject.wasNull());
     assertNull(subject.getBytes(BYTES_COLINDEX_NULL));
     assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetBytesIndexFromProtoMessage() throws SQLException {
+    assertNotNull(subject.getBytes(PROTO_MSG_COLINDEX_NOT_NULL));
+    assertArrayEquals(PROTO_MSG_VALUE.toByteArray(), subject.getBytes(PROTO_MSG_COLINDEX_NOT_NULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getBytes(PROTO_MSG_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetProtoMessage() throws SQLException {
+    SingerInfo singerInfo = subject.getObject(PROTO_MSG_COLINDEX_NOT_NULL, SingerInfo.class);
+    assertEquals(SingerInfo.newBuilder().setSingerId(1).build(), singerInfo);
+    assertFalse(subject.wasNull());
+    assertNull(subject.getObject(PROTO_MSG_COLINDEX_NULL, SingerInfo.class));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetBytesAsObjectIndexFromProtoMessage() throws SQLException {
+    assertNotNull(subject.getObject(PROTO_MSG_COLINDEX_NOT_NULL));
+    assertArrayEquals(
+        PROTO_MSG_VALUE.toByteArray(), (byte[]) subject.getObject(PROTO_MSG_COLINDEX_NOT_NULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getObject(PROTO_MSG_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetProtoMessageArrayAsObject() throws SQLException {
+    assertNotNull(subject.getObject(PROTO_MSG_ARRAY_COL, SingerInfo[].class));
+    assertArrayEquals(
+        new SingerInfo[] {SingerInfo.newBuilder().setSingerId(1).build(), null},
+        subject.getObject(PROTO_MSG_ARRAY_COL, SingerInfo[].class));
+    assertFalse(subject.wasNull());
+  }
+
+  @Test
+  public void testGetIntIndexFromProtoEnum() throws SQLException {
+    assertEquals(PROTO_ENUM_VALUE, subject.getInt(PROTO_ENUM_COLINDEX_NOT_NULL));
+    assertFalse(subject.wasNull());
+    assertEquals(0, subject.getInt(PROTO_ENUM_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetEnum() throws SQLException {
+    Genre singerGenre = subject.getObject(PROTO_ENUM_COLINDEX_NOT_NULL, Genre.class);
+    assertEquals(Genre.ROCK, singerGenre);
+    assertFalse(subject.wasNull());
+    assertNull(subject.getObject(PROTO_ENUM_COLINDEX_NULL, Genre.class));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetIntAsObjectIndexFromProtoEnum() throws SQLException {
+    assertNotNull(subject.getObject(PROTO_ENUM_COLINDEX_NOT_NULL));
+    assertEquals(PROTO_ENUM_VALUE, subject.getObject(PROTO_ENUM_COLINDEX_NOT_NULL));
+    assertFalse(subject.wasNull());
+    assertNull(subject.getObject(PROTO_ENUM_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+  }
+
+  @Test
+  public void testGetProtoEnumArrayAsObject() throws SQLException {
+    assertNotNull(subject.getObject(PROTO_ENUM_ARRAY_COL, Genre[].class));
+    assertArrayEquals(
+        new Genre[] {Genre.ROCK, null}, subject.getObject(PROTO_ENUM_ARRAY_COL, Genre[].class));
+    assertFalse(subject.wasNull());
   }
 
   @SuppressWarnings("deprecation")
@@ -1719,6 +1835,12 @@ public class JdbcResultSetTest {
     assertEquals(
         Value.timestamp(TIMESTAMP_VALUE),
         subject.getObject(TIMESTAMP_COLINDEX_NOTNULL, Value.class));
+    assertEquals(
+        Value.protoMessage(PROTO_MSG_VALUE, SingerInfo.getDescriptor()),
+        subject.getObject(PROTO_MSG_COLINDEX_NOT_NULL, Value.class));
+    assertEquals(
+        Value.protoEnum(PROTO_ENUM_VALUE, Genre.getDescriptor()),
+        subject.getObject(PROTO_ENUM_COLINDEX_NOT_NULL, Value.class));
 
     assertEquals(Value.boolArray(BOOL_ARRAY_VALUE), subject.getObject(BOOL_ARRAY_COL, Value.class));
     assertEquals(
@@ -1735,6 +1857,12 @@ public class JdbcResultSetTest {
     assertEquals(
         Value.timestampArray(TIMESTAMP_ARRAY_VALUE),
         subject.getObject(TIMESTAMP_ARRAY_COL, Value.class));
+    assertEquals(
+        Value.protoMessageArray(PROTO_MSG_ARRAY_VALUE, SingerInfo.getDescriptor().getFullName()),
+        subject.getObject(PROTO_MSG_ARRAY_COL, Value.class));
+    assertEquals(
+        Value.protoEnumArray(PROTO_ENUM_ARRAY_VALUE, Genre.getDescriptor().getFullName()),
+        subject.getObject(PROTO_ENUM_ARRAY_COL, Value.class));
   }
 
   @Test

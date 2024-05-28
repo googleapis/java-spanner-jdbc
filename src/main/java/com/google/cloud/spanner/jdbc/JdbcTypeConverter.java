@@ -23,6 +23,9 @@ import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Value;
 import com.google.common.base.Preconditions;
+import com.google.protobuf.AbstractMessage;
+import com.google.protobuf.ProtocolMessageEnum;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -84,7 +87,8 @@ class JdbcTypeConverter {
         return convertToSpannerValue(value, type);
       }
       if (targetType.equals(String.class)) {
-        if (type.getCode() == Code.BYTES) return new String((byte[]) value, UTF8);
+        if (type.getCode() == Code.BYTES || type.getCode() == Code.PROTO)
+          return new String((byte[]) value, UTF8);
         if (type.getCode() == Code.TIMESTAMP) {
           Timestamp timestamp = Timestamp.of((java.sql.Timestamp) value);
           return TIMESTAMP_FORMAT.format(
@@ -95,14 +99,14 @@ class JdbcTypeConverter {
         return value.toString();
       }
       if (targetType.equals(byte[].class)) {
-        if (type.getCode() == Code.BYTES) return value;
+        if (type.getCode() == Code.BYTES || type.getCode() == Code.PROTO) return value;
         if (type.getCode() == Code.STRING
             || type.getCode() == Code.JSON
             || type.getCode() == Code.PG_JSONB) return ((String) value).getBytes(UTF8);
       }
       if (targetType.equals(Boolean.class)) {
         if (type.getCode() == Code.BOOL) return value;
-        if (type.getCode() == Code.INT64) return (Long) value != 0;
+        if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM) return (Long) value != 0;
         if (type.getCode() == Code.FLOAT32) {
           return (Float) value != 0f;
         }
@@ -111,38 +115,41 @@ class JdbcTypeConverter {
       }
       if (targetType.equals(BigDecimal.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? BigDecimal.ONE : BigDecimal.ZERO;
-        if (type.getCode() == Code.INT64) return BigDecimal.valueOf((Long) value);
+        if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM)
+          return BigDecimal.valueOf((Long) value);
         if (type.getCode() == Code.NUMERIC) return value;
       }
       if (targetType.equals(Long.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1L : 0L;
-        if (type.getCode() == Code.INT64) return value;
+        if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM) return value;
         if (type.getCode() == Code.NUMERIC)
           return AbstractJdbcWrapper.checkedCastToLong((BigDecimal) value);
       }
       if (targetType.equals(Integer.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1 : 0;
-        if (type.getCode() == Code.INT64) return AbstractJdbcWrapper.checkedCastToInt((Long) value);
+        if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM)
+          return AbstractJdbcWrapper.checkedCastToInt((Long) value);
         if (type.getCode() == Code.NUMERIC)
           return AbstractJdbcWrapper.checkedCastToInt((BigDecimal) value);
       }
       if (targetType.equals(Short.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1 : 0;
-        if (type.getCode() == Code.INT64)
+        if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM)
           return AbstractJdbcWrapper.checkedCastToShort((Long) value);
         if (type.getCode() == Code.NUMERIC)
           return AbstractJdbcWrapper.checkedCastToShort((BigDecimal) value);
       }
       if (targetType.equals(Byte.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1 : 0;
-        if (type.getCode() == Code.INT64)
+        if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM)
           return AbstractJdbcWrapper.checkedCastToByte((Long) value);
         if (type.getCode() == Code.NUMERIC)
           return AbstractJdbcWrapper.checkedCastToByte((BigDecimal) value);
       }
       if (targetType.equals(BigInteger.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? BigInteger.ONE : BigInteger.ZERO;
-        if (type.getCode() == Code.INT64) return BigInteger.valueOf((Long) value);
+        if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM)
+          return BigInteger.valueOf((Long) value);
         if (type.getCode() == Code.NUMERIC)
           return AbstractJdbcWrapper.checkedCastToBigInteger((BigDecimal) value);
       }
@@ -183,8 +190,38 @@ class JdbcTypeConverter {
               ZoneId.systemDefault());
         }
       }
+      if (AbstractMessage.class.isAssignableFrom(targetType)) {
+        if (type.getCode() == Code.PROTO || type.getCode() == Code.BYTES) {
+          Method parseMethodParseFrom = targetType.getMethod("parseFrom", byte[].class);
+          return targetType.cast(parseMethodParseFrom.invoke(null, value));
+        }
+      }
+      if (ProtocolMessageEnum.class.isAssignableFrom(targetType)) {
+        if (type.getCode() == Code.ENUM || type.getCode() == Code.INT64) {
+          Method parseMethodForNumber = targetType.getMethod("forNumber", int.class);
+          return targetType.cast(
+              parseMethodForNumber.invoke(
+                  null, AbstractJdbcWrapper.checkedCastToInt((Long) value)));
+        }
+      }
       if (targetType.equals(java.sql.Array.class)) {
         if (type.getCode() == Code.ARRAY) return value;
+      }
+      if (targetType.isArray() && type.getCode() == Code.ARRAY) {
+        if (type.getArrayElementType().getCode() == Code.PROTO
+            || type.getArrayElementType().getCode() == Code.BYTES) {
+          Object res = convertArrayOfProtoMessage(value, targetType);
+          if (res != null) {
+            return res;
+          }
+        }
+        if (type.getArrayElementType().getCode() == Code.ENUM
+            || type.getArrayElementType().getCode() == Code.INT64) {
+          Object res = convertArrayOfProtoEnum(value, targetType);
+          if (res != null) {
+            return res;
+          }
+        }
       }
     } catch (SQLException e) {
       throw e;
@@ -199,6 +236,52 @@ class JdbcTypeConverter {
         com.google.rpc.Code.INVALID_ARGUMENT);
   }
 
+  /**
+   * Converts the given value to the Java {@link Class} type. The targetType {@link Class} must be
+   * an array of {@link AbstractMessage}.
+   */
+  static Object convertArrayOfProtoMessage(Object value, Class<?> targetType) throws Exception {
+    Class<?> componentType = targetType.getComponentType();
+    if (AbstractMessage.class.isAssignableFrom(componentType)) {
+      byte[][] result = (byte[][]) ((JdbcArray) value).getArray();
+      Object obj = java.lang.reflect.Array.newInstance(componentType, result.length);
+      Method parseMethodParseFrom = componentType.getMethod("parseFrom", byte[].class);
+      for (int i = 0; i < result.length; i++) {
+        if (result[i] != null) {
+          java.lang.reflect.Array.set(
+              obj, i, componentType.cast(parseMethodParseFrom.invoke(null, result[i])));
+        }
+      }
+      return obj;
+    }
+    return null;
+  }
+
+  /**
+   * Converts the given value to the Java {@link Class} type. The targetType {@link Class} must be
+   * an array of {@link ProtocolMessageEnum}.
+   */
+  static Object convertArrayOfProtoEnum(Object value, Class<?> targetType) throws Exception {
+    Class<?> componentType = targetType.getComponentType();
+    if (ProtocolMessageEnum.class.isAssignableFrom(componentType)) {
+      Long[] result = (Long[]) ((JdbcArray) value).getArray();
+      Object obj = java.lang.reflect.Array.newInstance(componentType, result.length);
+      Method parseMethodForNumber = componentType.getMethod("forNumber", int.class);
+      for (int i = 0; i < result.length; i++) {
+        if (result[i] != null) {
+          java.lang.reflect.Array.set(
+              obj,
+              i,
+              componentType.cast(
+                  parseMethodForNumber.invoke(
+                      null, AbstractJdbcWrapper.checkedCastToInt(result[i]))));
+        }
+      }
+      return obj;
+    }
+    return null;
+  }
+
   private static Value convertToSpannerValue(Object value, Type type) throws SQLException {
     switch (type.getCode()) {
       case ARRAY:
@@ -207,6 +290,10 @@ class JdbcTypeConverter {
             return Value.boolArray(Arrays.asList((Boolean[]) ((java.sql.Array) value).getArray()));
           case BYTES:
             return Value.bytesArray(toGoogleBytes((byte[][]) ((java.sql.Array) value).getArray()));
+          case PROTO:
+            return Value.protoMessageArray(
+                toGoogleBytes((byte[][]) ((java.sql.Array) value).getArray()),
+                type.getArrayElementType().getProtoTypeFqn());
           case DATE:
             return Value.dateArray(
                 toGoogleDates((java.sql.Date[]) ((java.sql.Array) value).getArray()));
@@ -217,6 +304,10 @@ class JdbcTypeConverter {
                 Arrays.asList((Double[]) ((java.sql.Array) value).getArray()));
           case INT64:
             return Value.int64Array(Arrays.asList((Long[]) ((java.sql.Array) value).getArray()));
+          case ENUM:
+            return Value.protoEnumArray(
+                Arrays.asList((Long[]) ((java.sql.Array) value).getArray()),
+                type.getArrayElementType().getProtoTypeFqn());
           case PG_OID:
             return Value.pgOidArray(Arrays.asList((Long[]) ((java.sql.Array) value).getArray()));
           case NUMERIC:
@@ -266,6 +357,10 @@ class JdbcTypeConverter {
         return Value.json((String) value);
       case PG_JSONB:
         return Value.pgJsonb((String) value);
+      case PROTO:
+        return Value.protoMessage(ByteArray.copyFrom((byte[]) value), type.getProtoTypeFqn());
+      case ENUM:
+        return Value.protoEnum((Long) value, type.getProtoTypeFqn());
       case STRUCT:
       default:
         throw JdbcSqlExceptionFactory.of(
@@ -306,6 +401,12 @@ class JdbcTypeConverter {
     JdbcPreconditions.checkArgument(
         type.getCode() != Code.NUMERIC || value.getClass().equals(BigDecimal.class),
         "input type is numeric, but input value is not an instance of BigDecimal");
+    JdbcPreconditions.checkArgument(
+        type.getCode() != Code.PROTO || value.getClass().equals(byte[].class),
+        "input type is proto, but input value is not an instance of byte[]");
+    JdbcPreconditions.checkArgument(
+        type.getCode() != Code.ENUM || value.getClass().equals(Long.class),
+        "input type is enum, but input value is not an instance of Long");
   }
 
   @SuppressWarnings("deprecation")
