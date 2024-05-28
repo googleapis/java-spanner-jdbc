@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
@@ -152,7 +153,7 @@ public class ITProtoColumnsTest {
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery("SELECT * FROM Types WHERE RowID = 1")) {
 
-      resultSet.next();
+      assertTrue(resultSet.next());
       assertEquals(1, resultSet.getInt("RowID"));
       assertEquals(singerInfo, resultSet.getObject("ProtoMessage", SingerInfo.class));
       assertEquals(singerGenre, resultSet.getObject("ProtoEnum", Genre.class));
@@ -188,7 +189,7 @@ public class ITProtoColumnsTest {
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery("SELECT * FROM Types WHERE RowID = 2")) {
 
-      resultSet.next();
+      assertTrue(resultSet.next());
       assertEquals(2, resultSet.getInt("RowID"));
       assertNull(resultSet.getObject("ProtoMessage", SingerInfo.class));
       assertNull(resultSet.getObject("ProtoEnum", Genre.class));

@@ -245,9 +245,9 @@ class JdbcTypeConverter {
     if (AbstractMessage.class.isAssignableFrom(componentType)) {
       byte[][] result = (byte[][]) ((JdbcArray) value).getArray();
       Object obj = java.lang.reflect.Array.newInstance(componentType, result.length);
+      Method parseMethodParseFrom = componentType.getMethod("parseFrom", byte[].class);
       for (int i = 0; i < result.length; i++) {
         if (result[i] != null) {
-          Method parseMethodParseFrom = componentType.getMethod("parseFrom", byte[].class);
           java.lang.reflect.Array.set(
               obj, i, componentType.cast(parseMethodParseFrom.invoke(null, result[i])));
         }
@@ -266,9 +266,9 @@ class JdbcTypeConverter {
     if (ProtocolMessageEnum.class.isAssignableFrom(componentType)) {
       Long[] result = (Long[]) ((JdbcArray) value).getArray();
       Object obj = java.lang.reflect.Array.newInstance(componentType, result.length);
+      Method parseMethodForNumber = componentType.getMethod("forNumber", int.class);
       for (int i = 0; i < result.length; i++) {
         if (result[i] != null) {
-          Method parseMethodForNumber = componentType.getMethod("forNumber", int.class);
           java.lang.reflect.Array.set(
               obj,
               i,

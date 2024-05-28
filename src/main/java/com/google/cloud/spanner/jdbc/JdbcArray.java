@@ -152,17 +152,17 @@ class JdbcArray implements Array {
   @Override
   public Object getArray(long index, int count, Map<String, Class<?>> map) throws SQLException {
     checkFree();
-    if (data != null) {
+    if (this.data != null) {
       Object res;
-      if ((type.getCode() == Type.Code.PROTO
-              && AbstractMessage[].class.isAssignableFrom(data.getClass()))
-          || (type.getCode() == Type.Code.ENUM
-              && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass()))) {
-        res = java.lang.reflect.Array.newInstance(data.getClass().getComponentType(), count);
+      if ((this.type.getCode() == Type.Code.PROTO
+              && AbstractMessage[].class.isAssignableFrom(this.data.getClass()))
+          || (this.type.getCode() == Type.Code.ENUM
+              && ProtocolMessageEnum[].class.isAssignableFrom(this.data.getClass()))) {
+        res = java.lang.reflect.Array.newInstance(this.data.getClass().getComponentType(), count);
       } else {
-        res = java.lang.reflect.Array.newInstance(type.getJavaClass(), count);
+        res = java.lang.reflect.Array.newInstance(this.type.getJavaClass(), count);
       }
-      System.arraycopy(data, (int) index - 1, res, 0, count);
+      System.arraycopy(this.data, (int) index - 1, res, 0, count);
       return res;
     }
     return null;
@@ -190,20 +190,21 @@ class JdbcArray implements Array {
     JdbcPreconditions.checkArgument(count >= 0, "Count must be >= 0");
     checkFree();
     Type spannerTypeForProto = getSpannerTypeForProto();
-    Type spannerType = spannerTypeForProto == null ? type.getSpannerType() : spannerTypeForProto;
+    Type spannerType =
+        spannerTypeForProto == null ? this.type.getSpannerType() : spannerTypeForProto;
 
     ImmutableList.Builder<Struct> rows = ImmutableList.builder();
     int added = 0;
-    if (data != null) {
+    if (this.data != null) {
       // Note that array index in JDBC is base-one.
       for (int index = (int) startIndex;
-          added < count && index <= ((Object[]) data).length;
+          added < count && index <= ((Object[]) this.data).length;
           index++) {
-        Object value = ((Object[]) data)[index - 1];
+        Object value = ((Object[]) this.data)[index - 1];
         ValueBinder<Struct.Builder> binder =
             Struct.newBuilder().set("INDEX").to(index).set("VALUE");
         Struct.Builder builder;
-        switch (type.getCode()) {
+        switch (this.type.getCode()) {
           case BOOL:
             builder = binder.to((Boolean) value);
             break;
@@ -211,7 +212,7 @@ class JdbcArray implements Array {
             builder = binder.to(ByteArray.copyFrom((byte[]) value));
             break;
           case PROTO:
-            if (value == null && AbstractMessage[].class.isAssignableFrom(data.getClass())) {
+            if (value == null && AbstractMessage[].class.isAssignableFrom(this.data.getClass())) {
               builder = binder.to((ByteArray) null, spannerType.getProtoTypeFqn());
             } else if (value instanceof AbstractMessage) {
               builder = binder.to((AbstractMessage) value);
@@ -232,7 +233,8 @@ class JdbcArray implements Array {
             builder = binder.to((Long) value);
             break;
           case ENUM:
-            if (value == null && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass())) {
+            if (value == null
+                && ProtocolMessageEnum[].class.isAssignableFrom(this.data.getClass())) {
               builder = binder.to((Long) null, spannerType.getProtoTypeFqn());
             } else if (value instanceof ProtocolMessageEnum) {
               builder = binder.to((ProtocolMessageEnum) value);
@@ -260,7 +262,8 @@ class JdbcArray implements Array {
           default:
             throw new SQLFeatureNotSupportedException(
                 String.format(
-                    "Array of type %s cannot be converted to a ResultSet", type.getCode().name()));
+                    "Array of type %s cannot be converted to a ResultSet",
+                    this.type.getCode().name()));
         }
         rows.add(builder.build());
         added++;
@@ -280,33 +283,41 @@ class JdbcArray implements Array {
   // Returns null if the type is not a PROTO or ENUM
   private Type getSpannerTypeForProto() throws SQLException {
     Type spannerType = null;
-    if (data != null) {
-      if (type.getCode() == Type.Code.PROTO
-          && AbstractMessage[].class.isAssignableFrom(data.getClass())) {
-        Class<?> componentType = data.getClass().getComponentType();
-        try {
-          Message.Builder builder =
-              (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
-          Descriptor msgDescriptor = builder.getDescriptorForType();
-          spannerType = Type.proto(msgDescriptor.getFullName());
-        } catch (Exception e) {
-          throw JdbcSqlExceptionFactory.of(
-              "Error occurred when getting proto message descriptor from data", Code.UNKNOWN, e);
-        }
-      } else if (type.getCode() == Type.Code.ENUM
-          && ProtocolMessageEnum[].class.isAssignableFrom(data.getClass())) {
-        Class<?> componentType = data.getClass().getComponentType();
-        try {
-          Descriptors.EnumDescriptor enumDescriptor =
-              (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
-          spannerType = Type.protoEnum(enumDescriptor.getFullName());
-        } catch (Exception e) {
-          throw JdbcSqlExceptionFactory.of(
-              "Error occurred when getting proto enum descriptor from data", Code.UNKNOWN, e);
-        }
+    if (this.data != null) {
+      if (this.type.getCode() == Type.Code.PROTO
+          && AbstractMessage[].class.isAssignableFrom(this.data.getClass())) {
+        spannerType = createSpannerProtoType();
+      } else if (this.type.getCode() == Type.Code.ENUM
+          && ProtocolMessageEnum[].class.isAssignableFrom(this.data.getClass())) {
+        spannerType = createSpannerProtoEnumType();
       }
     }
     return spannerType;
+  }
+
+  private Type createSpannerProtoType() throws SQLException {
+    Class<?> componentType = this.data.getClass().getComponentType();
+    try {
+      Message.Builder builder =
+          (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
+      Descriptor msgDescriptor = builder.getDescriptorForType();
+      return Type.proto(msgDescriptor.getFullName());
+    } catch (Exception e) {
+      throw JdbcSqlExceptionFactory.of(
+          "Error occurred when getting proto message descriptor from data", Code.UNKNOWN, e);
+    }
+  }
+
+  private Type createSpannerProtoEnumType() throws SQLException {
+    Class<?> componentType = this.data.getClass().getComponentType();
+    try {
+      Descriptors.EnumDescriptor enumDescriptor =
+          (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
+      return Type.protoEnum(enumDescriptor.getFullName());
+    } catch (Exception e) {
+      throw JdbcSqlExceptionFactory.of(
+          "Error occurred when getting proto enum descriptor from data", Code.UNKNOWN, e);
+    }
   }
 
   @Override

@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -908,10 +909,11 @@ class JdbcParameterStore {
     int length = java.lang.reflect.Array.getLength(value);
     List<ByteArray> convertedArray = new ArrayList<>();
     try {
+      Method method = componentType.getMethod("toByteArray");
       for (int i = 0; i < length; i++) {
         Object element = java.lang.reflect.Array.get(value, i);
         if (element != null) {
-          byte[] l = (byte[]) componentType.getMethod("toByteArray").invoke(element);
+          byte[] l = (byte[]) method.invoke(element);
           convertedArray.add(ByteArray.copyFrom(l));
         } else {
           convertedArray.add(null);
@@ -935,10 +937,11 @@ class JdbcParameterStore {
     int length = java.lang.reflect.Array.getLength(value);
     List<Long> convertedArray = new ArrayList<>();
     try {
+      Method method = componentType.getMethod("getNumber");
       for (int i = 0; i < length; i++) {
         Object element = java.lang.reflect.Array.get(value, i);
         if (element != null) {
-          int op = (int) componentType.getMethod("getNumber").invoke(element);
+          int op = (int) method.invoke(element);
           convertedArray.add((long) op);
         } else {
           convertedArray.add(null);

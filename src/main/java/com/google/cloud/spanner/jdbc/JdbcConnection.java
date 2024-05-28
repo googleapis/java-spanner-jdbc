@@ -873,8 +873,8 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   @Override
   public void setProtoDescriptors(@Nonnull byte[] protoDescriptors) throws SQLException {
-    checkClosed();
     Preconditions.checkNotNull(protoDescriptors);
+    checkClosed();
     try {
       getSpannerConnection().setProtoDescriptors(protoDescriptors);
     } catch (SpannerException e) {
@@ -885,8 +885,8 @@ class JdbcConnection extends AbstractJdbcConnection {
   @Override
   public void setProtoDescriptors(@Nonnull InputStream protoDescriptors)
       throws SQLException, IOException {
-    checkClosed();
     Preconditions.checkNotNull(protoDescriptors);
+    checkClosed();
     try {
       getSpannerConnection()
           .setProtoDescriptors(ByteArray.copyFrom(protoDescriptors).toByteArray());
