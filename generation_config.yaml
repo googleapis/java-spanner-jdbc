@@ -27,4 +27,5 @@ libraries:
     library_type: "OTHER"
     codeowner_team: "@googleapis/api-spanner-java"
     recommended_package: "com.google.cloud.spanner.jdbc"
-    GAPICs: []
+    GAPICs:
+	  - google/api #we use a dummy path to produce a no-op
