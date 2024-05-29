@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.sample;
 
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.opentelemetry.trace.TraceConfiguration;
 import com.google.cloud.opentelemetry.trace.TraceExporter;
 import com.google.cloud.spanner.SpannerOptions;
@@ -43,6 +44,13 @@ public class OpenTelemetryConfiguration {
   public OpenTelemetry openTelemetry() throws IOException {
     // Enable OpenTelemetry tracing in Spanner.
     SpannerOptions.enableOpenTelemetryTraces();
+
+    if (!hasDefaultCredentials()) {
+      // Create a no-op OpenTelemetry object if this environment does not have any default
+      // credentials configured. This could for example be on local test environments that use
+      // the Spanner emulator.
+      return OpenTelemetry.noop();
+    }
 
     TraceConfiguration.Builder traceConfigurationBuilder = TraceConfiguration.builder();
     TraceConfiguration traceConfiguration = traceConfigurationBuilder.setProjectId(project).build();
@@ -72,5 +80,13 @@ public class OpenTelemetryConfiguration {
   @Bean
   public Tracer tracer(OpenTelemetry openTelemetry) {
     return openTelemetry.getTracer("com.google.cloud.spanner.jdbc.sample.spring-data-jdbc");
+  }
+
+  private boolean hasDefaultCredentials() {
+    try {
+      return GoogleCredentials.getApplicationDefault() != null;
+    } catch (IOException exception) {
+      return false;
+    }
   }
 }
