@@ -48,12 +48,14 @@ public class OpenTelemetryConfiguration {
     TraceConfiguration traceConfiguration = traceConfigurationBuilder.setProjectId(project).build();
     SpanExporter traceExporter = TraceExporter.createWithConfiguration(traceConfiguration);
 
+    // Create an OpenTelemetry object and register it as the global OpenTelemetry object. This
+    // will automatically be picked up by the Spanner libraries and used for tracing.
     return OpenTelemetrySdk.builder()
         .setTracerProvider(
             SdkTracerProvider.builder()
                 // Set sampling to 'AlwaysOn' in this example. In production, you want to reduce
-                // this to a
-                // smaller fraction to limit the number of traces that are being collected.
+                // this to a smaller fraction to limit the number of traces that are being
+                // collected.
                 .setSampler(Sampler.alwaysOn())
                 .setResource(
                     Resource.builder()

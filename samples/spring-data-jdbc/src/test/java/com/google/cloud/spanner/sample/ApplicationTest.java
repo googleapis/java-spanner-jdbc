@@ -748,6 +748,7 @@ public class ApplicationTest extends AbstractMockServerTest {
 
   @Test
   public void testRunApplication() {
+    System.setProperty("open_telemetry.project", "test-project");
     System.setProperty("port", String.valueOf(getPort()));
     SpringApplication.run(Application.class).close();
 

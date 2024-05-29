@@ -92,6 +92,8 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
         traceConfigurationBuilder.setProjectId(options.getProjectId()).build();
     SpanExporter traceExporter = TraceExporter.createWithConfiguration(traceConfiguration);
 
+    String serviceName =
+        "java-spanner-jdbc-integration-tests-" + ThreadLocalRandom.current().nextInt();
     openTelemetry =
         OpenTelemetrySdk.builder()
             .setTracerProvider(
@@ -100,10 +102,7 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
                     .setSampler(Sampler.alwaysOn())
                     .setResource(
                         Resource.builder()
-                            .put(
-                                "service.name",
-                                "java-spanner-jdbc-integration-tests-"
-                                    + ThreadLocalRandom.current().nextInt())
+                            .put("service.name", serviceName)
                             .build())
                     .addSpanProcessor(BatchSpanProcessor.builder(traceExporter).build())
                     .build())
@@ -129,7 +128,9 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
   public void testGlobalOpenTelemetry() throws SQLException, IOException, InterruptedException {
     GlobalOpenTelemetry.resetForTest();
     GlobalOpenTelemetry.set(openTelemetry);
-    try (Connection connection = createConnection(env, database)) {
+    Properties info = new Properties();
+    info.put("enableExtendedTracing", "true");
+    try (Connection connection = createConnection(env, database, info)) {
       testOpenTelemetry(connection);
     } finally {
       GlobalOpenTelemetry.resetForTest();
@@ -143,6 +144,7 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
     GlobalOpenTelemetry.resetForTest();
     Properties info = new Properties();
     info.put(JdbcDriver.OPEN_TELEMETRY_PROPERTY_KEY, openTelemetry);
+    info.put("enableExtendedTracing", String.valueOf(true));
     try (Connection connection = createConnection(env, database, info)) {
       testOpenTelemetry(connection);
     }
