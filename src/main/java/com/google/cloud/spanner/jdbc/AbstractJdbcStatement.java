@@ -26,24 +26,15 @@ import com.google.cloud.spanner.connection.StatementResult;
 import com.google.cloud.spanner.connection.StatementResult.ClientSideStatementType;
 import com.google.common.base.Stopwatch;
 import com.google.rpc.Code;
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.StatusCode;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Scope;
-import io.opentelemetry.semconv.SemanticAttributes;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
 /** Base class for Cloud Spanner JDBC {@link Statement}s */
 abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Statement {
@@ -231,16 +222,12 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   private <T> T doWithStatementTimeout(
-      com.google.cloud.spanner.Statement statement,
-      Supplier<T> runnable)
-      throws SQLException {
+      com.google.cloud.spanner.Statement statement, Supplier<T> runnable) throws SQLException {
     return doWithStatementTimeout(runnable, ignore -> Boolean.TRUE);
   }
 
   private <T> T doWithStatementTimeout(
-      Supplier<T> runnable,
-      Function<T, Boolean> shouldResetTimeout)
-      throws SQLException {
+      Supplier<T> runnable, Function<T, Boolean> shouldResetTimeout) throws SQLException {
     StatementTimeout originalTimeout = setTemporaryStatementTimeout();
     T result = null;
     try {
@@ -279,8 +266,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    *     nothing depending on the type of SQL statement.
    * @throws SQLException if a database error occurs.
    */
-  StatementResult execute(com.google.cloud.spanner.Statement statement)
-      throws SQLException {
+  StatementResult execute(com.google.cloud.spanner.Statement statement) throws SQLException {
     StatementResult statementResult =
         doWithStatementTimeout(
             () -> connection.getSpannerConnection().execute(statement),
