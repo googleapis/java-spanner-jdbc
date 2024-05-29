@@ -100,10 +100,7 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
                 SdkTracerProvider.builder()
                     // Always sample in this test to ensure we know what we get.
                     .setSampler(Sampler.alwaysOn())
-                    .setResource(
-                        Resource.builder()
-                            .put("service.name", serviceName)
-                            .build())
+                    .setResource(Resource.builder().put("service.name", serviceName).build())
                     .addSpanProcessor(BatchSpanProcessor.builder(traceExporter).build())
                     .build())
             .build();
