@@ -18,6 +18,7 @@ package com.google.cloud.spanner.jdbc;
 
 import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.toSqlDate;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -27,7 +28,10 @@ import static org.junit.Assert.fail;
 
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.Struct;
+import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
+import com.google.cloud.spanner.jdbc.it.SingerProto.Genre;
+import com.google.cloud.spanner.jdbc.it.SingerProto.SingerInfo;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -36,6 +40,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -220,6 +225,75 @@ public class JdbcArrayTest {
       assertThat(rs.next()).isTrue();
       assertThat(rs.getTimestamp(2)).isEqualTo(new Timestamp(1000L));
       assertThat(rs.next()).isFalse();
+    }
+
+    SingerInfo singerInfo =
+        SingerInfo.newBuilder().setSingerId(1).setNationality("Country1").build();
+    array =
+        JdbcArray.createArray(
+            "PROTO", new SingerInfo[] {singerInfo, SingerInfo.getDefaultInstance(), null});
+    assertEquals(ProtoMessageType.VENDOR_TYPE_NUMBER, array.getBaseType());
+    assertEquals(singerInfo, ((SingerInfo[]) array.getArray(1, 1))[0]);
+    try (ResultSet rs = array.getResultSet()) {
+      assertTrue(rs.next());
+      assertEquals(singerInfo, rs.getObject(2, SingerInfo.class));
+      assertArrayEquals(singerInfo.toByteArray(), rs.getBytes(2));
+      assertTrue(rs.next());
+      assertEquals(SingerInfo.getDefaultInstance(), rs.getObject(2, SingerInfo.class));
+      assertArrayEquals(SingerInfo.getDefaultInstance().toByteArray(), rs.getBytes(2));
+      assertTrue(rs.next());
+      assertNull(rs.getObject(2, SingerInfo.class));
+      assertNull(rs.getBytes(2));
+      assertFalse(rs.next());
+    }
+
+    array = JdbcArray.createArray("ENUM", new Genre[] {Genre.ROCK, Genre.FOLK, null});
+    assertEquals(ProtoEnumType.VENDOR_TYPE_NUMBER, array.getBaseType());
+    assertEquals(Genre.ROCK, ((Genre[]) array.getArray(1, 1))[0]);
+    try (ResultSet rs = array.getResultSet()) {
+      assertTrue(rs.next());
+      assertEquals(Genre.ROCK, rs.getObject(2, Genre.class));
+      assertEquals(Genre.ROCK.getNumber(), rs.getInt(2));
+      assertTrue(rs.next());
+      assertEquals(Genre.FOLK, rs.getObject(2, Genre.class));
+      assertEquals(Genre.FOLK.getNumber(), rs.getInt(2));
+      assertTrue(rs.next());
+      assertNull(rs.getObject(2, Genre.class));
+      assertEquals(0, rs.getInt(2));
+      assertFalse(rs.next());
+    }
+
+    array =
+        JdbcArray.createArray(
+            JdbcDataType.getType(Code.PROTO),
+            Arrays.asList(
+                singerInfo.toByteArray(), SingerInfo.getDefaultInstance().toByteArray(), null));
+    assertEquals(ProtoMessageType.VENDOR_TYPE_NUMBER, array.getBaseType());
+    assertArrayEquals(singerInfo.toByteArray(), ((byte[][]) array.getArray(1, 1))[0]);
+    try (ResultSet rs = array.getResultSet()) {
+      assertTrue(rs.next());
+      assertArrayEquals(singerInfo.toByteArray(), rs.getBytes(2));
+      assertTrue(rs.next());
+      assertArrayEquals(SingerInfo.getDefaultInstance().toByteArray(), rs.getBytes(2));
+      assertTrue(rs.next());
+      assertNull(rs.getBytes(2));
+      assertFalse(rs.next());
+    }
+
+    array =
+        JdbcArray.createArray(
+            JdbcDataType.getType(Code.ENUM),
+            Arrays.asList((long) Genre.ROCK.getNumber(), (long) Genre.FOLK.getNumber(), null));
+    assertEquals(ProtoEnumType.VENDOR_TYPE_NUMBER, array.getBaseType());
+    assertEquals(Genre.ROCK.getNumber(), (long) ((Long[]) array.getArray(1, 1))[0]);
+    try (ResultSet rs = array.getResultSet()) {
+      assertTrue(rs.next());
+      assertEquals(Genre.ROCK.getNumber(), rs.getInt(2));
+      assertTrue(rs.next());
+      assertEquals(Genre.FOLK.getNumber(), rs.getInt(2));
+      assertTrue(rs.next());
+      assertEquals(0, rs.getInt(2));
+      assertFalse(rs.next());
     }
   }
 

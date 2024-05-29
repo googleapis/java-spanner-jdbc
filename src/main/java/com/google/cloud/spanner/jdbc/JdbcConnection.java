@@ -20,6 +20,7 @@ import static com.google.cloud.spanner.jdbc.JdbcStatement.ALL_COLUMNS;
 import static com.google.cloud.spanner.jdbc.JdbcStatement.isNullOrEmpty;
 
 import com.google.api.client.util.Preconditions;
+import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Mutation;
@@ -38,6 +39,8 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.Tracer;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -880,5 +883,35 @@ class JdbcConnection extends AbstractJdbcConnection {
       getTransactionRetryListenersFromConnection() throws SQLException {
     checkClosed();
     return getSpannerConnection().getTransactionRetryListeners();
+  }
+
+  @Override
+  public void setProtoDescriptors(@Nonnull byte[] protoDescriptors) throws SQLException {
+    Preconditions.checkNotNull(protoDescriptors);
+    checkClosed();
+    try {
+      getSpannerConnection().setProtoDescriptors(protoDescriptors);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public void setProtoDescriptors(@Nonnull InputStream protoDescriptors)
+      throws SQLException, IOException {
+    Preconditions.checkNotNull(protoDescriptors);
+    checkClosed();
+    try {
+      getSpannerConnection()
+          .setProtoDescriptors(ByteArray.copyFrom(protoDescriptors).toByteArray());
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public byte[] getProtoDescriptors() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().getProtoDescriptors();
   }
 }

@@ -47,14 +47,6 @@ import javax.annotation.Nullable;
 
 /** Base class for Cloud Spanner JDBC {@link Statement}s */
 abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Statement {
-
-  static final String BATCH_UPDATE = "CloudSpannerJdbcOperation.BatchUpdate";
-  static final String BATCH_DDL = "CloudSpannerJdbcOperation.BatchDdl";
-  static final String EXECUTE_UPDATE = "CloudSpannerJdbcOperation.ExecuteUpdate";
-  static final String EXECUTE = "CloudSpannerJdbcOperation.Execute";
-  static final String EXECUTE_QUERY = "CloudSpannerJdbcOperation.ExecuteQuery";
-  static final String ANALYZE_QUERY = "CloudSpannerJdbcOperation.AnalyzeQuery";
-
   private static final String CURSORS_NOT_SUPPORTED = "Cursors are not supported";
   private static final String ONLY_FETCH_FORWARD_SUPPORTED = "Only fetch_forward is supported";
   final AbstractStatementParser parser;
@@ -72,14 +64,6 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   @Override
   public JdbcConnection getConnection() {
     return connection;
-  }
-
-  Tracer getTracer() {
-    return connection.getTracer();
-  }
-
-  Attributes getOpenTelemetryAttributes() {
-    return connection.getOpenTelemetryAttributes();
   }
 
   private Options.QueryOption[] getQueryOptions(QueryOption... options) throws SQLException {
@@ -233,9 +217,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       QueryOption... options)
       throws SQLException {
     Options.QueryOption[] queryOptions = getQueryOptions(options);
-    String name = analyzeMode == QueryAnalyzeMode.PLAN ? ANALYZE_QUERY : EXECUTE_QUERY;
     return doWithStatementTimeout(
-        name,
         statement,
         () -> {
           com.google.cloud.spanner.ResultSet resultSet;
@@ -248,52 +230,14 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
         });
   }
 
-  <T> T trace(String traceName, String sql, Supplier<T> runnable) {
-    //noinspection deprecation
-    return trace(traceName, Attributes.of(SemanticAttributes.DB_STATEMENT, sql), runnable);
-  }
-
-  <T> T trace(
-      String traceName, List<com.google.cloud.spanner.Statement> statements, Supplier<T> runnable) {
-    return trace(
-        traceName,
-        Attributes.of(
-            StatementBatchAttributeKey.INSTANCE,
-            statements.stream()
-                .map(com.google.cloud.spanner.Statement::getSql)
-                .collect(Collectors.toList())),
-        runnable);
-  }
-
-  private <S, T> T trace(String traceName, Attributes attributes, Supplier<T> runnable) {
-    Span span =
-        getTracer()
-            .spanBuilder(traceName)
-            .setAllAttributes(getOpenTelemetryAttributes())
-            .setAllAttributes(attributes)
-            .startSpan();
-    try (Scope ignore = span.makeCurrent()) {
-      return runnable.get();
-    } catch (Throwable exception) {
-      span.setStatus(StatusCode.ERROR, exception.getMessage());
-      span.recordException(exception);
-      throw exception;
-    } finally {
-      span.end();
-    }
-  }
-
   private <T> T doWithStatementTimeout(
-      @Nullable String traceName,
       com.google.cloud.spanner.Statement statement,
       Supplier<T> runnable)
       throws SQLException {
-    return doWithStatementTimeout(traceName, statement, runnable, ignore -> Boolean.TRUE);
+    return doWithStatementTimeout(runnable, ignore -> Boolean.TRUE);
   }
 
   private <T> T doWithStatementTimeout(
-      @Nullable String traceName,
-      com.google.cloud.spanner.Statement statement,
       Supplier<T> runnable,
       Function<T, Boolean> shouldResetTimeout)
       throws SQLException {
@@ -301,7 +245,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
     T result = null;
     try {
       Stopwatch stopwatch = Stopwatch.createStarted();
-      result = traceName == null ? runnable.get() : trace(traceName, statement.getSql(), runnable);
+      result = runnable.get();
       Duration executionDuration = stopwatch.elapsed();
       connection.recordClientLibLatencyMetric(executionDuration.toMillis());
       return result;
@@ -330,18 +274,15 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
    * Executes a SQL statement on the connection of this {@link Statement}. The SQL statement can be
    * any supported SQL statement, including client side statements such as SET AUTOCOMMIT ON|OFF.
    *
-   * @param traceName The traceName to use for tracing, or null if no trace should be created.
    * @param statement The SQL statement to execute.
    * @return a {@link StatementResult} containing either a {@link ResultSet}, an update count or
    *     nothing depending on the type of SQL statement.
    * @throws SQLException if a database error occurs.
    */
-  StatementResult execute(@Nullable String traceName, com.google.cloud.spanner.Statement statement)
+  StatementResult execute(com.google.cloud.spanner.Statement statement)
       throws SQLException {
     StatementResult statementResult =
         doWithStatementTimeout(
-            traceName,
-            statement,
             () -> connection.getSpannerConnection().execute(statement),
             result -> !resultIsSetStatementTimeout(result));
     if (resultIsShowStatementTimeout(statementResult)) {

@@ -1,5 +1,38 @@
 # Changelog
 
+## [2.18.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.18.0...v2.18.1) (2024-05-22)
+
+
+### Dependencies
+
+* Remove open-telemetry dependency import ([#1608](https://github.com/googleapis/java-spanner-jdbc/issues/1608)) ([fcb32ef](https://github.com/googleapis/java-spanner-jdbc/commit/fcb32efb4945807e0933341874644f042b7f33af))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.67.0 ([#1613](https://github.com/googleapis/java-spanner-jdbc/issues/1613)) ([12080e0](https://github.com/googleapis/java-spanner-jdbc/commit/12080e0579269fd9b893440d2f6ff3e784fb52ec))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.30.1 ([#1609](https://github.com/googleapis/java-spanner-jdbc/issues/1609)) ([46aed65](https://github.com/googleapis/java-spanner-jdbc/commit/46aed65c39cd9c6e60733fdf9cfd11f770e77019))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.38.0 ([#1606](https://github.com/googleapis/java-spanner-jdbc/issues/1606)) ([b45bed5](https://github.com/googleapis/java-spanner-jdbc/commit/b45bed575bc53898205aa183d7d8554b336a68f9))
+* Update dependency org.springframework.data:spring-data-bom to v2023.1.6 ([#1610](https://github.com/googleapis/java-spanner-jdbc/issues/1610)) ([aac170d](https://github.com/googleapis/java-spanner-jdbc/commit/aac170db26f8018b44f97d17f92faecb11117269))
+* Update dependency org.springframework.data:spring-data-bom to v2024 ([#1611](https://github.com/googleapis/java-spanner-jdbc/issues/1611)) ([6669c7a](https://github.com/googleapis/java-spanner-jdbc/commit/6669c7af373160fa9396a6dbcf2adff091d3c46a))
+* Update dependency org.testcontainers:testcontainers to v1.19.8 ([#1604](https://github.com/googleapis/java-spanner-jdbc/issues/1604)) ([e155a46](https://github.com/googleapis/java-spanner-jdbc/commit/e155a4624a021cb7959e72f7eb138ff8c685eaef))
+
+## [2.18.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.17.1...v2.18.0) (2024-05-04)
+
+
+### Features
+
+* Allow DDL with autocommit=false ([#1600](https://github.com/googleapis/java-spanner-jdbc/issues/1600)) ([a61c25d](https://github.com/googleapis/java-spanner-jdbc/commit/a61c25d8f90460ec507b383dbaee0ca686104ba8))
+* Support concurrent transactions on the emulator ([#1601](https://github.com/googleapis/java-spanner-jdbc/issues/1601)) ([7123991](https://github.com/googleapis/java-spanner-jdbc/commit/71239912a8078569dcd985314810131e593c0ed7))
+
+
+### Bug Fixes
+
+* ClassCastException in Spring Data JDBC sample ([#1595](https://github.com/googleapis/java-spanner-jdbc/issues/1595)) ([e96a86a](https://github.com/googleapis/java-spanner-jdbc/commit/e96a86a4b82ac4b47bd1ce25e810f01299597339))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.66.0 ([#1599](https://github.com/googleapis/java-spanner-jdbc/issues/1599)) ([84ea11a](https://github.com/googleapis/java-spanner-jdbc/commit/84ea11ac27635dbe6fb101134767d14488dde8c2))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.30.0 ([#1597](https://github.com/googleapis/java-spanner-jdbc/issues/1597)) ([40a7212](https://github.com/googleapis/java-spanner-jdbc/commit/40a721237c79882e55d86d48402c64cc09782522))
+* Update dependency org.mybatis.dynamic-sql:mybatis-dynamic-sql to v1.5.1 ([#1596](https://github.com/googleapis/java-spanner-jdbc/issues/1596)) ([f54beb2](https://github.com/googleapis/java-spanner-jdbc/commit/f54beb20d6bbe3f4974385c4758ba77d31d25ce3))
+
 ## [2.17.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.17.0...v2.17.1) (2024-04-30)
 
 

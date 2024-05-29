@@ -24,12 +24,18 @@ import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.ValueBinder;
 import com.google.common.io.CharStreams;
+import com.google.protobuf.AbstractMessage;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
+import com.google.protobuf.ProtocolMessageEnum;
 import com.google.rpc.Code;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -279,6 +285,8 @@ class JdbcParameterStore {
       case Types.DECIMAL:
       case JsonType.VENDOR_TYPE_NUMBER:
       case PgJsonbType.VENDOR_TYPE_NUMBER:
+      case ProtoMessageType.VENDOR_TYPE_NUMBER:
+      case ProtoEnumType.VENDOR_TYPE_NUMBER:
         return true;
     }
     return false;
@@ -301,7 +309,7 @@ class JdbcParameterStore {
       case Types.DOUBLE:
       case Types.NUMERIC:
       case Types.DECIMAL:
-        return value instanceof Number;
+        return value instanceof Number || value instanceof ProtocolMessageEnum;
       case Types.CHAR:
       case Types.VARCHAR:
       case Types.LONGVARCHAR:
@@ -328,7 +336,9 @@ class JdbcParameterStore {
       case Types.BINARY:
       case Types.VARBINARY:
       case Types.LONGVARBINARY:
-        return value instanceof byte[] || value instanceof InputStream;
+        return value instanceof byte[]
+            || value instanceof InputStream
+            || value instanceof AbstractMessage;
       case Types.ARRAY:
         return value instanceof Array;
       case Types.BLOB:
@@ -348,6 +358,10 @@ class JdbcParameterStore {
             || value instanceof Reader
             || (value instanceof Value
                 && ((Value) value).getType().getCode() == Type.Code.PG_JSONB);
+      case ProtoMessageType.VENDOR_TYPE_NUMBER:
+        return value instanceof AbstractMessage || value instanceof byte[];
+      case ProtoEnumType.VENDOR_TYPE_NUMBER:
+        return value instanceof ProtocolMessageEnum || value instanceof Number;
     }
     return false;
   }
@@ -450,6 +464,8 @@ class JdbcParameterStore {
       case Types.BIGINT:
         if (value instanceof Number) {
           return binder.to(((Number) value).longValue());
+        } else if (value instanceof ProtocolMessageEnum) {
+          return binder.to((ProtocolMessageEnum) value);
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid long", Code.INVALID_ARGUMENT);
       case Types.REAL:
@@ -568,6 +584,8 @@ class JdbcParameterStore {
                 Code.INVALID_ARGUMENT,
                 e);
           }
+        } else if (value instanceof AbstractMessage) {
+          return binder.to((AbstractMessage) value);
         }
         throw JdbcSqlExceptionFactory.of(
             value + " is not a valid byte array", Code.INVALID_ARGUMENT);
@@ -612,6 +630,23 @@ class JdbcParameterStore {
           }
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid clob", Code.INVALID_ARGUMENT);
+      case ProtoMessageType.VENDOR_TYPE_NUMBER:
+        if (value instanceof AbstractMessage) {
+          return binder.to((AbstractMessage) value);
+        } else if (value instanceof byte[]) {
+          return binder.to(ByteArray.copyFrom((byte[]) value));
+        } else {
+          throw JdbcSqlExceptionFactory.of(
+              value + " is not a valid PROTO value", Code.INVALID_ARGUMENT);
+        }
+      case ProtoEnumType.VENDOR_TYPE_NUMBER:
+        if (value instanceof ProtocolMessageEnum) {
+          return binder.to((ProtocolMessageEnum) value);
+        } else if (value instanceof Number) {
+          return binder.to(((Number) value).longValue());
+        }
+        throw JdbcSqlExceptionFactory.of(
+            value + " is not a valid ENUM value", Code.INVALID_ARGUMENT);
     }
     return null;
   }
@@ -732,6 +767,10 @@ class JdbcParameterStore {
         throw new IllegalArgumentException(
             "Unsupported parameter type: " + value.getClass().getName() + " - " + value);
       }
+    } else if (AbstractMessage.class.isAssignableFrom(value.getClass())) {
+      return binder.to((AbstractMessage) value);
+    } else if (ProtocolMessageEnum.class.isAssignableFrom(value.getClass())) {
+      return binder.to((ProtocolMessageEnum) value);
     }
     return null;
   }
@@ -785,6 +824,13 @@ class JdbcParameterStore {
         case Types.LONGVARBINARY:
         case Types.BLOB:
           return binder.toBytesArray(null);
+        case ProtoMessageType.VENDOR_TYPE_NUMBER:
+        case ProtoEnumType.VENDOR_TYPE_NUMBER:
+          return binder.to(
+              Value.untyped(
+                  com.google.protobuf.Value.newBuilder()
+                      .setNullValue(NullValue.NULL_VALUE)
+                      .build()));
         default:
           return binder.to(
               Value.untyped(
@@ -849,8 +895,67 @@ class JdbcParameterStore {
       }
     } else if (byte[][].class.isAssignableFrom(value.getClass())) {
       return binder.toBytesArray(JdbcTypeConverter.toGoogleBytes((byte[][]) value));
+    } else if (AbstractMessage[].class.isAssignableFrom(value.getClass())) {
+      return bindProtoMessageArray(binder, value);
+    } else if (ProtocolMessageEnum[].class.isAssignableFrom(value.getClass())) {
+      return bindProtoEnumArray(binder, value);
     }
     return null;
+  }
+
+  private Builder bindProtoMessageArray(ValueBinder<Builder> binder, Object value)
+      throws SQLException {
+    Class<?> componentType = value.getClass().getComponentType();
+    int length = java.lang.reflect.Array.getLength(value);
+    List<ByteArray> convertedArray = new ArrayList<>();
+    try {
+      Method method = componentType.getMethod("toByteArray");
+      for (int i = 0; i < length; i++) {
+        Object element = java.lang.reflect.Array.get(value, i);
+        if (element != null) {
+          byte[] l = (byte[]) method.invoke(element);
+          convertedArray.add(ByteArray.copyFrom(l));
+        } else {
+          convertedArray.add(null);
+        }
+      }
+
+      Message.Builder builder =
+          (Message.Builder) componentType.getMethod("newBuilder").invoke(null);
+      Descriptor msgDescriptor = builder.getDescriptorForType();
+
+      return binder.toProtoMessageArray(convertedArray, msgDescriptor.getFullName());
+    } catch (Exception e) {
+      throw JdbcSqlExceptionFactory.of(
+          "Error occurred when binding Array of Proto Message input", Code.UNKNOWN, e);
+    }
+  }
+
+  private Builder bindProtoEnumArray(ValueBinder<Builder> binder, Object value)
+      throws SQLException {
+    Class<?> componentType = value.getClass().getComponentType();
+    int length = java.lang.reflect.Array.getLength(value);
+    List<Long> convertedArray = new ArrayList<>();
+    try {
+      Method method = componentType.getMethod("getNumber");
+      for (int i = 0; i < length; i++) {
+        Object element = java.lang.reflect.Array.get(value, i);
+        if (element != null) {
+          int op = (int) method.invoke(element);
+          convertedArray.add((long) op);
+        } else {
+          convertedArray.add(null);
+        }
+      }
+
+      Descriptors.EnumDescriptor enumDescriptor =
+          (Descriptors.EnumDescriptor) componentType.getMethod("getDescriptor").invoke(null);
+
+      return binder.toProtoEnumArray(convertedArray, enumDescriptor.getFullName());
+    } catch (Exception e) {
+      throw JdbcSqlExceptionFactory.of(
+          "Error occurred when binding Array of Proto Enum input", Code.UNKNOWN, e);
+    }
   }
 
   private List<Long> toLongList(Number[] input) {
@@ -891,6 +996,7 @@ class JdbcParameterStore {
       case Types.BIGINT:
         return binder.to((Long) null);
       case Types.BINARY:
+      case ProtoMessageType.VENDOR_TYPE_NUMBER:
         return binder.to((ByteArray) null);
       case Types.BLOB:
         return binder.to((ByteArray) null);
@@ -914,6 +1020,7 @@ class JdbcParameterStore {
       case Types.DOUBLE:
         return binder.to((Double) null);
       case Types.INTEGER:
+      case ProtoEnumType.VENDOR_TYPE_NUMBER:
         return binder.to((Long) null);
       case Types.LONGNVARCHAR:
         return binder.to((String) null);

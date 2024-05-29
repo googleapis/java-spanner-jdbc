@@ -21,13 +21,16 @@ import static org.mockito.Mockito.when;
 
 import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Dialect;
+import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerExceptionFactory;
+import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.connection.AbstractConnectionImplTest;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnection;
 import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier.GenericConnectionProvider;
 import com.google.cloud.spanner.connection.ConnectionImplTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
+import io.opentelemetry.api.OpenTelemetry;
 import java.sql.SQLException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,6 +66,10 @@ public class JdbcConnectionGeneratedSqlScriptTest {
       when(options.getUri()).thenReturn(ConnectionImplTest.URI);
       com.google.cloud.spanner.connection.Connection spannerConnection =
           ConnectionImplTest.createConnection(options, dialect);
+      Spanner spanner = spannerConnection.getSpanner();
+      SpannerOptions spannerOptions = mock(SpannerOptions.class);
+      when(spannerOptions.getOpenTelemetry()).thenReturn(OpenTelemetry.noop());
+      when(spanner.getOptions()).thenReturn(spannerOptions);
       when(spannerConnection.getDialect()).thenReturn(dialect);
       when(options.getConnection()).thenReturn(spannerConnection);
       when(options.getDatabaseId()).thenReturn(DatabaseId.of("project", "instance", "database"));
