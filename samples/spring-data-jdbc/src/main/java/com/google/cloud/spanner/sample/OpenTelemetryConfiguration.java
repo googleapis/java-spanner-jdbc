@@ -37,11 +37,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenTelemetryConfiguration {
 
+  @Value("${open_telemetry.enabled}")
+  private boolean enabled;
+
   @Value("${open_telemetry.project}")
   private String project;
 
   @Bean
   public OpenTelemetry openTelemetry() throws IOException {
+    if (!enabled) {
+      return OpenTelemetry.noop();
+    }
+
     // Enable OpenTelemetry tracing in Spanner.
     SpannerOptions.enableOpenTelemetryTraces();
 
