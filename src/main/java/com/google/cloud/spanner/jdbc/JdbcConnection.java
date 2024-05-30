@@ -38,7 +38,6 @@ import com.google.common.collect.Iterators;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
-import io.opentelemetry.api.trace.Tracer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Array;
@@ -90,8 +89,6 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   private final boolean useLegacyIsValidCheck;
 
-  private final Tracer tracer;
-
   private final Metrics metrics;
 
   private final Attributes openTelemetryAttributes;
@@ -100,15 +97,9 @@ class JdbcConnection extends AbstractJdbcConnection {
     super(connectionUrl, options);
     this.useLegacyIsValidCheck = useLegacyValidCheck();
     OpenTelemetry openTelemetry = getSpanner().getOptions().getOpenTelemetry();
-    this.tracer = openTelemetry.getTracer(Metrics.INSTRUMENTATION_SCOPE, getLibraryVersion());
-    this.metrics = new Metrics(openTelemetry);
     this.openTelemetryAttributes =
         createOpenTelemetryAttributes(getConnectionOptions().getDatabaseId());
-  }
-
-  static String getLibraryVersion() {
-    String version = JdbcConnection.class.getPackage().getImplementationVersion();
-    return version != null ? version : "";
+    this.metrics = new Metrics(openTelemetry);
   }
 
   static boolean useLegacyValidCheck() {
@@ -120,14 +111,6 @@ class JdbcConnection extends AbstractJdbcConnection {
       return Boolean.parseBoolean(value);
     }
     return false;
-  }
-
-  Tracer getTracer() {
-    return this.tracer;
-  }
-
-  Attributes getOpenTelemetryAttributes() {
-    return this.openTelemetryAttributes;
   }
 
   @VisibleForTesting

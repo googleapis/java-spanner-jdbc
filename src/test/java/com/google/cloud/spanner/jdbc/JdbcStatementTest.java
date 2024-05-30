@@ -43,7 +43,6 @@ import com.google.cloud.spanner.connection.StatementResult.ResultType;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
-import io.opentelemetry.api.OpenTelemetry;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -177,7 +176,6 @@ public class JdbcStatementTest {
     when(connection.getDialect()).thenReturn(dialect);
     when(connection.getParser()).thenReturn(AbstractStatementParser.getInstance(dialect));
     when(connection.getSpannerConnection()).thenReturn(spanner);
-    when(connection.getTracer()).thenReturn(OpenTelemetry.noop().getTracer("noop"));
     return new JdbcStatement(connection);
   }
 
@@ -186,7 +184,6 @@ public class JdbcStatementTest {
     final String select = "SELECT 1";
     JdbcConnection connection = mock(JdbcConnection.class);
     when(connection.getDialect()).thenReturn(dialect);
-    when(connection.getTracer()).thenReturn(OpenTelemetry.noop().getTracer("noop"));
     Connection spanner = mock(Connection.class);
     when(connection.getSpannerConnection()).thenReturn(spanner);
     StatementResult result = mock(StatementResult.class);
@@ -357,7 +354,6 @@ public class JdbcStatementTest {
   public void testInternalExecuteUpdate() throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
     when(connection.getDialect()).thenReturn(dialect);
-    when(connection.getTracer()).thenReturn(OpenTelemetry.noop().getTracer("noop"));
     Connection spannerConnection = mock(Connection.class);
     when(connection.getSpannerConnection()).thenReturn(spannerConnection);
     com.google.cloud.spanner.Statement updateStatement =
@@ -387,7 +383,6 @@ public class JdbcStatementTest {
   public void testInternalExecuteLargeUpdate() throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
     when(connection.getDialect()).thenReturn(dialect);
-    when(connection.getTracer()).thenReturn(OpenTelemetry.noop().getTracer("noop"));
     Connection spannerConnection = mock(Connection.class);
     when(connection.getSpannerConnection()).thenReturn(spannerConnection);
     com.google.cloud.spanner.Statement updateStatement =

@@ -156,12 +156,6 @@
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-api</artifactId>
     </dependency>
-    <dependency>
-      <!-- Not managed by opentelemetry-bom -->
-      <groupId>io.opentelemetry.semconv</groupId>
-      <artifactId>opentelemetry-semconv</artifactId>
-      <version>1.25.0-alpha</version>
-    </dependency>
 
     <!-- Test dependencies -->
     <dependency>

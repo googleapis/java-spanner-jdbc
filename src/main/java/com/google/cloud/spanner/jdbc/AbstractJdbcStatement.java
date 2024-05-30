@@ -209,7 +209,6 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       throws SQLException {
     Options.QueryOption[] queryOptions = getQueryOptions(options);
     return doWithStatementTimeout(
-        statement,
         () -> {
           com.google.cloud.spanner.ResultSet resultSet;
           if (analyzeMode == null) {
@@ -221,8 +220,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
         });
   }
 
-  private <T> T doWithStatementTimeout(
-      com.google.cloud.spanner.Statement statement, Supplier<T> runnable) throws SQLException {
+  private <T> T doWithStatementTimeout(Supplier<T> runnable) throws SQLException {
     return doWithStatementTimeout(runnable, ignore -> Boolean.TRUE);
   }
 
@@ -246,6 +244,19 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   /**
+   * Executes a SQL statement on the connection of this {@link Statement} as an update (DML)
+   * statement.
+   *
+   * @param statement The SQL statement to execute
+   * @return the number of rows that was inserted/updated/deleted
+   * @throws SQLException if a database error occurs, or if the number of rows affected is larger
+   *     than {@link Integer#MAX_VALUE}
+   */
+  int executeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
+    return checkedCast(executeLargeUpdate(statement));
+  }
+
+  /**
    * Do a checked cast from long to int. Throws a {@link SQLException} with code {@link
    * Code#OUT_OF_RANGE} if the update count is too big to fit in an int.
    */
@@ -255,6 +266,18 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
           "update count too large for executeUpdate: " + updateCount, Code.OUT_OF_RANGE);
     }
     return (int) updateCount;
+  }
+
+  /**
+   * Executes a SQL statement on the connection of this {@link Statement} as an update (DML)
+   * statement.
+   *
+   * @param statement The SQL statement to execute
+   * @return the number of rows that was inserted/updated/deleted
+   * @throws SQLException if a database error occurs
+   */
+  long executeLargeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
+    return doWithStatementTimeout(() -> connection.getSpannerConnection().executeUpdate(statement));
   }
 
   /**

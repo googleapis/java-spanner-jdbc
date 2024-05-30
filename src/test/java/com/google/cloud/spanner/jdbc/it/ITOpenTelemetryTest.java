@@ -44,7 +44,6 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
-import io.opentelemetry.semconv.SemanticAttributes;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -252,7 +251,7 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
             client.listTraces(
                 ListTracesRequest.newBuilder()
                     .setProjectId(database.getId().getInstanceId().getProject())
-                    .setFilter(SemanticAttributes.DB_STATEMENT + ":\"" + sql + "\"")
+                    .setFilter("db.statement:\"" + sql + "\"")
                     .build());
         int size = Iterables.size(response.iterateAll());
         if (size != 0) {

@@ -43,7 +43,6 @@ import com.google.spanner.v1.ResultSetMetadata;
 import com.google.spanner.v1.StructType;
 import com.google.spanner.v1.StructType.Field;
 import com.google.spanner.v1.TypeCode;
-import io.opentelemetry.api.OpenTelemetry;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -109,7 +108,6 @@ public class JdbcPreparedStatementTest {
   private JdbcConnection createMockConnection(Connection spanner) throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
     when(connection.getDialect()).thenReturn(dialect);
-    when(connection.getTracer()).thenReturn(OpenTelemetry.noop().getTracer("noop"));
     when(connection.getParser()).thenReturn(AbstractStatementParser.getInstance(dialect));
     when(connection.getSpannerConnection()).thenReturn(spanner);
     when(connection.createBlob()).thenCallRealMethod();
