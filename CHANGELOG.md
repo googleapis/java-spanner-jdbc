@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.19.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.18.1...v2.19.0) (2024-05-31)
+
+
+### Features
+
+* Add Proto Columns support in JDBC ([#1252](https://github.com/googleapis/java-spanner-jdbc/issues/1252)) ([3efa9ac](https://github.com/googleapis/java-spanner-jdbc/commit/3efa9ac7906bab35d72f2951b9945a873f48f013))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.68.0 ([#1620](https://github.com/googleapis/java-spanner-jdbc/issues/1620)) ([255eeef](https://github.com/googleapis/java-spanner-jdbc/commit/255eeefa1ce682a46a4d0467ce297acfb40b0d25))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.68.1 ([#1624](https://github.com/googleapis/java-spanner-jdbc/issues/1624)) ([f4a83ba](https://github.com/googleapis/java-spanner-jdbc/commit/f4a83ba0d4702caa433a8390ff75c955d7669b17))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.3.0 ([#1616](https://github.com/googleapis/java-spanner-jdbc/issues/1616)) ([6912711](https://github.com/googleapis/java-spanner-jdbc/commit/691271199bed294f5ba272285282be975e8bbead))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.3.0 ([#1617](https://github.com/googleapis/java-spanner-jdbc/issues/1617)) ([155d6c6](https://github.com/googleapis/java-spanner-jdbc/commit/155d6c65c4ae3c9306ce86864bb4a4b4c9569473))
+
 ## [2.18.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.18.0...v2.18.1) (2024-05-22)
 
 
