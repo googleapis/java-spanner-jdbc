@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.19.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.19.0...v2.19.1) (2024-06-05)
+
+
+### Bug Fixes
+
+* Cleanup unused methods ([#1635](https://github.com/googleapis/java-spanner-jdbc/issues/1635)) ([ad0a35c](https://github.com/googleapis/java-spanner-jdbc/commit/ad0a35c82fd880ce5b705f4cb749c35664ccc604))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.31.0 ([#1630](https://github.com/googleapis/java-spanner-jdbc/issues/1630)) ([98b530d](https://github.com/googleapis/java-spanner-jdbc/commit/98b530dce7a6131a562afdfca6b8b7c73fb83d7a))
+* Update dependency org.mybatis.dynamic-sql:mybatis-dynamic-sql to v1.5.2 ([#1633](https://github.com/googleapis/java-spanner-jdbc/issues/1633)) ([7c62ee3](https://github.com/googleapis/java-spanner-jdbc/commit/7c62ee30e81a29654934d1f77f36816e92b3470d))
+
 ## [2.19.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.19.0...v2.19.1) (2024-06-01)
 
 
