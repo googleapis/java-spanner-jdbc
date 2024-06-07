@@ -96,11 +96,8 @@ public class JdbcSampleTest {
     emulator =
         new GenericContainer<>(
                 DockerImageName.parse("gcr.io/cloud-spanner-emulator/emulator:latest"))
-            // .withExposedPorts(9010)
+            .withExposedPorts(9010)
             .waitingFor(Wait.forListeningPort());
-    // TODO: Remove and replace with dynamic port binding when Spanner client library 6.64.0 has
-    //       been released.
-    emulator.setPortBindings(ImmutableList.of("9010:9010"));
     emulator.start();
     try (InstanceAdminClient client =
         InstanceAdminClient.create(

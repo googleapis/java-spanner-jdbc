@@ -1,5 +1,40 @@
 # Changelog
 
+## [2.19.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.19.0...v2.19.1) (2024-06-05)
+
+
+### Bug Fixes
+
+* Cleanup unused methods ([#1635](https://github.com/googleapis/java-spanner-jdbc/issues/1635)) ([ad0a35c](https://github.com/googleapis/java-spanner-jdbc/commit/ad0a35c82fd880ce5b705f4cb749c35664ccc604))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.31.0 ([#1630](https://github.com/googleapis/java-spanner-jdbc/issues/1630)) ([98b530d](https://github.com/googleapis/java-spanner-jdbc/commit/98b530dce7a6131a562afdfca6b8b7c73fb83d7a))
+* Update dependency org.mybatis.dynamic-sql:mybatis-dynamic-sql to v1.5.2 ([#1633](https://github.com/googleapis/java-spanner-jdbc/issues/1633)) ([7c62ee3](https://github.com/googleapis/java-spanner-jdbc/commit/7c62ee30e81a29654934d1f77f36816e92b3470d))
+
+## [2.19.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.19.0...v2.19.1) (2024-06-01)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.31.0 ([#1630](https://github.com/googleapis/java-spanner-jdbc/issues/1630)) ([98b530d](https://github.com/googleapis/java-spanner-jdbc/commit/98b530dce7a6131a562afdfca6b8b7c73fb83d7a))
+
+## [2.19.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.18.1...v2.19.0) (2024-05-31)
+
+
+### Features
+
+* Add Proto Columns support in JDBC ([#1252](https://github.com/googleapis/java-spanner-jdbc/issues/1252)) ([3efa9ac](https://github.com/googleapis/java-spanner-jdbc/commit/3efa9ac7906bab35d72f2951b9945a873f48f013))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.68.0 ([#1620](https://github.com/googleapis/java-spanner-jdbc/issues/1620)) ([255eeef](https://github.com/googleapis/java-spanner-jdbc/commit/255eeefa1ce682a46a4d0467ce297acfb40b0d25))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.68.1 ([#1624](https://github.com/googleapis/java-spanner-jdbc/issues/1624)) ([f4a83ba](https://github.com/googleapis/java-spanner-jdbc/commit/f4a83ba0d4702caa433a8390ff75c955d7669b17))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.3.0 ([#1616](https://github.com/googleapis/java-spanner-jdbc/issues/1616)) ([6912711](https://github.com/googleapis/java-spanner-jdbc/commit/691271199bed294f5ba272285282be975e8bbead))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.3.0 ([#1617](https://github.com/googleapis/java-spanner-jdbc/issues/1617)) ([155d6c6](https://github.com/googleapis/java-spanner-jdbc/commit/155d6c65c4ae3c9306ce86864bb4a4b4c9569473))
+
 ## [2.18.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.18.0...v2.18.1) (2024-05-22)
 
 
