@@ -233,7 +233,7 @@ public class JdbcDriver implements Driver {
   }
 
   private ConnectionOptions buildConnectionOptions(String connectionUrl, Properties info) {
-    ConnectionOptions.Builder builder = ConnectionOptions.newBuilder().setUri(connectionUrl);
+    ConnectionOptions.Builder builder = ConnectionOptions.newBuilder().setTracingPrefix("JDBC").setUri(connectionUrl);
     if (info.containsKey(OPEN_TELEMETRY_PROPERTY_KEY)
         && info.get(OPEN_TELEMETRY_PROPERTY_KEY) instanceof OpenTelemetry) {
       builder.setOpenTelemetry((OpenTelemetry) info.get(OPEN_TELEMETRY_PROPERTY_KEY));
