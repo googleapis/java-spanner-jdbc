@@ -1,20 +1,8 @@
 gapic_generator_version: 2.41.0
-protoc_version: '25.2'
 googleapis_commitish: 6f289d775912966eb0cf04bda91e5e355c998d30
 libraries_bom_version: 26.38.0
-template_excludes:
-  - 'README.md'
-  - '.github/release-please.yml'
-  - '.github/sync-repo-settings.yaml'
-  - '.github/blunderbuss.yml'
-  - '.kokoro/nightly/integration.cfg'
-  - '.kokoro/build.sh'
-  - '.kokoro/requirements.in'
-  - '.kokoro/requirements.txt'
-  - '.kokoro/presubmit/graalvm-native.cfg'
-  - '.kokoro/presubmit/graalvm-native-17.cfg'
 libraries:
-  - api_shortname: "spanner-jdbc"
+  - api_shortname: spanner-jdbc
     name_pretty: "Google Cloud Spanner JDBC"
     product_documentation: "https://cloud.google.com/spanner/docs/use-oss-jdbc"
     client_documentation: "https://cloud.google.com/java/docs/reference/google-cloud-spanner-jdbc/latest/history"
