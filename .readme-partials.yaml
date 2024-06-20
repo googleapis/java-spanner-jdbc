@@ -62,6 +62,8 @@ custom_content: |
    See also the [Spring Data JDBC Sample](samples/spring-data-jdbc) for an example for how to
    configure OpenTelemetry in combination with Spring Data.
    
+   See [Latency Debugging Guide](docs/latency-debugging-guide.md) for more information on how to use these traces.
+
    ```java
    TraceConfiguration traceConfiguration = TraceConfiguration.builder().setProjectId("my-project").build();
    SpanExporter traceExporter = TraceExporter.createWithConfiguration(traceConfiguration);
