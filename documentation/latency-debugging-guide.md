@@ -105,15 +105,15 @@ String databaseId = "my-database";
 // Setting this to true instructs the JDBC driver to include the SQL statement with the traces.
 boolean enableExtendedTracing = true;
 
-Properties info = new Properties();
-info.put(JdbcDriver.OPEN_TELEMETRY_PROPERTY_KEY, openTelemetry);
-info.put("enableExtendedTracing", String.valueOf(enableExtendedTracing));
+Properties properties = new Properties();
+properties.put(JdbcDriver.OPEN_TELEMETRY_PROPERTY_KEY, openTelemetry);
+properties.put("enableExtendedTracing", String.valueOf(enableExtendedTracing));
 
 try (Connection connection =
    DriverManager.getConnection(
        String.format(
            "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
-           projectId, instanceId, databaseId))) {
+           projectId, instanceId, databaseId), properties)) {
  try (Statement statement = connection.createStatement()) {
    try (ResultSet rs = statement.executeQuery("SELECT CURRENT_TIMESTAMP()")) {
      while (rs.next()) {
