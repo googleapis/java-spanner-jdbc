@@ -44,7 +44,7 @@ public class OpenTelemetryConfiguration {
   private String project;
 
   @Bean
-  public OpenTelemetry openTelemetry() throws IOException {
+  public OpenTelemetry openTelemetry() {
     if (!enabled) {
       return OpenTelemetry.noop();
     }

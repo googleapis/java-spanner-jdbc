@@ -16,6 +16,8 @@
 
 package com.google.cloud.spanner.sample;
 
+import com.google.cloud.spanner.connection.SavepointSupport;
+import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.sample.entities.Album;
 import com.google.cloud.spanner.sample.entities.Singer;
 import com.google.cloud.spanner.sample.entities.Track;
@@ -30,6 +32,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.sql.Statement;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
@@ -139,7 +142,25 @@ public class Application implements CommandLineRunner {
       logger.info("\t{}", singer.getFullName());
     }
 
+    // Run two concurrent transactions that conflict with each other to show the automatic retry
+    // behavior built into the JDBC driver.
+    concurrentTransactions();
+
+    // Use a savepoint to roll back to a previous point in a transaction.
+    savepoints();
+  }
+
+  void concurrentTransactions() {
     // Create two transactions that conflict with each other to trigger a transaction retry.
+    // This sample is intended to show a couple of things:
+    // 1. Spanner will abort transactions that conflict. The Spanner JDBC driver will automatically
+    //    retry aborted transactions internally, which ensures that both these transactions
+    //    succeed without any errors. See
+    //    https://cloud.google.com/spanner/docs/jdbc-session-mgmt-commands#retry_aborts_internally
+    //    for more information on how the JDBC driver retries aborted transactions.
+    // 2. The JDBC driver adds information to the OpenTelemetry tracing that makes it easier to find
+    //    transactions that were aborted and retried.
+    logger.info("Executing two concurrent transactions");
     Span span = tracer.spanBuilder("update-singers").startSpan();
     try (Scope ignore = span.makeCurrent();
         Connection connection1 = dataSource.getConnection();
@@ -149,7 +170,7 @@ public class Application implements CommandLineRunner {
       statement1.execute("begin");
       statement1.execute("set spanner.transaction_tag='update-singer-1'");
       statement2.execute("begin");
-      statement1.execute("set spanner.transaction_tag='update-singer-2'");
+      statement2.execute("set spanner.transaction_tag='update-singer-2'");
       long id = 0L;
       statement1.execute("set spanner.statement_tag='fetch-singer-id'");
       try (ResultSet resultSet = statement1.executeQuery("select id from singers limit 1")) {
@@ -170,6 +191,63 @@ public class Application implements CommandLineRunner {
       }
       statement1.execute("commit");
       statement2.execute("commit");
+    } catch (SQLException exception) {
+      span.recordException(exception);
+      throw new RuntimeException(exception);
+    } finally {
+      span.end();
+    }
+  }
+
+  void savepoints() {
+    // Run a transaction with a savepoint, and rollback to that savepoint.
+    logger.info("Executing a transaction with a savepoint");
+    Span span = tracer.spanBuilder("savepoint-sample").startSpan();
+    try (Scope ignore = span.makeCurrent();
+        Connection connection = dataSource.getConnection();
+        Statement statement = connection.createStatement()) {
+      // Enable savepoints for this connection.
+      connection
+          .unwrap(CloudSpannerJdbcConnection.class)
+          .setSavepointSupport(SavepointSupport.ENABLED);
+
+      statement.execute("begin");
+      statement.execute("set spanner.transaction_tag='transaction-with-savepoint'");
+
+      // Fetch a random album.
+      long id = 0L;
+      try (ResultSet resultSet =
+          statement.executeQuery(
+              "/*@statement_tag='fetch-album-id'*/ select id from albums limit 1")) {
+        while (resultSet.next()) {
+          id = resultSet.getLong(1);
+        }
+      }
+      // Set a savepoint that we can roll back to at a later moment in the transaction.
+      // Note that the savepoint name must be a valid identifier.
+      Savepoint savepoint = connection.setSavepoint("fetched_album_id");
+
+      String sql =
+          "/*@statement_tag='update-album-marketing-budget-by-10-percent'*/ update albums set marketing_budget=marketing_budget * 1.1 where id=?";
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setLong(1, id);
+        preparedStatement.executeUpdate();
+      }
+
+      // Rollback to the savepoint that we set at an earlier stage, and then update the marketing
+      // budget by 20 percent instead.
+      connection.rollback(savepoint);
+
+      sql =
+          "/*@statement_tag='update-album-marketing-budget-by-20-percent'*/ update albums set marketing_budget=marketing_budget * 1.2 where id=?";
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setLong(1, id);
+        preparedStatement.executeUpdate();
+      }
+      statement.execute("commit");
+
+      // Reset the state of the connection before returning it to the connection pool.
+      statement.execute("reset all");
     } catch (SQLException exception) {
       span.recordException(exception);
       throw new RuntimeException(exception);
