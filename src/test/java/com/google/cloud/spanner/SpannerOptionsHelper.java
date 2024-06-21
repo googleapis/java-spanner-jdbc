@@ -16,9 +16,14 @@
 
 package com.google.cloud.spanner;
 
+import com.google.api.core.InternalApi;
+
+/** This class is only here to access a package-private method in the Spanner client library. */
+@InternalApi
 public class SpannerOptionsHelper {
   private SpannerOptionsHelper() {}
 
+  @InternalApi
   public static void resetActiveTracingFramework() {
     SpannerOptions.resetActiveTracingFramework();
   }

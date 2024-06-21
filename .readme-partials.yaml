@@ -38,6 +38,7 @@ custom_content: |
    - usePlainText (boolean): Sets whether the JDBC connection should establish an unencrypted connection to a (local) server. This option can only be used when connecting to a local emulator that does not require an encrypted connection, and that does not require authentication. Example: `jdbc:cloudspanner://localhost:9010/projects/test-project/instances/test-instance/databases/test-db;usePlainText=true`
    - optimizerVersion (String): Sets the default query optimizer version to use for this connection. See also https://cloud.google.com/spanner/docs/query-optimizer/query-optimizer-versions.
    - enableExtendedTracing (boolean): Enables extended OpenTelemetry tracing of queries that are executed by a JDBC connection. When enabled, the SQL string of the query that is executed is added as a property to the trace.
+   - enableApiTracing (boolean): Enables API OpenTelemetry tracing of all RPCs that are executed by the JDBC driver. When enabled, a trace will be created for each RPC invocation that is executed by the JDBC driver. Enable this to investigate latency problems and/or RPCs that are being retried.
    
    #### Advanced Properties
    - minSessions (int): Sets the minimum number of sessions in the backing session pool. Defaults to 100.
