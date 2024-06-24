@@ -215,6 +215,9 @@ search for traces with specific attributes.
 
 ### Search for transaction or statement tag
 
+See [this sample](https://cloud.google.com/spanner/docs/getting-started/jdbc#transaction_tags_and_request_tags)
+for how to set transaction tags and statement tags with the Spanner JDBC driver.
+
 The JDBC driver adds the attributes `transaction.tag` and `statement.tag` to respectively the
 transactions and statements that it executes. These attributes can be used to search for all traces
 of transactions and statements with specific tags. The Google Cloud Trace UI allows you to search
