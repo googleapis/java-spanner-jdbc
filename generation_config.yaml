@@ -3,17 +3,17 @@ googleapis_commitish: 6f289d775912966eb0cf04bda91e5e355c998d30
 libraries_bom_version: 26.38.0
 libraries:
   - api_shortname: spanner-jdbc
-    name_pretty: "Google Cloud Spanner JDBC"
-    product_documentation: "https://cloud.google.com/spanner/docs/use-oss-jdbc"
-    client_documentation: "https://cloud.google.com/java/docs/reference/google-cloud-spanner-jdbc/latest/history"
-    release_level: "stable"
-    language: "java"
+    name_pretty: Google Cloud Spanner JDBC
+    product_documentation: https://cloud.google.com/spanner/docs/use-oss-jdbc
+    client_documentation: https://cloud.google.com/java/docs/reference/google-cloud-spanner-jdbc/latest/history
+    release_level: stable
+    language: java
     min_java_version: 8
-    repo: "googleapis/java-spanner-jdbc"
-    repo_short: "java-spanner-jdbc"
-    distribution_name: "com.google.cloud:google-cloud-spanner-jdbc"
-    library_type: "OTHER"
-    codeowner_team: "@googleapis/api-spanner-java"
-    recommended_package: "com.google.cloud.spanner.jdbc"
+    repo: googleapis/java-spanner-jdbc
+    repo_short: java-spanner-jdbc
+    distribution_name: com.google.cloud:google-cloud-spanner-jdbc
+    library_type: OTHER
+    codeowner_team: @googleapis/api-spanner-java
+    recommended_package: com.google.cloud.spanner.jdbc
     GAPICs:
       - proto_path: google/api #we use a dummy path to produce a no-op
