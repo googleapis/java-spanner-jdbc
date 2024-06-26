@@ -27,6 +27,8 @@ source ${scriptDir}/common.sh
 mvn -version
 echo ${JOB_TYPE}
 
+
+
 # Store the current Java version since the version may change when installing sdk-platform-java
 current_java_home=$JAVA_HOME
 
@@ -89,9 +91,11 @@ if [[ "${CURRENT_PROTO_VERSION}" != "${LATEST_PROTO_VERSION}" ]]; then
   for pom in "${poms[@]}"; do
     if grep -q "sdk-platform-java-config" "${pom}"; then
       echo "Updating the pom: ${pom} to use shared-deps version: ${SHARED_DEPS_VERSION}"
-      sed -i -E "/<groupId>com.google.cloud<\/groupId>.*<artifactId>sdk-platform-java-config<\/artifactId>/ {
-        s/(<version>)[^<]+(<\/version>)/\1${SHARED_DEPS_VERSION}\2/
-      }" "${pom}"
+      sed -i "/<artifactId>sdk-platform-java-config<\/artifactId>/,/<\/parent>/ s/<version>.*<\/version>/<version>$SHARED_DEPS_VERSION<\/version>/" "${pom}"
+#      xmlstarlet ed --inplace -N x="http://maven.apache.org/POM/4.0.0" \
+#        -u "//x:project/x:parent[x:artifactId='sdk-platform-java-config']/x:version" \
+#        -v "${SHARED_DEPS_VERSION}" \
+#        "${pom}"
     fi
   done
 fi
