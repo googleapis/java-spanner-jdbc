@@ -85,12 +85,14 @@ custom_content: |
    String databaseId = "my-database";
    // Setting this to true instructs the JDBC driver to include the SQL statement with the traces.
    boolean enableExtendedTracing = true;
+   // Enabling API tracing includes traces for each individual RPC invocation, including retries.
+   boolean enableApiTracing = true;
    
    try (Connection connection =
        DriverManager.getConnection(
            String.format(
-               "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s?enableExtendedTracing=%s",
-               projectId, instanceId, databaseId, enableExtendedTracing))) {
+               "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s?enableExtendedTracing=%s;enableApiTracing=%s",
+               projectId, instanceId, databaseId, enableExtendedTracing, enableApiTracing))) {
      try (Statement statement = connection.createStatement()) {
        try (ResultSet rs = statement.executeQuery("SELECT CURRENT_TIMESTAMP()")) {
          while (rs.next()) {
@@ -103,34 +105,14 @@ custom_content: |
    ```
    
    #### Example Using an OpenTelemetry instance in Properties
-   Create and register a global OpenTelemetry object before creating a JDBC connection.
-   See also the [Spring Data JDBC Sample](samples/spring-data-jdbc) for an example for how to
-   configure OpenTelemetry in combination with Spring Data.
+   Instead of registering a global `OpenTelemetry` object, you can also provide a specific instance
+   in the properties for a JDBC connection:
    
    ```java
-   TraceConfiguration traceConfiguration = TraceConfiguration.builder().setProjectId("my-project").build();
-   SpanExporter traceExporter = TraceExporter.createWithConfiguration(traceConfiguration);
-   OpenTelemetry openTelemetry =
-        OpenTelemetrySdk.builder()
-            .setTracerProvider(
-                SdkTracerProvider.builder()
-                    .setSampler(Sampler.traceIdRatioBased(0.05))
-                    .setResource(
-                        Resource.builder()
-                            .put("service.name", "my-unique-service-name")
-                            .build())
-                    .addSpanProcessor(BatchSpanProcessor.builder(traceExporter).build())
-                    .build())
-            .build();
-   String projectId = "my-project";
-   String instanceId = "my-instance";
-   String databaseId = "my-database";
-   // Setting this to true instructs the JDBC driver to include the SQL statement with the traces.
-   boolean enableExtendedTracing = true;
-   
    Properties info = new Properties();
    info.put(JdbcDriver.OPEN_TELEMETRY_PROPERTY_KEY, openTelemetry);
    info.put("enableExtendedTracing", String.valueOf(enableExtendedTracing));
+   info.put("enableApiTracing", String.valueOf(enableApiTracing));
    
    try (Connection connection =
        DriverManager.getConnection(

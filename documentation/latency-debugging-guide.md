@@ -1,7 +1,9 @@
 # Spanner JDBC Driver - Latency Debugging Guide
 
 The Spanner JDBC driver supports OpenTelemetry tracing. Tracing can be used to investigate slow
-queries and transactions and to determine whether transactions or requests are being retried.
+queries and transactions and to determine whether transactions or requests are being retried. In
+addition, all metrics described in [Latency points in a Spanner request](https://cloud.google.com/spanner/docs/latency-points)
+are also collected by the JDBC driver and can be used for debugging.
 
 ## Configuration
 
@@ -80,9 +82,7 @@ try (Connection connection =
 ```
 
 ### Example Using an OpenTelemetry instance in Properties
-Create and register a global OpenTelemetry object before creating a JDBC connection.
-See also the [Spring Data JDBC Sample](../samples/spring-data-jdbc) for an example for how to
-configure OpenTelemetry in combination with Spring Data.
+Create an OpenTelemetry object and supply it as part of the properties for a JDBC connection.
 
 ```java
 TraceConfiguration traceConfiguration = TraceConfiguration.builder().setProjectId("my-project").build();
