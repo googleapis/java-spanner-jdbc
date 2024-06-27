@@ -22,6 +22,7 @@ import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptions.ConnectionProperty;
 import com.google.rpc.Code;
+import io.opentelemetry.api.OpenTelemetry;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -125,6 +126,14 @@ import java.util.regex.Pattern;
  * </ul>
  */
 public class JdbcDriver implements Driver {
+  /**
+   * The info {@link Properties} object that is passed to the JDBC driver may contain an entry with
+   * this key and an {@link io.opentelemetry.api.OpenTelemetry} instance as its value. This {@link
+   * io.opentelemetry.api.OpenTelemetry} instance will be used for tracing and metrics in the JDBC
+   * connection.
+   */
+  public static final String OPEN_TELEMETRY_PROPERTY_KEY = "openTelemetry";
+
   private static final String JDBC_API_CLIENT_LIB_TOKEN = "sp-jdbc";
   // Updated to version 2 when upgraded to Java 8 (JDBC 4.2)
   static final int MAJOR_VERSION = 2;
@@ -204,7 +213,7 @@ public class JdbcDriver implements Driver {
           // strip 'jdbc:' from the URL, add any extra properties and pass on to the generic
           // Connection API
           String connectionUri = appendPropertiesToUrl(url.substring(5), info);
-          ConnectionOptions options = ConnectionOptions.newBuilder().setUri(connectionUri).build();
+          ConnectionOptions options = buildConnectionOptions(connectionUri, info);
           JdbcConnection connection = new JdbcConnection(url, options);
           if (options.getWarnings() != null) {
             connection.pushWarning(new SQLWarning(options.getWarnings()));
@@ -223,10 +232,20 @@ public class JdbcDriver implements Driver {
     return null;
   }
 
+  private ConnectionOptions buildConnectionOptions(String connectionUrl, Properties info) {
+    ConnectionOptions.Builder builder =
+        ConnectionOptions.newBuilder().setTracingPrefix("JDBC").setUri(connectionUrl);
+    if (info.containsKey(OPEN_TELEMETRY_PROPERTY_KEY)
+        && info.get(OPEN_TELEMETRY_PROPERTY_KEY) instanceof OpenTelemetry) {
+      builder.setOpenTelemetry((OpenTelemetry) info.get(OPEN_TELEMETRY_PROPERTY_KEY));
+    }
+    return builder.build();
+  }
+
   private String appendPropertiesToUrl(String url, Properties info) {
     StringBuilder res = new StringBuilder(url);
     for (Entry<Object, Object> entry : info.entrySet()) {
-      if (entry.getValue() != null && !"".equals(entry.getValue())) {
+      if (entry.getValue() instanceof String && !"".equals(entry.getValue())) {
         res.append(";").append(entry.getKey()).append("=").append(entry.getValue());
       }
     }

@@ -32,7 +32,9 @@ import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.ResultSets;
+import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerExceptionFactory;
+import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
@@ -42,6 +44,7 @@ import com.google.cloud.spanner.connection.ConnectionImplTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.rpc.Code;
+import io.opentelemetry.api.OpenTelemetry;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -80,6 +83,10 @@ public class JdbcConnectionTest {
   private JdbcConnection createConnection(ConnectionOptions options) throws SQLException {
     com.google.cloud.spanner.connection.Connection spannerConnection =
         ConnectionImplTest.createConnection(options, dialect);
+    Spanner spanner = spannerConnection.getSpanner();
+    SpannerOptions spannerOptions = mock(SpannerOptions.class);
+    when(spanner.getOptions()).thenReturn(spannerOptions);
+    when(spannerOptions.getOpenTelemetry()).thenReturn(OpenTelemetry.noop());
     when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
     when(options.getDatabaseId()).thenReturn(DatabaseId.of("project", "instance", "database"));
@@ -507,6 +514,11 @@ public class JdbcConnectionTest {
         mock(com.google.cloud.spanner.connection.Connection.class);
     when(spannerConnection.getDialect()).thenReturn(dialect);
     when(options.getConnection()).thenReturn(spannerConnection);
+    Spanner spanner = mock(Spanner.class);
+    when(spannerConnection.getSpanner()).thenReturn(spanner);
+    SpannerOptions spannerOptions = mock(SpannerOptions.class);
+    when(spannerOptions.getOpenTelemetry()).thenReturn(OpenTelemetry.noop());
+    when(spanner.getOptions()).thenReturn(spannerOptions);
     Statement statement = Statement.of(JdbcConnection.LEGACY_IS_VALID_QUERY);
 
     // Verify that an opened connection that returns a result set is valid.
@@ -751,6 +763,11 @@ public class JdbcConnectionTest {
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
     when(options.getConnection()).thenReturn(spannerConnection);
+    Spanner spanner = mock(Spanner.class);
+    when(spannerConnection.getSpanner()).thenReturn(spanner);
+    SpannerOptions spannerOptions = mock(SpannerOptions.class);
+    when(spannerOptions.getOpenTelemetry()).thenReturn(OpenTelemetry.noop());
+    when(spanner.getOptions()).thenReturn(spannerOptions);
     when(spannerConnection.isReturnCommitStats())
         .thenThrow(
             SpannerExceptionFactory.newSpannerException(
@@ -773,6 +790,11 @@ public class JdbcConnectionTest {
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
     when(options.getConnection()).thenReturn(spannerConnection);
+    Spanner spanner = mock(Spanner.class);
+    when(spannerConnection.getSpanner()).thenReturn(spanner);
+    SpannerOptions spannerOptions = mock(SpannerOptions.class);
+    when(spannerOptions.getOpenTelemetry()).thenReturn(OpenTelemetry.noop());
+    when(spanner.getOptions()).thenReturn(spannerOptions);
     Mockito.doThrow(
             SpannerExceptionFactory.newSpannerException(
                 ErrorCode.FAILED_PRECONDITION, "test exception"))
@@ -796,6 +818,11 @@ public class JdbcConnectionTest {
     com.google.cloud.spanner.connection.Connection spannerConnection =
         mock(com.google.cloud.spanner.connection.Connection.class);
     when(options.getConnection()).thenReturn(spannerConnection);
+    Spanner spanner = mock(Spanner.class);
+    when(spannerConnection.getSpanner()).thenReturn(spanner);
+    SpannerOptions spannerOptions = mock(SpannerOptions.class);
+    when(spannerOptions.getOpenTelemetry()).thenReturn(OpenTelemetry.noop());
+    when(spanner.getOptions()).thenReturn(spannerOptions);
     Mockito.doThrow(
             SpannerExceptionFactory.newSpannerException(
                 ErrorCode.FAILED_PRECONDITION, "test exception"))
