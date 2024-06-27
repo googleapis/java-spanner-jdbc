@@ -42,6 +42,12 @@ if [[ ! -z "${GOOGLE_APPLICATION_CREDENTIALS}" && "${GOOGLE_APPLICATION_CREDENTI
     export GOOGLE_APPLICATION_CREDENTIALS=$(realpath ${KOKORO_GFILE_DIR}/${GOOGLE_APPLICATION_CREDENTIALS})
 fi
 
+# Start the Spanner emulator if the environment variable for it has been set.
+if [[ ! -z "${SPANNER_EMULATOR_HOST}" ]]; then
+  docker pull gcr.io/cloud-spanner-emulator/emulator
+  docker run -p 9010:9010 -p 9020:9020 gcr.io/cloud-spanner-emulator/emulator
+fi
+
 RETURN_CODE=0
 set +e
 
