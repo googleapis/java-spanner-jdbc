@@ -43,7 +43,10 @@ if [[ ! -z "${GOOGLE_APPLICATION_CREDENTIALS}" && "${GOOGLE_APPLICATION_CREDENTI
 fi
 
 # Start the Spanner emulator if the environment variable for it has been set.
-if [[ ! -z "${SPANNER_EMULATOR_HOST}" ]]; then
+#if [[ ! -z "${SPANNER_EMULATOR_HOST}" ]]; then
+if [[ "$JOB_TYPE" == "graalvm" ]]; then
+  echo "Starting emulator"
+  export SPANNER_EMULATOR_HOST=localhost:9010
   docker pull gcr.io/cloud-spanner-emulator/emulator
   docker run -p 9010:9010 -p 9020:9020 gcr.io/cloud-spanner-emulator/emulator
 fi
