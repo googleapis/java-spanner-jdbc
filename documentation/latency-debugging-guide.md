@@ -146,10 +146,11 @@ hierarchy of those traces are as follows:
    2. `transaction.retried`: This attribute is added to the transaction trace if the transaction was
       aborted by Spanner and retried by the Spanner JDBC driver. It is not added to transactions
       that are not retried.
-2. The transaction that was created by the Spanner client library. This normally a one-to-one
-   mapping with the transaction that the Spanner JDBC driver created, except if the JDBC transaction
-   created a `Savepoint` and rolled back to that `Savepoint`. A transaction trace includes the
-   following attributes:
+2. The transaction that was created by the Spanner client library. These are named
+   `CloudSpanner.ReadWriteTransaction` and `CloudSpanner.ReadOnlyTransaction`. This is normally a
+   one-to-one mapping with the transaction that the Spanner JDBC driver created, except if the JDBC
+   transaction created a `Savepoint` and rolled back to that `Savepoint`. A transaction trace 
+   includes the following attributes:
    1. `transaction.tag`: Any transaction tag that was set for the transaction.
 3. The statements that were executed as part of the transaction. Statement traces include the
    following attributes:
