@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.20.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.20.0...v2.20.1) (2024-06-28)
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.46.0 ([#1668](https://github.com/googleapis/java-spanner-jdbc/issues/1668)) ([62620e0](https://github.com/googleapis/java-spanner-jdbc/commit/62620e0cc0b83bbf8b775593deac8aa4d555364e))
+* Update dependency com.google.cloud:google-cloud-trace to v2.46.0 ([#1669](https://github.com/googleapis/java-spanner-jdbc/issues/1669)) ([debcfc0](https://github.com/googleapis/java-spanner-jdbc/commit/debcfc0cf8b076014487c5879a7c4df9e88c079a))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.39.0 ([#1663](https://github.com/googleapis/java-spanner-jdbc/issues/1663)) ([9c37fe3](https://github.com/googleapis/java-spanner-jdbc/commit/9c37fe35873d3296f54612377a868a6c5bfed9c6))
+
 ## [2.20.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.19.4...v2.20.0) (2024-06-27)
 
 
