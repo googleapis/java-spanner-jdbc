@@ -22,13 +22,10 @@ import com.google.cloud.spanner.IntegrationTestEnv;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
-import com.google.common.collect.ImmutableList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.utility.DockerImageName;
 
 public class JdbcIntegrationTestEnv extends IntegrationTestEnv {
   private static final Logger logger = Logger.getLogger(JdbcIntegrationTestEnv.class.getName());
@@ -57,31 +54,8 @@ public class JdbcIntegrationTestEnv extends IntegrationTestEnv {
       logger.info("Running integration tests on emulator");
       // Make sure that we use an owned instance on the emulator.
       System.setProperty(TEST_INSTANCE_PROPERTY, "");
-      if (isUseEmbeddedEmulator()) {
-        startEmbeddedEmulator();
-      }
     }
     super.initializeConfig();
-  }
-
-  private boolean isUseEmbeddedEmulator() {
-    return Boolean.parseBoolean(System.getenv("USE_EMBEDDED_EMULATOR"));
-  }
-
-  private static synchronized void startEmbeddedEmulator() {
-    logger.info("Checking whether embedded emulator has already been started");
-    if (emulator == null) {
-      logger.info("Starting embedded emulator");
-      emulator =
-          new GenericContainer<>(
-                  DockerImageName.parse("gcr.io/cloud-spanner-emulator/emulator:latest"))
-              .withExposedPorts(9010)
-              .waitingFor(Wait.forListeningPorts(9010));
-      emulator.setPortBindings(ImmutableList.of("9010:9010"));
-      emulator.start();
-    } else {
-      logger.info("Using existing embedded emulator");
-    }
   }
 
   @Override
