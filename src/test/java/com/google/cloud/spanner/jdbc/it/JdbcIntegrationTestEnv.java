@@ -24,13 +24,8 @@ import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
-import org.testcontainers.containers.GenericContainer;
 
 public class JdbcIntegrationTestEnv extends IntegrationTestEnv {
-  private static final Logger logger = Logger.getLogger(JdbcIntegrationTestEnv.class.getName());
-  private static GenericContainer<?> emulator;
-
   /**
    * The test database(s) that have been created for this test run. The cleanup of these databases
    * is handled by {@link com.google.cloud.spanner.testing.RemoteSpannerHelper}.
@@ -51,7 +46,6 @@ public class JdbcIntegrationTestEnv extends IntegrationTestEnv {
   protected void initializeConfig()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     if (EmulatorSpannerHelper.isUsingEmulator()) {
-      logger.info("Running integration tests on emulator");
       // Make sure that we use an owned instance on the emulator.
       System.setProperty(TEST_INSTANCE_PROPERTY, "");
     }
