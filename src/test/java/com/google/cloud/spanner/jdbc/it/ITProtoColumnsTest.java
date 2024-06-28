@@ -28,7 +28,6 @@ import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.DatabaseAdminClient;
 import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Dialect;
-import com.google.cloud.spanner.IntegrationTestEnv;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.jdbc.ProtoEnumType;
@@ -57,7 +56,7 @@ import org.junit.runners.JUnit4;
 @Category(ParallelIntegrationTest.class)
 @RunWith(JUnit4.class)
 public class ITProtoColumnsTest {
-  @ClassRule public static IntegrationTestEnv env = new IntegrationTestEnv();
+  @ClassRule public static JdbcIntegrationTestEnv env = new JdbcIntegrationTestEnv();
   private static final Duration OPERATION_TIMEOUT = Duration.ofMinutes(10);
   private static Database database;
   private static String url;

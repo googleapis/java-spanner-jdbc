@@ -42,6 +42,16 @@ if [[ ! -z "${GOOGLE_APPLICATION_CREDENTIALS}" && "${GOOGLE_APPLICATION_CREDENTI
     export GOOGLE_APPLICATION_CREDENTIALS=$(realpath ${KOKORO_GFILE_DIR}/${GOOGLE_APPLICATION_CREDENTIALS})
 fi
 
+# Start the Spanner emulator if the environment variable for it has been set.
+# TODO: Change if statement once the env var can be set in the config.
+#if [[ ! -z "${SPANNER_EMULATOR_HOST}" ]]; then
+if [[ "$JOB_TYPE" == "graalvm" ]] || [[ "$JOB_TYPE" == "graalvm17" ]]; then
+  echo "Starting emulator"
+  export SPANNER_EMULATOR_HOST=localhost:9010
+  docker pull gcr.io/cloud-spanner-emulator/emulator
+  docker run -d --rm --name spanner-emulator -p 9010:9010 -p 9020:9020 gcr.io/cloud-spanner-emulator/emulator
+fi
+
 RETURN_CODE=0
 set +e
 
@@ -144,6 +154,11 @@ clirr)
 *)
     ;;
 esac
+
+if [[ ! -z "${SPANNER_EMULATOR_HOST}" ]]; then
+  echo "Stopping emulator"
+  docker container stop spanner-emulator
+fi
 
 if [ "${REPORT_COVERAGE}" == "true" ]
 then
