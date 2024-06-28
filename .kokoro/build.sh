@@ -45,10 +45,9 @@ fi
 # Start the Spanner emulator if the environment variable for it has been set.
 #if [[ ! -z "${SPANNER_EMULATOR_HOST}" ]]; then
 if [[ "$JOB_TYPE" == "graalvm" ]]; then
-  echo "Starting emulator"
+  echo "Setting emulator configuration"
   export SPANNER_EMULATOR_HOST=localhost:9010
-  docker pull gcr.io/cloud-spanner-emulator/emulator
-  docker run -d --rm --name spanner-emulator -p 9010:9010 -p 9020:9020 gcr.io/cloud-spanner-emulator/emulator
+  export USE_EMBEDDED_EMULATOR=true
 fi
 
 RETURN_CODE=0
@@ -153,11 +152,6 @@ clirr)
 *)
     ;;
 esac
-
-if [[ "$JOB_TYPE" == "graalvm" ]]; then
-  echo "Stopping emulator"
-  docker container stop spanner-emulator
-fi
 
 if [ "${REPORT_COVERAGE}" == "true" ]
 then
