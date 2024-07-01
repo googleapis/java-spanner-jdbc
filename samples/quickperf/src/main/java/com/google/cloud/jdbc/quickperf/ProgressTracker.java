@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package com.google.cloud.jdbc.quickperf;
 import java.util.List;
 
 public class ProgressTracker extends Thread {
-    private static int SLEEP_TIME_INIT = 2000;
-    private static int SLEEP_TIME_POLL = 200;
+    private static final int SLEEP_TIME_INIT = 2000;
+    private static final int SLEEP_TIME_POLL = 200;
 
-    private List<QuickPerf> threadList;
+    private final List<QuickPerf> threadList;
 
-    private int maxIt;
+    private final int maxIt;
     private int currentIt = 0;
 
     public ProgressTracker(List<QuickPerf> threadList, int maxIt) {

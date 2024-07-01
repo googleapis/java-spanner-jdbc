@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,13 +209,8 @@ public class QuickPerf extends Thread {
             Connection connection = DriverManager.getConnection(connectionUrl);
 
             // determin database dialect to set right tagging syntax
-            boolean isGoogleSQL;
-            if (connection.unwrap(CloudSpannerJdbcConnection.class).getDialect()
-                    .equals(Dialect.GOOGLE_STANDARD_SQL)) {
-                isGoogleSQL = true;
-            } else {
-                isGoogleSQL = false;
-            }
+            boolean isGoogleSQL = connection.unwrap(CloudSpannerJdbcConnection.class).getDialect()
+                    .equals(Dialect.GOOGLE_STANDARD_SQL);
 
             connection.setAutoCommit(false);
 
@@ -463,7 +458,7 @@ public class QuickPerf extends Thread {
     private Double replaceDouble(String value) {
         Faker f = new Faker();
 
-        return Double.valueOf(value.replaceFirst("#i", String.valueOf(f.number().randomDouble(2, 0,
+        return Double.valueOf(value.replaceFirst("#d", String.valueOf(f.number().randomDouble(2, 0,
                 999999999))));
     }
 

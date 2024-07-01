@@ -1,3 +1,17 @@
+# Introduction
+
+QuickPerf is a simple utility that uses JDBC to perform load testing on individual statements (such as queries and DML) against Spanner. It provides a rapid assessment of expected end-to-end latencies for specific statements, aiding in the performance tuning of schemas, indexes, and more. The tool includes random data generators to quickly fill a given schema with dummy data, respecting foreign-key relationships and interleaved tables.
+
+QuickPerf is not designed to replace comprehensive test suites like JMeter. Instead, it serves as a quick alternative for gaining performance insights or populating schemas.
+
+**Key Features**:
+* Multi-threading to simulate concurrency
+* Query parameterization with random value generators (String, Integer, Timestamp)
+* Sampling of records for seeding foreign-key relationships or testing against a specific subset of data
+* Batch mode support
+* Automatic statement and transaction tagging
+
+
 # Installation on Ubuntu 
 ```
 sudo apt-get install openjdk-8-jdk
@@ -5,7 +19,7 @@ sudo apt install maven
 ```
 
 ## Authentification 
-It is recommended to use a service accounts otherwise larger scale tests will run into quota limitations
+It is recommended to use a service account, otherwise larger scale tests will run into quota limitations
 
 Set active auth to service account:
 ```
