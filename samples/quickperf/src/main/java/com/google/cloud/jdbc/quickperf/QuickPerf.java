@@ -209,13 +209,8 @@ public class QuickPerf extends Thread {
             Connection connection = DriverManager.getConnection(connectionUrl);
 
             // determin database dialect to set right tagging syntax
-            boolean isGoogleSQL;
-            if (connection.unwrap(CloudSpannerJdbcConnection.class).getDialect()
-                    .equals(Dialect.GOOGLE_STANDARD_SQL)) {
-                isGoogleSQL = true;
-            } else {
-                isGoogleSQL = false;
-            }
+            boolean isGoogleSQL = connection.unwrap(CloudSpannerJdbcConnection.class).getDialect()
+                    .equals(Dialect.GOOGLE_STANDARD_SQL);
 
             connection.setAutoCommit(false);
 
