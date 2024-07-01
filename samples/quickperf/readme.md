@@ -5,7 +5,7 @@ sudo apt install maven
 ```
 
 ## Authentification 
-It is recommended to use a service accounts otherwise larger scale tests will run into quota limitations
+It is recommended to use a service account, otherwise larger scale tests will run into quota limitations
 
 Set active auth to service account:
 ```
