@@ -458,7 +458,7 @@ public class QuickPerf extends Thread {
     private Double replaceDouble(String value) {
         Faker f = new Faker();
 
-        return Double.valueOf(value.replaceFirst("#i", String.valueOf(f.number().randomDouble(2, 0,
+        return Double.valueOf(value.replaceFirst("#d", String.valueOf(f.number().randomDouble(2, 0,
                 999999999))));
     }
 
