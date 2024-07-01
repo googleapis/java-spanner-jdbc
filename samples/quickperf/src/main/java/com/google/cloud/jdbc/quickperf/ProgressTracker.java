@@ -22,7 +22,7 @@ public class ProgressTracker extends Thread {
     private static int SLEEP_TIME_INIT = 2000;
     private static int SLEEP_TIME_POLL = 200;
 
-    private List<QuickPerf> threadList;
+    private final List<QuickPerf> threadList;
 
     private int maxIt;
     private int currentIt = 0;
