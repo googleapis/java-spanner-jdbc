@@ -19,7 +19,7 @@ package com.google.cloud.jdbc.quickperf;
 import java.util.List;
 
 public class ProgressTracker extends Thread {
-    private static int SLEEP_TIME_INIT = 2000;
+    private static final int SLEEP_TIME_INIT = 2000;
     private static int SLEEP_TIME_POLL = 200;
 
     private final List<QuickPerf> threadList;
