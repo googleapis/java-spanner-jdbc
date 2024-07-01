@@ -24,7 +24,7 @@ public class ProgressTracker extends Thread {
 
     private final List<QuickPerf> threadList;
 
-    private int maxIt;
+    private final int maxIt;
     private int currentIt = 0;
 
     public ProgressTracker(List<QuickPerf> threadList, int maxIt) {
