@@ -49,7 +49,7 @@ import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import net.datafaker.Faker;
 
 public class QuickPerf extends Thread {
-    private static String BREAK_STR = "###################################################################################################";
+    private static final String BREAK_STR = "###################################################################################################";
     private static String DEFAULT_TAG = "perftest_" + (new Random()).nextInt(300);
 
     // TODO: make measurementfile configurable
@@ -65,8 +65,7 @@ public class QuickPerf extends Thread {
 
     private int progress;
 
-    public static void main(String[] args)
-            throws SQLException, InterruptedException, StreamReadException, DatabindException, IOException {
+    public static void main(String[] args) throws Exception {
         Options options = new Options();
 
         options.addOption(QuickPerf.addOption("c", "config", true, "Config File"));
@@ -85,8 +84,6 @@ public class QuickPerf extends Thread {
 
             System.exit(1);
         }
-
-        // System.out.println("#### " + cmd.getOptionValue("config"));
 
         Config config = ConfigParser.parseConfigFile(cmd.getOptionValue("config"));
 
@@ -107,7 +104,6 @@ public class QuickPerf extends Thread {
                 config.getIterations() * config.getThreads());
 
         progressTracker.start();
-
         progressTracker.join();
 
         int i = 0;

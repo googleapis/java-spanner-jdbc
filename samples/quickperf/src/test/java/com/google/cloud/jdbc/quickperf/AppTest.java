@@ -16,31 +16,6 @@
 
 package com.google.cloud.jdbc.quickperf;
 
-import com.google.cloud.NoCredentials;
-import com.google.cloud.spanner.Database;
-import com.google.cloud.spanner.DatabaseAdminClient;
-import com.google.cloud.spanner.InstanceConfigId;
-import com.google.cloud.spanner.InstanceInfo;
-import com.google.cloud.spanner.Spanner;
-import com.google.cloud.spanner.SpannerException;
-import com.google.cloud.spanner.SpannerExceptionFactory;
-import com.google.cloud.spanner.SpannerOptions;
-import com.google.cloud.spanner.admin.instance.v1.InstanceAdminClient;
-import com.google.cloud.spanner.connection.SpannerPool;
-import com.google.common.collect.ImmutableList;
-import com.google.spanner.admin.database.v1.CreateDatabaseMetadata;
-import com.google.spanner.admin.database.v1.CreateDatabaseRequest;
-
-import io.grpc.InternalConfigSelector.Result;
-
-import com.google.spanner.admin.instance.v1.CreateInstanceRequest;
-import com.google.spanner.admin.instance.v1.Instance;
-import com.google.spanner.admin.instance.v1.InstanceConfigName;
-import com.google.spanner.admin.instance.v1.ProjectName;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -56,22 +31,31 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.AfterClass;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.springframework.boot.SpringApplication;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
-import org.junit.Test;
 
-import com.fasterxml.jackson.core.exc.StreamReadException;
-import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.api.gax.longrunning.OperationFuture;
+import com.google.cloud.NoCredentials;
+import com.google.cloud.spanner.Database;
+import com.google.cloud.spanner.DatabaseAdminClient;
+import com.google.cloud.spanner.Spanner;
+import com.google.cloud.spanner.SpannerOptions;
+import com.google.cloud.spanner.admin.instance.v1.InstanceAdminClient;
+import com.google.common.collect.ImmutableList;
+import com.google.spanner.admin.database.v1.CreateDatabaseMetadata;
+import com.google.spanner.admin.instance.v1.CreateInstanceRequest;
+import com.google.spanner.admin.instance.v1.Instance;
+import com.google.spanner.admin.instance.v1.InstanceConfigName;
+import com.google.spanner.admin.instance.v1.ProjectName;
 
 public class AppTest {
     private static String TEST_FILE = "src/test/resources/testfile.json";
@@ -171,8 +155,7 @@ public class AppTest {
     }
 
     @Test
-    public void testRunApplication()
-            throws StreamReadException, DatabindException, SQLException, InterruptedException, IOException {
+    public void testRunApplication() throws Exception {
 
         System.setProperty("spanner.emulator", "true");
         System.setProperty("spanner.host", "//localhost:" + emulator.getMappedPort(9010));
@@ -190,7 +173,7 @@ public class AppTest {
         testQuery(connection, "SELECT count(*) FROM Users", 1000);
     }
 
-    private void testQuery(Connection connection, String query, int expected) {
+    private void testQuery(Connection connection, String query, int expected) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             boolean hasResults = statement.execute(query);
 
@@ -203,9 +186,7 @@ public class AppTest {
                 int value = rs.getInt(1);
                 assertEquals(expected, value);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } 
     }
 
     static void createInstance(String projectId, String instanceId) {
