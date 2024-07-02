@@ -22,12 +22,12 @@ public class ProgressTracker extends Thread {
     private static final int SLEEP_TIME_INIT = 2000;
     private static final int SLEEP_TIME_POLL = 200;
 
-    private final List<QuickPerf> threadList;
+    private final List<QuickPerfRunner> threadList;
 
     private final int maxIt;
     private int currentIt = 0;
 
-    public ProgressTracker(List<QuickPerf> threadList, int maxIt) {
+    public ProgressTracker(List<QuickPerfRunner> threadList, int maxIt) {
         this.threadList = threadList;
         this.maxIt = maxIt;
     }
@@ -36,7 +36,7 @@ public class ProgressTracker extends Thread {
         sleep(SLEEP_TIME_INIT);
         while (currentIt < maxIt) {
             currentIt = 0;
-            for (QuickPerf thread : threadList) {
+            for (QuickPerfRunner thread : threadList) {
                 currentIt = currentIt + thread.getProgress();
 
                 int percent = (int) Math.ceil(((double) currentIt / maxIt) * 100.0);
