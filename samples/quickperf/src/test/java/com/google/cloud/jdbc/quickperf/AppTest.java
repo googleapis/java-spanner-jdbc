@@ -43,15 +43,12 @@ import org.testcontainers.utility.DockerImageName;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.api.gax.longrunning.OperationFuture;
 import com.google.cloud.NoCredentials;
-import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.DatabaseAdminClient;
 import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.admin.instance.v1.InstanceAdminClient;
 import com.google.common.collect.ImmutableList;
-import com.google.spanner.admin.database.v1.CreateDatabaseMetadata;
 import com.google.spanner.admin.instance.v1.CreateInstanceRequest;
 import com.google.spanner.admin.instance.v1.Instance;
 import com.google.spanner.admin.instance.v1.InstanceConfigName;
@@ -69,7 +66,7 @@ public class AppTest {
     private static DatabaseAdminClient dbAdminClient;
 
     @BeforeClass
-    public static void setup() throws InterruptedException, ExecutionException {
+    public static void setup() throws InterruptedException, ExecutionException, SQLException {
         System.out.println("Starting Emulator");
         emulator = new GenericContainer<>(
                 DockerImageName.parse("gcr.io/cloud-spanner-emulator/emulator:latest"))
@@ -97,25 +94,14 @@ public class AppTest {
                         + "),"
                         + ") PRIMARY KEY(user_id, group_id)");
 
-        SpannerOptions options = SpannerOptions.newBuilder()
-                .setProjectId(projectId)
-                .setEmulatorHost("localhost:" + emulator.getMappedPort(9010))
-                .setCredentials(NoCredentials.getInstance())
-                .build();
-
-        Spanner spanner = options.getService();
-        dbAdminClient = spanner.getDatabaseAdminClient();
-
-        createInstance(projectId, instanceId);
-
-        OperationFuture<Database, CreateDatabaseMetadata> op = dbAdminClient.createDatabase(
-                instanceId,
-                databaseId,
-                ddlList);
-
-        System.out.println("Creating database " + databaseId);
-        Database dbOperation = op.get();
-        System.out.println("Created database [" + databaseId + "]");
+        try (Connection connection = DriverManager.getConnection("jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s?autoConfigEmulator=true")) {
+            try (Statement statement = connection.createStatement()) {
+              for (String ddl : ddlList) {
+                statement.addBatch(ddl);
+              }
+              statement.executeBatch();
+            }
+          }
 
         // create test file
         ProjectConfig projectConfig = new ProjectConfig();
