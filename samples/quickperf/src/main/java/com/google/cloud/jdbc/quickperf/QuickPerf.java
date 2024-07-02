@@ -24,7 +24,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.google.cloud.jdbc.quickperf.config.Config;
@@ -32,6 +38,7 @@ import com.google.cloud.jdbc.quickperf.config.ConfigParser;
 
 
 public class QuickPerf extends Thread {
+    
     private static final String BREAK_STR = "###################################################################################################";
 
     // TODO: make measurementfile configurable
@@ -102,7 +109,7 @@ public class QuickPerf extends Thread {
         System.out.println("\n" + BREAK_STR);
         System.out.println("Query: " + config.getQuery());
         System.out.println("Params: " + config.paramsToString());
-        System.out.println("Tag: " + DEFAULT_TAG);
+        System.out.println("Tag: " + config.DEFAULT_TAG);
         if (config.getBatchSize() > 0) {
             System.out.println("Batching Enabled (size): " + config.getBatchSize());
         }

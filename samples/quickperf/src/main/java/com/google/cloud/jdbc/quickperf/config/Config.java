@@ -17,8 +17,11 @@
 package com.google.cloud.jdbc.quickperf.config;
 
 import java.util.List;
+import java.util.Random;
 
 public class Config {
+    public static String DEFAULT_TAG = "perftest_" + (new Random()).nextInt(300);
+
     private String project;
     private String instance;
     private String database;
@@ -141,5 +144,7 @@ public class Config {
     public void setIsEmulator(boolean isEmulator) {
         this.isEmulator = isEmulator;
     }
+
+    
 
 }

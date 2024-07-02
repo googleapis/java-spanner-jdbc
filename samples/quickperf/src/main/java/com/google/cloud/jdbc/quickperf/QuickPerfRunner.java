@@ -37,8 +37,6 @@ import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import net.datafaker.Faker;
 
 public class QuickPerfRunner extends Thread {
-    private static String DEFAULT_TAG = "perftest_" + (new Random()).nextInt(300);
-
     // perf measurement
     private float measures[];
 
@@ -121,10 +119,10 @@ public class QuickPerfRunner extends Thread {
                 connection.createStatement().execute("SET TRANSACTION READ WRITE");
 
                 if (isGoogleSQL) {
-                    connection.createStatement().execute(String.format("SET TRANSACTION_TAG = '%s'", DEFAULT_TAG));
+                    connection.createStatement().execute(String.format("SET TRANSACTION_TAG = '%s'", config.DEFAULT_TAG));
                 } else {
                     connection.createStatement()
-                            .execute(String.format("SET SPANNER.TRANSACTION_TAG = '%s'", DEFAULT_TAG));
+                            .execute(String.format("SET SPANNER.TRANSACTION_TAG = '%s'", config.DEFAULT_TAG));
                 }
 
             } else {
@@ -147,10 +145,10 @@ public class QuickPerfRunner extends Thread {
 
                         if (isGoogleSQL) {
                             connection.createStatement().execute(String.format("SET STATEMENT_TAG='%s'",
-                                    DEFAULT_TAG));
+                                    config.DEFAULT_TAG));
                         } else {
                             connection.createStatement().execute(String.format("SET SPANNER.STATEMENT_TAG='%s'",
-                                    DEFAULT_TAG));
+                                    config.DEFAULT_TAG));
                         }
 
                         boolean hasResults = false;
@@ -197,10 +195,10 @@ public class QuickPerfRunner extends Thread {
 
                             if (isGoogleSQL) {
                                 connection.createStatement().execute(String.format("SET STATEMENT_TAG='%s'",
-                                        DEFAULT_TAG));
+                                        config.DEFAULT_TAG));
                             } else {
                                 connection.createStatement().execute(String.format("SET SPANNER.STATEMENT_TAG='%s'",
-                                        DEFAULT_TAG));
+                                        config.DEFAULT_TAG));
                             }
 
                             long start = 0;

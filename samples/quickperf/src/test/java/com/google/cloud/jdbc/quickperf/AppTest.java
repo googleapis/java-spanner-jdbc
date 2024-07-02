@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.cloud.jdbc.quickperf;
 
 import java.io.File;
@@ -43,18 +42,22 @@ import org.testcontainers.utility.DockerImageName;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.api.gax.longrunning.OperationFuture;
 import com.google.cloud.NoCredentials;
+import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.DatabaseAdminClient;
 import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.admin.instance.v1.InstanceAdminClient;
 import com.google.common.collect.ImmutableList;
+import com.google.spanner.admin.database.v1.CreateDatabaseMetadata;
 import com.google.spanner.admin.instance.v1.CreateInstanceRequest;
 import com.google.spanner.admin.instance.v1.Instance;
 import com.google.spanner.admin.instance.v1.InstanceConfigName;
 import com.google.spanner.admin.instance.v1.ProjectName;
 
 public class AppTest {
+
     private static String TEST_FILE = "src/test/resources/testfile.json";
 
     private static GenericContainer<?> emulator;
@@ -79,29 +82,40 @@ public class AppTest {
 
         List<String> ddlList = Arrays.asList(
                 "CREATE TABLE GroupMgmt ("
-                        + "group_id INT64,"
-                        + "grpname STRING(MAX),"
-                        + ") PRIMARY KEY(group_id)",
+                + "group_id INT64,"
+                + "grpname STRING(MAX),"
+                + ") PRIMARY KEY(group_id)",
                 "CREATE TABLE Users ("
-                        + "user_id INT64,"
-                        + "name STRING(MAX),"
-                        + ") PRIMARY KEY(user_id)",
+                + "user_id INT64,"
+                + "name STRING(MAX),"
+                + ") PRIMARY KEY(user_id)",
                 "CREATE TABLE membership ("
-                        + "user_id INT64,"
-                        + "group_id INT64,"
-                        + "enrolled TIMESTAMP NOT NULL OPTIONS ("
-                        + " allow_commit_timestamp = true"
-                        + "),"
-                        + ") PRIMARY KEY(user_id, group_id)");
+                + "user_id INT64,"
+                + "group_id INT64,"
+                + "enrolled TIMESTAMP NOT NULL OPTIONS ("
+                + " allow_commit_timestamp = true"
+                + "),"
+                + ") PRIMARY KEY(user_id, group_id)");
 
-        try (Connection connection = DriverManager.getConnection("jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s?autoConfigEmulator=true")) {
-            try (Statement statement = connection.createStatement()) {
-              for (String ddl : ddlList) {
-                statement.addBatch(ddl);
-              }
-              statement.executeBatch();
-            }
-          }
+        SpannerOptions options = SpannerOptions.newBuilder()
+                .setProjectId(projectId)
+                .setEmulatorHost("localhost:" + emulator.getMappedPort(9010))
+                .setCredentials(NoCredentials.getInstance())
+                .build();
+
+        Spanner spanner = options.getService();
+        dbAdminClient = spanner.getDatabaseAdminClient();
+
+        createInstance(projectId, instanceId);
+
+        OperationFuture<Database, CreateDatabaseMetadata> op = dbAdminClient.createDatabase(
+                instanceId,
+                databaseId,
+                ddlList);
+
+        System.out.println("Creating database " + databaseId);
+        Database dbOperation = op.get();
+        System.out.println("Created database [" + databaseId + "]");
 
         // create test file
         ProjectConfig projectConfig = new ProjectConfig();
@@ -147,7 +161,7 @@ public class AppTest {
         System.setProperty("spanner.host", "//localhost:" + emulator.getMappedPort(9010));
         SpringApplication.run(AppTest.class).close();
 
-        String[] userConfig = { "-c" + TEST_FILE };
+        String[] userConfig = {"-c" + TEST_FILE};
         QuickPerf.main(userConfig);
 
         String url = String.format(
@@ -172,7 +186,7 @@ public class AppTest {
                 int value = rs.getInt(1);
                 assertEquals(expected, value);
             }
-        } 
+        }
     }
 
     static void createInstance(String projectId, String instanceId) {
@@ -192,9 +206,7 @@ public class AppTest {
                 .setProjectId(projectId)
                 .setEmulatorHost("localhost:" + emulator.getMappedPort(9010))
                 .setCredentials(NoCredentials.getInstance())
-                .build().getService();
-
-                InstanceAdminClient instanceAdminClient = spanner.createInstanceAdminClient()) {
+                .build().getService(); InstanceAdminClient instanceAdminClient = spanner.createInstanceAdminClient()) {
 
             Instance createdInstance = instanceAdminClient.createInstanceAsync(
                     CreateInstanceRequest.newBuilder()
