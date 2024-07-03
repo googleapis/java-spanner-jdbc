@@ -18,6 +18,8 @@ package com.google.cloud.spanner.jdbc;
 
 import com.google.api.core.InternalApi;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.spanner.SessionPoolOptions;
+import com.google.cloud.spanner.SessionPoolOptionsHelper;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptions.ConnectionProperty;
@@ -239,6 +241,9 @@ public class JdbcDriver implements Driver {
         && info.get(OPEN_TELEMETRY_PROPERTY_KEY) instanceof OpenTelemetry) {
       builder.setOpenTelemetry((OpenTelemetry) info.get(OPEN_TELEMETRY_PROPERTY_KEY));
     }
+    // Enable multiplexed sessions by default for the JDBC driver.
+    builder.setSessionPoolOptions(
+        SessionPoolOptionsHelper.useMultiplexedSessions(SessionPoolOptions.newBuilder()).build());
     return builder.build();
   }
 
