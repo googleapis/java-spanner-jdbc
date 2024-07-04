@@ -68,7 +68,7 @@ public class JdbcConnectionUrlTest {
     }
 
     protected String getBaseUrl() {
-      return super.getBaseUrl() + ";maxSessions=1";
+      return super.getBaseUrl() + ";minSessions=0;maxSessions=1";
     }
 
     @Test
