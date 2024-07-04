@@ -103,6 +103,38 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
   }
 
   @Test
+  public void testUsesMultiplexedSessionForQueryInReadOnlyTransaction() throws SQLException {
+    int numQueries = 2;
+    try (Connection connection = createConnection()) {
+      connection.setReadOnly(true);
+      connection.setAutoCommit(false);
+
+      for (int ignore = 0; ignore < numQueries; ignore++) {
+        try (ResultSet resultSet = connection.createStatement().executeQuery(SELECT_RANDOM_SQL)) {
+          //noinspection StatementWithEmptyBody
+          while (resultSet.next()) {
+            // Just consume the results
+          }
+        }
+      }
+    }
+    // Verify that one multiplexed session was created and used.
+    assertEquals(1, mockSpanner.countRequestsOfType(CreateSessionRequest.class));
+    CreateSessionRequest request = mockSpanner.getRequestsOfType(CreateSessionRequest.class).get(0);
+    assertTrue(request.getSession().getMultiplexed());
+
+    // Verify that both queries used the multiplexed session.
+    assertEquals(numQueries, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+    for (int index = 0; index < numQueries; index++) {
+      String sessionId =
+          mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(index).getSession();
+      Session session = MockServerHelper.getSession(mockSpanner, sessionId);
+      assertNotNull(session);
+      assertTrue(session.getMultiplexed());
+    }
+  }
+
+  @Test
   public void testUsesRegularSessionForDmlInAutoCommit() throws SQLException {
     try (Connection connection = createConnection()) {
       assertTrue(connection.getAutoCommit());
