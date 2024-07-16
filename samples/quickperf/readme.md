@@ -105,11 +105,10 @@ What needs to be done to run it:
 * Create spanner instance
 * Create database named `users` 
 * Set `project` and `instance` in each of the config JSON files located under `exampleconfigs/users/users_config.json`
-    *`exampleconfigs/users/users_config.json`
-    *`exampleconfigs/users/groupmgt_config.json`
-    *`exampleconfigs/users/membership_config.json`
-    *`exampleconfigs/users/loadtestusers.json`
-* 
+    * `exampleconfigs/users/users_config.json`
+    * `exampleconfigs/users/groupmgt_config.json` 
+    * `exampleconfigs/users/membership_config.json`
+    * `exampleconfigs/users/loadtestusers.json`
 
 
 **Generate users table:**
