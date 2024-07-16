@@ -68,14 +68,19 @@ public class QuickPerf extends Thread {
 
         float measures[] = new float[config.getIterations() * config.getThreads()];
 
+        // initialize threads (for sampling if present)
         List<QuickPerfRunner> threadList = new ArrayList<QuickPerfRunner>();
         for (int i = 0; i < config.getThreads(); i++) {
             QuickPerfRunner thread = new QuickPerfRunner(config);
             if (config.getSamplingQuery() != null) {
                 thread.runSampling();
             }
-            thread.start();
             threadList.add(thread);
+        }
+
+        // start threads
+        for(QuickPerfRunner thread : threadList) {
+            thread.start();
         }
 
         // ProgressBar Tracker Thread
