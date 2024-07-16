@@ -86,8 +86,7 @@ Configure the right Spanner `project` and `instance` and run the app.
 
 **Run:**
 ```
-mvn -q exec:java -Dexec.mainClass="com.google.cloud.jdbc.quickperf.QuickPerf" \
--Dexec.args="-c exampleconfigs/config.json"
+mvn -q exec:java -Dexec.args="-c exampleconfigs/config.json"
 ```
 
 
@@ -114,8 +113,7 @@ What needs to be done to run it:
 **Generate users table:**
 
 ```
-mvn -q exec:java -Dexec.mainClass="com.google.cloud.jdbc.quickperf.QuickPerf" \
--Dexec.args="-c exampleconfigs/users/users_config.json"
+mvn -q exec:java -Dexec.args="-c exampleconfigs/users/users_config.json"
 ```
 
 users_config.json:
@@ -138,8 +136,7 @@ users_config.json:
 **Generate GroupMgmt table:**
 
 ```
-mvn  -q exec:java -Dexec.mainClass="com.google.cloud.jdbc.quickperf.QuickPerf" \
--Dexec.args="-c exampleconfigs/users/groupmgt_config.json"
+mvn  -q exec:java -Dexec.args="-c exampleconfigs/users/groupmgt_config.json"
 ```
 
 groupmgt_config.json
@@ -163,8 +160,7 @@ groupmgt_config.json
 
 Run:
 ```
-mvn  -q exec:java -Dexec.mainClass="com.google.cloud.jdbc.quickperf.QuickPerf" \
--Dexec.args="-c exampleconfigs/users/membership_config.json"
+mvn  -q exec:java -Dexec.args="-c exampleconfigs/users/membership_config.json"
 ```
 
 ```
@@ -182,8 +178,7 @@ mvn  -q exec:java -Dexec.mainClass="com.google.cloud.jdbc.quickperf.QuickPerf" \
 
 Load test random users
 ```
-mvn  -q exec:java -Dexec.mainClass="com.google.cloud.jdbc.quickperf.QuickPerf" \
--Dexec.args="-c exampleconfigs/users/loadtestusers.json"
+mvn  -q exec:java -Dexec.args="-c exampleconfigs/users/loadtestusers.json"
 ```
 
 # Randomization examples
