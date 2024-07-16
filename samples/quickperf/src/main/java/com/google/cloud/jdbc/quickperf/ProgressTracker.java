@@ -42,7 +42,10 @@ public class ProgressTracker extends Thread {
                 int percent = (int) Math.ceil(((double) currentIt / maxIt) * 100.0);
                 print_progress(percent);
             }
-            sleep(SLEEP_TIME_POLL);
+
+            if (sleep(SLEEP_TIME_POLL) == true) {
+                break;
+            }
         }
         print_progress(100); 
     }
@@ -64,11 +67,13 @@ public class ProgressTracker extends Thread {
         System.out.print("\r" + bar.toString());
     }
 
-    private void sleep(int sleeptime) {
+    private boolean sleep(int sleeptime) {
         try {
             Thread.sleep(sleeptime);
         } catch (InterruptedException e) {
             e.printStackTrace();
+            return true;
         }
+        return false;
     }
 }
