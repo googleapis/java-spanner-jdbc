@@ -18,8 +18,11 @@ package com.google.cloud.spanner.jdbc;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.google.cloud.ServiceOptions;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptions.ConnectionProperty;
@@ -27,7 +30,14 @@ import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
+import io.grpc.Context;
+import io.grpc.Contexts;
+import io.grpc.Metadata;
 import io.grpc.Server;
+import io.grpc.ServerCall;
+import io.grpc.ServerCall.Listener;
+import io.grpc.ServerCallHandler;
+import io.grpc.ServerInterceptor;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -64,7 +74,27 @@ public class JdbcDriverTest {
   public static void startStaticServer() throws IOException {
     MockSpannerServiceImpl mockSpanner = new MockSpannerServiceImpl();
     InetSocketAddress address = new InetSocketAddress("localhost", 0);
-    server = NettyServerBuilder.forAddress(address).addService(mockSpanner).build().start();
+    server =
+        NettyServerBuilder.forAddress(address)
+            .addService(mockSpanner)
+            .intercept(
+                new ServerInterceptor() {
+                  @Override
+                  public <ReqT, RespT> Listener<ReqT> interceptCall(
+                      ServerCall<ReqT, RespT> call,
+                      Metadata headers,
+                      ServerCallHandler<ReqT, RespT> next) {
+                    String clientLibToken =
+                        headers.get(
+                            Metadata.Key.of("x-goog-api-client", Metadata.ASCII_STRING_MARSHALLER));
+                    assertNotNull(clientLibToken);
+                    assertTrue(
+                        clientLibToken.contains(ServiceOptions.getGoogApiClientLibName() + "/"));
+                    return Contexts.interceptCall(Context.current(), call, headers, next);
+                  }
+                })
+            .build()
+            .start();
   }
 
   @AfterClass
