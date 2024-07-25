@@ -66,6 +66,9 @@ public class ITSingleJarTest extends ITAbstractJdbcTest {
 
     DatabaseId id = database.getId();
     ProcessBuilder builder = new ProcessBuilder();
+    if (System.getenv("SPANNER_EMULATOR_HOST") != null) {
+      builder.environment().put("SPANNER_EMULATOR_HOST", System.getenv("SPANNER_EMULATOR_HOST"));
+    }
     // This runs the simple test application with only the jar-with-dependencies on the classpath.
     builder.command(
         "java",

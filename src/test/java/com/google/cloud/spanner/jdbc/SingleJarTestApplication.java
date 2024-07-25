@@ -32,12 +32,18 @@ public class SingleJarTestApplication {
     String project = args[0];
     String instance = args[1];
     String database = args[2];
+    String extraOptions = "";
+    String host = "";
+    if (System.getenv("SPANNER_EMULATOR_HOST") != null) {
+      extraOptions = "?autoConfigEmulator=true";
+      host = System.getenv("SPANNER_EMULATOR_HOST");
+    }
 
     try (Connection connection =
         DriverManager.getConnection(
             String.format(
-                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
-                project, instance, database))) {
+                "jdbc:cloudspanner://%s/projects/%s/instances/%s/databases/%s%s",
+                host, project, instance, database, extraOptions))) {
       try (ResultSet resultSet =
           connection.createStatement().executeQuery("select 'Hello World from Real Spanner!'")) {
         while (resultSet.next()) {
