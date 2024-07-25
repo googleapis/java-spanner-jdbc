@@ -26,6 +26,7 @@ import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.connection.PartitionedQueryResultSet;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
@@ -57,8 +58,16 @@ import javax.annotation.Nonnull;
 class JdbcResultSet extends AbstractJdbcResultSet {
 
   static JdbcResultSet of(com.google.cloud.spanner.ResultSet resultSet) {
-    Preconditions.checkNotNull(resultSet);
-    return new JdbcResultSet(null, resultSet);
+    return of(resultSet, ImmutableSet.of());
+  }
+
+  static JdbcResultSet of(
+      com.google.cloud.spanner.ResultSet resultSet,
+      ImmutableSet<Integer> columnsAllowedUncheckedLongCastToShort) {
+    return new JdbcResultSet(
+        null,
+        Preconditions.checkNotNull(resultSet),
+        Preconditions.checkNotNull(columnsAllowedUncheckedLongCastToShort));
   }
 
   static JdbcResultSet of(Statement statement, com.google.cloud.spanner.ResultSet resultSet) {
@@ -129,10 +138,19 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   private boolean nextCalledForMetaData = false;
   private boolean nextCalledForMetaDataResult = false;
   private long currentRow = 0L;
+  private final ImmutableSet<Integer> columnsAllowedUncheckedLongCastToShort;
 
   JdbcResultSet(Statement statement, com.google.cloud.spanner.ResultSet spanner) {
+    this(statement, spanner, ImmutableSet.of());
+  }
+
+  JdbcResultSet(
+      Statement statement,
+      com.google.cloud.spanner.ResultSet spanner,
+      ImmutableSet<Integer> columnsAllowedUncheckedLongCastToShort) {
     super(spanner);
     this.statement = statement;
+    this.columnsAllowedUncheckedLongCastToShort = columnsAllowedUncheckedLongCastToShort;
   }
 
   void checkClosedAndValidRow() throws SQLException {
@@ -327,6 +345,11 @@ class JdbcResultSet extends AbstractJdbcResultSet {
             : checkedCastToShort(Double.valueOf(spanner.getDouble(spannerIndex)).longValue());
       case INT64:
       case ENUM:
+        if (this.columnsAllowedUncheckedLongCastToShort.contains(columnIndex)) {
+          // This is used to allow frameworks that call getShort(int) on the ResultSet that is
+          // returned by DatabaseMetadata#getTypeInfo().
+          return isNull ? 0 : (short) spanner.getLong(spannerIndex);
+        }
         return isNull ? 0 : checkedCastToShort(spanner.getLong(spannerIndex));
       case NUMERIC:
         return isNull ? 0 : checkedCastToShort(spanner.getBigDecimal(spannerIndex));

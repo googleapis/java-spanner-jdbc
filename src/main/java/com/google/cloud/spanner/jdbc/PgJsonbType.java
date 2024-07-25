@@ -17,6 +17,7 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.spanner.v1.TypeCode;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLType;
 
 public class PgJsonbType implements SQLType {
@@ -24,9 +25,14 @@ public class PgJsonbType implements SQLType {
   /**
    * Spanner/Spangres does not have any type numbers, but the code values are unique. Add 200,000 to
    * avoid conflicts with the type numbers in java.sql.Types. Native Cloud Spanner types already use
-   * the range starting at 100,000 (see {@link JsonType}).
+   * the range starting at 16,000 (see {@link JsonType}).
    */
   public static final int VENDOR_TYPE_NUMBER = 200_000 + TypeCode.JSON_VALUE;
+  /**
+   * Define a short type number as well, as this is what is expected to be returned in {@link
+   * DatabaseMetaData#getTypeInfo()}.
+   */
+  public static final short SHORT_VENDOR_TYPE_NUMBER = (short) VENDOR_TYPE_NUMBER;
 
   private PgJsonbType() {}
 
