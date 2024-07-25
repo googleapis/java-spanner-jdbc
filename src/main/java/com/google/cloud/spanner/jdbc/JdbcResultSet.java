@@ -347,7 +347,8 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case ENUM:
         if (this.columnsAllowedUncheckedLongCastToShort.contains(columnIndex)) {
           // This is used to allow frameworks that call getShort(int) on the ResultSet that is
-          // returned by DatabaseMetadata#getTypeInfo().
+          // returned by DatabaseMetadata#getTypeInfo() to get the type code as a short, even when
+          // the value is out of range for a short.
           return isNull ? 0 : (short) spanner.getLong(spannerIndex);
         }
         return isNull ? 0 : checkedCastToShort(spanner.getLong(spannerIndex));
