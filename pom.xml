@@ -14,7 +14,7 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>sdk-platform-java-config</artifactId>
-    <version>3.32.0</version>
+    <version>3.33.0</version>
   </parent>
   <developers>
     <developer>
@@ -201,6 +201,13 @@
     </dependency>
 
     <!-- Add OpenTelemetry implementation and exporters for use in integration tests -->
+    <!-- TODO: Remove this alpha dependency when the bug in OpenTelemetry has been fixed that makes SdkTracer implement ExtendedTracer -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api-incubator</artifactId>
+      <version>1.40.0-alpha</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk</artifactId>
