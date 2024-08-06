@@ -38,6 +38,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.devtools.cloudtrace.v1.ListTracesRequest;
 import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.incubator.trace.ExtendedTracer;
+import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
@@ -79,7 +81,7 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
   private Database database;
 
   @BeforeClass
-  public static void setupOpenTelemetry() throws IOException {
+  public static void setupOpenTelemetry() {
     assumeFalse("This test requires credentials", EmulatorSpannerHelper.isUsingEmulator());
 
     SpannerOptions options = env.getTestHelper().getOptions();
@@ -103,6 +105,9 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
                     .addSpanProcessor(BatchSpanProcessor.builder(traceExporter).build())
                     .build())
             .build();
+    // TODO: Remove when the bug in OpenTelemetry that has SdkTracer implement ExtendedTracer,
+    //       which is only available in the incubator project.
+    ExtendedTracer ignore = (ExtendedTracer) openTelemetry.getTracer("foo");
   }
 
   @AfterClass
@@ -245,8 +250,6 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
       Thread.sleep(5000L);
       boolean foundTrace = false;
       for (int attempts = 0; attempts < 20; attempts++) {
-        // Ignore deprecation for now, as there is no alternative offered (yet?).
-        //noinspection deprecation
         ListTracesPagedResponse response =
             client.listTraces(
                 ListTracesRequest.newBuilder()

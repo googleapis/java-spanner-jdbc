@@ -214,6 +214,7 @@
     </dependency>
 
     <!-- Add OpenTelemetry implementation and exporters for use in integration tests -->
+    <!-- TODO: Remove this alpha dependency when the bug in OpenTelemetry has been fixed that makes SdkTracer implement ExtendedTracer -->
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-api-incubator</artifactId>
