@@ -475,24 +475,51 @@ public class JdbcDatabaseMetaDataTest {
       try (ResultSet rs = meta.getTypeInfo()) {
         assertTrue(rs.next());
         assertEquals("STRING", rs.getString("TYPE_NAME"));
+        assertEquals(Types.NVARCHAR, rs.getInt("DATA_TYPE"));
+        assertEquals(Types.NVARCHAR, rs.getShort("DATA_TYPE"));
         assertTrue(rs.next());
         assertEquals("INT64", rs.getString("TYPE_NAME"));
+        assertEquals(Types.BIGINT, rs.getInt("DATA_TYPE"));
+        assertEquals(Types.BIGINT, rs.getShort("DATA_TYPE"));
         assertTrue(rs.next());
         assertEquals("BYTES", rs.getString("TYPE_NAME"));
+        assertEquals(Types.BINARY, rs.getInt("DATA_TYPE"));
+        assertEquals(Types.BINARY, rs.getShort("DATA_TYPE"));
         assertTrue(rs.next());
         assertEquals("FLOAT32", rs.getString("TYPE_NAME"));
+        assertEquals(Types.REAL, rs.getInt("DATA_TYPE"));
+        assertEquals(Types.REAL, rs.getShort("DATA_TYPE"));
         assertTrue(rs.next());
         assertEquals("FLOAT64", rs.getString("TYPE_NAME"));
+        assertEquals(Types.DOUBLE, rs.getInt("DATA_TYPE"));
+        assertEquals(Types.DOUBLE, rs.getShort("DATA_TYPE"));
         assertTrue(rs.next());
         assertEquals("BOOL", rs.getString("TYPE_NAME"));
+        assertEquals(Types.BOOLEAN, rs.getInt("DATA_TYPE"));
+        assertEquals(Types.BOOLEAN, rs.getShort("DATA_TYPE"));
         assertTrue(rs.next());
         assertEquals("DATE", rs.getString("TYPE_NAME"));
+        assertEquals(Types.DATE, rs.getInt("DATA_TYPE"));
+        assertEquals(Types.DATE, rs.getShort("DATA_TYPE"));
         assertTrue(rs.next());
         assertEquals("TIMESTAMP", rs.getString("TYPE_NAME"));
+        assertEquals(Types.TIMESTAMP, rs.getInt("DATA_TYPE"));
+        assertEquals(Types.TIMESTAMP, rs.getShort("DATA_TYPE"));
         assertTrue(rs.next());
         assertEquals("NUMERIC", rs.getString("TYPE_NAME"));
+        assertEquals(Types.NUMERIC, rs.getInt("DATA_TYPE"));
+        assertEquals(Types.NUMERIC, rs.getShort("DATA_TYPE"));
         assertTrue(rs.next());
-        assertEquals(dialect == Dialect.POSTGRESQL ? "JSONB" : "JSON", rs.getString("TYPE_NAME"));
+        if (dialect == Dialect.POSTGRESQL) {
+          assertEquals("JSONB", rs.getString("TYPE_NAME"));
+          assertEquals(PgJsonbType.VENDOR_TYPE_NUMBER, rs.getInt("DATA_TYPE"));
+          assertEquals(PgJsonbType.SHORT_VENDOR_TYPE_NUMBER, rs.getShort("DATA_TYPE"));
+        } else {
+          assertEquals("JSON", rs.getString("TYPE_NAME"));
+          assertEquals(JsonType.VENDOR_TYPE_NUMBER, rs.getInt("DATA_TYPE"));
+          assertEquals(JsonType.SHORT_VENDOR_TYPE_NUMBER, rs.getShort("DATA_TYPE"));
+        }
+
         assertFalse(rs.next());
         ResultSetMetaData rsmd = rs.getMetaData();
         assertEquals(18, rsmd.getColumnCount());
