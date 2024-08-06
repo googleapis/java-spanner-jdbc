@@ -124,9 +124,6 @@ public class ITAbstractJdbcTest {
       default:
         scriptFile = "CreateMusicTables.sql";
     }
-    if (dialect != Dialect.POSTGRESQL && isUsingEmulator()) {
-      scriptFile = "CreateMusicTables_Emulator.sql";
-    }
     return AbstractSqlScriptVerifier.readStatementsFromFile(scriptFile, ITAbstractJdbcTest.class)
         .stream()
         .filter(sql -> !(sql.contains("START BATCH") || sql.contains("RUN BATCH")))
