@@ -39,7 +39,6 @@ import com.google.common.collect.Iterables;
 import com.google.devtools.cloudtrace.v1.ListTracesRequest;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.incubator.trace.ExtendedTracer;
-import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
