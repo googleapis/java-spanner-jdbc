@@ -24,7 +24,6 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -118,7 +117,7 @@ public class JdbcConnectionTest {
   }
 
   @Test
-  public void testReadOnly() {
+  public void testReadOnly() throws SQLException {
     ConnectionOptions options = mockOptions();
     when(options.isAutocommit()).thenReturn(true);
     when(options.isReadOnly()).thenReturn(true);
@@ -129,10 +128,9 @@ public class JdbcConnectionTest {
       // start a transaction
       connection.createStatement().execute("begin transaction");
       // setting readonly should no longer be allowed
-      connection.setReadOnly(true);
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(JdbcExceptionMatcher.matchCode(Code.FAILED_PRECONDITION).matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> connection.setReadOnly(true));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
     }
   }
 

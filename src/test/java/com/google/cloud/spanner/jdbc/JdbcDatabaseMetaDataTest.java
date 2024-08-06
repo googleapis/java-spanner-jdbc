@@ -16,12 +16,9 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -65,100 +62,97 @@ public class JdbcDatabaseMetaDataTest {
   public void testTrivialMethods() throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
-    assertThat(meta.allProceduresAreCallable(), is(true));
-    assertThat(meta.allTablesAreSelectable(), is(true));
-    assertThat(meta.autoCommitFailureClosesAllResultSets(), is(false));
-    assertThat(meta.dataDefinitionCausesTransactionCommit(), is(false));
-    assertThat(meta.dataDefinitionIgnoredInTransactions(), is(false));
+    assertTrue(meta.allProceduresAreCallable());
+    assertTrue(meta.allTablesAreSelectable());
+    assertFalse(meta.autoCommitFailureClosesAllResultSets());
+    assertFalse(meta.dataDefinitionCausesTransactionCommit());
+    assertFalse(meta.dataDefinitionIgnoredInTransactions());
     for (int type :
         new int[] {
           ResultSet.TYPE_FORWARD_ONLY,
           ResultSet.TYPE_SCROLL_INSENSITIVE,
           ResultSet.TYPE_SCROLL_SENSITIVE
         }) {
-      assertThat(meta.deletesAreDetected(type), is(false));
-      assertThat(meta.insertsAreDetected(type), is(false));
-      assertThat(meta.updatesAreDetected(type), is(false));
-      assertThat(meta.ownDeletesAreVisible(type), is(false));
-      assertThat(meta.ownInsertsAreVisible(type), is(false));
-      assertThat(meta.ownUpdatesAreVisible(type), is(false));
-      assertThat(meta.othersDeletesAreVisible(type), is(false));
-      assertThat(meta.othersInsertsAreVisible(type), is(false));
-      assertThat(meta.othersUpdatesAreVisible(type), is(false));
+      assertFalse(meta.deletesAreDetected(type));
+      assertFalse(meta.insertsAreDetected(type));
+      assertFalse(meta.updatesAreDetected(type));
+      assertFalse(meta.ownDeletesAreVisible(type));
+      assertFalse(meta.ownInsertsAreVisible(type));
+      assertFalse(meta.ownUpdatesAreVisible(type));
+      assertFalse(meta.othersDeletesAreVisible(type));
+      assertFalse(meta.othersInsertsAreVisible(type));
+      assertFalse(meta.othersUpdatesAreVisible(type));
     }
-    assertThat(meta.doesMaxRowSizeIncludeBlobs(), is(true));
-    assertThat(meta.generatedKeyAlwaysReturned(), is(false));
-    assertThat(meta.getCatalogSeparator(), is(equalTo(".")));
-    assertThat(meta.getCatalogTerm(), is(equalTo("CATALOG")));
-    assertThat(meta.getDatabaseMajorVersion(), is(equalTo(DATABASE_MAJOR_VERSION)));
-    assertThat(meta.getDatabaseMinorVersion(), is(equalTo(DATABASE_MINOR_VERSION)));
-    assertThat(meta.getDatabaseProductName(), is(equalTo(DATABASE_PRODUCT_NAME)));
-    assertThat(
-        meta.getDatabaseProductVersion(),
-        is(equalTo(DATABASE_MAJOR_VERSION + "." + DATABASE_MINOR_VERSION)));
-    assertThat(
-        meta.getDefaultTransactionIsolation(), is(equalTo(Connection.TRANSACTION_SERIALIZABLE)));
-    assertThat(meta.getDriverName(), is(equalTo("com.google.cloud.spanner.jdbc.JdbcDriver")));
-    assertThat(meta.getExtraNameCharacters(), is(equalTo("")));
-    assertThat(meta.getIdentifierQuoteString(), is(equalTo("`")));
-    assertThat(meta.getJDBCMajorVersion(), is(equalTo(4)));
-    assertThat(meta.getJDBCMinorVersion(), is(equalTo(1))); // Java 7 is JDBC 4.1
-    assertThat(meta.getMaxBinaryLiteralLength(), is(equalTo(0)));
-    assertThat(meta.getMaxCatalogNameLength(), is(equalTo(0)));
-    assertThat(meta.getMaxCharLiteralLength(), is(equalTo(0)));
-    assertThat(meta.getMaxColumnNameLength(), is(equalTo(128)));
-    assertThat(meta.getMaxColumnsInGroupBy(), is(equalTo(1000)));
-    assertThat(meta.getMaxColumnsInIndex(), is(equalTo(16)));
-    assertThat(meta.getMaxColumnsInOrderBy(), is(equalTo(0)));
-    assertThat(meta.getMaxColumnsInSelect(), is(equalTo(0)));
-    assertThat(meta.getMaxColumnsInTable(), is(equalTo(1024)));
-    assertThat(meta.getMaxConnections(), is(equalTo(0))); // there is a max number of sessions, but
-    // that is not the same as connections
-    assertThat(meta.getMaxCursorNameLength(), is(equalTo(0)));
-    assertThat(meta.getMaxIndexLength(), is(equalTo(8000)));
-    assertThat(meta.getMaxProcedureNameLength(), is(equalTo(0)));
-    assertThat(meta.getMaxRowSize(), is(equalTo(0)));
-    assertThat(meta.getMaxSchemaNameLength(), is(equalTo(0)));
-    assertThat(meta.getMaxStatementLength(), is(equalTo(1000000)));
-    assertThat(meta.getMaxStatements(), is(equalTo(0)));
-    assertThat(meta.getMaxTableNameLength(), is(equalTo(128)));
-    assertThat(meta.getMaxTablesInSelect(), is(equalTo(0)));
-    assertThat(meta.getMaxUserNameLength(), is(equalTo(0)));
-    assertThat(meta.getProcedureTerm(), is(equalTo("PROCEDURE")));
-    assertThat(meta.getResultSetHoldability(), is(equalTo(ResultSet.CLOSE_CURSORS_AT_COMMIT)));
-    assertThat(meta.getRowIdLifetime(), is(equalTo(RowIdLifetime.ROWID_UNSUPPORTED)));
-    assertThat(meta.getSchemaTerm(), is(equalTo("SCHEMA")));
-    assertThat(meta.getSearchStringEscape(), is(equalTo("\\")));
-    assertThat(meta.getSQLStateType(), is(equalTo(DatabaseMetaData.sqlStateSQL)));
-    assertThat(meta.locatorsUpdateCopy(), is(true));
-    assertThat(meta.nullsAreSortedHigh(), is(false));
-    assertThat(meta.nullsAreSortedLow(), is(true));
-    assertThat(meta.nullsAreSortedAtStart(), is(false));
-    assertThat(meta.nullsAreSortedAtEnd(), is(false));
-    assertThat(meta.nullPlusNonNullIsNull(), is(true));
-    assertThat(meta.isCatalogAtStart(), is(false));
-    assertThat(meta.isReadOnly(), is(equalTo(connection.isReadOnly())));
-    assertThat(meta.storesLowerCaseIdentifiers(), is(false));
-    assertThat(meta.storesLowerCaseQuotedIdentifiers(), is(false));
-    assertThat(meta.storesMixedCaseIdentifiers(), is(true));
-    assertThat(meta.storesMixedCaseQuotedIdentifiers(), is(true));
-    assertThat(meta.storesUpperCaseIdentifiers(), is(false));
-    assertThat(meta.storesUpperCaseQuotedIdentifiers(), is(false));
-    assertThat(meta.supportsAlterTableWithAddColumn(), is(true));
-    assertThat(meta.supportsAlterTableWithDropColumn(), is(true));
-    assertThat(meta.supportsANSI92EntryLevelSQL(), is(false));
-    assertThat(meta.supportsANSI92FullSQL(), is(false));
-    assertThat(meta.supportsANSI92IntermediateSQL(), is(false));
-    assertThat(meta.supportsBatchUpdates(), is(true));
-    assertThat(meta.supportsCatalogsInDataManipulation(), is(false));
-    assertThat(meta.supportsCatalogsInIndexDefinitions(), is(false));
-    assertThat(meta.supportsCatalogsInPrivilegeDefinitions(), is(false));
-    assertThat(meta.supportsCatalogsInProcedureCalls(), is(false));
-    assertThat(meta.supportsCatalogsInTableDefinitions(), is(false));
-    assertThat(meta.supportsColumnAliasing(), is(true));
+    assertTrue(meta.doesMaxRowSizeIncludeBlobs());
+    assertFalse(meta.generatedKeyAlwaysReturned());
+    assertEquals(".", meta.getCatalogSeparator());
+    assertEquals("CATALOG", meta.getCatalogTerm());
+    assertEquals(DATABASE_MAJOR_VERSION, meta.getDatabaseMajorVersion());
+    assertEquals(DATABASE_MINOR_VERSION, meta.getDatabaseMinorVersion());
+    assertEquals(DATABASE_PRODUCT_NAME, meta.getDatabaseProductName());
+    assertEquals(
+        DATABASE_MAJOR_VERSION + "." + DATABASE_MINOR_VERSION, meta.getDatabaseProductVersion());
+    assertEquals(Connection.TRANSACTION_SERIALIZABLE, meta.getDefaultTransactionIsolation());
+    assertEquals("com.google.cloud.spanner.jdbc.JdbcDriver", meta.getDriverName());
+    assertEquals("", meta.getExtraNameCharacters());
+    assertEquals("`", meta.getIdentifierQuoteString());
+    assertEquals(4, meta.getJDBCMajorVersion());
+    assertEquals(1, meta.getJDBCMinorVersion()); // Java 7 is JDBC 4.1
+    assertEquals(0, meta.getMaxBinaryLiteralLength());
+    assertEquals(0, meta.getMaxCatalogNameLength());
+    assertEquals(0, meta.getMaxCharLiteralLength());
+    assertEquals(128, meta.getMaxColumnNameLength());
+    assertEquals(1000, meta.getMaxColumnsInGroupBy());
+    assertEquals(16, meta.getMaxColumnsInIndex());
+    assertEquals(0, meta.getMaxColumnsInOrderBy());
+    assertEquals(0, meta.getMaxColumnsInSelect());
+    assertEquals(1024, meta.getMaxColumnsInTable());
+    assertEquals(0, meta.getMaxConnections());
+    assertEquals(0, meta.getMaxCursorNameLength());
+    assertEquals(8000, meta.getMaxIndexLength());
+    assertEquals(0, meta.getMaxProcedureNameLength());
+    assertEquals(0, meta.getMaxRowSize());
+    assertEquals(0, meta.getMaxSchemaNameLength());
+    assertEquals(1000000, meta.getMaxStatementLength());
+    assertEquals(0, meta.getMaxStatements());
+    assertEquals(128, meta.getMaxTableNameLength());
+    assertEquals(0, meta.getMaxTablesInSelect());
+    assertEquals(0, meta.getMaxUserNameLength());
+    assertEquals("PROCEDURE", meta.getProcedureTerm());
+    assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT, meta.getResultSetHoldability());
+    assertEquals(RowIdLifetime.ROWID_UNSUPPORTED, meta.getRowIdLifetime());
+    assertEquals("SCHEMA", meta.getSchemaTerm());
+    assertEquals("\\", meta.getSearchStringEscape());
+    assertEquals(DatabaseMetaData.sqlStateSQL, meta.getSQLStateType());
+    assertTrue(meta.locatorsUpdateCopy());
+    assertFalse(meta.nullsAreSortedHigh());
+    assertTrue(meta.nullsAreSortedLow());
+    assertFalse(meta.nullsAreSortedAtStart());
+    assertFalse(meta.nullsAreSortedAtEnd());
+    assertTrue(meta.nullPlusNonNullIsNull());
+    assertFalse(meta.isCatalogAtStart());
+    assertEquals(connection.isReadOnly(), meta.isReadOnly());
+    assertFalse(meta.storesLowerCaseIdentifiers());
+    assertFalse(meta.storesLowerCaseQuotedIdentifiers());
+    assertTrue(meta.storesMixedCaseIdentifiers());
+    assertTrue(meta.storesMixedCaseQuotedIdentifiers());
+    assertFalse(meta.storesUpperCaseIdentifiers());
+    assertFalse(meta.storesUpperCaseQuotedIdentifiers());
+    assertTrue(meta.supportsAlterTableWithAddColumn());
+    assertTrue(meta.supportsAlterTableWithDropColumn());
+    assertFalse(meta.supportsANSI92EntryLevelSQL());
+    assertFalse(meta.supportsANSI92FullSQL());
+    assertFalse(meta.supportsANSI92IntermediateSQL());
+    assertTrue(meta.supportsBatchUpdates());
+    assertFalse(meta.supportsCatalogsInDataManipulation());
+    assertFalse(meta.supportsCatalogsInIndexDefinitions());
+    assertFalse(meta.supportsCatalogsInPrivilegeDefinitions());
+    assertFalse(meta.supportsCatalogsInProcedureCalls());
+    assertFalse(meta.supportsCatalogsInTableDefinitions());
+    assertTrue(meta.supportsColumnAliasing());
     // Note that the supportsConvert() method indicates whether the server side function CONVERT is
     // supported, not what the JDBC driver might be able to convert on the client side.
-    assertThat(meta.supportsConvert(), is(false));
+    assertFalse(meta.supportsConvert());
     int[] types =
         new int[] {
           Types.ARRAY,
@@ -201,77 +195,76 @@ public class JdbcDatabaseMetaDataTest {
         };
     for (int from : types) {
       for (int to : types) {
-        assertThat(meta.supportsConvert(from, to), is(false));
+        assertFalse(meta.supportsConvert(from, to));
       }
     }
-    assertThat(meta.supportsCoreSQLGrammar(), is(false));
-    assertThat(meta.supportsCorrelatedSubqueries(), is(true));
-    assertThat(meta.supportsDataDefinitionAndDataManipulationTransactions(), is(false));
-    assertThat(meta.supportsDataManipulationTransactionsOnly(), is(true));
-    assertThat(meta.supportsDifferentTableCorrelationNames(), is(false));
-    assertThat(meta.supportsExpressionsInOrderBy(), is(true));
-    assertThat(meta.supportsExtendedSQLGrammar(), is(false));
-    assertThat(meta.supportsFullOuterJoins(), is(true));
-    assertThat(meta.supportsGetGeneratedKeys(), is(false));
-    assertThat(meta.supportsGroupBy(), is(true));
-    assertThat(meta.supportsGroupByBeyondSelect(), is(true));
-    assertThat(meta.supportsGroupByUnrelated(), is(true));
-    assertThat(meta.supportsIntegrityEnhancementFacility(), is(false));
-    assertThat(meta.supportsLikeEscapeClause(), is(true));
-    assertThat(meta.supportsLimitedOuterJoins(), is(true));
-    assertThat(meta.supportsMinimumSQLGrammar(), is(false));
-    assertThat(meta.supportsMixedCaseIdentifiers(), is(false));
-    assertThat(meta.supportsMixedCaseQuotedIdentifiers(), is(false));
-    assertThat(meta.supportsMultipleOpenResults(), is(true));
-    assertThat(meta.supportsMultipleResultSets(), is(true));
-    assertThat(meta.supportsMultipleTransactions(), is(true));
-    assertThat(meta.supportsNamedParameters(), is(false));
-    assertThat(meta.supportsNonNullableColumns(), is(true));
-    assertThat(meta.supportsOpenCursorsAcrossCommit(), is(false));
-    assertThat(meta.supportsOpenCursorsAcrossRollback(), is(false));
-    assertThat(meta.supportsOpenStatementsAcrossCommit(), is(true));
-    assertThat(meta.supportsOpenStatementsAcrossRollback(), is(true));
-    assertThat(meta.supportsOrderByUnrelated(), is(true));
-    assertThat(meta.supportsOuterJoins(), is(true));
-    assertThat(meta.supportsPositionedDelete(), is(false));
-    assertThat(meta.supportsPositionedUpdate(), is(false));
+    assertFalse(meta.supportsCoreSQLGrammar());
+    assertTrue(meta.supportsCorrelatedSubqueries());
+    assertFalse(meta.supportsDataDefinitionAndDataManipulationTransactions());
+    assertTrue(meta.supportsDataManipulationTransactionsOnly());
+    assertFalse(meta.supportsDifferentTableCorrelationNames());
+    assertTrue(meta.supportsExpressionsInOrderBy());
+    assertFalse(meta.supportsExtendedSQLGrammar());
+    assertTrue(meta.supportsFullOuterJoins());
+    assertFalse(meta.supportsGetGeneratedKeys());
+    assertTrue(meta.supportsGroupBy());
+    assertTrue(meta.supportsGroupByBeyondSelect());
+    assertTrue(meta.supportsGroupByUnrelated());
+    assertFalse(meta.supportsIntegrityEnhancementFacility());
+    assertTrue(meta.supportsLikeEscapeClause());
+    assertTrue(meta.supportsLimitedOuterJoins());
+    assertFalse(meta.supportsMinimumSQLGrammar());
+    assertFalse(meta.supportsMixedCaseIdentifiers());
+    assertFalse(meta.supportsMixedCaseQuotedIdentifiers());
+    assertTrue(meta.supportsMultipleOpenResults());
+    assertTrue(meta.supportsMultipleResultSets());
+    assertTrue(meta.supportsMultipleTransactions());
+    assertFalse(meta.supportsNamedParameters());
+    assertTrue(meta.supportsNonNullableColumns());
+    assertFalse(meta.supportsOpenCursorsAcrossCommit());
+    assertFalse(meta.supportsOpenCursorsAcrossRollback());
+    assertTrue(meta.supportsOpenStatementsAcrossCommit());
+    assertTrue(meta.supportsOpenStatementsAcrossRollback());
+    assertTrue(meta.supportsOrderByUnrelated());
+    assertTrue(meta.supportsOuterJoins());
+    assertFalse(meta.supportsPositionedDelete());
+    assertFalse(meta.supportsPositionedUpdate());
     for (int type :
         new int[] {
           ResultSet.TYPE_FORWARD_ONLY,
           ResultSet.TYPE_SCROLL_INSENSITIVE,
           ResultSet.TYPE_SCROLL_SENSITIVE
         }) {
-      assertThat(meta.supportsResultSetType(type), is(type == ResultSet.TYPE_FORWARD_ONLY));
+      assertEquals(type == ResultSet.TYPE_FORWARD_ONLY, meta.supportsResultSetType(type));
       for (int concur : new int[] {ResultSet.CONCUR_READ_ONLY, ResultSet.CONCUR_UPDATABLE}) {
-        assertThat(
-            meta.supportsResultSetConcurrency(type, concur),
-            is(type == ResultSet.TYPE_FORWARD_ONLY && concur == ResultSet.CONCUR_READ_ONLY));
+        assertEquals(
+            type == ResultSet.TYPE_FORWARD_ONLY && concur == ResultSet.CONCUR_READ_ONLY,
+            meta.supportsResultSetConcurrency(type, concur));
       }
     }
-    assertThat(meta.supportsResultSetHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT), is(true));
-    assertThat(meta.supportsResultSetHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT), is(false));
-    assertThat(meta.supportsSavepoints(), is(false));
-    assertThat(meta.supportsSchemasInDataManipulation(), is(false));
-    assertThat(meta.supportsSchemasInIndexDefinitions(), is(false));
-    assertThat(meta.supportsSchemasInPrivilegeDefinitions(), is(false));
-    assertThat(meta.supportsSchemasInProcedureCalls(), is(false));
-    assertThat(meta.supportsSchemasInTableDefinitions(), is(false));
-    assertThat(meta.supportsSelectForUpdate(), is(false));
-    assertThat(meta.supportsStatementPooling(), is(false));
-    assertThat(meta.supportsStoredFunctionsUsingCallSyntax(), is(false));
-    assertThat(meta.supportsStoredProcedures(), is(false));
-    assertThat(meta.supportsSubqueriesInComparisons(), is(true));
-    assertThat(meta.supportsSubqueriesInExists(), is(true));
-    assertThat(meta.supportsSubqueriesInIns(), is(true));
-    assertThat(meta.supportsSubqueriesInQuantifieds(), is(true));
-    assertThat(meta.supportsTableCorrelationNames(), is(true));
-    assertThat(meta.supportsTransactions(), is(true));
-    assertThat(meta.supportsUnion(), is(true));
-    assertThat(meta.supportsUnionAll(), is(true));
-    assertThat(meta.usesLocalFiles(), is(false));
-    assertThat(meta.usesLocalFilePerTable(), is(false));
-    assertThat(
-        meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE), is(true));
+    assertTrue(meta.supportsResultSetHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT));
+    assertFalse(meta.supportsResultSetHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT));
+    assertFalse(meta.supportsSavepoints());
+    assertFalse(meta.supportsSchemasInDataManipulation());
+    assertFalse(meta.supportsSchemasInIndexDefinitions());
+    assertFalse(meta.supportsSchemasInPrivilegeDefinitions());
+    assertFalse(meta.supportsSchemasInProcedureCalls());
+    assertFalse(meta.supportsSchemasInTableDefinitions());
+    assertFalse(meta.supportsSelectForUpdate());
+    assertFalse(meta.supportsStatementPooling());
+    assertFalse(meta.supportsStoredFunctionsUsingCallSyntax());
+    assertFalse(meta.supportsStoredProcedures());
+    assertTrue(meta.supportsSubqueriesInComparisons());
+    assertTrue(meta.supportsSubqueriesInExists());
+    assertTrue(meta.supportsSubqueriesInIns());
+    assertTrue(meta.supportsSubqueriesInQuantifieds());
+    assertTrue(meta.supportsTableCorrelationNames());
+    assertTrue(meta.supportsTransactions());
+    assertTrue(meta.supportsUnion());
+    assertTrue(meta.supportsUnionAll());
+    assertFalse(meta.usesLocalFiles());
+    assertFalse(meta.usesLocalFilePerTable());
+    assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE));
     for (int level :
         new int[] {
           Connection.TRANSACTION_NONE,
@@ -279,17 +272,17 @@ public class JdbcDatabaseMetaDataTest {
           Connection.TRANSACTION_READ_UNCOMMITTED,
           Connection.TRANSACTION_REPEATABLE_READ
         }) {
-      assertThat(meta.supportsTransactionIsolationLevel(level), is(false));
+      assertFalse(meta.supportsTransactionIsolationLevel(level));
     }
     assertEquals(10485760L, meta.getMaxLogicalLobSize());
     assertFalse(meta.supportsRefCursors());
 
     // trivial tests that guarantee that the function works, but the return value doesn't matter
-    assertThat(meta.getNumericFunctions(), is(notNullValue()));
-    assertThat(meta.getSQLKeywords(), is(notNullValue()));
-    assertThat(meta.getStringFunctions(), is(notNullValue()));
-    assertThat(meta.getSystemFunctions(), is(notNullValue()));
-    assertThat(meta.getTimeDateFunctions(), is(notNullValue()));
+    assertNotNull(meta.getNumericFunctions());
+    assertNotNull(meta.getSQLKeywords());
+    assertNotNull(meta.getStringFunctions());
+    assertNotNull(meta.getSystemFunctions());
+    assertNotNull(meta.getTimeDateFunctions());
   }
 
   @Test
@@ -297,9 +290,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getAttributes(DEFAULT_CATALOG, DEFAULT_SCHEMA, TEST_TABLE, null)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(21)));
+      assertEquals(21, rsmd.getColumnCount());
     }
   }
 
@@ -314,9 +307,9 @@ public class JdbcDatabaseMetaDataTest {
             TEST_TABLE,
             DatabaseMetaData.bestRowTransaction,
             false)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(8)));
+      assertEquals(8, rsmd.getColumnCount());
     }
   }
 
@@ -327,11 +320,11 @@ public class JdbcDatabaseMetaDataTest {
     when(connection.getCatalog()).thenCallRealMethod();
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getCatalogs()) {
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TABLE_CAT"), is(equalTo(connection.getDefaultCatalog())));
-      assertThat(rs.next(), is(false));
+      assertTrue(rs.next());
+      assertEquals(connection.getDefaultCatalog(), rs.getString("TABLE_CAT"));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(1)));
+      assertEquals(1, rsmd.getColumnCount());
     }
   }
 
@@ -340,21 +333,21 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getClientInfoProperties()) {
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("NAME"), is(equalTo("APPLICATIONNAME")));
-      assertThat(rs.getString("DEFAULT_VALUE"), is(equalTo("")));
+      assertTrue(rs.next());
+      assertEquals("APPLICATIONNAME", rs.getString("NAME"));
+      assertEquals("", rs.getString("DEFAULT_VALUE"));
 
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("NAME"), is(equalTo("CLIENTHOSTNAME")));
-      assertThat(rs.getString("DEFAULT_VALUE"), is(equalTo("")));
+      assertTrue(rs.next());
+      assertEquals("CLIENTHOSTNAME", rs.getString("NAME"));
+      assertEquals("", rs.getString("DEFAULT_VALUE"));
 
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("NAME"), is(equalTo("CLIENTUSER")));
-      assertThat(rs.getString("DEFAULT_VALUE"), is(equalTo("")));
+      assertTrue(rs.next());
+      assertEquals("CLIENTUSER", rs.getString("NAME"));
+      assertEquals("", rs.getString("DEFAULT_VALUE"));
 
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(4)));
+      assertEquals(4, rsmd.getColumnCount());
     }
   }
 
@@ -364,9 +357,9 @@ public class JdbcDatabaseMetaDataTest {
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs =
         meta.getColumnPrivileges(DEFAULT_CATALOG, DEFAULT_SCHEMA, TEST_TABLE, null)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(8)));
+      assertEquals(8, rsmd.getColumnCount());
     }
   }
 
@@ -375,9 +368,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getFunctionColumns(DEFAULT_CATALOG, DEFAULT_SCHEMA, null, null)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(17)));
+      assertEquals(17, rsmd.getColumnCount());
     }
   }
 
@@ -386,9 +379,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getFunctions(DEFAULT_CATALOG, DEFAULT_SCHEMA, null)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(6)));
+      assertEquals(6, rsmd.getColumnCount());
     }
   }
 
@@ -397,9 +390,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getProcedureColumns(DEFAULT_CATALOG, DEFAULT_SCHEMA, null, null)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(20)));
+      assertEquals(20, rsmd.getColumnCount());
     }
   }
 
@@ -408,9 +401,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getProcedures(DEFAULT_CATALOG, DEFAULT_SCHEMA, null)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(9)));
+      assertEquals(9, rsmd.getColumnCount());
     }
   }
 
@@ -419,9 +412,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getPseudoColumns(DEFAULT_CATALOG, DEFAULT_SCHEMA, TEST_TABLE, null)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(12)));
+      assertEquals(12, rsmd.getColumnCount());
     }
   }
 
@@ -430,9 +423,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getSuperTables(DEFAULT_CATALOG, DEFAULT_SCHEMA, TEST_TABLE)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(4)));
+      assertEquals(4, rsmd.getColumnCount());
     }
   }
 
@@ -441,9 +434,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getSuperTypes(DEFAULT_CATALOG, DEFAULT_SCHEMA, null)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(6)));
+      assertEquals(6, rsmd.getColumnCount());
     }
   }
 
@@ -452,9 +445,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getTablePrivileges(DEFAULT_CATALOG, DEFAULT_SCHEMA, TEST_TABLE)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(7)));
+      assertEquals(7, rsmd.getColumnCount());
     }
   }
 
@@ -463,13 +456,13 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getTableTypes()) {
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TABLE_TYPE"), is(equalTo("TABLE")));
-      assertThat(rs.next(), is(true));
-      assertThat(rs.getString("TABLE_TYPE"), is(equalTo("VIEW")));
-      assertThat(rs.next(), is(false));
+      assertTrue(rs.next());
+      assertEquals("TABLE", rs.getString("TABLE_TYPE"));
+      assertTrue(rs.next());
+      assertEquals("VIEW", rs.getString("TABLE_TYPE"));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(1)));
+      assertEquals(1, rsmd.getColumnCount());
     }
   }
 
@@ -500,9 +493,9 @@ public class JdbcDatabaseMetaDataTest {
         assertEquals("NUMERIC", rs.getString("TYPE_NAME"));
         assertTrue(rs.next());
         assertEquals(dialect == Dialect.POSTGRESQL ? "JSONB" : "JSON", rs.getString("TYPE_NAME"));
-        assertThat(rs.next(), is(false));
+        assertFalse(rs.next());
         ResultSetMetaData rsmd = rs.getMetaData();
-        assertThat(rsmd.getColumnCount(), is(equalTo(18)));
+        assertEquals(18, rsmd.getColumnCount());
       }
     }
   }
@@ -512,9 +505,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getUDTs(DEFAULT_CATALOG, DEFAULT_SCHEMA, null, null)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(7)));
+      assertEquals(7, rsmd.getColumnCount());
     }
   }
 
@@ -523,9 +516,9 @@ public class JdbcDatabaseMetaDataTest {
     JdbcConnection connection = mock(JdbcConnection.class);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     try (ResultSet rs = meta.getVersionColumns(DEFAULT_CATALOG, DEFAULT_SCHEMA, TEST_TABLE)) {
-      assertThat(rs.next(), is(false));
+      assertFalse(rs.next());
       ResultSetMetaData rsmd = rs.getMetaData();
-      assertThat(rsmd.getColumnCount(), is(equalTo(8)));
+      assertEquals(8, rsmd.getColumnCount());
     }
   }
 
@@ -540,6 +533,6 @@ public class JdbcDatabaseMetaDataTest {
     when(options.getCredentials()).thenReturn(credentials);
     when(connection.getConnectionOptions()).thenReturn(options);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
-    assertThat(meta.getUserName(), is(equalTo("test@test-project.iam.gserviceaccount.com")));
+    assertEquals("test@test-project.iam.gserviceaccount.com", meta.getUserName());
   }
 }
