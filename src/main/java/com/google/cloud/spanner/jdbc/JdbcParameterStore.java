@@ -284,9 +284,13 @@ class JdbcParameterStore {
       case Types.NUMERIC:
       case Types.DECIMAL:
       case JsonType.VENDOR_TYPE_NUMBER:
+      case JsonType.SHORT_VENDOR_TYPE_NUMBER:
       case PgJsonbType.VENDOR_TYPE_NUMBER:
+      case PgJsonbType.SHORT_VENDOR_TYPE_NUMBER:
       case ProtoMessageType.VENDOR_TYPE_NUMBER:
+      case ProtoMessageType.SHORT_VENDOR_TYPE_NUMBER:
       case ProtoEnumType.VENDOR_TYPE_NUMBER:
+      case ProtoEnumType.SHORT_VENDOR_TYPE_NUMBER:
         return true;
     }
     return false;
@@ -348,19 +352,23 @@ class JdbcParameterStore {
       case Types.NCLOB:
         return value instanceof NClob || value instanceof Reader;
       case JsonType.VENDOR_TYPE_NUMBER:
+      case JsonType.SHORT_VENDOR_TYPE_NUMBER:
         return value instanceof String
             || value instanceof InputStream
             || value instanceof Reader
             || (value instanceof Value && ((Value) value).getType().getCode() == Type.Code.JSON);
       case PgJsonbType.VENDOR_TYPE_NUMBER:
+      case PgJsonbType.SHORT_VENDOR_TYPE_NUMBER:
         return value instanceof String
             || value instanceof InputStream
             || value instanceof Reader
             || (value instanceof Value
                 && ((Value) value).getType().getCode() == Type.Code.PG_JSONB);
       case ProtoMessageType.VENDOR_TYPE_NUMBER:
+      case ProtoMessageType.SHORT_VENDOR_TYPE_NUMBER:
         return value instanceof AbstractMessage || value instanceof byte[];
       case ProtoEnumType.VENDOR_TYPE_NUMBER:
+      case ProtoEnumType.SHORT_VENDOR_TYPE_NUMBER:
         return value instanceof ProtocolMessageEnum || value instanceof Number;
     }
     return false;
@@ -449,7 +457,12 @@ class JdbcParameterStore {
   /** Set a JDBC parameter value on a Spanner {@link Statement} with a known SQL type. */
   private Builder setParamWithKnownType(ValueBinder<Builder> binder, Object value, Integer sqlType)
       throws SQLException {
-    switch (sqlType) {
+    if (sqlType == null) {
+      return null;
+    }
+    int type = sqlType;
+
+    switch (type) {
       case Types.BIT:
       case Types.BOOLEAN:
         if (value instanceof Boolean) {
@@ -522,7 +535,9 @@ class JdbcParameterStore {
         }
         return binder.to(stringValue);
       case JsonType.VENDOR_TYPE_NUMBER:
+      case JsonType.SHORT_VENDOR_TYPE_NUMBER:
       case PgJsonbType.VENDOR_TYPE_NUMBER:
+      case PgJsonbType.SHORT_VENDOR_TYPE_NUMBER:
         String jsonValue;
         if (value instanceof String) {
           jsonValue = (String) value;
@@ -534,7 +549,8 @@ class JdbcParameterStore {
           throw JdbcSqlExceptionFactory.of(
               value + " is not a valid JSON value", Code.INVALID_ARGUMENT);
         }
-        if (sqlType == PgJsonbType.VENDOR_TYPE_NUMBER) {
+        if (type == PgJsonbType.VENDOR_TYPE_NUMBER
+            || type == PgJsonbType.SHORT_VENDOR_TYPE_NUMBER) {
           return binder.to(Value.pgJsonb(jsonValue));
         }
         return binder.to(Value.json(jsonValue));
@@ -631,6 +647,7 @@ class JdbcParameterStore {
         }
         throw JdbcSqlExceptionFactory.of(value + " is not a valid clob", Code.INVALID_ARGUMENT);
       case ProtoMessageType.VENDOR_TYPE_NUMBER:
+      case ProtoMessageType.SHORT_VENDOR_TYPE_NUMBER:
         if (value instanceof AbstractMessage) {
           return binder.to((AbstractMessage) value);
         } else if (value instanceof byte[]) {
@@ -640,6 +657,7 @@ class JdbcParameterStore {
               value + " is not a valid PROTO value", Code.INVALID_ARGUMENT);
         }
       case ProtoEnumType.VENDOR_TYPE_NUMBER:
+      case ProtoEnumType.SHORT_VENDOR_TYPE_NUMBER:
         if (value instanceof ProtocolMessageEnum) {
           return binder.to((ProtocolMessageEnum) value);
         } else if (value instanceof Number) {
@@ -809,8 +827,10 @@ class JdbcParameterStore {
         case Types.NCLOB:
           return binder.toStringArray(null);
         case JsonType.VENDOR_TYPE_NUMBER:
+        case JsonType.SHORT_VENDOR_TYPE_NUMBER:
           return binder.toJsonArray(null);
         case PgJsonbType.VENDOR_TYPE_NUMBER:
+        case PgJsonbType.SHORT_VENDOR_TYPE_NUMBER:
           return binder.toPgJsonbArray(null);
         case Types.DATE:
           return binder.toDateArray(null);
@@ -825,7 +845,9 @@ class JdbcParameterStore {
         case Types.BLOB:
           return binder.toBytesArray(null);
         case ProtoMessageType.VENDOR_TYPE_NUMBER:
+        case ProtoMessageType.SHORT_VENDOR_TYPE_NUMBER:
         case ProtoEnumType.VENDOR_TYPE_NUMBER:
+        case ProtoEnumType.SHORT_VENDOR_TYPE_NUMBER:
           return binder.to(
               Value.untyped(
                   com.google.protobuf.Value.newBuilder()
@@ -886,9 +908,10 @@ class JdbcParameterStore {
     } else if (Timestamp[].class.isAssignableFrom(value.getClass())) {
       return binder.toTimestampArray(JdbcTypeConverter.toGoogleTimestamps((Timestamp[]) value));
     } else if (String[].class.isAssignableFrom(value.getClass())) {
-      if (type == JsonType.VENDOR_TYPE_NUMBER) {
+      if (type == JsonType.VENDOR_TYPE_NUMBER || type == JsonType.SHORT_VENDOR_TYPE_NUMBER) {
         return binder.toJsonArray(Arrays.asList((String[]) value));
-      } else if (type == PgJsonbType.VENDOR_TYPE_NUMBER) {
+      } else if (type == PgJsonbType.VENDOR_TYPE_NUMBER
+          || type == PgJsonbType.SHORT_VENDOR_TYPE_NUMBER) {
         return binder.toPgJsonbArray(Arrays.asList((String[]) value));
       } else {
         return binder.toStringArray(Arrays.asList((String[]) value));
@@ -992,11 +1015,13 @@ class JdbcParameterStore {
           Value.untyped(
               com.google.protobuf.Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()));
     }
-    switch (sqlType) {
+    int type = sqlType;
+    switch (type) {
       case Types.BIGINT:
         return binder.to((Long) null);
       case Types.BINARY:
       case ProtoMessageType.VENDOR_TYPE_NUMBER:
+      case ProtoEnumType.SHORT_VENDOR_TYPE_NUMBER:
         return binder.to((ByteArray) null);
       case Types.BLOB:
         return binder.to((ByteArray) null);
@@ -1021,6 +1046,7 @@ class JdbcParameterStore {
         return binder.to((Double) null);
       case Types.INTEGER:
       case ProtoEnumType.VENDOR_TYPE_NUMBER:
+      case ProtoMessageType.SHORT_VENDOR_TYPE_NUMBER:
         return binder.to((Long) null);
       case Types.LONGNVARCHAR:
         return binder.to((String) null);
@@ -1052,8 +1078,10 @@ class JdbcParameterStore {
       case Types.VARCHAR:
         return binder.to((String) null);
       case JsonType.VENDOR_TYPE_NUMBER:
+      case JsonType.SHORT_VENDOR_TYPE_NUMBER:
         return binder.to(Value.json(null));
       case PgJsonbType.VENDOR_TYPE_NUMBER:
+      case PgJsonbType.SHORT_VENDOR_TYPE_NUMBER:
         return binder.to(Value.pgJsonb(null));
       default:
         return binder.to(
