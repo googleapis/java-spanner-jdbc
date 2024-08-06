@@ -216,6 +216,12 @@
     <!-- Add OpenTelemetry implementation and exporters for use in integration tests -->
     <dependency>
       <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api-incubator</artifactId>
+      <version>1.40.0-alpha</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk</artifactId>
       <scope>test</scope>
     </dependency>
