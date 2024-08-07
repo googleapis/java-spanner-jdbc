@@ -26,6 +26,7 @@ import com.google.cloud.spanner.MockServerHelper;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
 import com.google.cloud.spanner.connection.SpannerPool;
+import com.google.spanner.v1.BatchCreateSessionsRequest;
 import com.google.spanner.v1.CreateSessionRequest;
 import com.google.spanner.v1.ExecuteSqlRequest;
 import com.google.spanner.v1.Session;
@@ -188,8 +189,6 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
   public void testUsesMultiplexedSessionInCombinationWithSessionPoolOptions() throws SQLException {
     // Create a connection that uses a session pool with MinSessions=0.
     // This should stop any regular sessions from being created.
-    // TODO: Modify this test once https://github.com/googleapis/java-spanner/pull/3197 has been
-    //       released.
     try (Connection connection = DriverManager.getConnection(createUrl() + ";minSessions=0")) {
       assertTrue(connection.getAutoCommit());
       try (ResultSet resultSet = connection.createStatement().executeQuery(SELECT_RANDOM_SQL)) {
@@ -199,19 +198,14 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
         }
       }
     }
-    // TODO: Remove this line once https://github.com/googleapis/java-spanner/pull/3197 has been
-    //       released.
-    // Adding 'minSessions=X' or 'maxSessions=x' to the connection URL currently disables the use of
-    // multiplexed sessions due to a bug in the Spanner Java client.
-    assertEquals(0, mockSpanner.countRequestsOfType(CreateSessionRequest.class));
 
     // Verify that one multiplexed session was created and used.
-    // TODO: Uncomment
-    //    assertEquals(1, mockSpanner.countRequestsOfType(CreateSessionRequest.class));
-    //    CreateSessionRequest request =
-    // mockSpanner.getRequestsOfType(CreateSessionRequest.class).get(0);
-    //    assertTrue(request.getSession().getMultiplexed());
-    //    // There should be no regular sessions in use.
-    //    assertEquals(0, mockSpanner.countRequestsOfType(BatchCreateSessionsRequest.class));
+    assertEquals(1, mockSpanner.countRequestsOfType(CreateSessionRequest.class));
+    CreateSessionRequest request = mockSpanner.getRequestsOfType(CreateSessionRequest.class).get(0);
+    assertTrue(request.getSession().getMultiplexed());
+    // There should be no regular sessions in use.
+    // However, the query that detects the dialect that is used, uses a regular session.
+    // This should be fixed in the Java client.
+    assertEquals(1, mockSpanner.countRequestsOfType(BatchCreateSessionsRequest.class));
   }
 }
