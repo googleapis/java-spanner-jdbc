@@ -16,10 +16,9 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
@@ -90,6 +89,8 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
       "PostgreSQL/ITScriptTest_InsertTestData.sql";
   private static final String TEST_GET_READ_TIMESTAMP_PG =
       "PostgreSQL/ITScriptTest_TestGetReadTimestamp.sql";
+  private static final String TEST_GET_COMMIT_TIMESTAMP_PG =
+      "PostgreSQL/ITSqlScriptTest_TestGetCommitTimestamp.sql";
   private static final String TEST_TEMPORARY_TRANSACTIONS_PG =
       "PostgreSQL/ITScriptTest_TestTemporaryTransactions.sql";
   private static final String TEST_TRANSACTION_MODE_PG =
@@ -138,6 +139,7 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
     postgresScripts.put("CREATE_TABLES_FILE", CREATE_TABLES_FILE_PG);
     postgresScripts.put("INSERT_AND_VERIFY_TEST_DATA", INSERT_AND_VERIFY_TEST_DATA_PG);
     postgresScripts.put("TEST_GET_READ_TIMESTAMP", TEST_GET_READ_TIMESTAMP_PG);
+    postgresScripts.put("TEST_GET_COMMIT_TIMESTAMP", TEST_GET_COMMIT_TIMESTAMP_PG);
     postgresScripts.put("TEST_TEMPORARY_TRANSACTIONS", TEST_TEMPORARY_TRANSACTIONS_PG);
     postgresScripts.put("TEST_TRANSACTION_MODE", TEST_TRANSACTION_MODE_PG);
     postgresScripts.put("TEST_TRANSACTION_MODE_READ_ONLY", TEST_TRANSACTION_MODE_READ_ONLY_PG);
@@ -163,9 +165,6 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
 
   @Before
   public void setup() {
-    assumeFalse(
-        "Emulator does not support PostgreSQL",
-        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
     database = env.getOrCreateDatabase(getDialect(), Collections.emptyList());
   }
 
@@ -217,24 +216,12 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
 
   @Test
   public void test04_TestGetCommitTimestamp() throws Exception {
-    // Skipping test as Commit Timestamp not supported in POSTGRES
-    assumeFalse(dialect.dialect == Dialect.POSTGRESQL);
     try (CloudSpannerJdbcConnection connection = createConnection(env, database)) {
       verifier.verifyStatementsInFile(
           JdbcGenericConnection.of(connection),
           dialect.executeQueriesFiles.get("TEST_GET_COMMIT_TIMESTAMP"),
           JdbcSqlScriptVerifier.class,
           false);
-    } catch (SQLException e) {
-      if (env.getTestHelper().isEmulator()
-          && e.getErrorCode() == ErrorCode.INVALID_ARGUMENT.getGrpcStatusCode().value()) {
-        // Ignore as errors during read/write transactions are sticky on the emulator.
-      }
-    } catch (SpannerException e) {
-      if (env.getTestHelper().isEmulator() && e.getErrorCode() == ErrorCode.ALREADY_EXISTS) {
-        // Ignore, this is expected as errors during a read/write transaction are sticky on the
-        // emulator.
-      }
     }
   }
 
@@ -325,8 +312,8 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
       statement.setQueryTimeout(1);
       statement.execute("SHOW VARIABLE STATEMENT_TIMEOUT");
       try (ResultSet rs = statement.getResultSet()) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getString("STATEMENT_TIMEOUT"), is(nullValue()));
+        assertTrue(rs.next());
+        assertNull(rs.getString("STATEMENT_TIMEOUT"));
       }
 
       // Now set a STATEMENT_TIMEOUT on the connection that is different from the query timeout of
@@ -335,8 +322,8 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
       statement.execute("SET STATEMENT_TIMEOUT='100ms'");
       statement.execute("SHOW VARIABLE STATEMENT_TIMEOUT");
       try (ResultSet rs = statement.getResultSet()) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getString("STATEMENT_TIMEOUT"), is(equalTo("100ms")));
+        assertTrue(rs.next());
+        assertEquals("100ms", rs.getString("STATEMENT_TIMEOUT"));
       }
 
       // Remove the statement timeout again, and verify that SHOW STATEMENT_TIMEOUT once again
@@ -344,8 +331,8 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
       statement.execute("SET STATEMENT_TIMEOUT=NULL");
       statement.execute("SHOW VARIABLE STATEMENT_TIMEOUT");
       try (ResultSet rs = statement.getResultSet()) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getString("STATEMENT_TIMEOUT"), is(nullValue()));
+        assertTrue(rs.next());
+        assertNull(rs.getString("STATEMENT_TIMEOUT"));
       }
     }
   }

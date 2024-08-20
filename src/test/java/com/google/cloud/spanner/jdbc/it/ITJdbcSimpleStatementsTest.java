@@ -29,7 +29,6 @@ import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Value;
-import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -69,9 +68,6 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
 
   @Before
   public void setup() {
-    assumeFalse(
-        "Emulator does not support PostgreSQL",
-        dialect.dialect == Dialect.POSTGRESQL && EmulatorSpannerHelper.isUsingEmulator());
     database = env.getOrCreateDatabase(getDialect(), Collections.emptyList());
   }
 

@@ -24,11 +24,13 @@ import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.StatementResult;
 import com.google.cloud.spanner.connection.StatementResult.ClientSideStatementType;
+import com.google.common.base.Stopwatch;
 import com.google.rpc.Code;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -227,7 +229,10 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
     StatementTimeout originalTimeout = setTemporaryStatementTimeout();
     T result = null;
     try {
+      Stopwatch stopwatch = Stopwatch.createStarted();
       result = runnable.get();
+      Duration executionDuration = stopwatch.elapsed();
+      connection.recordClientLibLatencyMetric(executionDuration.toMillis());
       return result;
     } catch (SpannerException spannerException) {
       throw JdbcSqlExceptionFactory.of(spannerException);
@@ -236,19 +241,6 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
         resetStatementTimeout(originalTimeout);
       }
     }
-  }
-
-  /**
-   * Executes a SQL statement on the connection of this {@link Statement} as an update (DML)
-   * statement.
-   *
-   * @param statement The SQL statement to execute
-   * @return the number of rows that was inserted/updated/deleted
-   * @throws SQLException if a database error occurs, or if the number of rows affected is larger
-   *     than {@link Integer#MAX_VALUE}
-   */
-  int executeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
-    return checkedCast(executeLargeUpdate(statement));
   }
 
   /**
@@ -261,18 +253,6 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
           "update count too large for executeUpdate: " + updateCount, Code.OUT_OF_RANGE);
     }
     return (int) updateCount;
-  }
-
-  /**
-   * Executes a SQL statement on the connection of this {@link Statement} as an update (DML)
-   * statement.
-   *
-   * @param statement The SQL statement to execute
-   * @return the number of rows that was inserted/updated/deleted
-   * @throws SQLException if a database error occurs
-   */
-  long executeLargeUpdate(com.google.cloud.spanner.Statement statement) throws SQLException {
-    return doWithStatementTimeout(() -> connection.getSpannerConnection().executeUpdate(statement));
   }
 
   /**
@@ -354,7 +334,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   }
 
   @Override
-  public void close() {
+  public void close() throws SQLException {
     this.closed = true;
   }
 

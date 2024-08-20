@@ -16,6 +16,8 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
+import static com.google.cloud.spanner.testing.EmulatorSpannerHelper.isUsingEmulator;
+
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.GceTestEnvConfig;
@@ -23,7 +25,6 @@ import com.google.cloud.spanner.connection.AbstractSqlScriptVerifier;
 import com.google.cloud.spanner.connection.ITAbstractSpannerTest;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.JdbcSqlScriptVerifier.JdbcGenericConnection;
-import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import java.nio.file.Files;
@@ -35,6 +36,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /** Base class for all JDBC integration tests. */
@@ -79,6 +81,11 @@ public class ITAbstractJdbcTest {
    */
   public CloudSpannerJdbcConnection createConnection(JdbcIntegrationTestEnv env, Database database)
       throws SQLException {
+    return createConnection(env, database, new Properties());
+  }
+
+  public CloudSpannerJdbcConnection createConnection(
+      JdbcIntegrationTestEnv env, Database database, Properties properties) throws SQLException {
     // Create a connection URL for the generic connection API.
     StringBuilder url =
         ITAbstractSpannerTest.extractConnectionUrl(env.getTestHelper().getOptions(), database);
@@ -89,7 +96,8 @@ public class ITAbstractJdbcTest {
     }
     appendConnectionUri(url);
 
-    return DriverManager.getConnection(url.toString()).unwrap(CloudSpannerJdbcConnection.class);
+    return DriverManager.getConnection(url.toString(), properties)
+        .unwrap(CloudSpannerJdbcConnection.class);
   }
 
   protected void appendConnectionUri(StringBuilder uri) {}
@@ -116,9 +124,6 @@ public class ITAbstractJdbcTest {
       default:
         scriptFile = "CreateMusicTables.sql";
     }
-    if (EmulatorSpannerHelper.isUsingEmulator()) {
-      scriptFile = "CreateMusicTables_Emulator.sql";
-    }
     return AbstractSqlScriptVerifier.readStatementsFromFile(scriptFile, ITAbstractJdbcTest.class)
         .stream()
         .filter(sql -> !(sql.contains("START BATCH") || sql.contains("RUN BATCH")))
@@ -130,7 +135,7 @@ public class ITAbstractJdbcTest {
   }
 
   public String getDefaultCatalog(Database database) {
-    if (getDialect() == Dialect.POSTGRESQL) {
+    if (getDialect() == Dialect.POSTGRESQL && !isUsingEmulator()) {
       return database.getId().getDatabase();
     }
     return "";

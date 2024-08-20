@@ -16,6 +16,9 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.cloud.spanner.jdbc.JdbcTypeConverter.getMainTypeCode;
+
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.common.base.Preconditions;
@@ -41,16 +44,20 @@ abstract class AbstractJdbcWrapper implements Wrapper {
    */
   static int extractColumnType(Type type) {
     Preconditions.checkNotNull(type);
-    switch (type.getCode()) {
+    switch (getMainTypeCode(type)) {
       case BOOL:
         return Types.BOOLEAN;
       case BYTES:
+      case PROTO:
         return Types.BINARY;
       case DATE:
         return Types.DATE;
+      case FLOAT32:
+        return Types.REAL;
       case FLOAT64:
         return Types.DOUBLE;
       case INT64:
+      case ENUM:
         return Types.BIGINT;
       case NUMERIC:
       case PG_NUMERIC:
@@ -69,11 +76,24 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     }
   }
 
-  /** Extract Spanner type name from {@link java.sql.Types} code. */
+  static String getSpannerTypeName(Type type, Dialect dialect) {
+    return Preconditions.checkNotNull(type).getSpannerTypeName(dialect);
+  }
+
+  /**
+   * Extract Spanner type name from {@link java.sql.Types} code.
+   *
+   * @deprecated Use {@link #getSpannerTypeName(Type, Dialect)} instead.
+   */
+  @Deprecated
   static String getSpannerTypeName(int sqlType) {
+    // TODO: Re-write to be dialect-aware (or remove all-together).
     if (sqlType == Types.BOOLEAN) return Type.bool().getCode().name();
     if (sqlType == Types.BINARY) return Type.bytes().getCode().name();
     if (sqlType == Types.DATE) return Type.date().getCode().name();
+    if (sqlType == Types.REAL) {
+      return Type.float32().getCode().name();
+    }
     if (sqlType == Types.DOUBLE || sqlType == Types.FLOAT) return Type.float64().getCode().name();
     if (sqlType == Types.BIGINT
         || sqlType == Types.INTEGER
@@ -89,11 +109,19 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     return OTHER_NAME;
   }
 
-  /** Get corresponding Java class name from {@link java.sql.Types} code. */
+  /**
+   * Get corresponding Java class name from {@link java.sql.Types} code.
+   *
+   * @deprecated Use {@link #getClassName(Type)} instead.
+   */
+  @Deprecated
   static String getClassName(int sqlType) {
     if (sqlType == Types.BOOLEAN) return Boolean.class.getName();
     if (sqlType == Types.BINARY) return Byte[].class.getName();
     if (sqlType == Types.DATE) return Date.class.getName();
+    if (sqlType == Types.REAL) {
+      return Float.class.getName();
+    }
     if (sqlType == Types.DOUBLE || sqlType == Types.FLOAT) return Double.class.getName();
     if (sqlType == Types.BIGINT
         || sqlType == Types.INTEGER
@@ -115,16 +143,20 @@ abstract class AbstractJdbcWrapper implements Wrapper {
    */
   static String getClassName(Type type) {
     Preconditions.checkNotNull(type);
-    switch (type.getCode()) {
+    switch (getMainTypeCode(type)) {
       case BOOL:
         return Boolean.class.getName();
       case BYTES:
+      case PROTO:
         return byte[].class.getName();
       case DATE:
         return Date.class.getName();
+      case FLOAT32:
+        return Float.class.getName();
       case FLOAT64:
         return Double.class.getName();
       case INT64:
+      case ENUM:
         return Long.class.getName();
       case NUMERIC:
       case PG_NUMERIC:
@@ -136,16 +168,20 @@ abstract class AbstractJdbcWrapper implements Wrapper {
       case TIMESTAMP:
         return Timestamp.class.getName();
       case ARRAY:
-        switch (type.getArrayElementType().getCode()) {
+        switch (getMainTypeCode(type.getArrayElementType())) {
           case BOOL:
             return Boolean[].class.getName();
           case BYTES:
+          case PROTO:
             return byte[][].class.getName();
           case DATE:
             return Date[].class.getName();
+          case FLOAT32:
+            return Float[].class.getName();
           case FLOAT64:
             return Double[].class.getName();
           case INT64:
+          case ENUM:
             return Long[].class.getName();
           case NUMERIC:
           case PG_NUMERIC:

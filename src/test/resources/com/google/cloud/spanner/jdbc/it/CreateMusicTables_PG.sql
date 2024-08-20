@@ -21,7 +21,7 @@ CREATE TABLE Singers (
     FirstName  VARCHAR(1024),
     LastName   VARCHAR(1024),
     SingerInfo BYTEA,
-    BirthDate  VARCHAR
+    BirthDate  DATE
 );
 
 CREATE INDEX SingersByFirstLastName ON Singers(FirstName, LastName);
@@ -60,9 +60,10 @@ CREATE INDEX SongsBySongName ON Songs(SongName);
 CREATE TABLE Concerts (
     VenueId      BIGINT NOT NULL,
     SingerId     BIGINT NOT NULL,
-    ConcertDate  VARCHAR NOT NULL,
-    BeginTime    VARCHAR,
-    EndTime      VARCHAR,
+    ConcertDate  DATE   NOT NULL,
+    BeginTime    TIMESTAMPTZ,
+    EndTime      TIMESTAMPTZ,
+    TicketPrices BIGINT[],
     PRIMARY KEY(VenueId, SingerId, ConcertDate),
     FOREIGN KEY(SingerId) REFERENCES Singers(SingerId)
 );

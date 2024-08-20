@@ -18,6 +18,7 @@ package com.google.cloud.spanner.sample;
 
 import com.google.cloud.spanner.jdbc.JdbcSqlException;
 import com.google.rpc.Code;
+import io.opentelemetry.api.OpenTelemetry;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +32,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 
 @Configuration
 public class JdbcConfiguration extends AbstractJdbcConfiguration {
+
+  // OpenTelemetry is added to the constructor here to ensure the OpenTelemetry configuration is
+  // initialized before this configuration.
+  public JdbcConfiguration(OpenTelemetry ignore) {}
 
   /** Override the dialect auto-detection, so it also returns PostgreSQL for Cloud Spanner. */
   @Override
@@ -64,7 +69,7 @@ public class JdbcConfiguration extends AbstractJdbcConfiguration {
           "The selected Cloud Spanner database does not use the PostgreSQL dialect");
     } catch (DataAccessException exception) {
       if (exception.getCause() instanceof JdbcSqlException) {
-        JdbcSqlException jdbcSqlException = (JdbcSqlException) exception;
+        JdbcSqlException jdbcSqlException = (JdbcSqlException) exception.getCause();
         if (jdbcSqlException.getCode() == Code.PERMISSION_DENIED
             || jdbcSqlException.getCode() == Code.NOT_FOUND) {
           throw new RuntimeException(

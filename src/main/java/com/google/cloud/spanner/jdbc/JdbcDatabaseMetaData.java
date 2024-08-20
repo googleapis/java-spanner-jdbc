@@ -26,6 +26,7 @@ import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.connection.Connection.InternalMetadataQuery;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -1058,6 +1059,44 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                     .build(),
                 Struct.newBuilder()
                     .set("TYPE_NAME")
+                    .to("FLOAT32")
+                    .set("DATA_TYPE")
+                    .to(Types.REAL) // 8
+                    .set("PRECISION")
+                    .to(7L)
+                    .set("LITERAL_PREFIX")
+                    .to((String) null)
+                    .set("LITERAL_SUFFIX")
+                    .to((String) null)
+                    .set("CREATE_PARAMS")
+                    .to((String) null)
+                    .set("NULLABLE")
+                    .to(DatabaseMetaData.typeNullable)
+                    .set("CASE_SENSITIVE")
+                    .to(false)
+                    .set("SEARCHABLE")
+                    .to(DatabaseMetaData.typePredBasic)
+                    .set("UNSIGNED_ATTRIBUTE")
+                    .to(false)
+                    .set("FIXED_PREC_SCALE")
+                    .to(false)
+                    .set("AUTO_INCREMENT")
+                    .to(false)
+                    .set("LOCAL_TYPE_NAME")
+                    .to("FLOAT32")
+                    .set("MINIMUM_SCALE")
+                    .to(0)
+                    .set("MAXIMUM_SCALE")
+                    .to(0)
+                    .set("SQL_DATA_TYPE")
+                    .to((Long) null)
+                    .set("SQL_DATETIME_SUB")
+                    .to((Long) null)
+                    .set("NUM_PREC_RADIX")
+                    .to(2)
+                    .build(),
+                Struct.newBuilder()
+                    .set("TYPE_NAME")
                     .to("FLOAT64")
                     .set("DATA_TYPE")
                     .to(Types.DOUBLE) // 8
@@ -1246,7 +1285,9 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                     .set("NUM_PREC_RADIX")
                     .to(10)
                     .build(),
-                getJsonType(connection.getDialect()))));
+                getJsonType(connection.getDialect()))),
+        // Allow column 2 to be cast to short without any range checks.
+        ImmutableSet.of(2));
   }
 
   private Struct getJsonType(Dialect dialect) {

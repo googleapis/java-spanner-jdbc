@@ -20,7 +20,9 @@ import static com.google.cloud.spanner.jdbc.JdbcStatement.ALL_COLUMNS;
 import static com.google.cloud.spanner.jdbc.JdbcStatement.isNullOrEmpty;
 
 import com.google.api.client.util.Preconditions;
+import com.google.cloud.ByteArray;
 import com.google.cloud.spanner.CommitResponse;
+import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.TimestampBound;
@@ -29,9 +31,15 @@ import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.SavepointSupport;
 import com.google.cloud.spanner.connection.TransactionMode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributesBuilder;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -46,6 +54,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
@@ -80,9 +89,17 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   private final boolean useLegacyIsValidCheck;
 
+  private final Metrics metrics;
+
+  private final Attributes openTelemetryAttributes;
+
   JdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     super(connectionUrl, options);
     this.useLegacyIsValidCheck = useLegacyValidCheck();
+    OpenTelemetry openTelemetry = getSpanner().getOptions().getOpenTelemetry();
+    this.openTelemetryAttributes =
+        createOpenTelemetryAttributes(getConnectionOptions().getDatabaseId());
+    this.metrics = new Metrics(openTelemetry);
   }
 
   static boolean useLegacyValidCheck() {
@@ -94,6 +111,20 @@ class JdbcConnection extends AbstractJdbcConnection {
       return Boolean.parseBoolean(value);
     }
     return false;
+  }
+
+  @VisibleForTesting
+  static Attributes createOpenTelemetryAttributes(DatabaseId databaseId) {
+    AttributesBuilder attributesBuilder = Attributes.builder();
+    attributesBuilder.put("connection_id", UUID.randomUUID().toString());
+    attributesBuilder.put("database", databaseId.getDatabase());
+    attributesBuilder.put("instance_id", databaseId.getInstanceId().getInstance());
+    attributesBuilder.put("project_id", databaseId.getInstanceId().getProject());
+    return attributesBuilder.build();
+  }
+
+  public void recordClientLibLatencyMetric(long value) {
+    metrics.recordClientLibLatency(value, openTelemetryAttributes);
   }
 
   @Override
@@ -835,5 +866,35 @@ class JdbcConnection extends AbstractJdbcConnection {
       getTransactionRetryListenersFromConnection() throws SQLException {
     checkClosed();
     return getSpannerConnection().getTransactionRetryListeners();
+  }
+
+  @Override
+  public void setProtoDescriptors(@Nonnull byte[] protoDescriptors) throws SQLException {
+    Preconditions.checkNotNull(protoDescriptors);
+    checkClosed();
+    try {
+      getSpannerConnection().setProtoDescriptors(protoDescriptors);
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public void setProtoDescriptors(@Nonnull InputStream protoDescriptors)
+      throws SQLException, IOException {
+    Preconditions.checkNotNull(protoDescriptors);
+    checkClosed();
+    try {
+      getSpannerConnection()
+          .setProtoDescriptors(ByteArray.copyFrom(protoDescriptors).toByteArray());
+    } catch (SpannerException e) {
+      throw JdbcSqlExceptionFactory.of(e);
+    }
+  }
+
+  @Override
+  public byte[] getProtoDescriptors() throws SQLException {
+    checkClosed();
+    return getSpannerConnection().getProtoDescriptors();
   }
 }

@@ -21,6 +21,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.cloud.spanner.sample.entities.Singer;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -63,6 +66,8 @@ public class DatabaseSeeder {
 
   private final JdbcTemplate jdbcTemplate;
 
+  private final Tracer tracer;
+
   @Value("classpath:create_schema.sql")
   private Resource createSchemaFile;
 
@@ -72,8 +77,9 @@ public class DatabaseSeeder {
   /** This value is determined once using a system query, and then cached. */
   private final Supplier<Boolean> isCloudSpannerPG;
 
-  public DatabaseSeeder(JdbcTemplate jdbcTemplate) {
+  public DatabaseSeeder(JdbcTemplate jdbcTemplate, Tracer tracer) {
     this.jdbcTemplate = jdbcTemplate;
+    this.tracer = tracer;
     this.isCloudSpannerPG =
         Suppliers.memoize(() -> JdbcConfiguration.isCloudSpannerPG(jdbcTemplate));
   }
@@ -139,61 +145,87 @@ public class DatabaseSeeder {
 
   /** Deletes all data currently in the sample tables. */
   public void deleteTestData() {
-    // Delete all data in one batch.
-    jdbcTemplate.batchUpdate(
-        "delete from concerts",
-        "delete from venues",
-        "delete from tracks",
-        "delete from albums",
-        "delete from singers");
+    Span span = tracer.spanBuilder("deleteTestData").startSpan();
+    try (Scope ignore = span.makeCurrent()) {
+      // Delete all data in one batch.
+      jdbcTemplate.execute("set spanner.statement_tag='batch_delete_test_data'");
+      jdbcTemplate.batchUpdate(
+          "delete from concerts",
+          "delete from venues",
+          "delete from tracks",
+          "delete from albums",
+          "delete from singers");
+    } catch (Throwable t) {
+      span.recordException(t);
+      throw t;
+    } finally {
+      span.end();
+    }
   }
 
   /** Inserts some initial test data into the database. */
   public void insertTestData() {
-    jdbcTemplate.batchUpdate(
-        "insert into singers (first_name, last_name) values (?, ?)",
-        new BatchPreparedStatementSetter() {
-          @Override
-          public void setValues(@Nonnull PreparedStatement preparedStatement, int i)
-              throws SQLException {
-            preparedStatement.setString(1, INITIAL_SINGERS.get(i).getFirstName());
-            preparedStatement.setString(2, INITIAL_SINGERS.get(i).getLastName());
-          }
+    Span span = tracer.spanBuilder("insertTestData").startSpan();
+    try (Scope ignore = span.makeCurrent()) {
+      jdbcTemplate.execute("begin");
+      jdbcTemplate.execute("set spanner.transaction_tag='insert_test_data'");
+      jdbcTemplate.execute("set spanner.statement_tag='insert_singers'");
+      jdbcTemplate.batchUpdate(
+          "insert into singers (first_name, last_name) values (?, ?)",
+          new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(@Nonnull PreparedStatement preparedStatement, int i)
+                throws SQLException {
+              preparedStatement.setString(1, INITIAL_SINGERS.get(i).getFirstName());
+              preparedStatement.setString(2, INITIAL_SINGERS.get(i).getLastName());
+            }
 
-          @Override
-          public int getBatchSize() {
-            return INITIAL_SINGERS.size();
-          }
-        });
+            @Override
+            public int getBatchSize() {
+              return INITIAL_SINGERS.size();
+            }
+          });
 
-    List<Long> singerIds =
-        jdbcTemplate.query(
-            "select id from singers",
-            resultSet -> {
-              ImmutableList.Builder<Long> builder = ImmutableList.builder();
-              while (resultSet.next()) {
-                builder.add(resultSet.getLong(1));
-              }
-              return builder.build();
-            });
-    jdbcTemplate.batchUpdate(
-        "insert into albums (title, marketing_budget, release_date, cover_picture, singer_id) values (?, ?, ?, ?, ?)",
-        new BatchPreparedStatementSetter() {
-          @Override
-          public void setValues(@Nonnull PreparedStatement preparedStatement, int i)
-              throws SQLException {
-            preparedStatement.setString(1, randomTitle());
-            preparedStatement.setBigDecimal(2, randomBigDecimal());
-            preparedStatement.setObject(3, randomDate());
-            preparedStatement.setBytes(4, randomBytes());
-            preparedStatement.setLong(5, randomElement(singerIds));
-          }
+      List<Long> singerIds =
+          jdbcTemplate.query(
+              "select id from singers",
+              resultSet -> {
+                ImmutableList.Builder<Long> builder = ImmutableList.builder();
+                while (resultSet.next()) {
+                  builder.add(resultSet.getLong(1));
+                }
+                return builder.build();
+              });
+      jdbcTemplate.execute("set spanner.statement_tag='insert_albums'");
+      jdbcTemplate.batchUpdate(
+          "insert into albums (title, marketing_budget, release_date, cover_picture, singer_id) values (?, ?, ?, ?, ?)",
+          new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(@Nonnull PreparedStatement preparedStatement, int i)
+                throws SQLException {
+              preparedStatement.setString(1, randomTitle());
+              preparedStatement.setBigDecimal(2, randomBigDecimal());
+              preparedStatement.setObject(3, randomDate());
+              preparedStatement.setBytes(4, randomBytes());
+              preparedStatement.setLong(5, randomElement(singerIds));
+            }
 
-          @Override
-          public int getBatchSize() {
-            return INITIAL_SINGERS.size() * 20;
-          }
-        });
+            @Override
+            public int getBatchSize() {
+              return INITIAL_SINGERS.size() * 20;
+            }
+          });
+      jdbcTemplate.execute("commit");
+    } catch (Throwable t) {
+      try {
+        jdbcTemplate.execute("rollback");
+      } catch (Exception ignore) {
+      }
+      span.recordException(t);
+      throw t;
+    } finally {
+      span.end();
+    }
   }
 
   /** Generates a random title for an album or a track. */

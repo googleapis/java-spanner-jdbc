@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.sample.entities;
 
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -43,6 +44,9 @@ public class Track extends AbstractEntity {
   private String title;
 
   private Double sampleRate;
+
+  @PersistenceCreator
+  public Track() {}
 
   public Track(Album album, int trackNumber, String title) {
     setAlbumId(album.getId());

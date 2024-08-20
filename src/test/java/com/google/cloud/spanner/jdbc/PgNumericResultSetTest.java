@@ -491,7 +491,8 @@ public class PgNumericResultSetTest {
           resultSetMatcherFrom(resultSet, ResultSet::getBytes, ResultSet::getBytes);
 
       matcher.nextAndAssertError(
-          IllegalStateException.class, "expected BYTES but was NUMERIC<PG_NUMERIC>");
+          IllegalStateException.class,
+          "expected one of [[PROTO, BYTES]] but was NUMERIC<PG_NUMERIC>");
       matcher.nextAndAssertEquals(null);
     }
   }
@@ -600,7 +601,8 @@ public class PgNumericResultSetTest {
           resultSetMatcherFrom(resultSet, ResultSet::getBlob, ResultSet::getBlob);
 
       matcher.nextAndAssertError(
-          IllegalStateException.class, "expected BYTES but was NUMERIC<PG_NUMERIC>");
+          IllegalStateException.class,
+          "expected one of [[PROTO, BYTES]] but was NUMERIC<PG_NUMERIC>");
       matcher.nextAndAssertEquals(null);
     }
   }

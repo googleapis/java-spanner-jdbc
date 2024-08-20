@@ -141,6 +141,11 @@ public class ApplicationTest extends AbstractMockServerTest {
     mockSpanner.putPartialStatementResult(
         StatementResult.update(
             Statement.of(
+                "INSERT INTO \"albums\" (\"cover_picture\", \"created_at\", \"marketing_budget\", \"release_date\", \"singer_id\", \"title\", \"updated_at\") VALUES ($1, $2, $3, $4, $5, $6, $7)"),
+            1L));
+    mockSpanner.putPartialStatementResult(
+        StatementResult.update(
+            Statement.of(
                 "insert into albums (title, marketing_budget, release_date, cover_picture, singer_id) values ($1, $2, $3, $4, $5)"),
             1L));
 
@@ -739,20 +744,85 @@ public class ApplicationTest extends AbstractMockServerTest {
                           .collect(Collectors.toList()))
                   .build()));
     }
+    mockSpanner.putStatementResult(
+        StatementResult.query(
+            Statement.of("select id from singers limit 1"),
+            ResultSet.newBuilder()
+                .setMetadata(
+                    ResultSetMetadata.newBuilder()
+                        .setRowType(
+                            StructType.newBuilder()
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("id")
+                                        .setType(Type.newBuilder().setCode(TypeCode.INT64).build())
+                                        .build())
+                                .build())
+                        .build())
+                .addRows(
+                    ListValue.newBuilder()
+                        .addValues(Value.newBuilder().setStringValue("1").build())
+                        .build())
+                .build()));
+    mockSpanner.putStatementResult(
+        StatementResult.update(
+            Statement.newBuilder("update singers set active=not active where id=$1")
+                .bind("p1")
+                .to(1L)
+                .build(),
+            1L));
+    mockSpanner.putStatementResult(
+        StatementResult.query(
+            Statement.of(" select id from albums limit 1"),
+            ResultSet.newBuilder()
+                .setMetadata(
+                    ResultSetMetadata.newBuilder()
+                        .setRowType(
+                            StructType.newBuilder()
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("id")
+                                        .setType(Type.newBuilder().setCode(TypeCode.INT64).build())
+                                        .build())
+                                .build())
+                        .build())
+                .addRows(
+                    ListValue.newBuilder()
+                        .addValues(Value.newBuilder().setStringValue("1").build())
+                        .build())
+                .build()));
+    mockSpanner.putStatementResult(
+        StatementResult.update(
+            Statement.newBuilder(
+                    " update albums set marketing_budget=marketing_budget * 1.1 where id=$1")
+                .bind("p1")
+                .to(1L)
+                .build(),
+            1L));
+    mockSpanner.putStatementResult(
+        StatementResult.update(
+            Statement.newBuilder(
+                    " update albums set marketing_budget=marketing_budget * 1.2 where id=$1")
+                .bind("p1")
+                .to(1L)
+                .build(),
+            1L));
   }
 
   @Test
   public void testRunApplication() {
+    System.setProperty("open_telemetry.project", "test-project");
     System.setProperty("port", String.valueOf(getPort()));
+    System.setProperty("emulator", "false");
     SpringApplication.run(Application.class).close();
 
     assertEquals(
-        34,
+        44,
         mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
             .filter(request -> !request.getSql().equals("SELECT 1"))
             .count());
     assertEquals(3, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
-    assertEquals(5, mockSpanner.countRequestsOfType(CommitRequest.class));
+    assertEquals(7, mockSpanner.countRequestsOfType(CommitRequest.class));
   }
 
   private static void addDdlResponseToSpannerAdmin() {

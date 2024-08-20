@@ -22,5 +22,9 @@ java.common_templates(excludes=[
     '.github/sync-repo-settings.yaml',
     '.github/blunderbuss.yml',
     '.kokoro/nightly/integration.cfg',
-    '.kokoro/build.sh'
+    '.kokoro/build.sh',
+    '.kokoro/requirements.in',
+    '.kokoro/requirements.txt',
+    '.kokoro/presubmit/graalvm-native.cfg',
+    '.kokoro/presubmit/graalvm-native-17.cfg'
 ])

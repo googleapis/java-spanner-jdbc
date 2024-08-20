@@ -63,6 +63,12 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
   }
 
   @Override
+  public void close() throws SQLException {
+    setCurrentResultSet(null);
+    super.close();
+  }
+
+  @Override
   public ResultSet executeQuery(String sql) throws SQLException {
     checkClosed();
     return executeQuery(Statement.of(sql));
@@ -153,6 +159,11 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
             "Result does not contain an update count", Code.FAILED_PRECONDITION);
       }
       return updateCount;
+    } catch (UnsupportedOperationException unsupportedOperationException) {
+      throw JdbcSqlExceptionFactory.of(
+          unsupportedOperationException.getMessage(),
+          Code.FAILED_PRECONDITION,
+          unsupportedOperationException);
     } finally {
       resultSet.close();
     }
@@ -262,7 +273,7 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
         // keys. We can safely use '==', as the addReturningToStatement(..) method returns the same
         // instance if no generated keys were requested.
         if (statementWithReturning == statement) {
-          currentResultSet = JdbcResultSet.of(this, result.getResultSet());
+          setCurrentResultSet(JdbcResultSet.of(this, result.getResultSet()));
           currentUpdateCount = JdbcConstants.STATEMENT_RESULT_SET;
           return true;
         }
@@ -270,11 +281,11 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
         this.currentUpdateCount = extractUpdateCountAndClose(result.getResultSet());
         return false;
       case UPDATE_COUNT:
-        currentResultSet = null;
+        setCurrentResultSet(null);
         currentUpdateCount = result.getUpdateCount();
         return false;
       case NO_RESULT:
-        currentResultSet = null;
+        setCurrentResultSet(null);
         currentUpdateCount = JdbcConstants.STATEMENT_NO_RESULT;
         return false;
       default:
@@ -287,6 +298,13 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
   public ResultSet getResultSet() throws SQLException {
     checkClosed();
     return currentResultSet;
+  }
+
+  void setCurrentResultSet(ResultSet resultSet) throws SQLException {
+    if (this.currentResultSet != null) {
+      this.currentResultSet.close();
+    }
+    this.currentResultSet = resultSet;
   }
 
   /**

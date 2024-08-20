@@ -118,7 +118,7 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
   @Override
   public void setFloat(int parameterIndex, float value) throws SQLException {
     checkClosed();
-    parameters.setParameter(parameterIndex, value, Types.FLOAT);
+    parameters.setParameter(parameterIndex, value, Types.REAL);
   }
 
   @Override
@@ -170,6 +170,7 @@ abstract class AbstractJdbcPreparedStatement extends JdbcStatement implements Pr
     parameters.setParameter(parameterIndex, value, Types.VARCHAR, length);
   }
 
+  @SuppressWarnings("DeprecatedIsStillUsed")
   @Override
   @Deprecated
   public void setUnicodeStream(int parameterIndex, InputStream value, int length)

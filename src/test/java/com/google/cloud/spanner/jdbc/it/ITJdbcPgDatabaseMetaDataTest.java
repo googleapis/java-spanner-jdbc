@@ -94,6 +94,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
         .get();
   }
 
+  @Override
   public Dialect getDialect() {
     return Dialect.POSTGRESQL;
   }
@@ -358,40 +359,38 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
                     schema,
                     TABLE_WITH_REF)) {
 
-          // TODO: Remove when b/317326161 has been fixed.
-          if (DEFAULT_SCHEMA.equals(schema)) {
-            assertTrue(schema, rs.next());
-            assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
-            assertEquals(schema, rs.getString("PKTABLE_SCHEM"));
-            assertEquals("tablewithallcolumntypes", rs.getString("PKTABLE_NAME"));
-            assertEquals("colfloat64", rs.getString("PKCOLUMN_NAME"));
-            assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
-            assertEquals(schema, rs.getString("FKTABLE_SCHEM"));
-            assertEquals("tablewithref", rs.getString("FKTABLE_NAME"));
-            assertEquals("reffloat", rs.getString("FKCOLUMN_NAME"));
-            assertEquals((short) 1, rs.getShort("KEY_SEQ"));
-            assertEquals((short) DatabaseMetaData.importedKeyNoAction, rs.getShort("UPDATE_RULE"));
-            assertEquals((short) DatabaseMetaData.importedKeyNoAction, rs.getShort("DELETE_RULE"));
-            assertEquals("fk_tablewithref_tablewithallcolumntypes", rs.getString("FK_NAME"));
-            assertEquals(
-                (short) DatabaseMetaData.importedKeyNotDeferrable, rs.getShort("DEFERRABILITY"));
+          assertTrue(schema, rs.next());
+          assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
+          assertEquals(schema, rs.getString("PKTABLE_SCHEM"));
+          assertEquals("tablewithallcolumntypes", rs.getString("PKTABLE_NAME"));
+          assertEquals("colfloat64", rs.getString("PKCOLUMN_NAME"));
+          assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
+          assertEquals(schema, rs.getString("FKTABLE_SCHEM"));
+          assertEquals("tablewithref", rs.getString("FKTABLE_NAME"));
+          assertEquals("reffloat", rs.getString("FKCOLUMN_NAME"));
+          assertEquals((short) 1, rs.getShort("KEY_SEQ"));
+          assertEquals((short) DatabaseMetaData.importedKeyNoAction, rs.getShort("UPDATE_RULE"));
+          assertEquals((short) DatabaseMetaData.importedKeyNoAction, rs.getShort("DELETE_RULE"));
+          assertEquals("fk_tablewithref_tablewithallcolumntypes", rs.getString("FK_NAME"));
+          assertEquals(
+              (short) DatabaseMetaData.importedKeyNotDeferrable, rs.getShort("DEFERRABILITY"));
 
-            assertTrue(rs.next());
-            assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
-            assertEquals(schema, rs.getString("PKTABLE_SCHEM"));
-            assertEquals("tablewithallcolumntypes", rs.getString("PKTABLE_NAME"));
-            assertEquals("colstring", rs.getString("PKCOLUMN_NAME"));
-            assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
-            assertEquals(schema, rs.getString("FKTABLE_SCHEM"));
-            assertEquals("tablewithref", rs.getString("FKTABLE_NAME"));
-            assertEquals("refstring", rs.getString("FKCOLUMN_NAME"));
-            assertEquals((short) 2, rs.getShort("KEY_SEQ"));
-            assertEquals((short) DatabaseMetaData.importedKeyNoAction, rs.getShort("UPDATE_RULE"));
-            assertEquals((short) DatabaseMetaData.importedKeyNoAction, rs.getShort("DELETE_RULE"));
-            assertEquals("fk_tablewithref_tablewithallcolumntypes", rs.getString("FK_NAME"));
-            assertEquals(
-                (short) DatabaseMetaData.importedKeyNotDeferrable, rs.getShort("DEFERRABILITY"));
-          }
+          assertTrue(rs.next());
+          assertEquals(getDefaultCatalog(database), rs.getString("PKTABLE_CAT"));
+          assertEquals(schema, rs.getString("PKTABLE_SCHEM"));
+          assertEquals("tablewithallcolumntypes", rs.getString("PKTABLE_NAME"));
+          assertEquals("colstring", rs.getString("PKCOLUMN_NAME"));
+          assertEquals(getDefaultCatalog(database), rs.getString("FKTABLE_CAT"));
+          assertEquals(schema, rs.getString("FKTABLE_SCHEM"));
+          assertEquals("tablewithref", rs.getString("FKTABLE_NAME"));
+          assertEquals("refstring", rs.getString("FKCOLUMN_NAME"));
+          assertEquals((short) 2, rs.getShort("KEY_SEQ"));
+          assertEquals((short) DatabaseMetaData.importedKeyNoAction, rs.getShort("UPDATE_RULE"));
+          assertEquals((short) DatabaseMetaData.importedKeyNoAction, rs.getShort("DELETE_RULE"));
+          assertEquals("fk_tablewithref_tablewithallcolumntypes", rs.getString("FK_NAME"));
+          assertEquals(
+              (short) DatabaseMetaData.importedKeyNotDeferrable, rs.getShort("DEFERRABILITY"));
+
           assertFalse(rs.next());
         }
         // try getting self-references
@@ -415,7 +414,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
         while (rs.next()) {
           count++;
         }
-        assertEquals(10, count);
+        assertEquals(12, count);
       }
     }
   }
@@ -568,10 +567,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
             connection
                 .getMetaData()
                 .getImportedKeys(getDefaultCatalog(database), schema, TABLE_WITH_REF)) {
-          // TODO: Remove when b/317326161 has been fixed.
-          if (DEFAULT_SCHEMA.equals(schema)) {
-            assertImportedKeysTableWithRef(schema, rs);
-          }
+          assertImportedKeysTableWithRef(schema, rs);
         }
       }
     }
