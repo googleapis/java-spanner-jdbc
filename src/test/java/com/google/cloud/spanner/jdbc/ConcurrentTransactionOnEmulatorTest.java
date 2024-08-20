@@ -45,13 +45,19 @@ public class ConcurrentTransactionOnEmulatorTest {
 
   @BeforeClass
   public static void startEmulator() {
-    assumeTrue(DockerClientFactory.instance().isDockerAvailable());
+    boolean dockerAvailable = false;
+    try {
+      dockerAvailable = DockerClientFactory.instance().isDockerAvailable();
+    } catch (Exception ignore) {
+      // Ignore, and just skip the test.
+    }
+    assumeTrue(dockerAvailable);
 
     emulator =
         new GenericContainer<>(
                 DockerImageName.parse("gcr.io/cloud-spanner-emulator/emulator:latest"))
             .withExposedPorts(9010)
-            .waitingFor(Wait.forListeningPort());
+            .waitingFor(Wait.forListeningPorts(9010));
     emulator.start();
     properties = new Properties();
     properties.setProperty("autoConfigEmulator", "true");

@@ -16,8 +16,9 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
@@ -87,9 +88,6 @@ public class JdbcGrpcErrorTest {
   // FAILED_PRECONDITION is chosen as the test error code as it should never be retryable.
   private final Exception serverException =
       Status.FAILED_PRECONDITION.withDescription("test exception").asRuntimeException();
-  private final SpannerJdbcExceptionMatcher<JdbcSqlExceptionImpl> testExceptionMatcher =
-      SpannerJdbcExceptionMatcher.matchCodeAndMessage(
-          JdbcSqlExceptionImpl.class, Code.FAILED_PRECONDITION, "test exception");
 
   @BeforeClass
   public static void startStaticServer() throws IOException {
@@ -152,69 +150,79 @@ public class JdbcGrpcErrorTest {
   }
 
   @Test
-  public void autocommitBeginTransaction() {
+  public void autocommitBeginTransaction() throws SQLException {
     mockSpanner.setBeginTransactionExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       // This triggers a retry with an explicit BeginTransaction RPC.
       mockSpanner.abortNextStatement();
-      connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void autocommitBeginPDMLTransaction() {
+  public void autocommitBeginPDMLTransaction() throws SQLException {
     mockSpanner.setBeginTransactionExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().execute("SET AUTOCOMMIT_DML_MODE='PARTITIONED_NON_ATOMIC'");
-      connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void transactionalBeginTransaction() {
+  public void transactionalBeginTransaction() throws SQLException {
     mockSpanner.setBeginTransactionExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       // This triggers a retry with an explicit BeginTransaction RPC.
       mockSpanner.abortNextStatement();
-      connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void readOnlyBeginTransaction() {
+  public void readOnlyBeginTransaction() throws SQLException {
     mockSpanner.setBeginTransactionExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
-      connection.createStatement().executeQuery(SELECT1.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeQuery(SELECT1.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void autocommitExecuteSql() {
+  public void autocommitExecuteSql() throws SQLException {
     mockSpanner.setExecuteSqlExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
-      connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
@@ -230,22 +238,26 @@ public class JdbcGrpcErrorTest {
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().execute("SET AUTOCOMMIT_DML_MODE='PARTITIONED_NON_ATOMIC'");
-      connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void transactionalExecuteSql() {
+  public void transactionalExecuteSql() throws SQLException {
     mockSpanner.setExecuteSqlExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
-      connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
@@ -257,10 +269,10 @@ public class JdbcGrpcErrorTest {
       try (java.sql.Statement statement = connection.createStatement()) {
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.addBatch(UPDATE_STATEMENT.getSql());
-        statement.executeBatch();
-        fail("missing expected exception");
-      } catch (SQLException e) {
-        assertThat(testExceptionMatcher.matches(e)).isTrue();
+        JdbcSqlExceptionImpl sqlException =
+            assertThrows(JdbcSqlExceptionImpl.class, statement::executeBatch);
+        assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+        assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
       }
     }
   }
@@ -274,52 +286,53 @@ public class JdbcGrpcErrorTest {
       try (java.sql.Statement statement = connection.createStatement()) {
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.addBatch(UPDATE_STATEMENT.getSql());
-        statement.executeBatch();
-        fail("missing expected exception");
-      } catch (SQLException e) {
-        assertThat(testExceptionMatcher.matches(e)).isTrue();
+        JdbcSqlExceptionImpl sqlException =
+            assertThrows(JdbcSqlExceptionImpl.class, statement::executeBatch);
+        assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+        assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
       }
     }
   }
 
   @Test
-  public void autocommitCommit() {
+  public void autocommitCommit() throws SQLException {
     mockSpanner.setCommitExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
-      connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void transactionalCommit() {
+  public void transactionalCommit() throws SQLException {
     mockSpanner.setCommitExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      connection.commit();
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(JdbcSqlExceptionImpl.class, connection::commit);
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void autocommitRollback() {
+  public void autocommitRollback() throws SQLException {
     // The JDBC driver should throw the exception of the SQL statement and ignore any errors from
     // the rollback() method.
     mockSpanner.setRollbackExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
-      connection.createStatement().executeUpdate(INVALID_UPDATE_STATEMENT.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(
-              SpannerJdbcExceptionMatcher.matchCodeAndMessage(
-                      JdbcSqlExceptionImpl.class, Code.NOT_FOUND, "Unknown table name")
-                  .matches(e))
-          .isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeUpdate(INVALID_UPDATE_STATEMENT.getSql()));
+      assertEquals(Code.NOT_FOUND, sqlException.getCode());
+      assertTrue(
+          sqlException.getMessage(), sqlException.getMessage().contains("Unknown table name"));
     }
   }
 
@@ -346,82 +359,88 @@ public class JdbcGrpcErrorTest {
     mockSpanner.setExecuteStreamingSqlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
-      try (java.sql.ResultSet rs = connection.createStatement().executeQuery(SELECT1.getSql())) {
-        rs.next();
-        fail("missing expected exception");
-      }
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeQuery(SELECT1.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void transactionalExecuteStreamingSql() {
+  public void transactionalExecuteStreamingSql() throws SQLException {
     mockSpanner.setExecuteStreamingSqlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
-      try (java.sql.ResultSet rs = connection.createStatement().executeQuery(SELECT1.getSql())) {
-        rs.next();
-        fail("missing expected exception");
-      }
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeQuery(SELECT1.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void readOnlyExecuteStreamingSql() {
+  public void readOnlyExecuteStreamingSql() throws SQLException {
     mockSpanner.setExecuteStreamingSqlExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
-      try (java.sql.ResultSet rs = connection.createStatement().executeQuery(SELECT1.getSql())) {
-        rs.next();
-        fail("missing expected exception");
-      }
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeQuery(SELECT1.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void autocommitCreateSession() {
+  public void autocommitCreateSession() throws SQLException {
     mockSpanner.setBatchCreateSessionsExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
-      connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void transactionalCreateSession() {
+  public void transactionalCreateSession() throws SQLException {
     mockSpanner.setBatchCreateSessionsExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
-      connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
-  public void readOnlyCreateSession() {
+  public void readOnlyCreateSession() throws SQLException {
     mockSpanner.setBatchCreateSessionsExecutionTime(
         SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
-      connection.createStatement().executeQuery(SELECT1.getSql());
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(testExceptionMatcher.matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> connection.createStatement().executeQuery(SELECT1.getSql()));
+      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 }

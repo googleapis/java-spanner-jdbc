@@ -31,6 +31,7 @@ import com.google.rpc.Code;
 import com.google.spanner.admin.database.v1.UpdateDatabaseDdlMetadata;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -96,6 +97,47 @@ public class DdlMockServerTest extends AbstractMockServerTest {
       assertTrue(exception instanceof JdbcSqlException);
       JdbcSqlException jdbcSqlException = (JdbcSqlException) exception;
       assertEquals(Code.FAILED_PRECONDITION, jdbcSqlException.getCode());
+    }
+  }
+
+  @Test
+  public void testDdlUsingStatementAndExecuteUpdate() throws SQLException {
+    for (boolean autoCommit : new boolean[] {true, false}) {
+      mockDatabaseAdmin.addResponse(
+          Operation.newBuilder()
+              .setDone(true)
+              .setResponse(Any.pack(Empty.getDefaultInstance()))
+              .setMetadata(Any.pack(UpdateDatabaseDdlMetadata.getDefaultInstance()))
+              .build());
+
+      try (Connection connection = createConnection(autoCommit)) {
+        try (java.sql.Statement statement = connection.createStatement()) {
+          assertEquals(0, statement.executeUpdate("create table foo (id int64) primary key (id)"));
+        }
+      }
+      assertEquals(1, mockDatabaseAdmin.getRequests().size());
+      mockDatabaseAdmin.getRequests().clear();
+    }
+  }
+
+  @Test
+  public void testDdlUsingPreparedStatementAndExecuteUpdate() throws SQLException {
+    for (boolean autoCommit : new boolean[] {true, false}) {
+      mockDatabaseAdmin.addResponse(
+          Operation.newBuilder()
+              .setDone(true)
+              .setResponse(Any.pack(Empty.getDefaultInstance()))
+              .setMetadata(Any.pack(UpdateDatabaseDdlMetadata.getDefaultInstance()))
+              .build());
+
+      try (Connection connection = createConnection(autoCommit)) {
+        try (PreparedStatement preparedStatement =
+            connection.prepareStatement("create table foo (id int64) primary key (id)")) {
+          assertEquals(0, preparedStatement.executeUpdate());
+        }
+      }
+      assertEquals(1, mockDatabaseAdmin.getRequests().size());
+      mockDatabaseAdmin.getRequests().clear();
     }
   }
 }

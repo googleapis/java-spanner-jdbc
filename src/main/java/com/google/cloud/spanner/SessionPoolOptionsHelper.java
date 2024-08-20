@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package com.google.cloud.spanner.connection;
+package com.google.cloud.spanner;
 
-import com.google.cloud.spanner.Spanner;
+import com.google.api.core.InternalApi;
 
-/** Static helper class to get the {@link Spanner} instance from the underlying connection. */
-public class ConnectionHelper {
+/**
+ * This class is only here to access a package-private method in the Spanner client library and will
+ * be removed in the future.
+ */
+@InternalApi
+public class SessionPoolOptionsHelper {
+  private SessionPoolOptionsHelper() {}
 
-  /** Private constructor to prevent instantiation. */
-  private ConnectionHelper() {}
-
-  public static Spanner getSpanner(Connection connection) {
-    // TODO: Remove once getSpanner() has been added to the public interface.
-    return ((ConnectionImpl) connection).getSpanner();
+  @InternalApi
+  public static SessionPoolOptions.Builder useMultiplexedSessions(
+      SessionPoolOptions.Builder builder) {
+    return builder.setUseMultiplexedSession(true);
   }
 }

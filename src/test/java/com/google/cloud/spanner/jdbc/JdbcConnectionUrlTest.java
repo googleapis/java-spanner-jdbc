@@ -16,7 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
@@ -68,7 +68,7 @@ public class JdbcConnectionUrlTest {
     }
 
     protected String getBaseUrl() {
-      return super.getBaseUrl() + ";maxSessions=1";
+      return super.getBaseUrl() + ";minSessions=0;maxSessions=1";
     }
 
     @Test
@@ -103,7 +103,10 @@ public class JdbcConnectionUrlTest {
         executor1.shutdown();
         executor2.shutdown();
       }
-      assertThat(mockSpanner.numSessionsCreated()).isEqualTo(1);
+      assertEquals(1, mockSpanner.countRequestsOfType(BatchCreateSessionsRequest.class));
+      BatchCreateSessionsRequest request =
+          mockSpanner.getRequestsOfType(BatchCreateSessionsRequest.class).get(0);
+      assertEquals(1, request.getSessionCount());
     }
   }
 }

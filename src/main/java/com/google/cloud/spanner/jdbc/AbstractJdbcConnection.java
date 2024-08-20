@@ -20,7 +20,6 @@ import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.AbstractStatementParser;
-import com.google.cloud.spanner.connection.ConnectionHelper;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.rpc.Code;
@@ -81,7 +80,7 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
   }
 
   Spanner getSpanner() {
-    return ConnectionHelper.getSpanner(this.spanner);
+    return this.spanner.getSpanner();
   }
 
   @Override

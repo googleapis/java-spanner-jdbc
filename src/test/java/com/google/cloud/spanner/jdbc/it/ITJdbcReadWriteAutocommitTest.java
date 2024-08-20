@@ -16,9 +16,8 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
@@ -101,8 +100,8 @@ public class ITJdbcReadWriteAutocommitTest extends ITAbstractJdbcTest {
               "SHOW VARIABLE %sCOMMIT_TIMESTAMP",
               getDialect() == Dialect.POSTGRESQL ? "SPANNER." : ""));
       try (java.sql.ResultSet rs = statement.getResultSet()) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getTimestamp(1), is(notNullValue()));
+        assertTrue(rs.next());
+        assertNotNull(rs.getTimestamp(1));
       }
     }
   }

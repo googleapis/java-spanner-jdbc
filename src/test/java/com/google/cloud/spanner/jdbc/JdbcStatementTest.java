@@ -300,16 +300,12 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testExecuteQueryWithUpdateStatement() {
-    try {
-      Statement statement = createStatement();
-      statement.executeQuery(UPDATE);
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query")
-                  .matches(e))
-          .isTrue();
+  public void testExecuteQueryWithUpdateStatement() throws SQLException {
+    try (Statement statement = createStatement()) {
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> statement.executeQuery(UPDATE));
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("not a query"));
     }
   }
 
@@ -325,28 +321,22 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testExecuteQueryWithDdlStatement() {
-    try {
-      Statement statement = createStatement();
-      statement.executeQuery(DDL);
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(Code.INVALID_ARGUMENT, "not a query")
-                  .matches(e))
-          .isTrue();
+  public void testExecuteQueryWithDdlStatement() throws SQLException {
+    try (Statement statement = createStatement()) {
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> statement.executeQuery(DDL));
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
+      assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("not a query"));
     }
   }
 
   @Test
   public void testExecuteUpdate() throws SQLException {
-    Statement statement = createStatement();
-    assertThat(statement.executeUpdate(UPDATE)).isEqualTo(1);
-    try {
-      statement.executeUpdate(LARGE_UPDATE);
-      fail("missing expected exception");
-    } catch (JdbcSqlExceptionImpl e) {
-      assertThat(e.getCode()).isEqualTo(Code.OUT_OF_RANGE);
+    try (Statement statement = createStatement()) {
+      assertEquals(1, statement.executeUpdate(UPDATE));
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> statement.executeUpdate(LARGE_UPDATE));
+      assertEquals(Code.OUT_OF_RANGE, sqlException.getCode());
     }
   }
 
@@ -423,34 +413,31 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testExecuteUpdateWithSelectStatement() {
-    try {
-      Statement statement = createStatement();
-      statement.executeUpdate(SELECT);
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(
-                      Code.INVALID_ARGUMENT,
-                      "The statement is not a non-returning DML or DDL statement")
-                  .matches(e))
-          .isTrue();
+  public void testExecuteUpdateWithSelectStatement() throws SQLException {
+    try (Statement statement = createStatement()) {
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> statement.executeUpdate(SELECT));
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
+      assertTrue(
+          sqlException.getMessage(),
+          sqlException
+              .getMessage()
+              .contains("The statement is not a non-returning DML or DDL statement"));
     }
   }
 
   @Test
-  public void testExecuteUpdateWithDmlReturningStatement() {
-    try {
-      Statement statement = createStatement();
-      SQLException e =
-          assertThrows(SQLException.class, () -> statement.executeUpdate(getDmlReturningSql()));
+  public void testExecuteUpdateWithDmlReturningStatement() throws SQLException {
+    try (Statement statement = createStatement()) {
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class, () -> statement.executeUpdate(getDmlReturningSql()));
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(
-          JdbcExceptionMatcher.matchCodeAndMessage(
-                  Code.INVALID_ARGUMENT,
-                  "The statement is not a non-returning DML or DDL statement")
-              .matches(e));
-    } catch (SQLException e) {
-      // ignore exception.
+          sqlException.getMessage(),
+          sqlException
+              .getMessage()
+              .contains("The statement is not a non-returning DML or DDL statement"));
     }
   }
 
@@ -490,32 +477,36 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testNoBatchMixing() {
+  public void testNoBatchMixing() throws SQLException {
     try (Statement statement = createStatement()) {
       statement.addBatch("INSERT INTO FOO (ID, NAME) VALUES (1, 'FOO')");
-      statement.addBatch("CREATE TABLE FOO (ID INT64, NAME STRING(100)) PRIMARY KEY (ID)");
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(
-                      Code.INVALID_ARGUMENT,
-                      "Mixing DML and DDL statements in a batch is not allowed.")
-                  .matches(e))
-          .isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () ->
+                  statement.addBatch(
+                      "CREATE TABLE FOO (ID INT64, NAME STRING(100)) PRIMARY KEY (ID)"));
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
+      assertTrue(
+          sqlException.getMessage(),
+          sqlException
+              .getMessage()
+              .contains("Mixing DML and DDL statements in a batch is not allowed."));
     }
   }
 
   @Test
-  public void testNoBatchQuery() {
+  public void testNoBatchQuery() throws SQLException {
     try (Statement statement = createStatement()) {
-      statement.addBatch("SELECT * FROM FOO");
-    } catch (SQLException e) {
-      assertThat(
-              JdbcExceptionMatcher.matchCodeAndMessage(
-                      Code.INVALID_ARGUMENT,
-                      "The statement is not suitable for batching. Only DML and DDL statements are allowed for batching.")
-                  .matches(e))
-          .isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> statement.addBatch("SELECT * FROM FOO"));
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
+      assertTrue(
+          sqlException.getMessage(),
+          sqlException
+              .getMessage()
+              .contains(
+                  "The statement is not suitable for batching. Only DML and DDL statements are allowed for batching."));
     }
   }
 
@@ -559,7 +550,7 @@ public class JdbcStatementTest {
   }
 
   @Test
-  public void testConvertUpdateCounts() {
+  public void testConvertUpdateCounts() throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
     when(connection.getDialect()).thenReturn(dialect);
     try (JdbcStatement statement = new JdbcStatement(connection)) {
@@ -568,10 +559,11 @@ public class JdbcStatementTest {
       updateCounts = statement.convertUpdateCounts(new long[] {0L, 0L, 0L});
       assertThat(updateCounts).asList().containsExactly(0, 0, 0);
 
-      statement.convertUpdateCounts(new long[] {1L, Integer.MAX_VALUE + 1L});
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(JdbcExceptionMatcher.matchCode(Code.OUT_OF_RANGE).matches(e)).isTrue();
+      JdbcSqlExceptionImpl sqlException =
+          assertThrows(
+              JdbcSqlExceptionImpl.class,
+              () -> statement.convertUpdateCounts(new long[] {1L, Integer.MAX_VALUE + 1L}));
+      assertEquals(Code.OUT_OF_RANGE, sqlException.getCode());
     }
   }
 

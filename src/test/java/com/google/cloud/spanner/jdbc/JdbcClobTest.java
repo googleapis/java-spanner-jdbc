@@ -16,10 +16,10 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import com.google.rpc.Code;
 import java.io.IOException;
@@ -75,36 +75,32 @@ public class JdbcClobTest {
   public void testLength() throws SQLException {
     JdbcClob clob = new JdbcClob();
     clob.setString(1L, "test");
-    assertThat(clob.length(), is(equalTo(4L)));
+    assertEquals(4L, clob.length());
     clob.setString(1L, "test-test");
-    assertThat(clob.length(), is(equalTo(9L)));
+    assertEquals(9L, clob.length());
   }
 
   @Test
   public void testGetSubstring() throws SQLException {
     JdbcClob clob = new JdbcClob();
     clob.setString(1L, "test");
-    assertThat(clob.getSubString(1, 4), is(equalTo("test")));
-    assertThat(clob.getSubString(1, 2), is(equalTo("te")));
-    assertThat(clob.getSubString(3, 2), is(equalTo("st")));
-    assertThat(clob.getSubString(1, 5), is(equalTo("test")));
-    assertThat(clob.getSubString(4, 5), is(equalTo("t")));
-    assertThat(clob.getSubString(5, 5), is(equalTo("")));
-    assertThat(clob.getSubString(6, 5), is(equalTo("")));
+    assertEquals("test", clob.getSubString(1, 4));
+    assertEquals("te", clob.getSubString(1, 2));
+    assertEquals("st", clob.getSubString(3, 2));
+    assertEquals("test", clob.getSubString(1, 5));
+    assertEquals("t", clob.getSubString(4, 5));
+    assertEquals("", clob.getSubString(5, 5));
+    assertEquals("", clob.getSubString(6, 5));
 
     // test invalid parameters
     PosLength[] params =
         new PosLength[] {PosLength.of(0L, 4), PosLength.of(-1L, 4), PosLength.of(1L, -1)};
     for (PosLength param : params) {
-      boolean exception = false;
-      try {
-        clob.getSubString(param.pos, param.len);
-      } catch (SQLException e) {
-        exception =
-            (e instanceof JdbcSqlException
-                && ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT);
-      }
-      assertThat(param.toString(), exception, is(true));
+      SQLException sqlException =
+          assertThrows(SQLException.class, () -> clob.getSubString(param.pos, param.len));
+      assertTrue(sqlException instanceof JdbcSqlException);
+      JdbcSqlException jdbcSqlException = (JdbcSqlException) sqlException;
+      assertEquals(Code.INVALID_ARGUMENT, jdbcSqlException.getCode());
     }
   }
 
@@ -116,12 +112,12 @@ public class JdbcClobTest {
     try (Reader reader = clob.getCharacterStream()) {
       assertEquals(4, reader.read(cbuf, 0, 4));
     }
-    assertThat(cbuf, is(equalTo(new char[] {'t', 'e', 's', 't'})));
+    assertArrayEquals(new char[] {'t', 'e', 's', 't'}, cbuf);
     try (Reader reader = clob.getCharacterStream()) {
       assertEquals(2, reader.read(cbuf, 0, 2));
       assertEquals(2, reader.read(cbuf, 2, 2));
     }
-    assertThat(cbuf, is(equalTo(new char[] {'t', 'e', 's', 't'})));
+    assertArrayEquals(new char[] {'t', 'e', 's', 't'}, cbuf);
     try (Reader reader = clob.getCharacterStream()) {
       assertEquals(2, reader.read(cbuf, 0, 2));
       // changing the value of the clob will not change a character stream that has already been
@@ -129,36 +125,32 @@ public class JdbcClobTest {
       clob.setString(1L, "foobar");
       assertEquals(2, reader.read(cbuf, 2, 2));
     }
-    assertThat(cbuf, is(equalTo(new char[] {'t', 'e', 's', 't'})));
+    assertArrayEquals(new char[] {'t', 'e', 's', 't'}, cbuf);
   }
 
   @Test
   public void testPositionString() throws SQLException {
     JdbcClob clob = new JdbcClob();
     clob.setString(1L, "test");
-    assertThat(clob.position("st", 1L), is(equalTo(3L)));
+    assertEquals(3L, clob.position("st", 1L));
     clob.setString(1L, "foobarfoobar");
-    assertThat(clob.position("bar", 1L), is(equalTo(4L)));
-    assertThat(clob.position("bar", 2L), is(equalTo(4L)));
-    assertThat(clob.position("bar", 5L), is(equalTo(10L)));
-    assertThat(clob.position("bar", 8L), is(equalTo(10L)));
-    assertThat(clob.position("bar", 10L), is(equalTo(10L)));
-    assertThat(clob.position("bar", 11L), is(equalTo(-1L)));
-    assertThat(clob.position("bar", 100L), is(equalTo(-1L)));
-    assertThat(clob.position("not_there", 1L), is(equalTo(-1L)));
+    assertEquals(4L, clob.position("bar", 1L));
+    assertEquals(4L, clob.position("bar", 2L));
+    assertEquals(10L, clob.position("bar", 5L));
+    assertEquals(10L, clob.position("bar", 8L));
+    assertEquals(10L, clob.position("bar", 10L));
+    assertEquals(-1L, clob.position("bar", 11L));
+    assertEquals(-1L, clob.position("bar", 100L));
+    assertEquals(-1L, clob.position("not_there", 1L));
     // test invalid parameters
     PosString[] params =
         new PosString[] {PosString.of(0L, "bar"), PosString.of(-1L, "bar"), PosString.of(1L, null)};
     for (PosString param : params) {
-      boolean exception = false;
-      try {
-        clob.position(param.str, param.pos);
-      } catch (SQLException e) {
-        exception =
-            (e instanceof JdbcSqlException
-                && ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT);
-      }
-      assertThat(param.toString(), exception, is(true));
+      SQLException sqlException =
+          assertThrows(SQLException.class, () -> clob.position(param.str, param.pos));
+      assertTrue(sqlException instanceof JdbcSqlException);
+      JdbcSqlException jdbcSqlException = (JdbcSqlException) sqlException;
+      assertEquals(Code.INVALID_ARGUMENT, jdbcSqlException.getCode());
     }
   }
 
@@ -168,32 +160,32 @@ public class JdbcClobTest {
     clob.setString(1L, "test");
     JdbcClob search = new JdbcClob();
     search.setString(1L, "st");
-    assertThat(clob.position(search, 1L), is(equalTo(3L)));
+    assertEquals(3L, clob.position(search, 1L));
     clob.setString(1L, "foobarfoobar");
     search.setString(1L, "bar");
-    assertThat(clob.position(search, 1L), is(equalTo(4L)));
-    assertThat(clob.position(search, 2L), is(equalTo(4L)));
-    assertThat(clob.position(search, 5L), is(equalTo(10L)));
-    assertThat(clob.position(search, 8L), is(equalTo(10L)));
-    assertThat(clob.position(search, 10L), is(equalTo(10L)));
-    assertThat(clob.position(search, 11L), is(equalTo(-1L)));
-    assertThat(clob.position(search, 100L), is(equalTo(-1L)));
+    assertEquals(4L, clob.position(search, 1L));
+    assertEquals(4L, clob.position(search, 2L));
+    assertEquals(10L, clob.position(search, 5L));
+    assertEquals(10L, clob.position(search, 8L));
+    assertEquals(10L, clob.position(search, 10L));
+    assertEquals(-1L, clob.position(search, 11L));
+    assertEquals(-1L, clob.position(search, 100L));
     search.setString(1L, "not_there");
-    assertThat(clob.position(search, 1L), is(equalTo(-1L)));
+    assertEquals(-1L, clob.position(search, 1L));
     // test invalid parameters
     PosString[] params =
         new PosString[] {PosString.of(0L, "bar"), PosString.of(-1L, "bar"), PosString.of(1L, null)};
     for (PosString param : params) {
-      boolean exception = false;
-      try {
-        search.setString(1L, param.str);
-        clob.position(search, param.pos);
-      } catch (SQLException e) {
-        exception =
-            (e instanceof JdbcSqlException
-                && ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT);
-      }
-      assertThat(param.toString(), exception, is(true));
+      SQLException sqlException =
+          assertThrows(
+              SQLException.class,
+              () -> {
+                search.setString(1L, param.str);
+                clob.position(search, param.pos);
+              });
+      assertTrue(sqlException instanceof JdbcSqlException);
+      JdbcSqlException jdbcSqlException = (JdbcSqlException) sqlException;
+      assertEquals(Code.INVALID_ARGUMENT, jdbcSqlException.getCode());
     }
   }
 
@@ -201,30 +193,26 @@ public class JdbcClobTest {
   public void testSetString() throws SQLException {
     JdbcClob clob = new JdbcClob();
     clob.setString(1L, "test");
-    assertThat(clob.getSubString(1L, 4), is(equalTo("test")));
+    assertEquals("test", clob.getSubString(1L, 4));
     clob.setString(1L, "bar");
-    assertThat(clob.getSubString(1L, 4), is(equalTo("bart")));
+    assertEquals("bart", clob.getSubString(1L, 4));
     clob.setString(1L, "foobar");
-    assertThat(clob.getSubString(1L, 6), is(equalTo("foobar")));
+    assertEquals("foobar", clob.getSubString(1L, 6));
     clob.setString(2L, "foobar");
-    assertThat(clob.getSubString(1L, 7), is(equalTo("ffoobar")));
+    assertEquals("ffoobar", clob.getSubString(1L, 7));
     clob.setString(8L, "test");
-    assertThat(clob.getSubString(1L, 11), is(equalTo("ffoobartest")));
+    assertEquals("ffoobartest", clob.getSubString(1L, 11));
     clob.setString(15, "end");
-    assertThat(clob.getSubString(1L, 17), is(equalTo("ffoobartest   end")));
+    assertEquals("ffoobartest   end", clob.getSubString(1L, 17));
     // test invalid parameters
     PosString[] params =
         new PosString[] {PosString.of(0L, "bar"), PosString.of(-1L, "bar"), PosString.of(1L, null)};
     for (PosString param : params) {
-      boolean exception = false;
-      try {
-        clob.setString(param.pos, param.str);
-      } catch (SQLException e) {
-        exception =
-            (e instanceof JdbcSqlException
-                && ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT);
-      }
-      assertThat(param.toString(), exception, is(true));
+      SQLException sqlException =
+          assertThrows(SQLException.class, () -> clob.setString(param.pos, param.str));
+      assertTrue(sqlException instanceof JdbcSqlException);
+      JdbcSqlException jdbcSqlException = (JdbcSqlException) sqlException;
+      assertEquals(Code.INVALID_ARGUMENT, jdbcSqlException.getCode());
     }
   }
 
@@ -232,99 +220,99 @@ public class JdbcClobTest {
   public void testSetStringOffsetLen() throws SQLException {
     JdbcClob clob = new JdbcClob();
     clob.setString(1L, "test", 2, 3);
-    assertThat(clob.getSubString(1L, 4), is(equalTo("est")));
+    assertEquals("est", clob.getSubString(1L, 4));
     clob.setString(1L, "bar", 1, 1);
-    assertThat(clob.getSubString(1L, 4), is(equalTo("bst")));
+    assertEquals("bst", clob.getSubString(1L, 4));
     clob.setString(1L, "foobar", 1, 6);
-    assertThat(clob.getSubString(1L, 6), is(equalTo("foobar")));
+    assertEquals("foobar", clob.getSubString(1L, 6));
     clob.setString(2L, "foobar", 2, 5);
-    assertThat(clob.getSubString(1L, 7), is(equalTo("foobar")));
+    assertEquals("foobar", clob.getSubString(1L, 7));
     clob.setString(8L, "test", 4, 1);
-    assertThat(clob.getSubString(1L, 8), is(equalTo("foobar t")));
+    assertEquals("foobar t", clob.getSubString(1L, 8));
     clob.setString(15, "end", 1, 3);
-    assertThat(clob.getSubString(1L, 17), is(equalTo("foobar t      end")));
+    assertEquals("foobar t      end", clob.getSubString(1L, 17));
   }
 
   @Test
   public void testSetCharacterStream() throws SQLException, IOException {
     JdbcClob clob = new JdbcClob();
     clob.setString(1, "foobar");
-    assertThat(clob.getSubString(1L, 6), is(equalTo("foobar")));
+    assertEquals("foobar", clob.getSubString(1L, 6));
     try (Writer writer = clob.setCharacterStream(1L)) {
       writer.write("t");
       // not yet flushed, there should be no change
-      assertThat(clob.getSubString(1L, 6), is(equalTo("foobar")));
+      assertEquals("foobar", clob.getSubString(1L, 6));
       writer.flush();
       // after a flush the change should be visible
-      assertThat(clob.getSubString(1L, 6), is(equalTo("toobar")));
+      assertEquals("toobar", clob.getSubString(1L, 6));
       writer.write("est");
     }
-    // close should also autoflush
-    assertThat(clob.getSubString(1L, 6), is(equalTo("testar")));
+    // close should also auto-flush
+    assertEquals("testar", clob.getSubString(1L, 6));
 
     // start all over
     clob.free();
     clob.setString(1, "foobar");
-    assertThat(clob.getSubString(1L, 6), is(equalTo("foobar")));
+    assertEquals("foobar", clob.getSubString(1L, 6));
     try (Writer writer = clob.setCharacterStream(5L)) {
       writer.write("t");
       // not yet flushed, there should be no change
-      assertThat(clob.getSubString(1L, 6), is(equalTo("foobar")));
+      assertEquals("foobar", clob.getSubString(1L, 6));
       writer.flush();
       // after a flush the change should be visible
-      assertThat(clob.getSubString(1L, 6), is(equalTo("foobtr")));
+      assertEquals("foobtr", clob.getSubString(1L, 6));
       writer.write("est");
     }
-    // close should also autoflush
-    assertThat(clob.getSubString(1L, 8), is(equalTo("foobtest")));
+    // close should also auto-flush
+    assertEquals("foobtest", clob.getSubString(1L, 8));
 
     // do a test with multiple flushes
     clob.free();
     clob.setString(1, "foobar");
-    assertThat(clob.getSubString(1L, 6), is(equalTo("foobar")));
+    assertEquals("foobar", clob.getSubString(1L, 6));
     try (Writer writer = clob.setCharacterStream(1L)) {
       writer.write("t");
-      assertThat(clob.getSubString(1L, 6), is(equalTo("foobar")));
+      assertEquals("foobar", clob.getSubString(1L, 6));
       writer.flush();
-      assertThat(clob.getSubString(1L, 6), is(equalTo("toobar")));
+      assertEquals("toobar", clob.getSubString(1L, 6));
       writer.write("est");
-      assertThat(clob.getSubString(1L, 6), is(equalTo("toobar")));
+      assertEquals("toobar", clob.getSubString(1L, 6));
       writer.flush();
-      assertThat(clob.getSubString(1L, 6), is(equalTo("testar")));
+      assertEquals("testar", clob.getSubString(1L, 6));
     }
-    assertThat(clob.getSubString(1L, 8), is(equalTo("testar")));
+    assertEquals("testar", clob.getSubString(1L, 8));
 
     // writer after end
     clob.free();
     clob.setString(1, "foobar");
-    assertThat(clob.getSubString(1L, 10), is(equalTo("foobar")));
+    assertEquals("foobar", clob.getSubString(1L, 10));
     try (Writer writer = clob.setCharacterStream(10L)) {
       writer.write("t");
-      assertThat(clob.getSubString(1L, 20), is(equalTo("foobar")));
+      assertEquals("foobar", clob.getSubString(1L, 20));
       writer.flush();
-      assertThat(clob.getSubString(1L, 20), is(equalTo("foobar   t")));
+      assertEquals("foobar   t", clob.getSubString(1L, 20));
       writer.write("est");
     }
-    assertThat(clob.getSubString(1L, 20), is(equalTo("foobar   test")));
+    assertEquals("foobar   test", clob.getSubString(1L, 20));
   }
 
   @Test
   public void testTruncate() throws SQLException {
     JdbcClob clob = new JdbcClob();
     clob.setString(1L, "foobar");
-    assertThat(clob.getSubString(1L, 6), is(equalTo("foobar")));
+    assertEquals("foobar", clob.getSubString(1L, 6));
     clob.truncate(3L);
-    assertThat(clob.getSubString(1L, 6), is(equalTo("foo")));
+    assertEquals("foo", clob.getSubString(1L, 6));
     clob.truncate(0L);
-    assertThat(clob.getSubString(1L, 6), is(equalTo("")));
+    assertEquals("", clob.getSubString(1L, 6));
   }
 
   @Test
   public void testFree() throws SQLException {
     JdbcClob clob = new JdbcClob();
     clob.setString(1L, "foobar");
-    assertThat(clob.getSubString(1L, 6), is(equalTo("foobar")));
+    assertEquals("foobar", clob.getSubString(1L, 6));
     clob.free();
-    assertThat(clob.getSubString(1L, 6), is(equalTo("")));
+    assertEquals("", clob.getSubString(1L, 6));
   }
 }

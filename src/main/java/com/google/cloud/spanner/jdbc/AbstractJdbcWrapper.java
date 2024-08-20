@@ -48,6 +48,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
       case BOOL:
         return Types.BOOLEAN;
       case BYTES:
+      case PROTO:
         return Types.BINARY;
       case DATE:
         return Types.DATE;
@@ -56,6 +57,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
       case FLOAT64:
         return Types.DOUBLE;
       case INT64:
+      case ENUM:
         return Types.BIGINT;
       case NUMERIC:
       case PG_NUMERIC:
@@ -145,6 +147,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
       case BOOL:
         return Boolean.class.getName();
       case BYTES:
+      case PROTO:
         return byte[].class.getName();
       case DATE:
         return Date.class.getName();
@@ -153,6 +156,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
       case FLOAT64:
         return Double.class.getName();
       case INT64:
+      case ENUM:
         return Long.class.getName();
       case NUMERIC:
       case PG_NUMERIC:
@@ -168,6 +172,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
           case BOOL:
             return Boolean[].class.getName();
           case BYTES:
+          case PROTO:
             return byte[][].class.getName();
           case DATE:
             return Date[].class.getName();
@@ -176,6 +181,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
           case FLOAT64:
             return Double[].class.getName();
           case INT64:
+          case ENUM:
             return Long[].class.getName();
           case NUMERIC:
           case PG_NUMERIC:
