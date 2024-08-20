@@ -43,7 +43,7 @@ public class ProgressTracker extends Thread {
         print_progress(percent);
       }
 
-      if (sleep(SLEEP_TIME_POLL) == true) {
+      if (sleep(SLEEP_TIME_POLL)) {
         break;
       }
     }
@@ -63,15 +63,15 @@ public class ProgressTracker extends Thread {
       }
     }
 
-    bar.append("]   " + percent + "%     ");
-    System.out.print("\r" + bar.toString());
+    bar.append("]   ").append(percent).append("%     ");
+    System.out.print("\r" + bar);
   }
 
   private boolean sleep(int sleeptime) {
     try {
       Thread.sleep(sleeptime);
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      System.err.println("Progress tracker thread interrupted");
       return true;
     }
     return false;

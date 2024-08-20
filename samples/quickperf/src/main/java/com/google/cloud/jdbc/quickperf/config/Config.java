@@ -35,16 +35,16 @@ public class Config {
   private List<QueryParam> queryParams;
 
   public String paramsToString() {
-    String retVal = "";
+    StringBuilder retVal = new StringBuilder();
 
     if (queryParams != null) {
 
       for (QueryParam param : queryParams) {
-        retVal = retVal + String.format("%s:%s ", param.getOrder(), param.getValue());
+        retVal.append(String.format("%s:%s ", param.getOrder(), param.getValue()));
       }
     }
 
-    return retVal;
+    return retVal.toString();
   }
 
   public int getBatchSize() {

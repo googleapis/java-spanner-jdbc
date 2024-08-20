@@ -70,17 +70,19 @@ public class QuickPerfRunner extends Thread {
 
         System.out.printf("Finished sampling %s records%n", sampledValueList.size());
       } catch (SQLException e) {
+        //noinspection CallToPrintStackTrace
         e.printStackTrace();
       }
 
     } catch (SQLException e) {
+      //noinspection CallToPrintStackTrace
       e.printStackTrace();
     }
   }
 
   private Connection createConnection(Config config) throws SQLException {
     String connectionUrl = createConnectionURL(config);
-    Properties properties = createConnectionProperties(config);
+    Properties properties = createConnectionProperties();
     return DriverManager.getConnection(connectionUrl, properties);
   }
 
@@ -96,7 +98,7 @@ public class QuickPerfRunner extends Thread {
     }
   }
 
-  private Properties createConnectionProperties(Config config) {
+  private Properties createConnectionProperties() {
     if (System.getProperty("spanner.host") != null) {
       Properties properties = new Properties();
       properties.setProperty("endpoint", System.getProperty("spanner.host"));
@@ -121,6 +123,7 @@ public class QuickPerfRunner extends Thread {
               .unwrap(CloudSpannerJdbcConnection.class)
               .getDialect()
               .equals(Dialect.GOOGLE_STANDARD_SQL);
+      String tagPrefix = isGoogleSQL ? "" : "SPANNER.";
 
       connection.setAutoCommit(false);
 
@@ -131,16 +134,9 @@ public class QuickPerfRunner extends Thread {
           || config.getQuery().contains("DELETE")) {
         // read-write
         connection.createStatement().execute("SET TRANSACTION READ WRITE");
-
-        if (isGoogleSQL) {
-          connection
-              .createStatement()
-              .execute(String.format("SET TRANSACTION_TAG = '%s'", config.DEFAULT_TAG));
-        } else {
-          connection
-              .createStatement()
-              .execute(String.format("SET SPANNER.TRANSACTION_TAG = '%s'", config.DEFAULT_TAG));
-        }
+        connection
+            .createStatement()
+            .execute(String.format("SET %sTRANSACTION_TAG = '%s'", tagPrefix, config.DEFAULT_TAG));
 
       } else {
         // read-only
@@ -157,39 +153,24 @@ public class QuickPerfRunner extends Thread {
           // single statements
           try {
             if (config.getQueryParams() != null) {
-              statement = parametrizeStatement(statement, config.getQueryParams());
+              parametrizeStatement(statement, config.getQueryParams());
             }
+            connection
+                .createStatement()
+                .execute(String.format("SET %sSTATEMENT_TAG='%s'", tagPrefix, config.DEFAULT_TAG));
 
-            if (isGoogleSQL) {
-              connection
-                  .createStatement()
-                  .execute(String.format("SET STATEMENT_TAG='%s'", config.DEFAULT_TAG));
-            } else {
-              connection
-                  .createStatement()
-                  .execute(String.format("SET SPANNER.STATEMENT_TAG='%s'", config.DEFAULT_TAG));
-            }
-
-            boolean hasResults = false;
-            long start = 0;
-            long stop = 0;
-            if (connection.getAutoCommit()) {
-              // read-only
-              start = System.nanoTime();
-              hasResults = statement.execute();
-              stop = System.nanoTime() - start;
-            } else {
-              start = System.nanoTime();
-              hasResults = statement.execute();
+            long start = System.nanoTime();
+            boolean hasResults = statement.execute();
+            if (!connection.getAutoCommit()) {
               connection.commit();
-              stop = System.nanoTime() - start;
             }
+            long stop = System.nanoTime() - start;
 
             if (hasResults) {
               statement.getResultSet().close();
             }
 
-            measures[i] = stop / 1000000;
+            measures[i] = (float) stop / 1000000;
             progress++;
           } catch (Exception e) {
             if (e.getMessage().contains("ALREADY_EXISTS:")) {
@@ -205,40 +186,27 @@ public class QuickPerfRunner extends Thread {
           // batching
           try {
             if (config.getQueryParams() != null) {
-              statement = parametrizeStatement(statement, config.getQueryParams());
+              parametrizeStatement(statement, config.getQueryParams());
             }
 
             statement.addBatch();
 
             if (batchCounter == 0 || i == config.getIterations() - 1) {
+              connection
+                  .createStatement()
+                  .execute(
+                      String.format("SET %sSTATEMENT_TAG='%s'", tagPrefix, config.DEFAULT_TAG));
 
-              if (isGoogleSQL) {
-                connection
-                    .createStatement()
-                    .execute(String.format("SET STATEMENT_TAG='%s'", config.DEFAULT_TAG));
-              } else {
-                connection
-                    .createStatement()
-                    .execute(String.format("SET SPANNER.STATEMENT_TAG='%s'", config.DEFAULT_TAG));
-              }
-
-              long start = 0;
-              long stop = 0;
-              if (connection.getAutoCommit()) {
-                // read-only
-                start = System.nanoTime();
-                int[] cnt = statement.executeBatch();
-                stop = System.nanoTime() - start;
-              } else {
-                start = System.nanoTime();
-                int[] cnt = statement.executeBatch();
+              long start = System.nanoTime();
+              statement.executeBatch();
+              if (!connection.getAutoCommit()) {
                 connection.commit();
-                stop = System.nanoTime() - start;
               }
+              long stop = System.nanoTime() - start;
 
               batchCounter = config.getBatchSize();
 
-              measures[batchRound] = stop / 1000000;
+              measures[batchRound] = (float) stop / 1000000;
               batchRound++;
             }
 
@@ -259,6 +227,7 @@ public class QuickPerfRunner extends Thread {
         }
       }
     } catch (SQLException e) {
+      //noinspection CallToPrintStackTrace
       e.printStackTrace();
     }
   }
@@ -274,8 +243,8 @@ public class QuickPerfRunner extends Thread {
     return resultArray;
   }
 
-  private PreparedStatement parametrizeStatement(
-      PreparedStatement statement, List<QueryParam> paramList) throws SQLException {
+  private void parametrizeStatement(PreparedStatement statement, List<QueryParam> paramList)
+      throws SQLException {
     for (QueryParam param : paramList) {
       if (param.getValue().contains("#i")) {
         // integer plus integer with custom range
@@ -299,8 +268,6 @@ public class QuickPerfRunner extends Thread {
         statement.setLong(param.getOrder(), value);
       }
     }
-
-    return statement;
   }
 
   private int replaceInt(String value) {
@@ -310,14 +277,14 @@ public class QuickPerfRunner extends Thread {
     Pattern regexPattern = Pattern.compile(pattern);
     Matcher matcher = regexPattern.matcher(value);
 
-    while (matcher.find()) {
+    if (matcher.find()) {
       int min = Integer.parseInt(matcher.group(1));
       int max = Integer.parseInt(matcher.group(2));
 
       return f.number().numberBetween(min, max);
     }
 
-    return Integer.valueOf(
+    return Integer.parseInt(
         value.replaceFirst("#i", String.valueOf(new SecureRandom().nextInt(Integer.MAX_VALUE))));
   }
 
