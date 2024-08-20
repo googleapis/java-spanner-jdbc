@@ -63,13 +63,23 @@ public class ITSingleJarTest extends ITAbstractJdbcTest {
   public void testUseSingleJar() throws Exception {
     buildSingleJar();
     buildMainClass();
+    runTestApplication();
+  }
 
+  @Test
+  public void testUseShadedJar() throws Exception {
+    buildShadedJar();
+    buildMainClass();
+    runTestApplication();
+  }
+
+  private void runTestApplication() throws Exception {
     DatabaseId id = database.getId();
     ProcessBuilder builder = new ProcessBuilder();
     if (System.getenv("SPANNER_EMULATOR_HOST") != null) {
       builder.environment().put("SPANNER_EMULATOR_HOST", System.getenv("SPANNER_EMULATOR_HOST"));
     }
-    // This runs the simple test application with only the jar-with-dependencies on the classpath.
+    // This runs the simple test application with only the shaded jar on the classpath.
     builder.command(
         "java",
         "-cp",
@@ -84,6 +94,13 @@ public class ITSingleJarTest extends ITAbstractJdbcTest {
   private void buildSingleJar() throws Exception {
     ProcessBuilder builder = new ProcessBuilder();
     builder.command("mvn", "clean", "package", "-DskipTests", "-Dalt.build.dir=./target/single");
+    execute(builder);
+  }
+
+  private void buildShadedJar() throws Exception {
+    ProcessBuilder builder = new ProcessBuilder();
+    builder.command(
+        "mvn", "clean", "-Pshade", "package", "-DskipTests", "-Dalt.build.dir=./target/single");
     execute(builder);
   }
 
