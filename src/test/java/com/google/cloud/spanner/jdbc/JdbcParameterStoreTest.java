@@ -225,11 +225,19 @@ public class JdbcParameterStoreTest {
     assertEquals(jsonString, params.getParameter(1));
     verifyParameter(params, Value.json(jsonString));
 
+    params.setParameter(1, jsonString, (int) JsonType.SHORT_VENDOR_TYPE_NUMBER);
+    assertEquals(jsonString, params.getParameter(1));
+    verifyParameter(params, Value.json(jsonString));
+
     params.setParameter(1, jsonString, JsonType.INSTANCE);
     assertEquals(jsonString, params.getParameter(1));
     verifyParameter(params, Value.json(jsonString));
 
     params.setParameter(1, jsonString, PgJsonbType.VENDOR_TYPE_NUMBER);
+    assertEquals(jsonString, params.getParameter(1));
+    verifyParameter(params, Value.pgJsonb(jsonString));
+
+    params.setParameter(1, jsonString, (int) PgJsonbType.SHORT_VENDOR_TYPE_NUMBER);
     assertEquals(jsonString, params.getParameter(1));
     verifyParameter(params, Value.pgJsonb(jsonString));
 
@@ -250,12 +258,21 @@ public class JdbcParameterStoreTest {
     assertEquals(singerInfo, params.getParameter(1));
     verifyParameter(params, Value.protoMessage(singerInfo));
 
+    params.setParameter(1, singerInfo, (int) ProtoMessageType.SHORT_VENDOR_TYPE_NUMBER);
+    assertEquals(singerInfo, params.getParameter(1));
+    verifyParameter(params, Value.protoMessage(singerInfo));
+
     params.setParameter(1, singerInfo, ProtoMessageType.INSTANCE);
     assertEquals(singerInfo, params.getParameter(1));
     verifyParameter(params, Value.protoMessage(singerInfo));
 
     // Tests inter compatibility between bytes and proto message
     params.setParameter(1, singerInfo.toByteArray(), ProtoMessageType.VENDOR_TYPE_NUMBER);
+    assertArrayEquals(singerInfo.toByteArray(), (byte[]) params.getParameter(1));
+    verifyParameter(params, Value.bytes(ByteArray.copyFrom(singerInfo.toByteArray())));
+
+    params.setParameter(
+        1, singerInfo.toByteArray(), (int) ProtoMessageType.SHORT_VENDOR_TYPE_NUMBER);
     assertArrayEquals(singerInfo.toByteArray(), (byte[]) params.getParameter(1));
     verifyParameter(params, Value.bytes(ByteArray.copyFrom(singerInfo.toByteArray())));
 
@@ -267,12 +284,20 @@ public class JdbcParameterStoreTest {
     assertEquals(Genre.ROCK, params.getParameter(1));
     verifyParameter(params, Value.protoEnum(Genre.ROCK));
 
+    params.setParameter(1, Genre.ROCK, (int) ProtoEnumType.SHORT_VENDOR_TYPE_NUMBER);
+    assertEquals(Genre.ROCK, params.getParameter(1));
+    verifyParameter(params, Value.protoEnum(Genre.ROCK));
+
     params.setParameter(1, Genre.ROCK, ProtoEnumType.INSTANCE);
     assertEquals(Genre.ROCK, params.getParameter(1));
     verifyParameter(params, Value.protoEnum(Genre.ROCK));
 
     // Tests inter compatibility between int and proto enum
     params.setParameter(1, Genre.ROCK.getNumber(), ProtoEnumType.VENDOR_TYPE_NUMBER);
+    assertEquals(Genre.ROCK.getNumber(), params.getParameter(1));
+    verifyParameter(params, Value.int64(Genre.ROCK.getNumber()));
+
+    params.setParameter(1, Genre.ROCK.getNumber(), (int) ProtoEnumType.SHORT_VENDOR_TYPE_NUMBER);
     assertEquals(Genre.ROCK.getNumber(), params.getParameter(1));
     verifyParameter(params, Value.int64(Genre.ROCK.getNumber()));
 
@@ -287,7 +312,8 @@ public class JdbcParameterStoreTest {
           Types.SMALLINT,
           Types.INTEGER,
           Types.BIGINT,
-          ProtoEnumType.VENDOR_TYPE_NUMBER
+          ProtoEnumType.VENDOR_TYPE_NUMBER,
+          ProtoEnumType.SHORT_VENDOR_TYPE_NUMBER
         }) {
       params.setParameter(1, (byte) 1, type);
       assertEquals(1, ((Byte) params.getParameter(1)).byteValue());
@@ -397,7 +423,11 @@ public class JdbcParameterStoreTest {
     // types that should lead to bytes (except BLOB which is handled separately)
     for (int type :
         new int[] {
-          Types.BINARY, Types.VARBINARY, Types.LONGVARBINARY, ProtoMessageType.VENDOR_TYPE_NUMBER
+          Types.BINARY,
+          Types.VARBINARY,
+          Types.LONGVARBINARY,
+          ProtoMessageType.VENDOR_TYPE_NUMBER,
+          ProtoMessageType.SHORT_VENDOR_TYPE_NUMBER
         }) {
       params.setParameter(1, new byte[] {1, 2, 3}, type);
       assertArrayEquals(new byte[] {1, 2, 3}, (byte[]) params.getParameter(1));
@@ -512,7 +542,8 @@ public class JdbcParameterStoreTest {
           Types.SMALLINT,
           Types.INTEGER,
           Types.BIGINT,
-          ProtoEnumType.VENDOR_TYPE_NUMBER
+          ProtoEnumType.VENDOR_TYPE_NUMBER,
+          ProtoEnumType.SHORT_VENDOR_TYPE_NUMBER
         }) {
       assertInvalidParameter(params, "1", type);
       assertInvalidParameter(params, new Object(), type);
@@ -557,7 +588,11 @@ public class JdbcParameterStoreTest {
     // types that should lead to bytes (except BLOB which is handled separately)
     for (int type :
         new int[] {
-          Types.BINARY, Types.VARBINARY, Types.LONGVARBINARY, ProtoMessageType.VENDOR_TYPE_NUMBER
+          Types.BINARY,
+          Types.VARBINARY,
+          Types.LONGVARBINARY,
+          ProtoMessageType.VENDOR_TYPE_NUMBER,
+          ProtoMessageType.SHORT_VENDOR_TYPE_NUMBER
         }) {
       assertInvalidParameter(params, "1", type);
       assertInvalidParameter(params, new Object(), type);
@@ -576,7 +611,9 @@ public class JdbcParameterStoreTest {
           Types.NVARCHAR,
           Types.LONGNVARCHAR,
           JsonType.VENDOR_TYPE_NUMBER,
-          PgJsonbType.VENDOR_TYPE_NUMBER
+          JsonType.SHORT_VENDOR_TYPE_NUMBER,
+          PgJsonbType.VENDOR_TYPE_NUMBER,
+          PgJsonbType.SHORT_VENDOR_TYPE_NUMBER
         }) {
       assertInvalidParameter(params, new Object(), type);
       assertInvalidParameter(params, Boolean.TRUE, type);
@@ -603,7 +640,9 @@ public class JdbcParameterStoreTest {
           Types.NVARCHAR,
           Types.LONGNVARCHAR,
           JsonType.VENDOR_TYPE_NUMBER,
-          PgJsonbType.VENDOR_TYPE_NUMBER
+          JsonType.SHORT_VENDOR_TYPE_NUMBER,
+          PgJsonbType.VENDOR_TYPE_NUMBER,
+          PgJsonbType.SHORT_VENDOR_TYPE_NUMBER
         }) {
       Reader reader = new StringReader("test");
       reader.close();

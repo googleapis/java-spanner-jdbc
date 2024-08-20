@@ -45,7 +45,13 @@ public class ConcurrentTransactionOnEmulatorTest {
 
   @BeforeClass
   public static void startEmulator() {
-    assumeTrue(DockerClientFactory.instance().isDockerAvailable());
+    boolean dockerAvailable = false;
+    try {
+      dockerAvailable = DockerClientFactory.instance().isDockerAvailable();
+    } catch (Exception ignore) {
+      // Ignore, and just skip the test.
+    }
+    assumeTrue(dockerAvailable);
 
     emulator =
         new GenericContainer<>(

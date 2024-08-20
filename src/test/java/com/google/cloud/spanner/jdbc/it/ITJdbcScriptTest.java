@@ -16,10 +16,9 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
@@ -313,8 +312,8 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
       statement.setQueryTimeout(1);
       statement.execute("SHOW VARIABLE STATEMENT_TIMEOUT");
       try (ResultSet rs = statement.getResultSet()) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getString("STATEMENT_TIMEOUT"), is(nullValue()));
+        assertTrue(rs.next());
+        assertNull(rs.getString("STATEMENT_TIMEOUT"));
       }
 
       // Now set a STATEMENT_TIMEOUT on the connection that is different from the query timeout of
@@ -323,8 +322,8 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
       statement.execute("SET STATEMENT_TIMEOUT='100ms'");
       statement.execute("SHOW VARIABLE STATEMENT_TIMEOUT");
       try (ResultSet rs = statement.getResultSet()) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getString("STATEMENT_TIMEOUT"), is(equalTo("100ms")));
+        assertTrue(rs.next());
+        assertEquals("100ms", rs.getString("STATEMENT_TIMEOUT"));
       }
 
       // Remove the statement timeout again, and verify that SHOW STATEMENT_TIMEOUT once again
@@ -332,8 +331,8 @@ public class ITJdbcScriptTest extends ITAbstractJdbcTest {
       statement.execute("SET STATEMENT_TIMEOUT=NULL");
       statement.execute("SHOW VARIABLE STATEMENT_TIMEOUT");
       try (ResultSet rs = statement.getResultSet()) {
-        assertThat(rs.next(), is(true));
-        assertThat(rs.getString("STATEMENT_TIMEOUT"), is(nullValue()));
+        assertTrue(rs.next());
+        assertNull(rs.getString("STATEMENT_TIMEOUT"));
       }
     }
   }

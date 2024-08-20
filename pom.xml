@@ -4,7 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>2.20.2-SNAPSHOT</version><!-- {x-version-update:google-cloud-spanner-jdbc:current} -->
+  <version>2.20.3-SNAPSHOT</version><!-- {x-version-update:google-cloud-spanner-jdbc:current} -->
   <packaging>jar</packaging>
   <name>Google Cloud Spanner JDBC</name>
   <url>https://github.com/googleapis/java-spanner-jdbc</url>
@@ -14,7 +14,7 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>sdk-platform-java-config</artifactId>
-    <version>3.32.0</version>
+    <version>3.34.0</version>
   </parent>
   <developers>
     <developer>
@@ -53,7 +53,6 @@
     <findbugs.version>3.0.2</findbugs.version>
     <truth.version>1.4.4</truth.version>
     <mockito.version>4.11.0</mockito.version>
-    <hamcrest.version>2.2</hamcrest.version>
     <opencensus.version>0.31.1</opencensus.version>
   </properties>
 
@@ -62,7 +61,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>6.71.0</version>
+        <version>6.72.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -167,7 +166,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.19.8</version>
+      <version>1.20.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -183,22 +182,10 @@
         </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest</artifactId>
-      <version>${hamcrest.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>${mockito.version}</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.hamcrest</groupId>
-          <artifactId>hamcrest-core</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -214,6 +201,13 @@
     </dependency>
 
     <!-- Add OpenTelemetry implementation and exporters for use in integration tests -->
+    <!-- TODO: Remove this alpha dependency when the bug in OpenTelemetry has been fixed that makes SdkTracer implement ExtendedTracer -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api-incubator</artifactId>
+      <version>1.40.0-alpha</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk</artifactId>
@@ -238,13 +232,13 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-trace</artifactId>
-      <version>2.46.0</version>
+      <version>2.47.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-trace-v1</artifactId>
-      <version>2.46.0</version>
+      <version>2.47.0</version>
       <scope>test</scope>
     </dependency>
 

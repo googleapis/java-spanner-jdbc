@@ -16,9 +16,10 @@
 
 package com.google.cloud.spanner.jdbc;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import com.google.rpc.Code;
 import java.io.IOException;
@@ -74,35 +75,31 @@ public class JdbcBlobTest {
   @Test
   public void testLength() throws SQLException {
     JdbcBlob blob = new JdbcBlob();
-    assertThat(blob.length(), is(equalTo(0L)));
+    assertEquals(0L, blob.length());
     blob.setBytes(1L, new byte[] {1, 2, 3});
-    assertThat(blob.length(), is(equalTo(3L)));
+    assertEquals(3L, blob.length());
     blob.free();
-    assertThat(blob.length(), is(equalTo(0L)));
+    assertEquals(0L, blob.length());
   }
 
   @Test
   public void testGetBytes() throws SQLException {
     JdbcBlob blob = new JdbcBlob();
     blob.setBytes(1L, new byte[] {1, 2, 3, 4, 5});
-    assertThat(blob.getBytes(1L, 5), is(equalTo(new byte[] {1, 2, 3, 4, 5})));
-    assertThat(blob.getBytes(2L, 5), is(equalTo(new byte[] {2, 3, 4, 5})));
-    assertThat(blob.getBytes(2L, 3), is(equalTo(new byte[] {2, 3, 4})));
-    assertThat(blob.getBytes(1L, 0), is(equalTo(new byte[] {})));
+    assertArrayEquals(new byte[] {1, 2, 3, 4, 5}, blob.getBytes(1L, 5));
+    assertArrayEquals(new byte[] {2, 3, 4, 5}, blob.getBytes(2L, 5));
+    assertArrayEquals(new byte[] {2, 3, 4}, blob.getBytes(2L, 3));
+    assertArrayEquals(new byte[] {}, blob.getBytes(1L, 0));
 
     // test invalid parameters
     PosLength[] params =
         new PosLength[] {PosLength.of(0L, 4), PosLength.of(-1L, 4), PosLength.of(1L, -1)};
     for (PosLength param : params) {
-      boolean exception = false;
-      try {
-        blob.getBytes(param.pos, param.len);
-      } catch (SQLException e) {
-        exception =
-            (e instanceof JdbcSqlException
-                && ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT);
-      }
-      assertThat(param.toString(), exception, is(true));
+      SQLException sqlException =
+          assertThrows(SQLException.class, () -> blob.getBytes(param.pos, param.len));
+      assertTrue(sqlException instanceof JdbcSqlException);
+      JdbcSqlException jdbcSqlException = (JdbcSqlException) sqlException;
+      assertEquals(Code.INVALID_ARGUMENT, jdbcSqlException.getCode());
     }
   }
 
@@ -119,31 +116,31 @@ public class JdbcBlobTest {
         index++;
       }
     }
-    assertThat(buf, is(equalTo(new byte[] {1, 2, 3, 4, 5})));
+    assertArrayEquals(new byte[] {1, 2, 3, 4, 5}, buf);
 
     buf = new byte[10];
     try (InputStream is = blob.getBinaryStream()) {
-      assertThat(is.read(buf), is(equalTo(5)));
-      assertThat(is.read(), is(equalTo(-1)));
+      assertEquals(5, is.read(buf));
+      assertEquals(-1, is.read());
     }
-    assertThat(buf, is(equalTo(new byte[] {1, 2, 3, 4, 5, 0, 0, 0, 0, 0})));
+    assertArrayEquals(new byte[] {1, 2, 3, 4, 5, 0, 0, 0, 0, 0}, buf);
   }
 
   @Test
   public void testPosition() throws SQLException {
     JdbcBlob blob = new JdbcBlob();
     blob.setBytes(1L, new byte[] {1, 2, 3, 4, 5});
-    assertThat(blob.position(new byte[] {1}, 1L), is(equalTo(1L)));
-    assertThat(blob.position(new byte[] {1, 2}, 1L), is(equalTo(1L)));
-    assertThat(blob.position(new byte[] {2}, 1L), is(equalTo(2L)));
+    assertEquals(1L, blob.position(new byte[] {1}, 1L));
+    assertEquals(1L, blob.position(new byte[] {1, 2}, 1L));
+    assertEquals(2L, blob.position(new byte[] {2}, 1L));
     // note that the spec says that the method should return the position within the BLOB where the
     // pattern can be found, so it's not relative to the starting position.
-    assertThat(blob.position(new byte[] {2}, 2L), is(equalTo(2L)));
-    assertThat(blob.position(new byte[] {1, 2, 3, 4, 5}, 1L), is(equalTo(1L)));
-    assertThat(blob.position(new byte[] {1, 2, 3, 4, 5, 6}, 1L), is(equalTo(-1L)));
-    assertThat(blob.position(new byte[] {1, 2, 3, 4, 5}, 2L), is(equalTo(-1L)));
-    assertThat(blob.position(new byte[] {2}, 3L), is(equalTo(-1L)));
-    assertThat(blob.position(new byte[] {1}, 6L), is(equalTo(-1L)));
+    assertEquals(2L, blob.position(new byte[] {2}, 2L));
+    assertEquals(1L, blob.position(new byte[] {1, 2, 3, 4, 5}, 1L));
+    assertEquals(-1L, blob.position(new byte[] {1, 2, 3, 4, 5, 6}, 1L));
+    assertEquals(-1L, blob.position(new byte[] {1, 2, 3, 4, 5}, 2L));
+    assertEquals(-1L, blob.position(new byte[] {2}, 3L));
+    assertEquals(-1L, blob.position(new byte[] {1}, 6L));
 
     // test invalid parameters
     PosBytes[] params =
@@ -151,15 +148,11 @@ public class JdbcBlobTest {
           PosBytes.of(0L, new byte[] {}), PosBytes.of(-1L, new byte[] {}), PosBytes.of(1L, null)
         };
     for (PosBytes param : params) {
-      boolean exception = false;
-      try {
-        blob.position(param.bytes, param.pos);
-      } catch (SQLException e) {
-        exception =
-            (e instanceof JdbcSqlException
-                && ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT);
-      }
-      assertThat(param.toString(), exception, is(true));
+      SQLException sqlException =
+          assertThrows(SQLException.class, () -> blob.position(param.bytes, param.pos));
+      assertTrue(sqlException instanceof JdbcSqlException);
+      JdbcSqlException jdbcSqlException = (JdbcSqlException) sqlException;
+      assertEquals(Code.INVALID_ARGUMENT, jdbcSqlException.getCode());
     }
   }
 
@@ -168,17 +161,17 @@ public class JdbcBlobTest {
     JdbcBlob blob = new JdbcBlob();
     blob.setBytes(1L, new byte[] {1, 2, 3, 4, 5});
 
-    assertThat(blob.position(createBlob((byte) 1), 1L), is(equalTo(1L)));
-    assertThat(blob.position(createBlob((byte) 1, (byte) 2), 1L), is(equalTo(1L)));
-    assertThat(blob.position(createBlob((byte) 2), 1L), is(equalTo(2L)));
+    assertEquals(1L, blob.position(createBlob((byte) 1), 1L));
+    assertEquals(1L, blob.position(createBlob((byte) 1, (byte) 2), 1L));
+    assertEquals(2L, blob.position(createBlob((byte) 2), 1L));
     // note that the spec says that the method should return the position within the BLOB where the
     // pattern can be found, so it's not relative to the starting position.
-    assertThat(blob.position(createBlob((byte) 2), 2L), is(equalTo(2L)));
-    assertThat(blob.position(createBlob(new byte[] {1, 2, 3, 4, 5}), 1L), is(equalTo(1L)));
-    assertThat(blob.position(createBlob(new byte[] {1, 2, 3, 4, 5, 6}), 1L), is(equalTo(-1L)));
-    assertThat(blob.position(createBlob(new byte[] {1, 2, 3, 4, 5}), 2L), is(equalTo(-1L)));
-    assertThat(blob.position(createBlob(new byte[] {2}), 3L), is(equalTo(-1L)));
-    assertThat(blob.position(createBlob(new byte[] {1}), 6L), is(equalTo(-1L)));
+    assertEquals(2L, blob.position(createBlob((byte) 2), 2L));
+    assertEquals(1L, blob.position(createBlob(new byte[] {1, 2, 3, 4, 5}), 1L));
+    assertEquals(-1L, blob.position(createBlob(new byte[] {1, 2, 3, 4, 5, 6}), 1L));
+    assertEquals(-1L, blob.position(createBlob(new byte[] {1, 2, 3, 4, 5}), 2L));
+    assertEquals(-1L, blob.position(createBlob(new byte[] {2}), 3L));
+    assertEquals(-1L, blob.position(createBlob(new byte[] {1}), 6L));
 
     // test invalid parameters
     PosBytes[] params =
@@ -186,15 +179,11 @@ public class JdbcBlobTest {
           PosBytes.of(0L, new byte[] {}), PosBytes.of(-1L, new byte[] {}), PosBytes.of(1L, null)
         };
     for (PosBytes param : params) {
-      boolean exception = false;
-      try {
-        blob.position(createBlob(param.bytes), param.pos);
-      } catch (SQLException e) {
-        exception =
-            (e instanceof JdbcSqlException
-                && ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT);
-      }
-      assertThat(param.toString(), exception, is(true));
+      SQLException sqlException =
+          assertThrows(SQLException.class, () -> blob.position(createBlob(param.bytes), param.pos));
+      assertTrue(sqlException instanceof JdbcSqlException);
+      JdbcSqlException jdbcSqlException = (JdbcSqlException) sqlException;
+      assertEquals(Code.INVALID_ARGUMENT, jdbcSqlException.getCode());
     }
   }
 
@@ -211,35 +200,35 @@ public class JdbcBlobTest {
   public void testSetBytes() throws SQLException {
     JdbcBlob blob = new JdbcBlob();
     blob.setBytes(1L, new byte[] {1, 2, 3});
-    assertThat(blob.getBytes(1L, 10), is(equalTo(new byte[] {1, 2, 3})));
+    assertArrayEquals(new byte[] {1, 2, 3}, blob.getBytes(1L, 10));
     blob.setBytes(2L, new byte[] {1});
-    assertThat(blob.getBytes(1L, 10), is(equalTo(new byte[] {1, 1, 3})));
+    assertArrayEquals(new byte[] {1, 1, 3}, blob.getBytes(1L, 10));
     blob.setBytes(4L, new byte[] {4});
-    assertThat(blob.getBytes(1L, 10), is(equalTo(new byte[] {1, 1, 3, 4})));
+    assertArrayEquals(new byte[] {1, 1, 3, 4}, blob.getBytes(1L, 10));
     blob.setBytes(8L, new byte[] {8});
-    assertThat(blob.getBytes(1L, 10), is(equalTo(new byte[] {1, 1, 3, 4, 0, 0, 0, 8})));
+    assertArrayEquals(new byte[] {1, 1, 3, 4, 0, 0, 0, 8}, blob.getBytes(1L, 10));
   }
 
   @Test
   public void testSetBytesOffsetLength() throws SQLException {
     JdbcBlob blob = new JdbcBlob();
     blob.setBytes(4L, new byte[] {1, 2, 3}, 0, 3);
-    assertThat(blob.getBytes(1L, 10), is(equalTo(new byte[] {0, 0, 0, 1, 2, 3})));
+    assertArrayEquals(new byte[] {0, 0, 0, 1, 2, 3}, blob.getBytes(1L, 10));
     blob.free();
     blob.setBytes(4L, new byte[] {1, 2, 3}, 1, 3);
-    assertThat(blob.getBytes(1L, 10), is(equalTo(new byte[] {0, 0, 0, 2, 3})));
+    assertArrayEquals(new byte[] {0, 0, 0, 2, 3}, blob.getBytes(1L, 10));
     blob.free();
     blob.setBytes(4L, new byte[] {1, 2, 3}, 3, 3);
-    assertThat(blob.getBytes(1L, 10), is(equalTo(new byte[] {0, 0, 0})));
+    assertArrayEquals(new byte[] {0, 0, 0}, blob.getBytes(1L, 10));
     blob.free();
     blob.setBytes(4L, new byte[] {1, 2, 3}, 4, 3);
-    assertThat(blob.getBytes(1L, 10), is(equalTo(new byte[] {0, 0, 0})));
+    assertArrayEquals(new byte[] {0, 0, 0}, blob.getBytes(1L, 10));
     blob.setBytes(2L, new byte[] {1, 2, 3}, 0, 10);
-    assertThat(blob.getBytes(1L, 10), is(equalTo(new byte[] {0, 1, 2, 3})));
+    assertArrayEquals(new byte[] {0, 1, 2, 3}, blob.getBytes(1L, 10));
     blob.setBytes(3L, new byte[] {1, 2, 3}, 2, 10);
-    assertThat(blob.getBytes(1L, 10), is(equalTo(new byte[] {0, 1, 3, 3})));
+    assertArrayEquals(new byte[] {0, 1, 3, 3}, blob.getBytes(1L, 10));
     blob.setBytes(10L, new byte[] {1, 2, 3}, 2, 10);
-    assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {0, 1, 3, 3, 0, 0, 0, 0, 0, 3})));
+    assertArrayEquals(new byte[] {0, 1, 3, 3, 0, 0, 0, 0, 0, 3}, blob.getBytes(1L, 20));
   }
 
   @Test
@@ -249,51 +238,49 @@ public class JdbcBlobTest {
     try (OutputStream os = blob.setBinaryStream(1L)) {
       os.write(6);
       // no flush yet, so it should be unchanged
-      assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {1, 2, 3, 4, 5})));
+      assertArrayEquals(new byte[] {1, 2, 3, 4, 5}, blob.getBytes(1L, 20));
       os.flush();
-      assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {6, 2, 3, 4, 5})));
+      assertArrayEquals(new byte[] {6, 2, 3, 4, 5}, blob.getBytes(1L, 20));
       os.write(7);
     }
     // closing the stream should also flush the changes
-    assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {6, 7, 3, 4, 5})));
+    assertArrayEquals(new byte[] {6, 7, 3, 4, 5}, blob.getBytes(1L, 20));
 
     // test writing beyond the end of the stream
     try (OutputStream os = blob.setBinaryStream(1L)) {
       os.write(new byte[] {1, 2, 3, 4, 5, 6, 7});
       // no flush yet, so it should be unchanged
-      assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {6, 7, 3, 4, 5})));
+      assertArrayEquals(new byte[] {6, 7, 3, 4, 5}, blob.getBytes(1L, 20));
       os.flush();
-      assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {1, 2, 3, 4, 5, 6, 7})));
+      assertArrayEquals(new byte[] {1, 2, 3, 4, 5, 6, 7}, blob.getBytes(1L, 20));
     }
-    assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {1, 2, 3, 4, 5, 6, 7})));
+    assertArrayEquals(new byte[] {1, 2, 3, 4, 5, 6, 7}, blob.getBytes(1L, 20));
 
     // test writing from a position that is larger than 1
     try (OutputStream os = blob.setBinaryStream(5L)) {
       os.write(new byte[] {1, 2, 3});
       // no flush yet, so it should be unchanged
-      assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {1, 2, 3, 4, 5, 6, 7})));
+      assertArrayEquals(new byte[] {1, 2, 3, 4, 5, 6, 7}, blob.getBytes(1L, 20));
       os.flush();
-      assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {1, 2, 3, 4, 1, 2, 3})));
+      assertArrayEquals(new byte[] {1, 2, 3, 4, 1, 2, 3}, blob.getBytes(1L, 20));
     }
 
     // test writing from a position that is larger than the current length
     try (OutputStream os = blob.setBinaryStream(10L)) {
       os.write(new byte[] {1, 2, 3});
       // no flush yet, so it should be unchanged
-      assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {1, 2, 3, 4, 1, 2, 3})));
+      assertArrayEquals(new byte[] {1, 2, 3, 4, 1, 2, 3}, blob.getBytes(1L, 20));
       os.flush();
-      assertThat(
-          blob.getBytes(1L, 20), is(equalTo(new byte[] {1, 2, 3, 4, 1, 2, 3, 0, 0, 1, 2, 3})));
+      assertArrayEquals(new byte[] {1, 2, 3, 4, 1, 2, 3, 0, 0, 1, 2, 3}, blob.getBytes(1L, 20));
     }
 
     // test writing a large number of bytes
     try (OutputStream os = blob.setBinaryStream(1L)) {
       os.write(new byte[2000]);
       // no flush yet, so it should be unchanged
-      assertThat(
-          blob.getBytes(1L, 3000), is(equalTo(new byte[] {1, 2, 3, 4, 1, 2, 3, 0, 0, 1, 2, 3})));
+      assertArrayEquals(new byte[] {1, 2, 3, 4, 1, 2, 3, 0, 0, 1, 2, 3}, blob.getBytes(1L, 3000));
       os.flush();
-      assertThat(blob.getBytes(1L, 3000), is(equalTo(new byte[2000])));
+      assertArrayEquals(new byte[2000], blob.getBytes(1L, 3000));
     }
   }
 
@@ -301,20 +288,20 @@ public class JdbcBlobTest {
   public void testTruncate() throws SQLException {
     JdbcBlob blob = new JdbcBlob();
     blob.setBytes(1L, new byte[] {1, 2, 3, 4, 5});
-    assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {1, 2, 3, 4, 5})));
+    assertArrayEquals(new byte[] {1, 2, 3, 4, 5}, blob.getBytes(1L, 20));
     blob.truncate(3);
-    assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {1, 2, 3})));
+    assertArrayEquals(new byte[] {1, 2, 3}, blob.getBytes(1L, 20));
     blob.truncate(0);
-    assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {})));
+    assertArrayEquals(new byte[] {}, blob.getBytes(1L, 20));
   }
 
   @Test
   public void testFree() throws SQLException {
     JdbcBlob blob = new JdbcBlob();
     blob.setBytes(1L, new byte[] {1, 2, 3, 4, 5});
-    assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {1, 2, 3, 4, 5})));
+    assertArrayEquals(new byte[] {1, 2, 3, 4, 5}, blob.getBytes(1L, 20));
     blob.free();
-    assertThat(blob.getBytes(1L, 20), is(equalTo(new byte[] {})));
+    assertArrayEquals(new byte[] {}, blob.getBytes(1L, 20));
   }
 
   @Test
@@ -331,19 +318,19 @@ public class JdbcBlobTest {
         index++;
       }
     }
-    assertThat(buf, is(equalTo(new byte[] {1, 2, 3, 0, 0})));
+    assertArrayEquals(new byte[] {1, 2, 3, 0, 0}, buf);
 
     buf = new byte[10];
     try (InputStream is = blob.getBinaryStream(4L, 10)) {
-      assertThat(is.read(buf), is(equalTo(2)));
-      assertThat(is.read(), is(equalTo(-1)));
+      assertEquals(2, is.read(buf));
+      assertEquals(-1, is.read());
     }
-    assertThat(buf, is(equalTo(new byte[] {4, 5, 0, 0, 0, 0, 0, 0, 0, 0})));
+    assertArrayEquals(new byte[] {4, 5, 0, 0, 0, 0, 0, 0, 0, 0}, buf);
 
     buf = new byte[10];
     try (InputStream is = blob.getBinaryStream(6L, 10)) {
-      assertThat(is.read(buf), is(equalTo(-1)));
+      assertEquals(-1L, is.read(buf));
     }
-    assertThat(buf, is(equalTo(new byte[10])));
+    assertArrayEquals(new byte[10], buf);
   }
 }

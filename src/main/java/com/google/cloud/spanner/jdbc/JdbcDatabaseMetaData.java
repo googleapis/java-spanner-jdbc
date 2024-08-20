@@ -26,6 +26,7 @@ import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.StructField;
 import com.google.cloud.spanner.connection.Connection.InternalMetadataQuery;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -1284,7 +1285,9 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
                     .set("NUM_PREC_RADIX")
                     .to(10)
                     .build(),
-                getJsonType(connection.getDialect()))));
+                getJsonType(connection.getDialect()))),
+        // Allow column 2 to be cast to short without any range checks.
+        ImmutableSet.of(2));
   }
 
   private Struct getJsonType(Dialect dialect) {
