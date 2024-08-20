@@ -15,25 +15,32 @@ Java idiomatic client for [Google Cloud Spanner JDBC][product-docs].
 If you are using Maven, add this to your pom.xml file:
 
 
+<!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```xml
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>2.4.1</version>
+  <version>2.20.2</version>
 </dependency>
 ```
+<!--- {x-version-update-end} -->
+
 
 If you are using Gradle without BOM, add this to your dependencies
 
+<!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```Groovy
-implementation 'com.google.cloud:google-cloud-spanner-jdbc:2.4.1'
+implementation 'com.google.cloud:google-cloud-spanner-jdbc:2.20.2'
 ```
+<!--- {x-version-update-end} -->
 
 If you are using SBT, add this to your dependencies
 
+<!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.4.1"
+libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.20.2"
 ```
+<!--- {x-version-update-end} -->
 
 ## Authentication
 
