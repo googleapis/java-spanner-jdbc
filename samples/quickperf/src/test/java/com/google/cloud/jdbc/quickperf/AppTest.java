@@ -15,6 +15,7 @@
  */
 package com.google.cloud.jdbc.quickperf;
 
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -99,7 +100,6 @@ public class AppTest {
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     File file = new File(TEST_FILE);
-    assertTrue(file.createNewFile());
     mapper.writeValue(file, projectConfig);
   }
 
@@ -126,9 +126,9 @@ public class AppTest {
     // Close all Spanner connections.
     SpannerPool.closeSpannerPool();
 
-    // delete test file
+    // Write an empty test file
     Path path = Paths.get(TEST_FILE);
-    Files.delete(path);
+    Files.newBufferedWriter(path, TRUNCATE_EXISTING).close();
 
     // Stop the emulator.
     emulator.stop();
