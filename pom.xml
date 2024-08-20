@@ -426,6 +426,32 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <!-- This profile is used for testing the single-jar-with-dependencies. -->
+      <id>alt_build_dir</id>
+      <activation>
+        <property>
+          <name>alt.build.dir</name>
+        </property>
+      </activation>
+      <build>
+        <directory>${alt.build.dir}</directory>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.6.0</version>
+            <executions>
+              <execution>
+                <configuration>
+                  <outputFile>${alt.build.dir}/single.jar</outputFile>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <reporting>
