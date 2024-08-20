@@ -27,7 +27,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
-        <version>26.38.0</version>
+        <version>26.43.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -38,7 +38,7 @@
     <dependency>
       <groupId>net.datafaker</groupId>
       <artifactId>datafaker</artifactId>
-      <version>1.7.0</version>
+      <version>2.3.1</version>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
@@ -61,13 +61,13 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.13.0</version>
+      <version>2.13.4.1</version>
     </dependency>
     <!-- Required for unit tests -->
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.19.8</version>
+      <version>1.20.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -79,7 +79,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>4.13.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

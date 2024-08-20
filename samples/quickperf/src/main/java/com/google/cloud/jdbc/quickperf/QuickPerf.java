@@ -39,8 +39,8 @@ public class QuickPerf extends Thread {
   private static final String BREAK_STR =
       "###################################################################################################";
 
-  // TODO: make measurementfile configurable
-  private static String MEASURES_FILE_NAME = "measures.txt";
+  // TODO: make measurement file configurable
+  private static final String MEASURES_FILE_NAME = "measures.txt";
 
   public static void main(String[] args) throws Exception {
     Options options = new Options();
@@ -64,7 +64,7 @@ public class QuickPerf extends Thread {
 
     Config config = ConfigParser.parseConfigFile(cmd.getOptionValue("config"));
 
-    float measures[] = new float[config.getIterations() * config.getThreads()];
+    float[] measures = new float[config.getIterations() * config.getThreads()];
 
     // initialize threads (for sampling if present)
     List<QuickPerfRunner> threadList = new ArrayList<QuickPerfRunner>();
@@ -113,21 +113,20 @@ public class QuickPerf extends Thread {
     System.out.println("\n" + BREAK_STR);
     System.out.println("Query: " + config.getQuery());
     System.out.println("Params: " + config.paramsToString());
-    System.out.println("Tag: " + config.DEFAULT_TAG);
+    System.out.println("Tag: " + Config.DEFAULT_TAG);
     if (config.getBatchSize() > 0) {
       System.out.println("Batching Enabled (size): " + config.getBatchSize());
     }
-    System.out.println(String.format("Start: %s End: %s", testStartTimestamp, ZonedDateTime.now()));
-    System.out.println(
-        String.format(
-            "Finished with a total of %s runs across %s Threads.\nLatencies (ms):  p50 = %s, p95 = %s, p99 = %s, min = %s,  max = %s",
-            config.getIterations() * config.getThreads(),
-            config.getThreads(),
-            calcPerc(measures, 50),
-            calcPerc(measures, 95),
-            calcPerc(measures, 99),
-            getMin(measures),
-            getMax(measures)));
+    System.out.printf("Start: %s End: %s%n", testStartTimestamp, ZonedDateTime.now());
+    System.out.printf(
+        "Finished with a total of %s runs across %s Threads.\nLatencies (ms):  p50 = %s, p95 = %s, p99 = %s, min = %s,  max = %s%n",
+        config.getIterations() * config.getThreads(),
+        config.getThreads(),
+        calcPerc(measures, 50),
+        calcPerc(measures, 95),
+        calcPerc(measures, 99),
+        getMin(measures),
+        getMax(measures));
     System.out.println(BREAK_STR);
   }
 

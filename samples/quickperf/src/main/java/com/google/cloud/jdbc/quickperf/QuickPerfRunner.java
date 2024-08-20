@@ -28,6 +28,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -35,11 +36,13 @@ import java.util.regex.Pattern;
 import net.datafaker.Faker;
 
 public class QuickPerfRunner extends Thread {
-  // perf measurement
-  private float measures[];
+  private static final Properties DEFAULT_PROPERTIES = new Properties();
 
-  private List<String> sampledValueList = new ArrayList<String>();
-  private Config config;
+  // perf measurement
+  private float[] measures;
+
+  private final List<String> sampledValueList = new ArrayList<String>();
+  private final Config config;
 
   private int progress;
 
@@ -50,13 +53,11 @@ public class QuickPerfRunner extends Thread {
   public void runSampling() {
     System.out.println("Running Sampling... ");
 
-    String connectionUrl = createConnectionURL(config);
-
-    try (Connection connection = DriverManager.getConnection(connectionUrl)) {
+    try (Connection connection = createConnection(config)) {
       try (Statement statement = connection.createStatement()) {
         boolean hasResults = statement.execute(config.getSamplingQuery());
 
-        if (hasResults == false) {
+        if (!hasResults) {
           System.out.println("Nothing sampled");
           return;
         }
@@ -67,7 +68,7 @@ public class QuickPerfRunner extends Thread {
           sampledValueList.add(value);
         }
 
-        System.out.println(String.format("Finished sampling %s records", sampledValueList.size()));
+        System.out.printf("Finished sampling %s records%n", sampledValueList.size());
       } catch (SQLException e) {
         e.printStackTrace();
       }
@@ -75,6 +76,12 @@ public class QuickPerfRunner extends Thread {
     } catch (SQLException e) {
       e.printStackTrace();
     }
+  }
+
+  private Connection createConnection(Config config) throws SQLException {
+    String connectionUrl = createConnectionURL(config);
+    Properties properties = createConnectionProperties(config);
+    return DriverManager.getConnection(connectionUrl, properties);
   }
 
   private String createConnectionURL(Config config) {
@@ -89,6 +96,15 @@ public class QuickPerfRunner extends Thread {
     }
   }
 
+  private Properties createConnectionProperties(Config config) {
+    if (System.getProperty("spanner.host") != null) {
+      Properties properties = new Properties();
+      properties.setProperty("endpoint", System.getProperty("spanner.host"));
+      return properties;
+    }
+    return DEFAULT_PROPERTIES;
+  }
+
   public void run() {
     if (config.getBatchSize() > 0) {
       int val = (int) Math.ceil((double) config.getIterations() / config.getBatchSize());
@@ -97,12 +113,9 @@ public class QuickPerfRunner extends Thread {
       measures = new float[config.getIterations()];
     }
 
-    String connectionUrl = createConnectionURL(config);
+    try (Connection connection = createConnection(config)) {
 
-    try {
-      Connection connection = DriverManager.getConnection(connectionUrl);
-
-      // determin database dialect to set right tagging syntax
+      // determine database dialect to set right tagging syntax
       boolean isGoogleSQL =
           connection
               .unwrap(CloudSpannerJdbcConnection.class)
