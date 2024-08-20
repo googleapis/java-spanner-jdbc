@@ -19,98 +19,95 @@ package com.google.cloud.jdbc.quickperf;
 import java.util.List;
 
 public class ProjectConfig {
-    private String project;
-    private String instance;
-    private String database;
-    private int threads;
-    private int iterations;
-    private String query;
-    private boolean writeMetricToFile;
-    private boolean isEmulator;
-    private List<QueryParam> queryParams;
+  private String project;
+  private String instance;
+  private String database;
+  private int threads;
+  private int iterations;
+  private String query;
+  private boolean writeMetricToFile;
+  private boolean isEmulator;
+  private List<QueryParam> queryParams;
 
-    // Getters and setters
+  // Getters and setters
 
-    public String getProject() {
-        return project;
-    }
+  public String getProject() {
+    return project;
+  }
 
-    public void setProject(String project) {
-        this.project = project;
-    }
+  public void setProject(String project) {
+    this.project = project;
+  }
 
-    public String getInstance() {
-        return instance;
-    }
+  public String getInstance() {
+    return instance;
+  }
 
-    public void setInstance(String instance) {
-        this.instance = instance;
-    }
+  public void setInstance(String instance) {
+    this.instance = instance;
+  }
 
-    public String getDatabase() {
-        return database;
-    }
+  public String getDatabase() {
+    return database;
+  }
 
-    public void setDatabase(String database) {
-        this.database = database;
-    }
+  public void setDatabase(String database) {
+    this.database = database;
+  }
 
-    public int getThreads() {
-        return threads;
-    }
+  public int getThreads() {
+    return threads;
+  }
 
-    public void setThreads(int threads) {
-        this.threads = threads;
-    }
+  public void setThreads(int threads) {
+    this.threads = threads;
+  }
 
-    public int getIterations() {
-        return iterations;
-    }
+  public int getIterations() {
+    return iterations;
+  }
 
-    public void setIterations(int iterations) {
-        this.iterations = iterations;
-    }
+  public void setIterations(int iterations) {
+    this.iterations = iterations;
+  }
 
-    public String getQuery() {
-        return query;
-    }
+  public String getQuery() {
+    return query;
+  }
 
-    public void setQuery(String query) {
-        this.query = query;
-    }
+  public void setQuery(String query) {
+    this.query = query;
+  }
 
-    public boolean isWriteMetricToFile() {
-        return writeMetricToFile;
-    }
+  public boolean isWriteMetricToFile() {
+    return writeMetricToFile;
+  }
 
-    public void setWriteMetricToFile(boolean writeMetricToFile) {
-        this.writeMetricToFile = writeMetricToFile;
-    }
+  public void setWriteMetricToFile(boolean writeMetricToFile) {
+    this.writeMetricToFile = writeMetricToFile;
+  }
 
-    public List<QueryParam> getQueryParams() {
-        return queryParams;
-    }
+  public List<QueryParam> getQueryParams() {
+    return queryParams;
+  }
 
-    public void setQueryParams(List<QueryParam> queryParams) {
-        this.queryParams = queryParams;
-    }
+  public void setQueryParams(List<QueryParam> queryParams) {
+    this.queryParams = queryParams;
+  }
 
+  public boolean getWriteMetricToFile() {
+    return this.writeMetricToFile;
+  }
 
-    public boolean getWriteMetricToFile() {
-        return this.writeMetricToFile;
-    }
+  public boolean isIsEmulator() {
+    return this.isEmulator;
+  }
 
+  public boolean getIsEmulator() {
+    return this.isEmulator;
+  }
 
-    public boolean isIsEmulator() {
-        return this.isEmulator;
-    }
-
-    public boolean getIsEmulator() {
-        return this.isEmulator;
-    }
-
-    public void setIsEmulator(boolean isEmulator) {
-        this.isEmulator = isEmulator;
-    }
-
+  public void setIsEmulator(boolean isEmulator) {
+    this.isEmulator = isEmulator;
+  }
 }

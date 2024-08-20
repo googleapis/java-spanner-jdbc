@@ -20,131 +20,126 @@ import java.util.List;
 import java.util.Random;
 
 public class Config {
-    public static String DEFAULT_TAG = "perftest_" + (new Random()).nextInt(300);
+  public static String DEFAULT_TAG = "perftest_" + (new Random()).nextInt(300);
 
-    private String project;
-    private String instance;
-    private String database;
-    private int threads;
-    private int iterations;
-    private String query;
-    private String samplingQuery;
-    private boolean writeMetricToFile;
-    private int batchSize;
-    private boolean isEmulator;
-    private List<QueryParam> queryParams;
+  private String project;
+  private String instance;
+  private String database;
+  private int threads;
+  private int iterations;
+  private String query;
+  private String samplingQuery;
+  private boolean writeMetricToFile;
+  private int batchSize;
+  private boolean isEmulator;
+  private List<QueryParam> queryParams;
 
-    public String paramsToString() {
-        String retVal = "";
+  public String paramsToString() {
+    String retVal = "";
 
-        if (queryParams != null) {
+    if (queryParams != null) {
 
-            for (QueryParam param : queryParams) {
-                retVal = retVal + String.format("%s:%s ", param.getOrder(), param.getValue());
-            }
-        }
-
-        return retVal;
+      for (QueryParam param : queryParams) {
+        retVal = retVal + String.format("%s:%s ", param.getOrder(), param.getValue());
+      }
     }
 
-    public int getBatchSize() {
-        return this.batchSize;
-    }
+    return retVal;
+  }
 
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
-    }
-   
+  public int getBatchSize() {
+    return this.batchSize;
+  }
 
-    public String getProject() {
-        return project;
-    }
+  public void setBatchSize(int batchSize) {
+    this.batchSize = batchSize;
+  }
 
-    public void setProject(String project) {
-        this.project = project;
-    }
+  public String getProject() {
+    return project;
+  }
 
-    public String getInstance() {
-        return instance;
-    }
+  public void setProject(String project) {
+    this.project = project;
+  }
 
-    public void setInstance(String instance) {
-        this.instance = instance;
-    }
+  public String getInstance() {
+    return instance;
+  }
 
-    public String getDatabase() {
-        return database;
-    }
+  public void setInstance(String instance) {
+    this.instance = instance;
+  }
 
-    public void setDatabase(String database) {
-        this.database = database;
-    }
+  public String getDatabase() {
+    return database;
+  }
 
-    public int getThreads() {
-        return threads;
-    }
+  public void setDatabase(String database) {
+    this.database = database;
+  }
 
-    public void setThreads(int threads) {
-        this.threads = threads;
-    }
+  public int getThreads() {
+    return threads;
+  }
 
-    public int getIterations() {
-        return iterations;
-    }
+  public void setThreads(int threads) {
+    this.threads = threads;
+  }
 
-    public void setIterations(int iterations) {
-        this.iterations = iterations;
-    }
+  public int getIterations() {
+    return iterations;
+  }
 
-    public String getQuery() {
-        return query;
-    }
+  public void setIterations(int iterations) {
+    this.iterations = iterations;
+  }
 
-    public void setQuery(String query) {
-        this.query = query;
-    }
+  public String getQuery() {
+    return query;
+  }
 
-    public boolean isWriteMetricToFile() {
-        return writeMetricToFile;
-    }
+  public void setQuery(String query) {
+    this.query = query;
+  }
 
-    public void setWriteMetricToFile(boolean writeMetricToFile) {
-        this.writeMetricToFile = writeMetricToFile;
-    }
+  public boolean isWriteMetricToFile() {
+    return writeMetricToFile;
+  }
 
-    public List<QueryParam> getQueryParams() {
-        return queryParams;
-    }
+  public void setWriteMetricToFile(boolean writeMetricToFile) {
+    this.writeMetricToFile = writeMetricToFile;
+  }
 
-    public void setQueryParams(List<QueryParam> queryParams) {
-        this.queryParams = queryParams;
-    }
+  public List<QueryParam> getQueryParams() {
+    return queryParams;
+  }
 
-    public String getSamplingQuery() {
-        return this.samplingQuery;
-    }
+  public void setQueryParams(List<QueryParam> queryParams) {
+    this.queryParams = queryParams;
+  }
 
-    public void setSamplingQuery(String samplingQuery) {
-        this.samplingQuery = samplingQuery;
-    }
+  public String getSamplingQuery() {
+    return this.samplingQuery;
+  }
 
-    public boolean getWriteMetricToFile() {
-        return this.writeMetricToFile;
-    }
+  public void setSamplingQuery(String samplingQuery) {
+    this.samplingQuery = samplingQuery;
+  }
 
+  public boolean getWriteMetricToFile() {
+    return this.writeMetricToFile;
+  }
 
-    public boolean isIsEmulator() {
-        return this.isEmulator;
-    }
+  public boolean isIsEmulator() {
+    return this.isEmulator;
+  }
 
-    public boolean getIsEmulator() {
-        return this.isEmulator;
-    }
+  public boolean getIsEmulator() {
+    return this.isEmulator;
+  }
 
-    public void setIsEmulator(boolean isEmulator) {
-        this.isEmulator = isEmulator;
-    }
-
-    
-
+  public void setIsEmulator(boolean isEmulator) {
+    this.isEmulator = isEmulator;
+  }
 }

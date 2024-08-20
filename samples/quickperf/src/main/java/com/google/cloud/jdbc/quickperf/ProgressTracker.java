@@ -19,61 +19,61 @@ package com.google.cloud.jdbc.quickperf;
 import java.util.List;
 
 public class ProgressTracker extends Thread {
-    private static final int SLEEP_TIME_INIT = 2000;
-    private static final int SLEEP_TIME_POLL = 200;
+  private static final int SLEEP_TIME_INIT = 2000;
+  private static final int SLEEP_TIME_POLL = 200;
 
-    private final List<QuickPerfRunner> threadList;
+  private final List<QuickPerfRunner> threadList;
 
-    private final int maxIt;
-    private int currentIt = 0;
+  private final int maxIt;
+  private int currentIt = 0;
 
-    public ProgressTracker(List<QuickPerfRunner> threadList, int maxIt) {
-        this.threadList = threadList;
-        this.maxIt = maxIt;
+  public ProgressTracker(List<QuickPerfRunner> threadList, int maxIt) {
+    this.threadList = threadList;
+    this.maxIt = maxIt;
+  }
+
+  public void run() {
+    sleep(SLEEP_TIME_INIT);
+    while (currentIt < maxIt) {
+      currentIt = 0;
+      for (QuickPerfRunner thread : threadList) {
+        currentIt = currentIt + thread.getProgress();
+
+        int percent = (int) Math.ceil(((double) currentIt / maxIt) * 100.0);
+        print_progress(percent);
+      }
+
+      if (sleep(SLEEP_TIME_POLL) == true) {
+        break;
+      }
+    }
+    print_progress(100);
+  }
+
+  public void print_progress(int percent) {
+    StringBuilder bar = new StringBuilder("Progress: [");
+
+    for (int i = 0; i < 50; i++) {
+      if (i < (percent / 2)) {
+        bar.append("=");
+      } else if (i == (percent / 2)) {
+        bar.append(">");
+      } else {
+        bar.append(" ");
+      }
     }
 
-    public void run() {
-        sleep(SLEEP_TIME_INIT);
-        while (currentIt < maxIt) {
-            currentIt = 0;
-            for (QuickPerfRunner thread : threadList) {
-                currentIt = currentIt + thread.getProgress();
+    bar.append("]   " + percent + "%     ");
+    System.out.print("\r" + bar.toString());
+  }
 
-                int percent = (int) Math.ceil(((double) currentIt / maxIt) * 100.0);
-                print_progress(percent);
-            }
-
-            if (sleep(SLEEP_TIME_POLL) == true) {
-                break;
-            }
-        }
-        print_progress(100); 
+  private boolean sleep(int sleeptime) {
+    try {
+      Thread.sleep(sleeptime);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      return true;
     }
-
-    public void print_progress(int percent) {
-        StringBuilder bar = new StringBuilder("Progress: [");
-
-        for (int i = 0; i < 50; i++) {
-            if (i < (percent / 2)) {
-                bar.append("=");
-            } else if (i == (percent / 2)) {
-                bar.append(">");
-            } else {
-                bar.append(" ");
-            }
-        }
-
-        bar.append("]   " + percent + "%     ");
-        System.out.print("\r" + bar.toString());
-    }
-
-    private boolean sleep(int sleeptime) {
-        try {
-            Thread.sleep(sleeptime);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return true;
-        }
-        return false;
-    }
+    return false;
+  }
 }

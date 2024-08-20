@@ -16,6 +16,8 @@
 
 package com.google.cloud.jdbc.quickperf;
 
+import com.google.cloud.jdbc.quickperf.config.Config;
+import com.google.cloud.jdbc.quickperf.config.ConfigParser;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,7 +25,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -33,157 +34,159 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.ArrayUtils;
 
-import com.google.cloud.jdbc.quickperf.config.Config;
-import com.google.cloud.jdbc.quickperf.config.ConfigParser;
-
-
 public class QuickPerf extends Thread {
-    
-    private static final String BREAK_STR = "###################################################################################################";
 
-    // TODO: make measurementfile configurable
-    private static String MEASURES_FILE_NAME = "measures.txt";
+  private static final String BREAK_STR =
+      "###################################################################################################";
 
-    public static void main(String[] args) throws Exception {
-        Options options = new Options();
+  // TODO: make measurementfile configurable
+  private static String MEASURES_FILE_NAME = "measures.txt";
 
-        options.addOption(QuickPerf.addOption("c", "config", true, "Config File"));
+  public static void main(String[] args) throws Exception {
+    Options options = new Options();
 
-        CommandLineParser parser = new DefaultParser();
-        HelpFormatter formatter = new HelpFormatter();
-        CommandLine cmd = null;
+    options.addOption(QuickPerf.addOption("c", "config", true, "Config File"));
 
-        ZonedDateTime testStartTimestamp = ZonedDateTime.now();
+    CommandLineParser parser = new DefaultParser();
+    HelpFormatter formatter = new HelpFormatter();
+    CommandLine cmd = null;
 
-        try {
-            cmd = parser.parse(options, args);
-        } catch (ParseException e) {
-            System.out.println(e.getMessage());
-            formatter.printHelp("utility-name", options);
+    ZonedDateTime testStartTimestamp = ZonedDateTime.now();
 
-            System.exit(1);
-        }
+    try {
+      cmd = parser.parse(options, args);
+    } catch (ParseException e) {
+      System.out.println(e.getMessage());
+      formatter.printHelp("utility-name", options);
 
-        Config config = ConfigParser.parseConfigFile(cmd.getOptionValue("config"));
-
-        float measures[] = new float[config.getIterations() * config.getThreads()];
-
-        // initialize threads (for sampling if present)
-        List<QuickPerfRunner> threadList = new ArrayList<QuickPerfRunner>();
-        for (int i = 0; i < config.getThreads(); i++) {
-            QuickPerfRunner thread = new QuickPerfRunner(config);
-            if (config.getSamplingQuery() != null) {
-                thread.runSampling();
-            }
-            threadList.add(thread);
-        }
-
-        // start threads
-        for(QuickPerfRunner thread : threadList) {
-            thread.start();
-        }
-
-        // ProgressBar Tracker Thread
-        ProgressTracker progressTracker = progressTracker = new ProgressTracker(threadList,
-                config.getIterations() * config.getThreads());
-
-        progressTracker.start();
-        progressTracker.join();
-
-        int i = 0;
-        for (QuickPerfRunner thread : threadList) {
-            thread.join();
-
-            if (i == 0) {
-                measures = thread.getMeasures();
-            } else {
-                measures = ArrayUtils.addAll(measures, thread.getMeasures());
-            }
-            i++;
-        }
-
-        // write to file before its sorted
-        if (config.getWriteMetricToFile()) {
-            try {
-                writeMeasuresToFile(measures, MEASURES_FILE_NAME);
-            } catch (IOException e) {
-                System.err.println("An error occurred while writing the file: " + e.getMessage());
-            }
-        }
-
-        System.out.println("\n" + BREAK_STR);
-        System.out.println("Query: " + config.getQuery());
-        System.out.println("Params: " + config.paramsToString());
-        System.out.println("Tag: " + config.DEFAULT_TAG);
-        if (config.getBatchSize() > 0) {
-            System.out.println("Batching Enabled (size): " + config.getBatchSize());
-        }
-        System.out.println(String.format("Start: %s End: %s", testStartTimestamp, ZonedDateTime.now()));
-        System.out.println(
-                String.format(
-                        "Finished with a total of %s runs across %s Threads.\nLatencies (ms):  p50 = %s, p95 = %s, p99 = %s, min = %s,  max = %s",
-                        config.getIterations() * config.getThreads(), config.getThreads(),
-                        calcPerc(measures, 50), calcPerc(measures, 95), calcPerc(measures, 99), getMin(measures),
-                        getMax(measures)));
-        System.out.println(BREAK_STR);
-
+      System.exit(1);
     }
 
-    public static Option addOption(String option, String longOption, boolean hasArgs, String desc) {
-        Option opt = new Option(option, longOption, hasArgs, desc);
-        opt.setRequired(true);
+    Config config = ConfigParser.parseConfigFile(cmd.getOptionValue("config"));
 
-        return opt;
+    float measures[] = new float[config.getIterations() * config.getThreads()];
+
+    // initialize threads (for sampling if present)
+    List<QuickPerfRunner> threadList = new ArrayList<QuickPerfRunner>();
+    for (int i = 0; i < config.getThreads(); i++) {
+      QuickPerfRunner thread = new QuickPerfRunner(config);
+      if (config.getSamplingQuery() != null) {
+        thread.runSampling();
+      }
+      threadList.add(thread);
     }
 
-    public static Option addOption(String option, String longOption, boolean hasArgs, String desc, boolean required) {
-        Option opt = new Option(option, longOption, hasArgs, desc);
-        opt.setRequired(required);
-
-        return opt;
+    // start threads
+    for (QuickPerfRunner thread : threadList) {
+      thread.start();
     }
 
-    public static float calcPerc(float[] nums, double percentile) {
-        int n = nums.length;
-        Arrays.sort(nums);
+    // ProgressBar Tracker Thread
+    ProgressTracker progressTracker =
+        progressTracker =
+            new ProgressTracker(threadList, config.getIterations() * config.getThreads());
 
-        double index = (percentile / 100) * (n - 1);
+    progressTracker.start();
+    progressTracker.join();
 
-        if (index == Math.floor(index)) {
-            return nums[(int) index];
-        } else {
-            int lowerIndex = (int) Math.floor(index);
-            int upperIndex = (int) Math.ceil(index);
-            float lowerValue = nums[lowerIndex];
-            float upperValue = nums[upperIndex];
-            return (float) ((1 - (index - lowerIndex)) * lowerValue + (index - lowerIndex) * upperValue);
-        }
+    int i = 0;
+    for (QuickPerfRunner thread : threadList) {
+      thread.join();
+
+      if (i == 0) {
+        measures = thread.getMeasures();
+      } else {
+        measures = ArrayUtils.addAll(measures, thread.getMeasures());
+      }
+      i++;
     }
 
-    public static float getMax(float[] measures) {
-        if (measures == null || measures.length == 0) {
-            throw new IllegalArgumentException("Array is null or empty");
-        }
-
-        Arrays.sort(measures);
-        return measures[measures.length - 1];
+    // write to file before its sorted
+    if (config.getWriteMetricToFile()) {
+      try {
+        writeMeasuresToFile(measures, MEASURES_FILE_NAME);
+      } catch (IOException e) {
+        System.err.println("An error occurred while writing the file: " + e.getMessage());
+      }
     }
 
-    public static float getMin(float[] measures) {
-        if (measures == null || measures.length == 0) {
-            throw new IllegalArgumentException("Array is null or empty");
-        }
+    System.out.println("\n" + BREAK_STR);
+    System.out.println("Query: " + config.getQuery());
+    System.out.println("Params: " + config.paramsToString());
+    System.out.println("Tag: " + config.DEFAULT_TAG);
+    if (config.getBatchSize() > 0) {
+      System.out.println("Batching Enabled (size): " + config.getBatchSize());
+    }
+    System.out.println(String.format("Start: %s End: %s", testStartTimestamp, ZonedDateTime.now()));
+    System.out.println(
+        String.format(
+            "Finished with a total of %s runs across %s Threads.\nLatencies (ms):  p50 = %s, p95 = %s, p99 = %s, min = %s,  max = %s",
+            config.getIterations() * config.getThreads(),
+            config.getThreads(),
+            calcPerc(measures, 50),
+            calcPerc(measures, 95),
+            calcPerc(measures, 99),
+            getMin(measures),
+            getMax(measures)));
+    System.out.println(BREAK_STR);
+  }
 
-        Arrays.sort(measures);
-        return measures[0];
+  public static Option addOption(String option, String longOption, boolean hasArgs, String desc) {
+    Option opt = new Option(option, longOption, hasArgs, desc);
+    opt.setRequired(true);
+
+    return opt;
+  }
+
+  public static Option addOption(
+      String option, String longOption, boolean hasArgs, String desc, boolean required) {
+    Option opt = new Option(option, longOption, hasArgs, desc);
+    opt.setRequired(required);
+
+    return opt;
+  }
+
+  public static float calcPerc(float[] nums, double percentile) {
+    int n = nums.length;
+    Arrays.sort(nums);
+
+    double index = (percentile / 100) * (n - 1);
+
+    if (index == Math.floor(index)) {
+      return nums[(int) index];
+    } else {
+      int lowerIndex = (int) Math.floor(index);
+      int upperIndex = (int) Math.ceil(index);
+      float lowerValue = nums[lowerIndex];
+      float upperValue = nums[upperIndex];
+      return (float) ((1 - (index - lowerIndex)) * lowerValue + (index - lowerIndex) * upperValue);
+    }
+  }
+
+  public static float getMax(float[] measures) {
+    if (measures == null || measures.length == 0) {
+      throw new IllegalArgumentException("Array is null or empty");
     }
 
-    public static void writeMeasuresToFile(float[] array, String fileName) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            for (float value : array) {
-                writer.write(Float.toString(value));
-                writer.newLine();
-            }
-        }
+    Arrays.sort(measures);
+    return measures[measures.length - 1];
+  }
+
+  public static float getMin(float[] measures) {
+    if (measures == null || measures.length == 0) {
+      throw new IllegalArgumentException("Array is null or empty");
     }
+
+    Arrays.sort(measures);
+    return measures[0];
+  }
+
+  public static void writeMeasuresToFile(float[] array, String fileName) throws IOException {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+      for (float value : array) {
+        writer.write(Float.toString(value));
+        writer.newLine();
+      }
+    }
+  }
 }

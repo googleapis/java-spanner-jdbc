@@ -7,9 +7,14 @@
 
   <groupId>com.google.cloud.jdbc.quickperf</groupId>
   <artifactId>jdbc-quickperf</artifactId>
-  <version>1.0-SNAPSHOT</version>
-
+  <version>1.0.0</version>
   <name>jdbc-quickperf</name>
+  <parent>
+    <groupId>com.google.cloud</groupId>
+    <artifactId>sdk-platform-java-config</artifactId>
+    <version>3.34.0</version>
+    <relativePath/>
+  </parent>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
