@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.21.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.20.2...v2.21.0) (2024-08-23)
+
+
+### Features
+
+* Add Quickperf for simple performance testing with JDBC ([#1619](https://github.com/googleapis/java-spanner-jdbc/issues/1619)) ([b6bbd8f](https://github.com/googleapis/java-spanner-jdbc/commit/b6bbd8f40c1ce61914e2c7b80be04abbf4e346ab))
+
+
+### Dependencies
+
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.13.4.2 [security] ([#1710](https://github.com/googleapis/java-spanner-jdbc/issues/1710)) ([eff5df2](https://github.com/googleapis/java-spanner-jdbc/commit/eff5df22785e55a8f0974f028678883ef404b4e6))
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.17.2 ([#1715](https://github.com/googleapis/java-spanner-jdbc/issues/1715)) ([21aa199](https://github.com/googleapis/java-spanner-jdbc/commit/21aa19970cee5ee0525c5eaae8bc334cf81d8f25))
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.48.0 ([#1719](https://github.com/googleapis/java-spanner-jdbc/issues/1719)) ([a40606c](https://github.com/googleapis/java-spanner-jdbc/commit/a40606c2ef75388cfa0733c6955329225f28c71b))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.72.0 ([#1702](https://github.com/googleapis/java-spanner-jdbc/issues/1702)) ([31a961d](https://github.com/googleapis/java-spanner-jdbc/commit/31a961d29c7b51e9dcd5aac8a8a66444abbd9088))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.73.0 ([#1726](https://github.com/googleapis/java-spanner-jdbc/issues/1726)) ([f5f8051](https://github.com/googleapis/java-spanner-jdbc/commit/f5f80517425969f4c1bab4ec1c72afa1ccbb842c))
+* Update dependency com.google.cloud:google-cloud-trace to v2.48.0 ([#1720](https://github.com/googleapis/java-spanner-jdbc/issues/1720)) ([c9b646d](https://github.com/googleapis/java-spanner-jdbc/commit/c9b646d1b9c0ccef9cf8ba3bc58da686fae34bc1))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.34.0 ([#1705](https://github.com/googleapis/java-spanner-jdbc/issues/1705)) ([f3f0c10](https://github.com/googleapis/java-spanner-jdbc/commit/f3f0c10394e76389dbc4a62e5702fd5f80c57b1a))
+* Update dependency com.spotify.fmt:fmt-maven-plugin to v2.24 ([#1708](https://github.com/googleapis/java-spanner-jdbc/issues/1708)) ([6881512](https://github.com/googleapis/java-spanner-jdbc/commit/68815128ae2c40c224b4ab155b942e8f5313024f))
+* Update dependency commons-cli:commons-cli to v1.9.0 ([#1716](https://github.com/googleapis/java-spanner-jdbc/issues/1716)) ([6f48065](https://github.com/googleapis/java-spanner-jdbc/commit/6f48065952c2fc2716c911a45959326a6bafaa13))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.41.0 ([#1703](https://github.com/googleapis/java-spanner-jdbc/issues/1703)) ([af58b7a](https://github.com/googleapis/java-spanner-jdbc/commit/af58b7a882edae9a50fbc0d4084cb74b3727d5a6))
+* Update dependency org.apache.commons:commons-lang3 to v3.16.0 ([#1717](https://github.com/googleapis/java-spanner-jdbc/issues/1717)) ([f5229ce](https://github.com/googleapis/java-spanner-jdbc/commit/f5229ce5099b6d2d2b7c099ff4ac1319f21860df))
+* Update dependency org.postgresql:postgresql to v42.7.4 ([#1722](https://github.com/googleapis/java-spanner-jdbc/issues/1722)) ([1328213](https://github.com/googleapis/java-spanner-jdbc/commit/13282136921d0167c19cac38df0a652cc5477faa))
+* Update dependency org.springframework.boot:spring-boot to v3.3.2 ([#1718](https://github.com/googleapis/java-spanner-jdbc/issues/1718)) ([ede7211](https://github.com/googleapis/java-spanner-jdbc/commit/ede72113801de4a27492cf672a4c5e3edb37bc5e))
+* Update dependency org.springframework.boot:spring-boot to v3.3.3 ([#1723](https://github.com/googleapis/java-spanner-jdbc/issues/1723)) ([55112ac](https://github.com/googleapis/java-spanner-jdbc/commit/55112ac5f00d4a8d7726fa8bc5e9428d08d21227))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.3.3 ([#1724](https://github.com/googleapis/java-spanner-jdbc/issues/1724)) ([db60f4f](https://github.com/googleapis/java-spanner-jdbc/commit/db60f4f4f8713a30c1fe275266ff455fd03d84a4))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.3.3 ([#1725](https://github.com/googleapis/java-spanner-jdbc/issues/1725)) ([47fda8f](https://github.com/googleapis/java-spanner-jdbc/commit/47fda8f9b8cf639fe11fb3241256490f660e0d8b))
+* Update dependency org.springframework.data:spring-data-bom to v2024.0.3 ([#1704](https://github.com/googleapis/java-spanner-jdbc/issues/1704)) ([e82d839](https://github.com/googleapis/java-spanner-jdbc/commit/e82d8398eede11469c966aa11c2188c671a5f02b))
+* Update dependency org.testcontainers:testcontainers to v1.20.1 ([#1684](https://github.com/googleapis/java-spanner-jdbc/issues/1684)) ([0907305](https://github.com/googleapis/java-spanner-jdbc/commit/09073057df2cff41b7a62f56dc0cf57ed62f4801))
+
 ## [2.20.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.20.1...v2.20.2) (2024-08-07)
 
 
