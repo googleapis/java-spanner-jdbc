@@ -109,6 +109,12 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.api.grpc</groupId>
+          <artifactId>proto-google-cloud-spanner-executor-v1</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!-- TODO: Remove grpc-alts from here once it has been removed as a runtime dependency from java-spanner -->
     <dependency>
