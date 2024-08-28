@@ -419,27 +419,27 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
 
   @Override
   public boolean supportsSchemasInDataManipulation() {
-    return false;
+    return true;
   }
 
   @Override
   public boolean supportsSchemasInProcedureCalls() {
-    return false;
+    return true;
   }
 
   @Override
   public boolean supportsSchemasInTableDefinitions() {
-    return false;
+    return true;
   }
 
   @Override
   public boolean supportsSchemasInIndexDefinitions() {
-    return false;
+    return true;
   }
 
   @Override
   public boolean supportsSchemasInPrivilegeDefinitions() {
-    return false;
+    return true;
   }
 
   @Override
@@ -602,7 +602,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
 
   @Override
   public int getMaxSchemaNameLength() {
-    return 0;
+    return 128;
   }
 
   @Override
