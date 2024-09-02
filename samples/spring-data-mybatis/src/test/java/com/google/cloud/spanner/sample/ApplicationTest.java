@@ -57,7 +57,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.springframework.boot.SpringApplication;
 
 @RunWith(JUnit4.class)
 public class ApplicationTest extends AbstractMockServerTest {
@@ -874,7 +873,7 @@ public class ApplicationTest extends AbstractMockServerTest {
     System.setProperty("spanner.emulator", "false");
     System.setProperty("spanner.endpoint", "//localhost:" + getPort());
     System.setProperty("spanner.additional_properties", "usePlainText=true");
-    SpringApplication.run(Application.class).close();
+    Application.main(new String[] {});
 
     assertEquals(
         40,

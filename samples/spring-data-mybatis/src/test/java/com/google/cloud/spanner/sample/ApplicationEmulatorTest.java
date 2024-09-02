@@ -25,6 +25,7 @@ public class ApplicationEmulatorTest {
 
   @Test
   public void testRunApplicationOnEmulator() {
+    System.setProperty("spanner.emulator", "true");
     Application.main(new String[] {});
   }
 }
