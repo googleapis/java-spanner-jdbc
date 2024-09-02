@@ -17,6 +17,7 @@ This sample shows:
 2. How to develop a portable application that runs on both Google Cloud Spanner PostgreSQL and
    open-source PostgreSQL with the same code base.
 3. How to use bit-reversed sequences to automatically generate primary key values for entities.
+4. How to use the Spanner Emulator for development in combination with Spring Data.
 
 __NOTE__: This application does __not require PGAdapter__. Instead, it connects to Cloud Spanner
 PostgreSQL using the Cloud Spanner JDBC driver.
@@ -58,13 +59,16 @@ The default profile is `cs`. You can change the default profile by modifying the
 ### Running the Application
 
 1. Choose the database system that you want to use by choosing a profile. The default profile is
-   `cs`, which runs the application on Cloud Spanner PostgreSQL. Modify the default profile in the
-   [application.properties](src/main/resources/application.properties) file.
-2. Modify either [application-cs.properties](src/main/resources/application-cs.properties) or
+   `cs`, which runs the application on Cloud Spanner PostgreSQL.
+2. The sample by default starts an instance of the Spanner Emulator together with the application and
+   runs the application against the emulator.
+3. Modify the default profile in the [application.properties](src/main/resources/application.properties) 
+   file to run the sample on an open-source PostgreSQL database.
+4. Modify either [application-cs.properties](src/main/resources/application-cs.properties) or
    [application-pg.properties](src/main/resources/application-pg.properties) to point to an existing
    database. If you use Cloud Spanner, the database that the configuration file references must be a
    database that uses the PostgreSQL dialect.
-3. Run the application with `mvn spring-boot:run`.
+5. Run the application with `mvn spring-boot:run`.
 
 ### Main Application Components
 
@@ -79,6 +83,9 @@ The main application components are:
   This utility class is used to determine whether the application is running on Cloud Spanner
   PostgreSQL or open-source PostgreSQL. This can be used if you have specific features that should
   only be executed on one of the two systems.
+* [EmulatorInitializer.java](src/main/java/com/google/cloud/spanner/sample/EmulatorInitializer.java):
+  This ApplicationListener automatically starts the Spanner emulator as a Docker container if the
+  sample has been configured to run on the emulator.
 * [AbstractEntity.java](src/main/java/com/google/cloud/spanner/sample/entities/AbstractEntity.java):
   This is the shared base class for all entities in this sample application. It defines a number of
   standard attributes, such as the identifier (primary key). The primary key is automatically

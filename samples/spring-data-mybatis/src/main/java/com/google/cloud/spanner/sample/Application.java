@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.sample;
 
+import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.cloud.spanner.sample.entities.Album;
 import com.google.cloud.spanner.sample.entities.Singer;
 import com.google.cloud.spanner.sample.entities.Track;
@@ -34,7 +35,15 @@ public class Application implements CommandLineRunner {
   private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
   public static void main(String[] args) {
-    SpringApplication.run(Application.class, args).close();
+    EmulatorInitializer emulatorInitializer = new EmulatorInitializer();
+    try {
+      SpringApplication application = new SpringApplication(Application.class);
+      application.addListeners(emulatorInitializer);
+      application.run(args).close();
+    } finally {
+      SpannerPool.closeSpannerPool();
+      emulatorInitializer.stopEmulator();
+    }
   }
 
   private final DatabaseSeeder databaseSeeder;

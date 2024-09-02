@@ -39,6 +39,13 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>1.20.1</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -70,6 +77,10 @@
       <artifactId>postgresql</artifactId>
       <version>42.7.4</version>
     </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.google.collections</groupId>
@@ -94,7 +105,7 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
-      <scope>test</scope>
+<!--      <scope>test</scope>-->
     </dependency>
   </dependencies>
   

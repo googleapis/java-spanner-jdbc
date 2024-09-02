@@ -731,7 +731,9 @@ public class ApplicationTest extends AbstractMockServerTest {
 
   @Test
   public void testRunApplication() {
-    System.setProperty("port", String.valueOf(getPort()));
+    System.setProperty("spanner.emulator", "false");
+    System.setProperty("spanner.endpoint", "//localhost:" + getPort());
+    System.setProperty("spanner.additional_properties", "usePlainText=true");
     SpringApplication.run(Application.class).close();
 
     assertEquals(
