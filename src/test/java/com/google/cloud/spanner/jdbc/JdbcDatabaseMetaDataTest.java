@@ -112,7 +112,7 @@ public class JdbcDatabaseMetaDataTest {
     assertEquals(8000, meta.getMaxIndexLength());
     assertEquals(0, meta.getMaxProcedureNameLength());
     assertEquals(0, meta.getMaxRowSize());
-    assertEquals(0, meta.getMaxSchemaNameLength());
+    assertEquals(128, meta.getMaxSchemaNameLength());
     assertEquals(1000000, meta.getMaxStatementLength());
     assertEquals(0, meta.getMaxStatements());
     assertEquals(128, meta.getMaxTableNameLength());
@@ -245,11 +245,11 @@ public class JdbcDatabaseMetaDataTest {
     assertTrue(meta.supportsResultSetHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT));
     assertFalse(meta.supportsResultSetHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT));
     assertFalse(meta.supportsSavepoints());
-    assertFalse(meta.supportsSchemasInDataManipulation());
-    assertFalse(meta.supportsSchemasInIndexDefinitions());
-    assertFalse(meta.supportsSchemasInPrivilegeDefinitions());
-    assertFalse(meta.supportsSchemasInProcedureCalls());
-    assertFalse(meta.supportsSchemasInTableDefinitions());
+    assertTrue(meta.supportsSchemasInDataManipulation());
+    assertTrue(meta.supportsSchemasInIndexDefinitions());
+    assertTrue(meta.supportsSchemasInPrivilegeDefinitions());
+    assertTrue(meta.supportsSchemasInProcedureCalls());
+    assertTrue(meta.supportsSchemasInTableDefinitions());
     assertFalse(meta.supportsSelectForUpdate());
     assertFalse(meta.supportsStatementPooling());
     assertFalse(meta.supportsStoredFunctionsUsingCallSyntax());
