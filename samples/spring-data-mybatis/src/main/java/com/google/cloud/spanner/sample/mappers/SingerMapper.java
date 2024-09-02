@@ -31,6 +31,9 @@ public interface SingerMapper {
   @Select("SELECT * FROM singers WHERE id = #{singerId}")
   Singer get(@Param("singerId") long singerId);
 
+  @Select("SELECT * FROM singers ORDER BY sha256(last_name::bytea) LIMIT 1")
+  Singer getRandom();
+
   @Select("SELECT * FROM singers ORDER BY last_name, first_name, id")
   List<Singer> findAll();
 
@@ -46,6 +49,24 @@ public interface SingerMapper {
           + "VALUES (#{firstName}, #{lastName}, #{active})")
   @Options(useGeneratedKeys = true, keyProperty = "id,fullName")
   int insert(Singer singer);
+
+  /**
+   * Executes an insert-or-update statement for a Singer record. Note that the id must have been set
+   * manually on the Singer entity before calling this method, and that Spanner requires that all
+   * columns for the INSERT statement must also be included in the UPDATE statement, including the
+   * 'id' column. The statement only returns the 'fullName' property, because the 'id' is already
+   * known.
+   */
+  @Insert(
+      "INSERT INTO singers (id, first_name, last_name, active) "
+          + "VALUES (#{id}, #{firstName}, #{lastName}, #{active}) "
+          + "ON CONFLICT (id) DO UPDATE SET "
+          + "id=excluded.id, "
+          + "first_name=excluded.first_name, "
+          + "last_name=excluded.last_name, "
+          + "active=excluded.active")
+  @Options(useGeneratedKeys = true, keyProperty = "fullName")
+  int insertOrUpdate(Singer singer);
 
   /** Updates an existing singer and returns the generated full name. */
   @Update(
