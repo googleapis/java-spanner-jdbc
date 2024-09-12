@@ -876,7 +876,7 @@ public class ApplicationTest extends AbstractMockServerTest {
     Application.main(new String[] {});
 
     assertEquals(
-        40,
+        39,
         mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
             .filter(
                 request ->
