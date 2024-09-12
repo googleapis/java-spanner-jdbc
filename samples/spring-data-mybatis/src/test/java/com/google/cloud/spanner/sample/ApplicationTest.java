@@ -49,6 +49,7 @@ import com.google.spanner.v1.Type;
 import com.google.spanner.v1.TypeAnnotationCode;
 import com.google.spanner.v1.TypeCode;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -56,7 +57,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.springframework.boot.SpringApplication;
 
 @RunWith(JUnit4.class)
 public class ApplicationTest extends AbstractMockServerTest {
@@ -352,6 +352,76 @@ public class ApplicationTest extends AbstractMockServerTest {
                           .collect(Collectors.toList()))
                   .build()));
     }
+    int singerIndex = ThreadLocalRandom.current().nextInt(INITIAL_SINGERS.size());
+    Singer randomSinger = INITIAL_SINGERS.get(singerIndex);
+    mockSpanner.putStatementResult(
+        StatementResult.query(
+            Statement.of("SELECT * FROM singers ORDER BY sha256(last_name::bytea) LIMIT 1"),
+            ResultSet.newBuilder()
+                .setMetadata(
+                    ResultSetMetadata.newBuilder()
+                        .setRowType(
+                            StructType.newBuilder()
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("id")
+                                        .setType(Type.newBuilder().setCode(TypeCode.INT64).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("active")
+                                        .setType(Type.newBuilder().setCode(TypeCode.BOOL).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("last_name")
+                                        .setType(Type.newBuilder().setCode(TypeCode.STRING).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("full_name")
+                                        .setType(Type.newBuilder().setCode(TypeCode.STRING).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("updated_at")
+                                        .setType(
+                                            Type.newBuilder().setCode(TypeCode.TIMESTAMP).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("created_at")
+                                        .setType(
+                                            Type.newBuilder().setCode(TypeCode.TIMESTAMP).build())
+                                        .build())
+                                .addFields(
+                                    Field.newBuilder()
+                                        .setName("first_name")
+                                        .setType(Type.newBuilder().setCode(TypeCode.STRING).build())
+                                        .build())
+                                .build())
+                        .build())
+                .addRows(
+                    ListValue.newBuilder()
+                        .addValues(
+                            Value.newBuilder()
+                                .setStringValue(String.valueOf(Long.reverse(singerIndex + 1)))
+                                .build())
+                        .addValues(Value.newBuilder().setBoolValue(true).build())
+                        .addValues(
+                            Value.newBuilder().setStringValue(randomSinger.getLastName()).build())
+                        .addValues(
+                            Value.newBuilder()
+                                .setStringValue(
+                                    randomSinger.getFirstName() + " " + randomSinger.getLastName())
+                                .build())
+                        .addValues(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build())
+                        .addValues(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build())
+                        .addValues(
+                            Value.newBuilder().setStringValue(randomSinger.getFirstName()).build())
+                        .build())
+                .build()));
+
     mockSpanner.putStatementResult(
         StatementResult.query(
             Statement.newBuilder(
@@ -726,21 +796,98 @@ public class ApplicationTest extends AbstractMockServerTest {
                                       .build())
                           .collect(Collectors.toList()))
                   .build()));
+      mockSpanner.putPartialStatementResult(
+          StatementResult.query(
+              Statement.of(
+                  "INSERT INTO singers (id, first_name, last_name, active) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET id=excluded.id, first_name=excluded.first_name, last_name=excluded.last_name, active=excluded.active\n"
+                      + "RETURNING *"),
+              ResultSet.newBuilder()
+                  .setMetadata(
+                      ResultSetMetadata.newBuilder()
+                          .setRowType(
+                              StructType.newBuilder()
+                                  .addFields(
+                                      Field.newBuilder()
+                                          .setName("id")
+                                          .setType(
+                                              Type.newBuilder().setCode(TypeCode.INT64).build())
+                                          .build())
+                                  .addFields(
+                                      Field.newBuilder()
+                                          .setName("active")
+                                          .setType(Type.newBuilder().setCode(TypeCode.BOOL).build())
+                                          .build())
+                                  .addFields(
+                                      Field.newBuilder()
+                                          .setName("last_name")
+                                          .setType(
+                                              Type.newBuilder().setCode(TypeCode.STRING).build())
+                                          .build())
+                                  .addFields(
+                                      Field.newBuilder()
+                                          .setName("full_name")
+                                          .setType(
+                                              Type.newBuilder().setCode(TypeCode.STRING).build())
+                                          .build())
+                                  .addFields(
+                                      Field.newBuilder()
+                                          .setName("updated_at")
+                                          .setType(
+                                              Type.newBuilder().setCode(TypeCode.TIMESTAMP).build())
+                                          .build())
+                                  .addFields(
+                                      Field.newBuilder()
+                                          .setName("created_at")
+                                          .setType(
+                                              Type.newBuilder().setCode(TypeCode.TIMESTAMP).build())
+                                          .build())
+                                  .addFields(
+                                      Field.newBuilder()
+                                          .setName("first_name")
+                                          .setType(
+                                              Type.newBuilder().setCode(TypeCode.STRING).build())
+                                          .build())
+                                  .build())
+                          .build())
+                  .addRows(
+                      ListValue.newBuilder()
+                          .addValues(
+                              Value.newBuilder()
+                                  .setStringValue(
+                                      String.valueOf(ThreadLocalRandom.current().nextLong()))
+                                  .build())
+                          .addValues(Value.newBuilder().setBoolValue(true).build())
+                          .addValues(Value.newBuilder().setStringValue("Russel").build())
+                          .addValues(Value.newBuilder().setStringValue("Beatriz Russel").build())
+                          .addValues(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build())
+                          .addValues(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build())
+                          .addValues(Value.newBuilder().setStringValue("Beatriz").build())
+                          .build())
+                  .setStats(ResultSetStats.newBuilder().setRowCountExact(1L).build())
+                  .build()));
     }
   }
 
   @Test
   public void testRunApplication() {
-    System.setProperty("port", String.valueOf(getPort()));
-    SpringApplication.run(Application.class).close();
+    System.setProperty("spanner.emulator", "false");
+    System.setProperty("spanner.endpoint", "//localhost:" + getPort());
+    System.setProperty("spanner.additional_properties", "usePlainText=true");
+    Application.main(new String[] {});
 
     assertEquals(
-        39,
+        40,
         mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
-            .filter(request -> !request.getSql().equals("SELECT 1"))
+            .filter(
+                request ->
+                    !request.getSql().equals("SELECT 1")
+                        && !request
+                            .getSql()
+                            .equals(
+                                "SELECT * FROM singers ORDER BY sha256(last_name::bytea) LIMIT 1"))
             .count());
     assertEquals(3, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
-    assertEquals(5, mockSpanner.countRequestsOfType(CommitRequest.class));
+    assertEquals(6, mockSpanner.countRequestsOfType(CommitRequest.class));
 
     // Verify that the service methods use transactions.
     String insertSingerSql =

@@ -17,7 +17,7 @@ on:
   pull_request:
 name: spring-data-mybatis-sample
 jobs:
-  spring-data-jdbc:
+  spring-data-mybatis:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
