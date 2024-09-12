@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.sample;
 
+import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.cloud.spanner.sample.entities.Album;
 import com.google.cloud.spanner.sample.entities.Singer;
 import com.google.cloud.spanner.sample.entities.Track;
@@ -23,6 +24,7 @@ import com.google.cloud.spanner.sample.mappers.AlbumMapper;
 import com.google.cloud.spanner.sample.mappers.SingerMapper;
 import com.google.cloud.spanner.sample.service.AlbumService;
 import com.google.cloud.spanner.sample.service.SingerService;
+import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -34,7 +36,15 @@ public class Application implements CommandLineRunner {
   private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
   public static void main(String[] args) {
-    SpringApplication.run(Application.class, args).close();
+    EmulatorInitializer emulatorInitializer = new EmulatorInitializer();
+    try {
+      SpringApplication application = new SpringApplication(Application.class);
+      application.addListeners(emulatorInitializer);
+      application.run(args).close();
+    } finally {
+      SpannerPool.closeSpannerPool();
+      emulatorInitializer.stopEmulator();
+    }
   }
 
   private final DatabaseSeeder databaseSeeder;
@@ -129,5 +139,22 @@ public class Application implements CommandLineRunner {
     for (Singer singer : singerService.listSingersWithLastNameStartingWith("A", "B", "C")) {
       logger.info("\t{}", singer.getFullName());
     }
+
+    // Execute an insert-or-update for a Singer record.
+    // For this, we either get a random Singer from the database, or create a new Singer entity
+    // and assign it a random ID.
+    logger.info("Executing an insert-or-update statement for a Singer record");
+    Singer singer;
+    if (ThreadLocalRandom.current().nextBoolean()) {
+      singer = singerMapper.getRandom();
+    } else {
+      singer = new Singer();
+      singer.setId(ThreadLocalRandom.current().nextLong());
+    }
+    singer.setFirstName("Beatriz");
+    singer.setLastName("Russel");
+    singer.setActive(true);
+    // This executes an INSERT ... ON CONFLICT DO UPDATE statement.
+    singerMapper.insertOrUpdate(singer);
   }
 }
