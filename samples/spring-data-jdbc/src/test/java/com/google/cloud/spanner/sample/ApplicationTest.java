@@ -817,7 +817,7 @@ public class ApplicationTest extends AbstractMockServerTest {
     SpringApplication.run(Application.class).close();
 
     assertEquals(
-        44,
+        42,
         mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
             .filter(request -> !request.getSql().equals("SELECT 1"))
             .count());
