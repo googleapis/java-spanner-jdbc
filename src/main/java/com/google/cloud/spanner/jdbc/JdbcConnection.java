@@ -523,14 +523,7 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   @Nonnull
   String getDefaultSchema() {
-    // TODO: Update to use getDialect()#getDefaultSchema() when available.
-    switch (getDialect()) {
-      case POSTGRESQL:
-        return "public";
-      case GOOGLE_STANDARD_SQL:
-      default:
-        return "";
-    }
+    return getDialect().getDefaultSchema();
   }
 
   @Override

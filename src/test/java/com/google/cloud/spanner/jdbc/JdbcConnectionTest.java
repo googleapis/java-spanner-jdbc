@@ -738,6 +738,8 @@ public class JdbcConnectionTest {
       // The default schema is the empty string for GoogleSQL databases.
       // The default schema is 'public' for PostgreSQL databases.
       assertEquals(connection.getDefaultSchema(), connection.getSchema());
+      String expectedDefaultSchema = dialect == Dialect.POSTGRESQL ? "public" : "";
+      assertEquals(expectedDefaultSchema, connection.getSchema());
       // This should be allowed.
       connection.setSchema(connection.getDefaultSchema());
       JdbcSqlExceptionImpl exception =
