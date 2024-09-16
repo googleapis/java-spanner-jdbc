@@ -153,7 +153,7 @@ public class JdbcQueryOptionsTest extends AbstractMockServerTest {
       try (java.sql.ResultSet rs =
           connection.createStatement().executeQuery("SHOW VARIABLE RPC_PRIORITY")) {
         assertThat(rs.next()).isTrue();
-        assertThat(rs.getString("RPC_PRIORITY")).isEqualTo("PRIORITY_UNSPECIFIED");
+        assertThat(rs.getString("RPC_PRIORITY")).isEqualTo("UNSPECIFIED");
         assertThat(rs.next()).isFalse();
       }
     }
