@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.22.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.21.0...v2.22.0) (2024-09-16)
+
+
+### Features
+
+* Update DatabaseMetaData to include named schemas ([#1733](https://github.com/googleapis/java-spanner-jdbc/issues/1733)) ([b162e2a](https://github.com/googleapis/java-spanner-jdbc/commit/b162e2ad8fbcaff5c0453b20ac103cab3207a0d9))
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.49.0 ([#1744](https://github.com/googleapis/java-spanner-jdbc/issues/1744)) ([25f7f61](https://github.com/googleapis/java-spanner-jdbc/commit/25f7f6104806e701ed884eaba60c676c24a0ce61))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.74.0 ([#1730](https://github.com/googleapis/java-spanner-jdbc/issues/1730)) ([c257ea5](https://github.com/googleapis/java-spanner-jdbc/commit/c257ea54b9cda17ca2f0b9f8ff77a854669314b5))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.74.1 ([#1748](https://github.com/googleapis/java-spanner-jdbc/issues/1748)) ([794ca47](https://github.com/googleapis/java-spanner-jdbc/commit/794ca4790cec8ef34c651593c7fadde366533fdb))
+* Update dependency com.google.cloud:google-cloud-trace to v2.49.0 ([#1747](https://github.com/googleapis/java-spanner-jdbc/issues/1747)) ([32defb7](https://github.com/googleapis/java-spanner-jdbc/commit/32defb7bddf3bdc91da3f131ba15ed665fef3004))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.35.0 ([#1741](https://github.com/googleapis/java-spanner-jdbc/issues/1741)) ([8e168eb](https://github.com/googleapis/java-spanner-jdbc/commit/8e168eb9bb1720f431b4f76d6ceda2d338c39715))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.42.1 ([#1740](https://github.com/googleapis/java-spanner-jdbc/issues/1740)) ([f229a62](https://github.com/googleapis/java-spanner-jdbc/commit/f229a6259a3c4fce001c26780d5182a32e7e5ffe))
+* Update dependency org.apache.commons:commons-lang3 to v3.17.0 ([#1735](https://github.com/googleapis/java-spanner-jdbc/issues/1735)) ([5dbf223](https://github.com/googleapis/java-spanner-jdbc/commit/5dbf22358c7d69481d8a568483ef340149e414c8))
+* Update dependency org.springframework.data:spring-data-bom to v2024.0.4 ([#1746](https://github.com/googleapis/java-spanner-jdbc/issues/1746)) ([e9d8cab](https://github.com/googleapis/java-spanner-jdbc/commit/e9d8cab337fbc3f3e0d98edd71bd42c9fe46b8b7))
+
+
+### Documentation
+
+* Run MyBatis sample on the Emulator and add insert-or-update sample ([#1737](https://github.com/googleapis/java-spanner-jdbc/issues/1737)) ([02534d7](https://github.com/googleapis/java-spanner-jdbc/commit/02534d72824a7a7ccb7756797163fa011d1e5e49))
+* Simplify dialect detection for MyBatis sample ([#1739](https://github.com/googleapis/java-spanner-jdbc/issues/1739)) ([01eade8](https://github.com/googleapis/java-spanner-jdbc/commit/01eade8bb6a59d169cb06e945dcf2c20be8a0c82))
+* Simplify dialect detection in Spring Data JDBC sample ([#1738](https://github.com/googleapis/java-spanner-jdbc/issues/1738)) ([44202fc](https://github.com/googleapis/java-spanner-jdbc/commit/44202fce324dafbc3538a3792986cbbaadf97209))
+
 ## [2.21.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.20.2...v2.21.0) (2024-08-23)
 
 
