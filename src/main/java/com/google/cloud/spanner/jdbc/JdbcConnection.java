@@ -91,14 +91,14 @@ class JdbcConnection extends AbstractJdbcConnection {
 
   private final Metrics metrics;
 
-  private final Attributes openTelemetryAttributes;
+  private final Attributes openTelemetryMetricsAttributes;
 
   JdbcConnection(String connectionUrl, ConnectionOptions options) throws SQLException {
     super(connectionUrl, options);
     this.useLegacyIsValidCheck = useLegacyValidCheck();
     OpenTelemetry openTelemetry = getSpanner().getOptions().getOpenTelemetry();
-    this.openTelemetryAttributes =
-        createOpenTelemetryAttributes(getConnectionOptions().getDatabaseId());
+    this.openTelemetryMetricsAttributes =
+        createOpenTelemetryAttributes(getConnectionOptions().getDatabaseId(), false);
     this.metrics = new Metrics(openTelemetry);
   }
 
@@ -114,9 +114,12 @@ class JdbcConnection extends AbstractJdbcConnection {
   }
 
   @VisibleForTesting
-  static Attributes createOpenTelemetryAttributes(DatabaseId databaseId) {
+  static Attributes createOpenTelemetryAttributes(DatabaseId databaseId, boolean includeConnectionId) {
     AttributesBuilder attributesBuilder = Attributes.builder();
-    attributesBuilder.put("connection_id", UUID.randomUUID().toString());
+    // A unique connection ID should only be included for tracing and not for metrics.
+    if (includeConnectionId) {
+      attributesBuilder.put("connection_id", UUID.randomUUID().toString());
+    }
     attributesBuilder.put("database", databaseId.getDatabase());
     attributesBuilder.put("instance_id", databaseId.getInstanceId().getInstance());
     attributesBuilder.put("project_id", databaseId.getInstanceId().getProject());
@@ -124,7 +127,7 @@ class JdbcConnection extends AbstractJdbcConnection {
   }
 
   public void recordClientLibLatencyMetric(long value) {
-    metrics.recordClientLibLatency(value, openTelemetryAttributes);
+    metrics.recordClientLibLatency(value, openTelemetryMetricsAttributes);
   }
 
   @Override

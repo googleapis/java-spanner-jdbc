@@ -51,10 +51,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -125,13 +132,14 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
   }
 
   @Test
-  public void testGlobalOpenTelemetry() throws SQLException, IOException, InterruptedException {
+  public void testGlobalOpenTelemetry() throws Exception {
     GlobalOpenTelemetry.resetForTest();
     GlobalOpenTelemetry.set(openTelemetry);
     Properties info = new Properties();
     info.put("enableExtendedTracing", "true");
     try (Connection connection = createConnection(env, database, info)) {
       testOpenTelemetry(connection);
+      testOpenTelemetryConcurrency(() -> createConnection(env, database, info));
     } finally {
       GlobalOpenTelemetry.resetForTest();
     }
@@ -139,7 +147,7 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
 
   @Test
   public void testOpenTelemetryInProperties()
-      throws SQLException, IOException, InterruptedException {
+      throws Exception {
     // Make sure there is no Global OpenTelemetry.
     GlobalOpenTelemetry.resetForTest();
     Properties info = new Properties();
@@ -148,6 +156,7 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
     try (Connection connection = createConnection(env, database, info)) {
       testOpenTelemetry(connection);
     }
+    testOpenTelemetryConcurrency(() -> createConnection(env, database, info));
   }
 
   private void testOpenTelemetry(Connection connection)
@@ -159,14 +168,14 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
 
       // Test executeQuery(String)
       try (ResultSet resultSet = statement.executeQuery(sql)) {
-        assertQueryResult(resultSet, sql, uuid);
+        assertQueryResult(resultSet, sql, uuid, true);
       }
 
       // Test execute(String)
       uuid = UUID.randomUUID();
       sql = "select '" + uuid + "'";
       assertTrue(statement.execute(sql));
-      assertQueryResult(statement.getResultSet(), sql, uuid);
+      assertQueryResult(statement.getResultSet(), sql, uuid, true);
 
       // Test executeUpdate(String)
       uuid = UUID.randomUUID();
@@ -189,7 +198,7 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
     String sql = "select '" + uuid + "'";
     try (PreparedStatement statement = connection.prepareStatement(sql)) {
       try (ResultSet resultSet = statement.executeQuery()) {
-        assertQueryResult(resultSet, sql, uuid);
+        assertQueryResult(resultSet, sql, uuid, true);
       }
     }
 
@@ -197,7 +206,7 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
     sql = "select '" + uuid + "'";
     try (PreparedStatement statement = connection.prepareStatement(sql)) {
       assertTrue(statement.execute());
-      assertQueryResult(statement.getResultSet(), sql, uuid);
+      assertQueryResult(statement.getResultSet(), sql, uuid, true);
     }
 
     uuid = UUID.randomUUID();
@@ -216,15 +225,49 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
       assertUpdateResult(statement.executeLargeUpdate(), spannerSql);
     }
   }
+  
+  private interface ConnectionProducer {
+    Connection createConnection() throws SQLException;
+  }
+  
+  private void testOpenTelemetryConcurrency(ConnectionProducer connectionProducer) throws Exception {
+    int numThreads = 16;
+    int numIterations = 1000;
+    ExecutorService executor = Executors.newFixedThreadPool(16);
+    List<Future<?>> futures = new ArrayList<>(numThreads);
+    for (int n=0; n<numThreads; n++) {
+      futures.add(executor.submit((Callable<Void>) () -> {
+        try (Connection connection = connectionProducer.createConnection(); Statement statement = connection.createStatement()) {
+          for (int i = 0; i < numIterations; i++) {
+            UUID uuid = UUID.randomUUID();
+            String sql = "select '" + uuid + "'";
 
-  private void assertQueryResult(ResultSet resultSet, String sql, UUID uuid)
+            try (ResultSet resultSet = statement.executeQuery(sql)) {
+              assertQueryResult(resultSet, sql, uuid, false);
+            }
+          }
+        }
+        return null;
+      }));
+    }
+    executor.shutdown();
+    assertTrue(executor.awaitTermination(600L, TimeUnit.SECONDS));
+    for (Future<?> future : futures) {
+      // Just verify that we did not get an exception.
+      future.get();
+    }
+  }
+
+  private void assertQueryResult(ResultSet resultSet, String sql, UUID uuid, boolean assertTrace)
       throws SQLException, IOException, InterruptedException {
     assertTrue(resultSet.next());
     assertEquals(uuid.toString(), resultSet.getString(1));
     assertFalse(resultSet.next());
 
     flushOpenTelemetry();
-    assertTrace(sql);
+    if (assertTrace) {
+      assertTrace(sql);
+    }
   }
 
   private void assertUpdateResult(long updateCount, String sql)
