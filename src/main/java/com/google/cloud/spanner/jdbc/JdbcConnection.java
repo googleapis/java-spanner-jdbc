@@ -114,7 +114,8 @@ class JdbcConnection extends AbstractJdbcConnection {
   }
 
   @VisibleForTesting
-  static Attributes createOpenTelemetryAttributes(DatabaseId databaseId, boolean includeConnectionId) {
+  static Attributes createOpenTelemetryAttributes(
+      DatabaseId databaseId, boolean includeConnectionId) {
     AttributesBuilder attributesBuilder = Attributes.builder();
     // A unique connection ID should only be included for tracing and not for metrics.
     if (includeConnectionId) {

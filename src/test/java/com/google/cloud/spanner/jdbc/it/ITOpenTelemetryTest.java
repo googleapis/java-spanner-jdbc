@@ -61,7 +61,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -146,8 +145,7 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
   }
 
   @Test
-  public void testOpenTelemetryInProperties()
-      throws Exception {
+  public void testOpenTelemetryInProperties() throws Exception {
     // Make sure there is no Global OpenTelemetry.
     GlobalOpenTelemetry.resetForTest();
     Properties info = new Properties();
@@ -225,30 +223,35 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
       assertUpdateResult(statement.executeLargeUpdate(), spannerSql);
     }
   }
-  
+
   private interface ConnectionProducer {
     Connection createConnection() throws SQLException;
   }
-  
-  private void testOpenTelemetryConcurrency(ConnectionProducer connectionProducer) throws Exception {
+
+  private void testOpenTelemetryConcurrency(ConnectionProducer connectionProducer)
+      throws Exception {
     int numThreads = 16;
     int numIterations = 1000;
     ExecutorService executor = Executors.newFixedThreadPool(16);
     List<Future<?>> futures = new ArrayList<>(numThreads);
-    for (int n=0; n<numThreads; n++) {
-      futures.add(executor.submit((Callable<Void>) () -> {
-        try (Connection connection = connectionProducer.createConnection(); Statement statement = connection.createStatement()) {
-          for (int i = 0; i < numIterations; i++) {
-            UUID uuid = UUID.randomUUID();
-            String sql = "select '" + uuid + "'";
+    for (int n = 0; n < numThreads; n++) {
+      futures.add(
+          executor.submit(
+              (Callable<Void>)
+                  () -> {
+                    try (Connection connection = connectionProducer.createConnection();
+                        Statement statement = connection.createStatement()) {
+                      for (int i = 0; i < numIterations; i++) {
+                        UUID uuid = UUID.randomUUID();
+                        String sql = "select '" + uuid + "'";
 
-            try (ResultSet resultSet = statement.executeQuery(sql)) {
-              assertQueryResult(resultSet, sql, uuid, false);
-            }
-          }
-        }
-        return null;
-      }));
+                        try (ResultSet resultSet = statement.executeQuery(sql)) {
+                          assertQueryResult(resultSet, sql, uuid, false);
+                        }
+                      }
+                    }
+                    return null;
+                  }));
     }
     executor.shutdown();
     assertTrue(executor.awaitTermination(600L, TimeUnit.SECONDS));
