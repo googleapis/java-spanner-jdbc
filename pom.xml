@@ -14,7 +14,7 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>sdk-platform-java-config</artifactId>
-    <version>3.36.0</version>
+    <version>3.36.1</version>
   </parent>
   <developers>
     <developer>
@@ -61,7 +61,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>6.75.0</version>
+        <version>6.76.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -232,13 +232,13 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-trace</artifactId>
-      <version>2.49.0</version>
+      <version>2.51.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-trace-v1</artifactId>
-      <version>2.49.0</version>
+      <version>2.51.0</version>
       <scope>test</scope>
     </dependency>
 
