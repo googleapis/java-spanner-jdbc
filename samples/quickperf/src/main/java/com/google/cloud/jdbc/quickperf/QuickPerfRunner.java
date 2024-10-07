@@ -163,6 +163,9 @@ public class QuickPerfRunner extends Thread {
             boolean hasResults = statement.execute();
             if (!connection.getAutoCommit()) {
               connection.commit();
+              connection
+                .createStatement()
+                .execute(String.format("SET %sTRANSACTION_TAG = '%s'", tagPrefix, config.DEFAULT_TAG));
             }
             long stop = System.nanoTime() - start;
 
