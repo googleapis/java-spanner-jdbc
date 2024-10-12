@@ -36,6 +36,8 @@ import com.google.protobuf.ListValue;
 import com.google.protobuf.Value;
 import com.google.rpc.Code;
 import com.google.spanner.admin.database.v1.UpdateDatabaseDdlMetadata;
+import com.google.spanner.v1.CommitRequest;
+import com.google.spanner.v1.ExecuteBatchDmlRequest;
 import com.google.spanner.v1.ResultSetMetadata;
 import com.google.spanner.v1.ResultSetStats;
 import com.google.spanner.v1.StructType;
@@ -843,5 +845,29 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
         assertEquals(Code.INVALID_ARGUMENT, jdbcSqlException.getCode());
       }
     }
+  }
+
+  private String getExtension() {
+    return dialect == Dialect.POSTGRESQL ? "spanner." : "";
+  }
+
+  @Test
+  public void testExecuteAutoBatchDml() throws SQLException {
+    try (Connection connection = createJdbcConnection();
+        Statement statement = connection.createStatement()) {
+      connection.setAutoCommit(false);
+
+      assertFalse(statement.execute(String.format("set %sauto_batch_dml = true", getExtension())));
+      for (int i = 0; i < 3; i++) {
+        assertFalse(statement.execute(dml));
+        assertEquals(1, statement.getUpdateCount());
+      }
+      connection.commit();
+    }
+    assertEquals(1, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
+    ExecuteBatchDmlRequest request =
+        mockSpanner.getRequestsOfType(ExecuteBatchDmlRequest.class).get(0);
+    assertEquals(3, request.getStatementsCount());
+    assertEquals(1, mockSpanner.countRequestsOfType(CommitRequest.class));
   }
 }
