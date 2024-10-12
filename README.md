@@ -118,6 +118,11 @@ these can also be supplied in a Properties instance that is passed to the
 - maxSessions (int): Sets the maximum number of sessions in the backing session pool. Defaults to 400.
 - numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
 - retryAbortsInternally (boolean): The JDBC driver will by default automatically retry aborted transactions internally. This is done by keeping track of all statements and the results of these during a transaction, and if the transaction is aborted by Cloud Spanner, it will replay the statements on a new transaction and compare the results with the initial attempt. Disable this option if you want to handle aborted transactions in your own application.
+- auto_batch_dml (boolean): Automatically buffer DML statements and execute them as one batch,
+  instead of executing them on Spanner directly. The buffered DML statements are executed on Spanner
+  in one batch when a query is executed, or when the transaction is committed. This option can for
+  example be used in combination with Hibernate to automatically group more (small) DML statements
+  into one batch.
 - oauthToken (string): A valid pre-existing OAuth token to use for authentication for this connection. Setting this property will take precedence over any value set for a credentials file.
 - lenient (boolean): Enable this to force the JDBC driver to ignore unknown properties in the connection URL. Some applications automatically add additional properties to the URL that are not recognized by the JDBC driver. Normally, the JDBC driver will reject this, unless `lenient` mode is enabled.
 
