@@ -68,13 +68,14 @@ public class ClientSideStatementHintsTest extends AbstractMockServerTest {
         getPort(), "proj", "inst", "db" + (dialect == Dialect.POSTGRESQL ? "pg" : ""));
   }
 
-  private Connection createConnection() throws SQLException {
+  @Override
+  protected Connection createJdbcConnection() throws SQLException {
     return DriverManager.getConnection(createUrl());
   }
 
   @Test
   public void testStatementTagInHint() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       try (ResultSet resultSet =
           connection
               .createStatement()
@@ -94,7 +95,7 @@ public class ClientSideStatementHintsTest extends AbstractMockServerTest {
 
   @Test
   public void testRpcPriorityInHint() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       try (ResultSet resultSet =
           connection
               .createStatement()

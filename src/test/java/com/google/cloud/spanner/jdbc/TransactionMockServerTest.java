@@ -50,13 +50,14 @@ public class TransactionMockServerTest extends AbstractMockServerTest {
         getPort(), "proj", "inst", "db");
   }
 
-  private Connection createConnection() throws SQLException {
+  @Override
+  protected Connection createJdbcConnection() throws SQLException {
     return DriverManager.getConnection(createUrl());
   }
 
   @Test
   public void testCommittingEmptyTransactionIsNoOp() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection.commit();
     }
 
@@ -65,7 +66,7 @@ public class TransactionMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testCommittingEmptyExplicitTransactionIsNoOp() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection.setAutoCommit(true);
       try (Statement statement = connection.createStatement()) {
         statement.execute("begin transaction");
@@ -78,7 +79,7 @@ public class TransactionMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testRollingBackEmptyTransactionIsNoOp() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection.rollback();
     }
 
@@ -87,7 +88,7 @@ public class TransactionMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testRollingBackEmptyExplicitTransactionIsNoOp() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection.setAutoCommit(true);
       try (Statement statement = connection.createStatement()) {
         statement.execute("begin transaction");

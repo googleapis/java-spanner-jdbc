@@ -77,13 +77,14 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
         getPort(), "proj", "inst", "db" + (dialect == Dialect.POSTGRESQL ? "pg" : ""));
   }
 
-  private Connection createConnection() throws SQLException {
+  @Override
+  protected Connection createJdbcConnection() throws SQLException {
     return DriverManager.getConnection(createUrl());
   }
 
   @Test
   public void testUsesMultiplexedSessionForQueryInAutoCommit() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       assertTrue(connection.getAutoCommit());
       try (ResultSet resultSet = connection.createStatement().executeQuery(SELECT_RANDOM_SQL)) {
         //noinspection StatementWithEmptyBody
@@ -106,7 +107,7 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
   @Test
   public void testUsesMultiplexedSessionForQueryInReadOnlyTransaction() throws SQLException {
     int numQueries = 2;
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection.setReadOnly(true);
       connection.setAutoCommit(false);
 
@@ -137,7 +138,7 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testUsesRegularSessionForDmlInAutoCommit() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       assertTrue(connection.getAutoCommit());
       assertEquals(1, connection.createStatement().executeUpdate(INSERT_SQL));
     }
@@ -158,7 +159,7 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testUsesRegularSessionForQueryInTransaction() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection.setAutoCommit(false);
       assertFalse(connection.getAutoCommit());
 
