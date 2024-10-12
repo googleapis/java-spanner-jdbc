@@ -83,7 +83,8 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
         getPort(), "proj", "inst", "db");
   }
 
-  private Connection createConnection() throws SQLException {
+  @Override
+  protected Connection createJdbcConnection() throws SQLException {
     return DriverManager.getConnection(createUrl());
   }
 
@@ -103,7 +104,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
     String prefix = dialect == Dialect.POSTGRESQL ? "spanner." : "";
 
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       // This will automatically enable Data Boost for any partitioned query that is executed on
       // this connection. The property is ignored for any query that is not a partitioned query.
       connection.createStatement().execute(String.format("set %sdata_boost_enabled=true", prefix));
@@ -199,7 +200,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
     Statement statement = Statement.of("select * from my_table where active=true");
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
 
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
           connection.unwrap(CloudSpannerJdbcConnection.class);
       // This will automatically enable Data Boost for any partitioned query that is executed on
@@ -288,7 +289,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
             .build();
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
 
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
           connection.unwrap(CloudSpannerJdbcConnection.class);
       // This will automatically enable Data Boost for any partitioned query that is executed on
@@ -372,7 +373,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
     Statement statement = Statement.of("select * from my_table where active=true");
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
 
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
           connection.unwrap(CloudSpannerJdbcConnection.class);
       // This will automatically enable Data Boost for any partitioned query that is executed on
@@ -478,7 +479,7 @@ public class PartitionedQueryMockServerTest extends AbstractMockServerTest {
     Statement statement = Statement.of("select * from my_table where active=true");
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
 
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       CloudSpannerJdbcConnection cloudSpannerJdbcConnection =
           connection.unwrap(CloudSpannerJdbcConnection.class);
       // This will automatically enable Data Boost for any partitioned query that is executed on

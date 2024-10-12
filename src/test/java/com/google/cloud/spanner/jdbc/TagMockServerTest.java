@@ -77,13 +77,14 @@ public class TagMockServerTest extends AbstractMockServerTest {
         getPort(), "proj", "inst", "db" + (dialect == Dialect.POSTGRESQL ? "pg" : ""));
   }
 
-  private Connection createConnection() throws SQLException {
+  @Override
+  protected Connection createJdbcConnection() throws SQLException {
     return DriverManager.getConnection(createUrl());
   }
 
   @Test
   public void testStatementTagForQuery() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .createStatement()
           .execute(String.format("set %sstatement_tag='my-tag'", getVariablePrefix()));
@@ -107,7 +108,7 @@ public class TagMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testTransactionTagForQuery() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .createStatement()
           .execute(String.format("set %stransaction_tag='my-tag'", getVariablePrefix()));
@@ -142,7 +143,7 @@ public class TagMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementTagForBatchDml() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .createStatement()
           .execute(String.format("set %sstatement_tag='my-tag'", getVariablePrefix()));
@@ -172,7 +173,7 @@ public class TagMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testTransactionTagForBatchDml() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .createStatement()
           .execute(String.format("set %stransaction_tag='my-tag'", getVariablePrefix()));
@@ -214,7 +215,7 @@ public class TagMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementTagInHint() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       try (ResultSet resultSet =
           connection
               .createStatement()

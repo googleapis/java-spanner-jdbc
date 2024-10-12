@@ -80,7 +80,8 @@ public class StatementReturnGeneratedKeysMockServerTest extends AbstractMockServ
         getPort(), "proj", "inst", "db");
   }
 
-  private Connection createConnection() throws SQLException {
+  @Override
+  protected Connection createJdbcConnection() throws SQLException {
     return DriverManager.getConnection(createUrl());
   }
 
@@ -120,7 +121,7 @@ public class StatementReturnGeneratedKeysMockServerTest extends AbstractMockServ
                 .setStats(ResultSetStats.newBuilder().setRowCountExact(1L).build())
                 .build()));
 
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         java.sql.Statement statement = connection.createStatement()) {
       for (SqlRunnable runnable :
           ImmutableList.<SqlRunnable>of(
@@ -183,7 +184,7 @@ public class StatementReturnGeneratedKeysMockServerTest extends AbstractMockServ
                 .setStats(ResultSetStats.newBuilder().setRowCountExact(1L).build())
                 .build()));
 
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         java.sql.Statement statement = connection.createStatement()) {
       for (SqlRunnable runnable :
           ImmutableList.<SqlRunnable>of(
@@ -216,7 +217,7 @@ public class StatementReturnGeneratedKeysMockServerTest extends AbstractMockServ
     String sql = "insert into test (id, value) values (1, 'One')";
     mockSpanner.putStatementResult(StatementResult.update(Statement.of(sql), 1L));
 
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         java.sql.Statement statement = connection.createStatement()) {
       // The JDBC driver silently ignores the request for column indices.
       for (SqlRunnable runnable :
@@ -241,7 +242,7 @@ public class StatementReturnGeneratedKeysMockServerTest extends AbstractMockServ
     RandomResultSetGenerator generator = new RandomResultSetGenerator(1);
     mockSpanner.putStatementResult(StatementResult.query(Statement.of(sql), generator.generate()));
 
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         java.sql.Statement statement = connection.createStatement()) {
       assertTrue(statement.execute(sql, java.sql.Statement.RETURN_GENERATED_KEYS));
       try (ResultSet resultSet = statement.getResultSet()) {
@@ -258,7 +259,7 @@ public class StatementReturnGeneratedKeysMockServerTest extends AbstractMockServ
     String sql = "create table test";
     addDdlResponseToSpannerAdmin();
 
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         java.sql.Statement statement = connection.createStatement()) {
       assertFalse(statement.execute(sql, java.sql.Statement.RETURN_GENERATED_KEYS));
       assertEquals(java.sql.Statement.SUCCESS_NO_INFO, statement.getUpdateCount());
@@ -294,7 +295,7 @@ public class StatementReturnGeneratedKeysMockServerTest extends AbstractMockServ
                 .setStats(ResultSetStats.newBuilder().setRowCountExact(1L).build())
                 .build()));
 
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         java.sql.Statement statement = connection.createStatement()) {
       assertTrue(statement.execute(sql, java.sql.Statement.RETURN_GENERATED_KEYS));
       try (ResultSet resultSet = statement.getResultSet()) {

@@ -85,13 +85,14 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
         getPort(), "proj", "inst", "db" + (dialect == Dialect.POSTGRESQL ? "pg" : ""));
   }
 
-  private Connection createConnection() throws SQLException {
+  @Override
+  protected Connection createJdbcConnection() throws SQLException {
     return DriverManager.getConnection(createUrl());
   }
 
   @Test
   public void testCreateSavepoint() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection.setSavepoint("s1");
 
       if (dialect == Dialect.POSTGRESQL) {
@@ -112,7 +113,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testCreateSavepointWhenDisabled() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .unwrap(CloudSpannerJdbcConnection.class)
           .setSavepointSupport(SavepointSupport.DISABLED);
@@ -122,7 +123,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testReleaseSavepoint() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       Savepoint s1 = connection.setSavepoint("s1");
       connection.releaseSavepoint(s1);
       assertThrows(SQLException.class, () -> connection.releaseSavepoint(s1));
@@ -150,7 +151,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
   public void testRollbackToSavepoint() throws SQLException {
     for (SavepointSupport savepointSupport :
         new SavepointSupport[] {SavepointSupport.ENABLED, SavepointSupport.FAIL_AFTER_ROLLBACK}) {
-      try (Connection connection = createConnection()) {
+      try (Connection connection = createJdbcConnection()) {
         connection.unwrap(CloudSpannerJdbcConnection.class).setSavepointSupport(savepointSupport);
 
         Savepoint s1 = connection.setSavepoint("s1");
@@ -181,7 +182,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testSavepointInAutoCommit() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection.setAutoCommit(true);
       assertThrows(SQLException.class, () -> connection.setSavepoint("s1"));
 
@@ -196,7 +197,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
   public void testRollbackToSavepointInReadOnlyTransaction() throws SQLException {
     for (SavepointSupport savepointSupport :
         new SavepointSupport[] {SavepointSupport.ENABLED, SavepointSupport.FAIL_AFTER_ROLLBACK}) {
-      try (Connection connection = createConnection()) {
+      try (Connection connection = createJdbcConnection()) {
         connection.unwrap(CloudSpannerJdbcConnection.class).setSavepointSupport(savepointSupport);
         connection.setReadOnly(true);
 
@@ -237,7 +238,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testRollbackToSavepointInReadWriteTransaction() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .unwrap(CloudSpannerJdbcConnection.class)
           .setSavepointSupport(SavepointSupport.ENABLED);
@@ -288,7 +289,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testRollbackToSavepointWithDmlStatements() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .unwrap(CloudSpannerJdbcConnection.class)
           .setSavepointSupport(SavepointSupport.ENABLED);
@@ -344,7 +345,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
     int numRows = 10;
     RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .unwrap(CloudSpannerJdbcConnection.class)
           .setSavepointSupport(SavepointSupport.ENABLED);
@@ -401,7 +402,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
     int numRows = 10;
     RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .unwrap(CloudSpannerJdbcConnection.class)
           .setSavepointSupport(SavepointSupport.FAIL_AFTER_ROLLBACK);
@@ -442,7 +443,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
       int numRows = 10;
       RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
       mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
-      try (Connection connection = createConnection()) {
+      try (Connection connection = createJdbcConnection()) {
         connection.unwrap(CloudSpannerJdbcConnection.class).setSavepointSupport(savepointSupport);
 
         try (ResultSet resultSet = connection.createStatement().executeQuery(statement.getSql())) {
@@ -477,7 +478,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
     int numRows = 10;
     RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       try (ResultSet resultSet = connection.createStatement().executeQuery(statement.getSql())) {
         int count = 0;
         while (resultSet.next()) {
@@ -512,7 +513,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
     int numRows = 10;
     RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .unwrap(CloudSpannerJdbcConnection.class)
           .setSavepointSupport(SavepointSupport.ENABLED);
@@ -561,7 +562,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testRollbackMutations() throws SQLException {
-    try (Connection con = createConnection()) {
+    try (Connection con = createJdbcConnection()) {
       CloudSpannerJdbcConnection connection = con.unwrap(CloudSpannerJdbcConnection.class);
       connection.setSavepointSupport(SavepointSupport.ENABLED);
 
@@ -589,7 +590,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testRollbackBatchDml() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection
           .unwrap(CloudSpannerJdbcConnection.class)
           .setSavepointSupport(SavepointSupport.ENABLED);
@@ -649,7 +650,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
     int numRows = 10;
     RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection.unwrap(CloudSpannerJdbcConnection.class).setRetryAbortsInternally(false);
 
       Savepoint s1 = connection.setSavepoint("s1");
@@ -676,7 +677,7 @@ public class SavepointMockServerTest extends AbstractMockServerTest {
     int numRows = 10;
     RandomResultSetGenerator generator = new RandomResultSetGenerator(numRows);
     mockSpanner.putStatementResult(StatementResult.query(statement, generator.generate()));
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       connection.unwrap(CloudSpannerJdbcConnection.class).setRetryAbortsInternally(false);
       connection.setReadOnly(true);
 

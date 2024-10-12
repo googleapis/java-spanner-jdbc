@@ -205,13 +205,14 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
         getPort(), "proj", "inst", "db");
   }
 
-  private Connection createConnection() throws SQLException {
+  @Override
+  protected Connection createJdbcConnection() throws SQLException {
     return DriverManager.getConnection(createUrl());
   }
 
   @Test
   public void testStatementExecuteQuery() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       try (ResultSet resultSet = statement.executeQuery(query)) {
         verifyResultSet(resultSet);
@@ -231,7 +232,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecuteUpdate() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       assertEquals(1, statement.executeUpdate(dml));
       assertEquals(0, statement.executeUpdate(DDL));
@@ -249,7 +250,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecuteUpdateReturnGeneratedKeys() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       // TODO: Add tests for RETURN_GENERATED_KEYS when that is supported.
       assertEquals(1, statement.executeUpdate(dml, Statement.NO_GENERATED_KEYS));
@@ -265,7 +266,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecuteUpdateReturnColumnNames() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       assertEquals(1, statement.executeUpdate(dml, new String[] {"id"}));
       assertEquals(0, statement.executeUpdate(DDL, new String[] {"id"}));
@@ -283,7 +284,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecuteUpdateReturnColumnIndexes() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       assertEquals(1, statement.executeUpdate(dml, new int[] {1}));
       assertEquals(0, statement.executeUpdate(DDL, new int[] {1}));
@@ -297,7 +298,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementLargeExecuteUpdate() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       assertEquals(1L, statement.executeLargeUpdate(dml));
       assertEquals(0L, statement.executeLargeUpdate(DDL));
@@ -311,7 +312,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecuteLargeUpdateReturnGeneratedKeys() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       // TODO: Add tests for RETURN_GENERATED_KEYS when that is supported.
       assertEquals(1, statement.executeLargeUpdate(dml, Statement.NO_GENERATED_KEYS));
@@ -329,7 +330,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecuteLargeUpdateReturnColumnNames() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       assertEquals(1, statement.executeLargeUpdate(dml, new String[] {"id"}));
       assertEquals(0, statement.executeLargeUpdate(DDL, new String[] {"id"}));
@@ -346,7 +347,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecuteLargeUpdateReturnColumnIndexes() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       assertEquals(1, statement.executeLargeUpdate(dml, new int[] {1}));
       assertEquals(0, statement.executeLargeUpdate(DDL, new int[] {1}));
@@ -360,7 +361,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecute() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       verifyUpdateCount(statement, () -> statement.execute(dml), 1L);
       verifyUpdateCount(statement, () -> statement.execute(largeDml), LARGE_UPDATE_COUNT);
@@ -375,7 +376,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecuteReturnGeneratedKeys() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       // TODO: Add tests for RETURN_GENERATED_KEYS when that is supported.
       verifyUpdateCount(statement, () -> statement.execute(dml, Statement.NO_GENERATED_KEYS), 1L);
@@ -401,7 +402,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecuteReturnColumnNames() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       verifyUpdateCount(statement, () -> statement.execute(dml, new String[] {"id"}), 1L);
       verifyUpdateCount(
@@ -420,7 +421,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testStatementExecuteReturnColumnIndexes() throws SQLException {
-    try (Connection connection = createConnection();
+    try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       verifyUpdateCount(statement, () -> statement.execute(dml, new int[] {1}), 1L);
       verifyUpdateCount(
@@ -439,7 +440,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteQuery() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       try (ResultSet resultSet = connection.prepareStatement(query).executeQuery()) {
         verifyResultSet(resultSet);
       }
@@ -458,7 +459,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteUpdate() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       assertEquals(1, connection.prepareStatement(dml).executeUpdate());
       assertEquals(0, connection.prepareStatement(DDL).executeUpdate());
       assertEquals(0, connection.prepareStatement(clientSideUpdate).executeUpdate());
@@ -472,7 +473,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteUpdateReturnGeneratedKeys() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       // TODO: Add tests for RETURN_GENERATED_KEYS when that is supported.
       assertEquals(
           1, connection.prepareStatement(dml, Statement.NO_GENERATED_KEYS).executeUpdate());
@@ -503,7 +504,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteUpdateReturnColumnNames() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       assertEquals(1, connection.prepareStatement(dml, new String[] {"id"}).executeUpdate());
       assertEquals(0, connection.prepareStatement(DDL, new String[] {"id"}).executeUpdate());
       assertEquals(
@@ -523,7 +524,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteUpdateReturnColumnIndexes() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       assertEquals(1, connection.prepareStatement(dml, new int[] {1}).executeUpdate());
       assertEquals(0, connection.prepareStatement(DDL, new int[] {1}).executeUpdate());
       assertEquals(0, connection.prepareStatement(clientSideUpdate, new int[] {1}).executeUpdate());
@@ -539,7 +540,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementLargeExecuteUpdate() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       assertEquals(1L, connection.prepareStatement(dml).executeLargeUpdate());
       assertEquals(0L, connection.prepareStatement(DDL).executeLargeUpdate());
       assertEquals(0L, connection.prepareStatement(clientSideUpdate).executeLargeUpdate());
@@ -554,7 +555,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteLargeUpdateReturnGeneratedKeys() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       // TODO: Add tests for RETURN_GENERATED_KEYS when that is supported.
       assertEquals(
           1, connection.prepareStatement(dml, Statement.NO_GENERATED_KEYS).executeLargeUpdate());
@@ -587,7 +588,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteLargeUpdateReturnColumnNames() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       assertEquals(1, connection.prepareStatement(dml, new String[] {"id"}).executeLargeUpdate());
       assertEquals(0, connection.prepareStatement(DDL, new String[] {"id"}).executeLargeUpdate());
       assertEquals(
@@ -612,7 +613,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteLargeUpdateReturnColumnIndexes() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       assertEquals(1, connection.prepareStatement(dml, new int[] {1}).executeLargeUpdate());
       assertEquals(0, connection.prepareStatement(DDL, new int[] {1}).executeLargeUpdate());
       assertEquals(
@@ -631,7 +632,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecute() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       verifyPreparedUpdateCount(connection.prepareStatement(dml), PreparedStatement::execute, 1L);
       verifyPreparedUpdateCount(
           connection.prepareStatement(largeDml), PreparedStatement::execute, LARGE_UPDATE_COUNT);
@@ -651,7 +652,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteReturnGeneratedKeys() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       // TODO: Add tests for RETURN_GENERATED_KEYS when that is supported.
       verifyPreparedUpdateCount(
           connection.prepareStatement(dml, Statement.NO_GENERATED_KEYS),
@@ -683,7 +684,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteReturnColumnNames() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       verifyPreparedUpdateCount(
           connection.prepareStatement(dml, new String[] {"id"}), PreparedStatement::execute, 1L);
       verifyPreparedUpdateCount(
@@ -711,7 +712,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
 
   @Test
   public void testPreparedStatementExecuteReturnColumnIndexes() throws SQLException {
-    try (Connection connection = createConnection()) {
+    try (Connection connection = createJdbcConnection()) {
       verifyPreparedUpdateCount(
           connection.prepareStatement(dml, new int[] {1}), PreparedStatement::execute, 1L);
       verifyPreparedUpdateCount(
