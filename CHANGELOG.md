@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.23.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.22.1...v2.23.0) (2024-10-12)
+
+
+### Features
+
+* Auto_batch_dml connection property ([#1787](https://github.com/googleapis/java-spanner-jdbc/issues/1787)) ([8aa0edb](https://github.com/googleapis/java-spanner-jdbc/commit/8aa0edbca8545348066cdcee511f2fc692987075))
+
+
+### Bug Fixes
+
+* Fixed transaction tagging and reset datafaker version ([#1777](https://github.com/googleapis/java-spanner-jdbc/issues/1777)) ([3b117c0](https://github.com/googleapis/java-spanner-jdbc/commit/3b117c0723fb44d82170b5ab766afd6ff2c0c347))
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.52.0 ([#1779](https://github.com/googleapis/java-spanner-jdbc/issues/1779)) ([ba661fe](https://github.com/googleapis/java-spanner-jdbc/commit/ba661fe9a29935b2683988c968f23dbd171c6e0f))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.78.0 ([#1781](https://github.com/googleapis/java-spanner-jdbc/issues/1781)) ([dcebfff](https://github.com/googleapis/java-spanner-jdbc/commit/dcebfffa8eb71aa5711774873dd8e451de7e9bf5))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.79.0 ([#1786](https://github.com/googleapis/java-spanner-jdbc/issues/1786)) ([2cb6c99](https://github.com/googleapis/java-spanner-jdbc/commit/2cb6c99db5c96842b08a303f59b3669deb03fb9a))
+* Update dependency com.google.cloud:google-cloud-trace to v2.52.0 ([#1780](https://github.com/googleapis/java-spanner-jdbc/issues/1780)) ([7a81155](https://github.com/googleapis/java-spanner-jdbc/commit/7a811556a6203006e6e40c54a5a8017d68db3664))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.37.0 ([#1775](https://github.com/googleapis/java-spanner-jdbc/issues/1775)) ([db48aa5](https://github.com/googleapis/java-spanner-jdbc/commit/db48aa571e913bd892708507a9da758a9a9790c0))
+* Update dependency com.google.cloud.opentelemetry:exporter-trace to v0.33.0 ([#1778](https://github.com/googleapis/java-spanner-jdbc/issues/1778)) ([1e5428f](https://github.com/googleapis/java-spanner-jdbc/commit/1e5428f0a5cfdbd983b99c5fd3fa59833c9ddada))
+* Update dependency com.spotify.fmt:fmt-maven-plugin to v2.25 ([#1776](https://github.com/googleapis/java-spanner-jdbc/issues/1776)) ([fe47f12](https://github.com/googleapis/java-spanner-jdbc/commit/fe47f12a87a048f794980c871ebb79cbc971cfc5))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.43.0 ([#1782](https://github.com/googleapis/java-spanner-jdbc/issues/1782)) ([7c3c46e](https://github.com/googleapis/java-spanner-jdbc/commit/7c3c46edf0ecccbb2dcdb8c54a665815c184e34a))
+
 ## [2.22.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.22.0...v2.22.1) (2024-10-03)
 
 
