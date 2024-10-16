@@ -21,6 +21,7 @@ SELECT TABLE_CATALOG AS "TABLE_CAT", TABLE_SCHEMA AS "TABLE_SCHEM", TABLE_NAME A
            WHEN DATA_TYPE LIKE 'bytea' THEN -2
            WHEN DATA_TYPE = 'date' THEN 91
            WHEN DATA_TYPE = 'double precision' THEN 8
+           WHEN DATA_TYPE = 'real' THEN 7
            WHEN DATA_TYPE = 'bigint' THEN -5
            WHEN DATA_TYPE = 'numeric' THEN 2
            WHEN DATA_TYPE LIKE 'character varying' THEN -9
@@ -34,6 +35,7 @@ SELECT TABLE_CATALOG AS "TABLE_CAT", TABLE_SCHEMA AS "TABLE_SCHEM", TABLE_NAME A
            WHEN DATA_TYPE LIKE 'bytea' THEN 10485760
            WHEN DATA_TYPE = 'date' THEN 10
            WHEN DATA_TYPE = 'double precision' THEN 15
+           WHEN DATA_TYPE = 'real' THEN 15
            WHEN DATA_TYPE = 'bigint' THEN 19
            WHEN DATA_TYPE = 'numeric' THEN 15
            WHEN DATA_TYPE LIKE 'character varying' THEN CHARACTER_MAXIMUM_LENGTH
@@ -43,6 +45,7 @@ SELECT TABLE_CATALOG AS "TABLE_CAT", TABLE_SCHEMA AS "TABLE_SCHEM", TABLE_NAME A
        0 AS "BUFFER_LENGTH",
        CASE
            WHEN DATA_TYPE LIKE 'double precision' THEN 16
+           WHEN DATA_TYPE LIKE 'real' THEN 16
            WHEN DATA_TYPE LIKE 'numeric' THEN 16383
            ELSE NULL
            END AS "DECIMAL_DIGITS",
@@ -50,6 +53,7 @@ SELECT TABLE_CATALOG AS "TABLE_CAT", TABLE_SCHEMA AS "TABLE_SCHEM", TABLE_NAME A
            WHEN DATA_TYPE LIKE 'bigint' THEN 10
            WHEN DATA_TYPE LIKE 'numeric' THEN 10
            WHEN DATA_TYPE LIKE 'double precision' THEN 2
+           WHEN DATA_TYPE LIKE 'real' THEN 2
            ELSE NULL
            END AS "NUM_PREC_RADIX",
        CASE

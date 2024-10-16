@@ -922,16 +922,17 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         dialect.dialect == Dialect.POSTGRESQL);
     String sql =
         "INSERT INTO TableWithAllColumnTypes ("
-            + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
-            + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
-            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + "ColInt64, ColFloat64, ColFloat32, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
+            + "ColInt64Array, ColFloat64Array, ColFloat32Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
+            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     try (Connection con = createConnection(env, database)) {
       try (PreparedStatement ps = con.prepareStatement(sql)) {
         ParameterMetaData metadata = ps.getParameterMetaData();
-        assertEquals(22, metadata.getParameterCount());
+        assertEquals(24, metadata.getParameterCount());
         int index = 0;
         assertEquals(Types.BIGINT, metadata.getParameterType(++index));
         assertEquals(Types.DOUBLE, metadata.getParameterType(++index));
+        assertEquals(Types.REAL, metadata.getParameterType(++index));
         assertEquals(Types.BOOLEAN, metadata.getParameterType(++index));
         assertEquals(Types.NVARCHAR, metadata.getParameterType(++index));
         assertEquals(Types.NVARCHAR, metadata.getParameterType(++index));
@@ -952,10 +953,12 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
+        assertEquals(Types.ARRAY, metadata.getParameterType(++index));
 
         index = 0;
         ps.setLong(++index, 1L);
         ps.setDouble(++index, 2D);
+        ps.setFloat(++index, 3.14f);
         ps.setBoolean(++index, true);
         ps.setString(++index, "test");
         ps.setObject(++index, UUID.fromString("2d37f522-e0a5-4f22-8e09-4d77d299c967"));
@@ -968,6 +971,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
 
         ps.setArray(++index, con.createArrayOf("INT64", new Long[] {1L, 2L, 3L}));
         ps.setArray(++index, con.createArrayOf("FLOAT64", new Double[] {1.1D, 2.2D, 3.3D}));
+        ps.setArray(++index, con.createArrayOf("FLOAT32", new Float[] {1.1f, 2.2f, 3.3f}));
         ps.setArray(
             ++index, con.createArrayOf("BOOL", new Boolean[] {Boolean.TRUE, null, Boolean.FALSE}));
         ps.setArray(++index, con.createArrayOf("STRING", new String[] {"1", "2", "3"}));
@@ -1006,6 +1010,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertTrue(rs.next());
         assertEquals(1L, rs.getLong(++index));
         assertEquals(2d, rs.getDouble(++index), 0.0d);
+        assertEquals(3.14f, rs.getFloat(++index), 0.0f);
         assertTrue(rs.getBoolean(++index));
         assertEquals("test", rs.getString(++index));
         assertEquals("2d37f522-e0a5-4f22-8e09-4d77d299c967", rs.getString(++index));
@@ -1020,6 +1025,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertArrayEquals(new Long[] {1L, 2L, 3L}, (Long[]) rs.getArray(++index).getArray());
         assertArrayEquals(
             new Double[] {1.1D, 2.2D, 3.3D}, (Double[]) rs.getArray(++index).getArray());
+        assertArrayEquals(
+            new Float[] {1.1f, 2.2f, 3.3f}, (Float[]) rs.getArray(++index).getArray());
         assertArrayEquals(
             new Boolean[] {true, null, false}, (Boolean[]) rs.getArray(++index).getArray());
         assertArrayEquals(new String[] {"1", "2", "3"}, (String[]) rs.getArray(++index).getArray());
@@ -1049,13 +1056,14 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
 
     String sql =
         "INSERT INTO TableWithAllColumnTypes ("
-            + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColDate, ColTimestamp, ColNumeric, ColJson"
-            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + "ColInt64, ColFloat64, ColFloat32, ColBool, ColString, ColStringMax, ColBytes, ColDate, ColTimestamp, ColNumeric, ColJson"
+            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     try (Connection con = createConnection(env, database)) {
       try (PreparedStatement ps = con.prepareStatement(sql)) {
         int index = 0;
         ps.setLong(++index, 1L);
         ps.setDouble(++index, 2D);
+        ps.setFloat(++index, 3.14f);
         ps.setBoolean(++index, true);
         ps.setString(++index, "test");
         ps.setObject(++index, UUID.fromString("2d37f522-e0a5-4f22-8e09-4d77d299c967"));
@@ -1074,6 +1082,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertTrue(rs.next());
         assertEquals(1L, rs.getLong(++index));
         assertEquals(2d, rs.getDouble(++index), 0.0d);
+        assertEquals(3.14f, rs.getFloat(++index), 0.0f);
         assertTrue(rs.getBoolean(++index));
         assertEquals("test", rs.getString(++index));
         assertEquals("2d37f522-e0a5-4f22-8e09-4d77d299c967", rs.getString(++index));
@@ -1097,10 +1106,11 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       try (PreparedStatement ps =
           con.prepareStatement("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=?")) {
         ResultSetMetaData metadata = ps.getMetaData();
-        assertEquals(24, metadata.getColumnCount());
+        assertEquals(26, metadata.getColumnCount());
         int index = 0;
         assertEquals("ColInt64", metadata.getColumnLabel(++index));
         assertEquals("ColFloat64", metadata.getColumnLabel(++index));
+        assertEquals("ColFloat32", metadata.getColumnLabel(++index));
         assertEquals("ColBool", metadata.getColumnLabel(++index));
         assertEquals("ColString", metadata.getColumnLabel(++index));
         assertEquals("ColStringMax", metadata.getColumnLabel(++index));
@@ -1113,6 +1123,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertEquals("ColJson", metadata.getColumnLabel(++index));
         assertEquals("ColInt64Array", metadata.getColumnLabel(++index));
         assertEquals("ColFloat64Array", metadata.getColumnLabel(++index));
+        assertEquals("ColFloat32Array", metadata.getColumnLabel(++index));
         assertEquals("ColBoolArray", metadata.getColumnLabel(++index));
         assertEquals("ColStringArray", metadata.getColumnLabel(++index));
         assertEquals("ColStringMaxArray", metadata.getColumnLabel(++index));
@@ -1149,14 +1160,15 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         dialect.dialect == Dialect.POSTGRESQL);
     String sql =
         "INSERT INTO TableWithAllColumnTypes ("
-            + "ColInt64, ColFloat64, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
-            + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
-            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + "ColInt64, ColFloat64, ColFloat32, ColBool, ColString, ColStringMax, ColBytes, ColBytesMax, ColDate, ColTimestamp, ColCommitTS, ColNumeric, ColJson, "
+            + "ColInt64Array, ColFloat64Array, ColFloat32Array, ColBoolArray, ColStringArray, ColStringMaxArray, ColBytesArray, ColBytesMaxArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray"
+            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, PENDING_COMMIT_TIMESTAMP(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     try (Connection con = createConnection(env, database)) {
       try (PreparedStatement ps = con.prepareStatement(sql)) {
         int index = 1;
         ps.setObject(index++, Value.int64(2L));
         ps.setObject(index++, Value.float64(2D));
+        ps.setObject(index++, Value.float32(3.14f));
         ps.setObject(index++, Value.bool(true));
         ps.setObject(index++, Value.string("testvalues"));
         ps.setObject(index++, Value.string("2d37f522-e0a5-4f22-8e09-4d77d299c967"));
@@ -1170,6 +1182,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
 
         ps.setObject(index++, Value.int64Array(new long[] {1L, 2L, 3L}));
         ps.setObject(index++, Value.float64Array(new double[] {1.1D, 2.2D, 3.3D}));
+        ps.setObject(index++, Value.float32Array(new float[] {1.1f, 2.2f, 3.3f}));
         ps.setObject(index++, Value.boolArray(Arrays.asList(Boolean.TRUE, null, Boolean.FALSE)));
         ps.setObject(index++, Value.stringArray(Arrays.asList("1", "2", "3")));
         ps.setObject(index++, Value.stringArray(Arrays.asList("3", "2", "1")));
@@ -1207,6 +1220,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         int index = 1;
         assertEquals(Value.int64(2L), rs.getObject(index++, Value.class));
         assertEquals(Value.float64(2d), rs.getObject(index++, Value.class));
+        assertEquals(Value.float32(3.14f), rs.getObject(index++, Value.class));
         assertEquals(Value.bool(true), rs.getObject(index++, Value.class));
         assertEquals(Value.string("testvalues"), rs.getObject(index++, Value.class));
         assertEquals(
@@ -1229,6 +1243,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertEquals(
             Value.float64Array(new double[] {1.1D, 2.2D, 3.3D}),
             rs.getObject(index++, Value.class));
+        assertEquals(
+            Value.float32Array(new float[] {1.1f, 2.2f, 3.3f}), rs.getObject(index++, Value.class));
         assertEquals(
             Value.boolArray(Arrays.asList(true, null, false)), rs.getObject(index++, Value.class));
         assertEquals(

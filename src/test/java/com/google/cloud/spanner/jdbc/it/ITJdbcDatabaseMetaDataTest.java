@@ -149,6 +149,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
       Arrays.asList(
           new Column("ColInt64", Types.BIGINT, "INT64", 19, null, 10, false, null),
           new Column("ColFloat64", Types.DOUBLE, "FLOAT64", 15, 16, 2, false, null),
+          new Column("ColFloat32", Types.REAL, "FLOAT32", 15, 16, 2, false, null),
           new Column("ColBool", Types.BOOLEAN, "BOOL", null, null, null, false, null),
           new Column("ColString", Types.NVARCHAR, "STRING(100)", 100, null, null, false, 100),
           new Column(
@@ -162,6 +163,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           new Column("ColJson", Types.NVARCHAR, "JSON", 2621440, null, null, false, 2621440),
           new Column("ColInt64Array", Types.ARRAY, "ARRAY<INT64>", 19, null, 10, true, null),
           new Column("ColFloat64Array", Types.ARRAY, "ARRAY<FLOAT64>", 15, 16, 2, true, null),
+          new Column("ColFloat32Array", Types.ARRAY, "ARRAY<FLOAT32>", 15, 16, 2, true, null),
           new Column("ColBoolArray", Types.ARRAY, "ARRAY<BOOL>", null, null, null, true, null),
           new Column(
               "ColStringArray", Types.ARRAY, "ARRAY<STRING(100)>", 100, null, null, true, 100),
