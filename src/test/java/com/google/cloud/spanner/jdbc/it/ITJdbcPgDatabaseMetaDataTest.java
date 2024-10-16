@@ -148,6 +148,7 @@ public class ITJdbcPgDatabaseMetaDataTest extends ITAbstractJdbcTest {
       Arrays.asList(
           new Column("colint64", Types.BIGINT, "bigint", 19, null, 10, false, null),
           new Column("colfloat64", Types.DOUBLE, "double precision", 15, 16, 2, false, null),
+          new Column("colfloat32", Types.REAL, "single precision", 15, 16, 2, false, null),
           new Column("colbool", Types.BOOLEAN, "boolean", null, null, null, false, null),
           new Column("colstring", Types.NVARCHAR, "character varying", 100, null, null, false, 100),
           new Column(
