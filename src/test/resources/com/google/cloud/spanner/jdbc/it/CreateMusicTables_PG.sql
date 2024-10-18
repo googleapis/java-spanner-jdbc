@@ -71,6 +71,7 @@ CREATE TABLE Concerts (
 CREATE TABLE TableWithAllColumnTypes (
     ColInt64     BIGINT PRIMARY KEY,
     ColFloat64   FLOAT8 NOT NULL,
+    ColFloat32   FLOAT4 NOT NULL,
     ColBool      BOOL NOT NULL,
     ColString    VARCHAR(100) NOT NULL,
     ColStringMax TEXT,
@@ -83,6 +84,7 @@ CREATE TABLE TableWithAllColumnTypes (
 CREATE TABLE all_nullable_types (
     ColInt64	    bigint primary key,
     ColFloat64	    float8,
+    ColFloat32	    float4,
     ColBool		    boolean,
     ColString		varchar(100),
     ColBytes		bytea,
@@ -93,6 +95,7 @@ CREATE TABLE all_nullable_types (
 
     ColInt64Array		bigint[],
     ColFloat64Array     float8[],
+    ColFloat32Array     float4[],
     ColBoolArray		boolean[],
     ColStringArray	    varchar(100)[],
     ColBytesArray		bytea[],
