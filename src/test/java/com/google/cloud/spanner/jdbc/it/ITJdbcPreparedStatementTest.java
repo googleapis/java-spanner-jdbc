@@ -1464,9 +1464,9 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       try (PreparedStatement preparedStatement =
           connection.prepareStatement(
               "insert into all_nullable_types ("
-                  + "ColInt64, ColFloat64, ColBool, ColString, ColBytes, ColDate, ColTimestamp, ColNumeric, ColJson, "
+                  + "ColInt64, ColFloat64, ColFloat32, ColBool, ColString, ColBytes, ColDate, ColTimestamp, ColNumeric, ColJson, "
                   + "ColInt64Array, ColFloat64Array, ColBoolArray, ColStringArray, ColBytesArray, ColDateArray, ColTimestampArray, ColNumericArray, ColJsonArray) "
-                  + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                  + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
         for (int param = 1;
             param <= preparedStatement.getParameterMetaData().getParameterCount();
             param++) {
