@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.23.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.23.0...v2.23.1) (2024-10-18)
+
+
+### Dependencies
+
+* Update dependency org.springframework.data:spring-data-bom to v2024.0.5 ([#1793](https://github.com/googleapis/java-spanner-jdbc/issues/1793)) ([5bd5a0a](https://github.com/googleapis/java-spanner-jdbc/commit/5bd5a0a086a8e38709a851cdd2fbb2bc28dbe3a5))
+
 ## [2.23.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.22.1...v2.23.0) (2024-10-12)
 
 
