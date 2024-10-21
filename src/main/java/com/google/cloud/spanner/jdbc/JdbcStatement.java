@@ -391,22 +391,12 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
    *     client side statement) or if the connection of this statement has an active batch.
    */
   void checkAndSetBatchType(String sql) throws SQLException {
-    checkConnectionHasNoActiveBatch();
     BatchType type = determineStatementBatchType(sql);
     if (this.currentBatchType == BatchType.NONE) {
       this.currentBatchType = type;
     } else if (this.currentBatchType != type) {
       throw JdbcSqlExceptionFactory.of(
           "Mixing DML and DDL statements in a batch is not allowed.", Code.INVALID_ARGUMENT);
-    }
-  }
-
-  private void checkConnectionHasNoActiveBatch() throws SQLException {
-    if (getConnection().getSpannerConnection().isDdlBatchActive()
-        || getConnection().getSpannerConnection().isDmlBatchActive()) {
-      throw JdbcSqlExceptionFactory.of(
-          "Calling addBatch() is not allowed when a DML or DDL batch has been started on the connection.",
-          Code.FAILED_PRECONDITION);
     }
   }
 
@@ -420,7 +410,6 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
   @Override
   public void clearBatch() throws SQLException {
     checkClosed();
-    checkConnectionHasNoActiveBatch();
     batchedStatements.clear();
     this.currentBatchType = BatchType.NONE;
   }
@@ -436,7 +425,6 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
 
   private long[] executeBatch(boolean large) throws SQLException {
     checkClosed();
-    checkConnectionHasNoActiveBatch();
     StatementTimeout originalTimeout = setTemporaryStatementTimeout();
     try {
       switch (this.currentBatchType) {

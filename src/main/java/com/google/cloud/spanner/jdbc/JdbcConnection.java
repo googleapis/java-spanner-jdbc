@@ -770,6 +770,36 @@ class JdbcConnection extends AbstractJdbcConnection {
     return get(Connection::getMaxPartitionedParallelism);
   }
 
+  @Override
+  public void setAutoBatchDml(boolean autoBatchDml) throws SQLException {
+    set(Connection::setAutoBatchDml, autoBatchDml);
+  }
+
+  @Override
+  public boolean isAutoBatchDml() throws SQLException {
+    return get(Connection::isAutoBatchDml);
+  }
+
+  @Override
+  public void setAutoBatchDmlUpdateCount(long updateCount) throws SQLException {
+    set(Connection::setAutoBatchDmlUpdateCount, updateCount);
+  }
+
+  @Override
+  public long getAutoBatchDmlUpdateCount() throws SQLException {
+    return get(Connection::getAutoBatchDmlUpdateCount);
+  }
+
+  @Override
+  public void setAutoBatchDmlUpdateCountVerification(boolean verification) throws SQLException {
+    set(Connection::setAutoBatchDmlUpdateCountVerification, verification);
+  }
+
+  @Override
+  public boolean isAutoBatchDmlUpdateCountVerification() throws SQLException {
+    return get(Connection::isAutoBatchDmlUpdateCountVerification);
+  }
+
   @SuppressWarnings("deprecation")
   private static final class JdbcToSpannerTransactionRetryListener
       implements com.google.cloud.spanner.connection.TransactionRetryListener {
