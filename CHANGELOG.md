@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.23.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.23.0...v2.23.1) (2024-10-23)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.38.0 ([#1800](https://github.com/googleapis/java-spanner-jdbc/issues/1800)) ([f52a087](https://github.com/googleapis/java-spanner-jdbc/commit/f52a087f72b0fab8193ecaec454c52ee71ebcda3))
+* Update dependency org.springframework.data:spring-data-bom to v2024.0.5 ([#1793](https://github.com/googleapis/java-spanner-jdbc/issues/1793)) ([5bd5a0a](https://github.com/googleapis/java-spanner-jdbc/commit/5bd5a0a086a8e38709a851cdd2fbb2bc28dbe3a5))
+* Update dependency org.testcontainers:testcontainers to v1.20.3 ([#1798](https://github.com/googleapis/java-spanner-jdbc/issues/1798)) ([c643c33](https://github.com/googleapis/java-spanner-jdbc/commit/c643c3365f435db2b04a001ce0b9bbb997e2b4f3))
+* Update dependency org.testcontainers:testcontainers-bom to v1.20.3 ([#1799](https://github.com/googleapis/java-spanner-jdbc/issues/1799)) ([da1acfc](https://github.com/googleapis/java-spanner-jdbc/commit/da1acfc1e63d8afe4a4c5a51e2f155cd42d89e1d))
+
 ## [2.23.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.22.1...v2.23.0) (2024-10-12)
 
 
