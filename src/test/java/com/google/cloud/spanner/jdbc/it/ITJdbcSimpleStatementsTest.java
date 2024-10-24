@@ -17,11 +17,11 @@
 package com.google.cloud.spanner.jdbc.it;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
@@ -102,12 +102,6 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
 
   @Test
   public void testPreparedStatement() throws SQLException {
-    // skipping the test when dialect is POSTGRESQL because of exception below
-    // INVALID_ARGUMENT: io.grpc.StatusRuntimeException: INVALID_ARGUMENT: Statements with set
-    // operations in subqueries are not supported
-    assumeFalse(
-        "select array of structs is not supported on POSTGRESQL",
-        dialect.dialect == Dialect.POSTGRESQL);
     String sql =
         "select * from (select 1 as number union all select 2 union all select 3) numbers where number=?";
     try (Connection connection = createConnection(env, database)) {
@@ -188,15 +182,16 @@ public class ITJdbcSimpleStatementsTest extends ITAbstractJdbcTest {
   }
 
   @Test
-  public void testAddBatchWhenAlreadyInBatch() {
+  public void testAddBatchWhenAlreadyInBatch() throws SQLException {
     try (Connection connection = createConnection(env, database)) {
-      connection.createStatement().execute("START BATCH DML");
-      connection.createStatement().addBatch("INSERT INTO Singers (SingerId) VALUES (-1)");
-      fail("missing expected exception");
-    } catch (SQLException e) {
-      assertThat(e.getMessage())
-          .contains(
-              "Calling addBatch() is not allowed when a DML or DDL batch has been started on the connection.");
+      try (Statement statement = connection.createStatement()) {
+        statement.execute("START BATCH DML");
+        statement.addBatch("INSERT INTO Singers (SingerId) VALUES (-1)");
+        statement.addBatch("INSERT INTO Singers (SingerId) VALUES (-2)");
+        // The returned update count for DML statements in a batch is -1.
+        assertArrayEquals(new int[] {-1, -1}, statement.executeBatch());
+        // Note: The 'Singers' table does not actually exist, so we're not executing the batch.
+      }
     }
   }
 
