@@ -1,4 +1,4 @@
 # Format:
 # module:released-version:current-version
 
-google-cloud-spanner-jdbc:2.23.0:2.23.1-SNAPSHOT
+google-cloud-spanner-jdbc:2.24.0:2.24.0
