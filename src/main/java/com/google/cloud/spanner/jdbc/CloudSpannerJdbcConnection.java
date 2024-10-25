@@ -407,6 +407,57 @@ public interface CloudSpannerJdbcConnection extends Connection {
   }
 
   /**
+   * Enables or disables automatic batching of DML statements. When enabled, DML statements that are
+   * executed on this connection will be buffered in memory instead of actually being executed. The
+   * buffered DML statements are flushed to Spanner when a statement that cannot be part of a DML
+   * batch is executed on the connection. This can be a query, a DDL statement with a THEN RETURN
+   * clause, or a Commit call. The update count that is returned for DML statements that are
+   * buffered is determined by the value that has been set with {@link
+   * #setAutoBatchDmlUpdateCount(long)}. The default is 1. The connection verifies that the update
+   * counts that were returned while buffering DML statements match the actual update counts that
+   * are returned by Spanner when the batch is executed. This verification can be disabled by
+   * calling {@link #setAutoBatchDmlUpdateCountVerification(boolean)}.
+   */
+  default void setAutoBatchDml(boolean autoBatchDml) throws SQLException {
+    throw new UnsupportedOperationException();
+  }
+
+  /** Returns whether automatic DML batching is enabled on this connection. */
+  default boolean isAutoBatchDml() throws SQLException {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Sets the update count that is returned for DML statements that are buffered during an automatic
+   * DML batch. This value is only used if {@link #isAutoBatchDml()} is enabled.
+   */
+  default void setAutoBatchDmlUpdateCount(long updateCount) throws SQLException {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Returns the update count that is returned for DML statements that are buffered during an
+   * automatic DML batch.
+   */
+  default long getAutoBatchDmlUpdateCount() throws SQLException {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Sets whether the update count that is returned by Spanner after executing an automatic DML
+   * batch should be verified against the update counts that were returned during the buffering of
+   * those statements.
+   */
+  default void setAutoBatchDmlUpdateCountVerification(boolean verification) throws SQLException {
+    throw new UnsupportedOperationException();
+  }
+
+  /** Indicates whether the update counts of automatic DML batches should be verified. */
+  default boolean isAutoBatchDmlUpdateCountVerification() throws SQLException {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
    * @see
    *     com.google.cloud.spanner.connection.Connection#addTransactionRetryListener(com.google.cloud.spanner.connection.TransactionRetryListener)
    * @throws SQLException if the {@link Connection} is closed.
