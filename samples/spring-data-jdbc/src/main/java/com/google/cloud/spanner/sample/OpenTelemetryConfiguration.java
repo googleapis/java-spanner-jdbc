@@ -17,12 +17,17 @@
 package com.google.cloud.spanner.sample;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.opentelemetry.metric.GoogleCloudMetricExporter;
+import com.google.cloud.opentelemetry.metric.MetricConfiguration;
 import com.google.cloud.opentelemetry.trace.TraceConfiguration;
 import com.google.cloud.opentelemetry.trace.TraceExporter;
 import com.google.cloud.spanner.SpannerOptions;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.export.MetricExporter;
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
@@ -51,6 +56,7 @@ public class OpenTelemetryConfiguration {
 
     // Enable OpenTelemetry tracing in Spanner.
     SpannerOptions.enableOpenTelemetryTraces();
+    SpannerOptions.enableOpenTelemetryMetrics();
 
     if (!hasDefaultCredentials()) {
       // Create a no-op OpenTelemetry object if this environment does not have any default
@@ -62,6 +68,17 @@ public class OpenTelemetryConfiguration {
     TraceConfiguration.Builder traceConfigurationBuilder = TraceConfiguration.builder();
     TraceConfiguration traceConfiguration = traceConfigurationBuilder.setProjectId(project).build();
     SpanExporter traceExporter = TraceExporter.createWithConfiguration(traceConfiguration);
+
+    MetricConfiguration.Builder metricConfigurationBuilder = MetricConfiguration.builder();
+    MetricConfiguration metricConfiguration =
+        metricConfigurationBuilder.setProjectId(project).build();
+    MetricExporter metricExporter =
+        GoogleCloudMetricExporter.createWithConfiguration(metricConfiguration);
+
+    SdkMeterProvider sdkMeterProvider =
+        SdkMeterProvider.builder()
+            .registerMetricReader(PeriodicMetricReader.builder(metricExporter).build())
+            .build();
 
     // Create an OpenTelemetry object and register it as the global OpenTelemetry object. This
     // will automatically be picked up by the Spanner libraries and used for tracing.
@@ -81,6 +98,7 @@ public class OpenTelemetryConfiguration {
                         .build())
                 .addSpanProcessor(BatchSpanProcessor.builder(traceExporter).build())
                 .build())
+        .setMeterProvider(sdkMeterProvider)
         .buildAndRegisterGlobal();
   }
 
