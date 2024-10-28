@@ -85,6 +85,11 @@
       <artifactId>exporter-trace</artifactId>
       <version>0.33.0</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.cloud.opentelemetry</groupId>
+      <artifactId>exporter-metrics</artifactId>
+      <version>0.33.0</version>
+    </dependency>
 
     <dependency>
       <groupId>com.google.collections</groupId>
