@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.24.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.24.0...v2.24.1) (2024-10-28)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.80.1 ([#1811](https://github.com/googleapis/java-spanner-jdbc/issues/1811)) ([d6ee2e9](https://github.com/googleapis/java-spanner-jdbc/commit/d6ee2e98b067f6b1e35d07e8f7bf0a371649f5ee))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.39.0 ([#1808](https://github.com/googleapis/java-spanner-jdbc/issues/1808)) ([efdd859](https://github.com/googleapis/java-spanner-jdbc/commit/efdd8596fe716ec925bf5dcc87a84a2bf2cdc9a2))
+
+
+### Documentation
+
+* Add metrics exporter to sample app ([#1809](https://github.com/googleapis/java-spanner-jdbc/issues/1809)) ([9b89f20](https://github.com/googleapis/java-spanner-jdbc/commit/9b89f20183783c9e169fbad408b3df93291fd18c))
+
 ## [2.24.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.23.0...v2.24.0) (2024-10-25)
 
 
