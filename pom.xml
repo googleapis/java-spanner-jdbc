@@ -201,13 +201,6 @@
     </dependency>
 
     <!-- Add OpenTelemetry implementation and exporters for use in integration tests -->
-    <!-- TODO: Remove this alpha dependency when the bug in OpenTelemetry has been fixed that makes SdkTracer implement ExtendedTracer -->
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-api-incubator</artifactId>
-      <version>1.40.0-alpha</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk</artifactId>
@@ -368,6 +361,7 @@
               <ignoredUsedUndeclaredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>com.google.api.grpc:proto-google-cloud-spanner-admin-instance-v1</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>com.google.api.grpc:proto-google-cloud-spanner-admin-database-v1</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.opentelemetry:opentelemetry-api-incubator</ignoredUsedUndeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredUnusedDeclaredDependencies>
               <!-- TODO: Remove grpc-alts from ignored list once it has been removed from java-spanner -->
