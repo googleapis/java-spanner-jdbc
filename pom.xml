@@ -203,12 +203,12 @@
     <!-- Add OpenTelemetry implementation and exporters for use in integration tests -->
     <dependency>
       <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk</artifactId>
+      <artifactId>opentelemetry-sdk-common</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk-common</artifactId>
+      <artifactId>opentelemetry-sdk</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
