@@ -200,39 +200,41 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Add OpenTelemetry implementation and exporters for use in integration tests -->
+    <!--
+    Add OpenTelemetry implementation and exporters for use in integration tests.
+    They are added with compile scope, as the Spanner client requires these, and we do not want to
+    reduce the scope in the JDBC driver.
+     -->
     <dependency>
       <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk-common</artifactId>
-      <scope>test</scope>
+      <artifactId>opentelemetry-context</artifactId>
     </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk</artifactId>
-      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-common</artifactId>
     </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk-trace</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.cloud.opentelemetry</groupId>
       <artifactId>exporter-trace</artifactId>
-      <version>0.33.0</version>
-      <scope>test</scope>
+      <version>0.32.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-trace</artifactId>
-      <version>2.53.0</version>
-      <scope>test</scope>
+      <version>2.52.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-trace-v1</artifactId>
-      <version>2.53.0</version>
-      <scope>test</scope>
+      <version>2.52.0</version>
     </dependency>
 
   </dependencies>
@@ -361,7 +363,7 @@
               <ignoredUsedUndeclaredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>com.google.api.grpc:proto-google-cloud-spanner-admin-instance-v1</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>com.google.api.grpc:proto-google-cloud-spanner-admin-database-v1</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>io.opentelemetry:opentelemetry-api-incubator</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.opentelemetry:*</ignoredUsedUndeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredUnusedDeclaredDependencies>
               <!-- TODO: Remove grpc-alts from ignored list once it has been removed from java-spanner -->
@@ -371,7 +373,13 @@
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-instance-v1</ignoredDependency>
               <ignoredDependency>com.google.api.grpc:grpc-google-cloud-spanner-admin-database-v1</ignoredDependency>
+              <ignoredDependency>io.opentelemetry:*</ignoredDependency>
             </ignoredUnusedDeclaredDependencies>
+            <ignoredNonTestScopedDependencies>
+              <ignoredDependency>io.opentelemetry:*</ignoredDependency>
+              <ignoredDependency>com.google.cloud:google-cloud-trace</ignoredDependency>
+              <ignoredDependency>com.google.cloud.opentelemetry:exporter-trace</ignoredDependency>
+            </ignoredNonTestScopedDependencies>
           </configuration>
         </plugin>
       </plugins>

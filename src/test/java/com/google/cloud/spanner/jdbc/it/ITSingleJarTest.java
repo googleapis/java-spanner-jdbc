@@ -61,6 +61,7 @@ public class ITSingleJarTest extends ITAbstractJdbcTest {
 
   @Test
   public void testUseSingleJar() throws Exception {
+    // printDeps();
     buildSingleJar();
     buildMainClass();
     runTestApplication();
@@ -68,6 +69,7 @@ public class ITSingleJarTest extends ITAbstractJdbcTest {
 
   @Test
   public void testUseShadedJar() throws Exception {
+    // printDeps();
     buildShadedJar();
     buildMainClass();
     runTestApplication();
@@ -89,6 +91,12 @@ public class ITSingleJarTest extends ITAbstractJdbcTest {
         id.getInstanceId().getInstance(),
         id.getDatabase());
     execute(builder);
+  }
+
+  private void printDeps() throws Exception {
+    ProcessBuilder builder = new ProcessBuilder();
+    builder.command("mvn", "dependency:tree");
+    execute(builder, true);
   }
 
   private void buildSingleJar() throws Exception {
@@ -116,11 +124,23 @@ public class ITSingleJarTest extends ITAbstractJdbcTest {
   }
 
   private void execute(ProcessBuilder builder) throws Exception {
+    execute(builder, false);
+  }
+
+  private void execute(ProcessBuilder builder, boolean showOutput) throws Exception {
     Process process = builder.start();
-    String errors;
+    String errors, output = "";
     try (InputStreamReader reader = new InputStreamReader(process.getErrorStream())) {
       errors = CharStreams.toString(reader);
     }
+    if (showOutput) {
+      try (InputStreamReader reader = new InputStreamReader(process.getInputStream())) {
+        output = CharStreams.toString(reader);
+      }
+    }
     assertEquals(errors, 0, process.waitFor());
+    if (showOutput) {
+      System.out.print(output);
+    }
   }
 }
