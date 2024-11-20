@@ -200,41 +200,24 @@
       <scope>test</scope>
     </dependency>
 
-    <!--
-    Add OpenTelemetry implementation and exporters for use in integration tests.
-    They are added with compile scope, as the Spanner client requires these, and we do not want to
-    reduce the scope in the JDBC driver.
-     -->
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-context</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk-common</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk-trace</artifactId>
-    </dependency>
+    <!-- Add OpenTelemetry implementation and exporters for use in integration tests. -->
     <dependency>
       <groupId>com.google.cloud.opentelemetry</groupId>
       <artifactId>exporter-trace</artifactId>
       <version>0.32.0</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-trace</artifactId>
       <version>2.52.0</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-trace-v1</artifactId>
       <version>2.52.0</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>
