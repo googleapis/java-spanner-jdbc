@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.24.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.24.1...v2.24.2) (2024-11-20)
+
+
+### Dependencies
+
+* Bump Spanner client to 6.81.2 ([#1833](https://github.com/googleapis/java-spanner-jdbc/issues/1833)) ([3b16c90](https://github.com/googleapis/java-spanner-jdbc/commit/3b16c9071cdab9b8f8d719ba6839a8bc5e1a2e8c))
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.18.1 ([#1815](https://github.com/googleapis/java-spanner-jdbc/issues/1815)) ([f4a23e3](https://github.com/googleapis/java-spanner-jdbc/commit/f4a23e31b63a0f832b6a17fef9fcf8f02ae327d3))
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.53.0 ([#1816](https://github.com/googleapis/java-spanner-jdbc/issues/1816)) ([cdaf7ee](https://github.com/googleapis/java-spanner-jdbc/commit/cdaf7ee8c34cc0bed6256daeb2ae0c6c2eb4e4d3))
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.54.0 ([#1831](https://github.com/googleapis/java-spanner-jdbc/issues/1831)) ([41eafa7](https://github.com/googleapis/java-spanner-jdbc/commit/41eafa70ef8c75bb99c7f0058d1fea7f28e8a14b))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.81.1 ([#1821](https://github.com/googleapis/java-spanner-jdbc/issues/1821)) ([c314bad](https://github.com/googleapis/java-spanner-jdbc/commit/c314bada6f631020cbf0a956c0b4d3ddd2c1b9cb))
+* Update dependency com.google.cloud:google-cloud-trace to v2.53.0 ([#1817](https://github.com/googleapis/java-spanner-jdbc/issues/1817)) ([1cc543c](https://github.com/googleapis/java-spanner-jdbc/commit/1cc543c7898fbf1a3febb8f4142b1d40ad8873f8))
+* Update dependency com.google.cloud:google-cloud-trace to v2.54.0 ([#1830](https://github.com/googleapis/java-spanner-jdbc/issues/1830)) ([5df5752](https://github.com/googleapis/java-spanner-jdbc/commit/5df57523b7d5bdf1945dca4bbc5fea4a100cf47e))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.40.0 ([#1825](https://github.com/googleapis/java-spanner-jdbc/issues/1825)) ([cec5322](https://github.com/googleapis/java-spanner-jdbc/commit/cec53225a5dcd5bd0f5046346d99c6b2f82147b5))
+* Update dependency com.google.cloud.opentelemetry:exporter-trace to v0.33.0 ([#1832](https://github.com/googleapis/java-spanner-jdbc/issues/1832)) ([3128451](https://github.com/googleapis/java-spanner-jdbc/commit/31284512d6de19121a8dd587b46921513dc62900))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.44.0 ([#1822](https://github.com/googleapis/java-spanner-jdbc/issues/1822)) ([40bf9e4](https://github.com/googleapis/java-spanner-jdbc/commit/40bf9e49bd6dad04efbb6f5178b4fa4e6efc2106))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.44.1 ([#1823](https://github.com/googleapis/java-spanner-jdbc/issues/1823)) ([ba8edfd](https://github.com/googleapis/java-spanner-jdbc/commit/ba8edfd7a344cb6e7806b057ec4a1d460062ed38))
+* Update dependency org.springframework.data:spring-data-bom to v2024.1.0 ([#1826](https://github.com/googleapis/java-spanner-jdbc/issues/1826)) ([66a7fc5](https://github.com/googleapis/java-spanner-jdbc/commit/66a7fc58405ad3c301ef056b3d20ff1237387cd4))
+
 ## [2.24.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.24.0...v2.24.1) (2024-10-28)
 
 
