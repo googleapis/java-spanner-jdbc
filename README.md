@@ -118,6 +118,15 @@ these can also be supplied in a Properties instance that is passed to the
 - maxSessions (int): Sets the maximum number of sessions in the backing session pool. Defaults to 400.
 - numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
 - retryAbortsInternally (boolean): The JDBC driver will by default automatically retry aborted transactions internally. This is done by keeping track of all statements and the results of these during a transaction, and if the transaction is aborted by Cloud Spanner, it will replay the statements on a new transaction and compare the results with the initial attempt. Disable this option if you want to handle aborted transactions in your own application.
+- autocommit_dml_mode (string): Determines the transaction type that is used to execute
+  [DML statements](https://cloud.google.com/spanner/docs/dml-tasks#using-dml) when the connection is
+  in auto-commit mode. The following values are supported:
+  - TRANSACTIONAL (default): Uses atomic read/write transactions.
+  - PARTITIONED_NON_ATOMIC: Use Partitioned DML for DML statements in auto-commit mode. Use this mode
+    to execute DML statements that exceed the transaction mutation limit in Spanner.
+  - TRANSACTIONAL_WITH_FALLBACK_TO_PARTITIONED_NON_ATOMIC: Execute DML statements using atomic read/write
+    transactions. If this fails because the mutation limit on Spanner has been exceeded, the DML statement
+    is retried using a Partitioned DML transaction.
 - auto_batch_dml (boolean): Automatically buffer DML statements and execute them as one batch,
   instead of executing them on Spanner directly. The buffered DML statements are executed on Spanner
   in one batch when a query is executed, or when the transaction is committed. This option can for
