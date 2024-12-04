@@ -4,7 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>2.24.2</version><!-- {x-version-update:google-cloud-spanner-jdbc:current} -->
+  <version>2.24.3-SNAPSHOT</version><!-- {x-version-update:google-cloud-spanner-jdbc:current} -->
   <packaging>jar</packaging>
   <name>Google Cloud Spanner JDBC</name>
   <url>https://github.com/googleapis/java-spanner-jdbc</url>
@@ -61,7 +61,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>6.81.2</version>
+        <version>6.82.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -166,7 +166,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.20.3</version>
+      <version>1.20.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>

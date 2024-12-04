@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.5</version>
+    <version>3.4.0</version>
     <relativePath/>
   </parent>
   <properties>
@@ -42,7 +42,7 @@
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
-        <version>1.20.3</version>
+        <version>1.20.4</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -53,7 +53,7 @@
     <dependency>
       <groupId>org.mybatis.spring.boot</groupId>
       <artifactId>mybatis-spring-boot-starter</artifactId>
-      <version>3.0.3</version>
+      <version>3.0.4</version>
     </dependency>
     <dependency>
       <groupId>org.mybatis.dynamic-sql</groupId>
