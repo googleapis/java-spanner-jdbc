@@ -24,8 +24,7 @@ import static org.junit.Assert.fail;
 
 import com.google.cloud.ServiceOptions;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
-import com.google.cloud.spanner.connection.ConnectionOptions;
-import com.google.cloud.spanner.connection.ConnectionOptions.ConnectionProperty;
+import com.google.cloud.spanner.connection.ConnectionPropertiesHelper;
 import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
@@ -174,10 +173,12 @@ public class JdbcDriverTest {
         JdbcDriver.getRegisteredDriver()
             .getPropertyInfo(
                 "jdbc:cloudspanner:/projects/p/instances/i/databases/d", new Properties());
-    assertThat(props).hasLength(ConnectionOptions.VALID_PROPERTIES.size());
+    assertThat(props).hasLength(ConnectionPropertiesHelper.VALID_CONNECTION_PROPERTIES.size());
 
     Collection<String> validConnectionPropertyNames =
-        Collections2.transform(ConnectionOptions.VALID_PROPERTIES, ConnectionProperty::getName);
+        Collections2.transform(
+            ConnectionPropertiesHelper.VALID_CONNECTION_PROPERTIES,
+            ConnectionPropertiesHelper::getConnectionPropertyName);
     Collection<String> driverPropertyNames =
         Collections2.transform(ImmutableList.copyOf(props), input -> input.name);
     assertThat(driverPropertyNames).containsExactlyElementsIn(validConnectionPropertyNames);
