@@ -241,7 +241,6 @@
         <configuration>
           <excludes>
             <exclude>com.google.cloud.spanner.jdbc.it.**</exclude>
-            <exclude>com.google.cloud.spanner.jdbc.JdbcStatementTimeoutTest</exclude>
           </excludes>
           <reportNameSuffix>sponge_log</reportNameSuffix>
           <systemPropertyVariables>
