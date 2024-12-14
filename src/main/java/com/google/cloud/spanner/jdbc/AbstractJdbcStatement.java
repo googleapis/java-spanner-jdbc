@@ -33,6 +33,8 @@ import java.sql.Statement;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -41,6 +43,8 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   private static final String CURSORS_NOT_SUPPORTED = "Cursors are not supported";
   private static final String ONLY_FETCH_FORWARD_SUPPORTED = "Only fetch_forward is supported";
   final AbstractStatementParser parser;
+  private final Lock executingLock;
+  private volatile Thread executingThread;
   private boolean closed;
   private boolean closeOnCompletion;
   private boolean poolable;
@@ -50,6 +54,11 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   AbstractJdbcStatement(JdbcConnection connection) throws SQLException {
     this.connection = connection;
     this.parser = connection.getParser();
+    if (connection.usesDirectExecutor()) {
+      this.executingLock = new ReentrantLock();
+    } else {
+      this.executingLock = null;
+    }
   }
 
   @Override
@@ -228,6 +237,10 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       Supplier<T> runnable, Function<T, Boolean> shouldResetTimeout) throws SQLException {
     StatementTimeout originalTimeout = setTemporaryStatementTimeout();
     T result = null;
+    if (this.executingLock != null) {
+      this.executingLock.lock();
+      this.executingThread = Thread.currentThread();
+    }
     try {
       Stopwatch stopwatch = Stopwatch.createStarted();
       result = runnable.get();
@@ -237,6 +250,10 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
     } catch (SpannerException spannerException) {
       throw JdbcSqlExceptionFactory.of(spannerException);
     } finally {
+      if (this.executingLock != null) {
+        this.executingThread = null;
+        this.executingLock.unlock();
+      }
       if (shouldResetTimeout.apply(result)) {
         resetStatementTimeout(originalTimeout);
       }
@@ -330,7 +347,16 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   @Override
   public void cancel() throws SQLException {
     checkClosed();
-    connection.getSpannerConnection().cancel();
+    if (this.executingThread != null) {
+      // This is a best-effort operation. It could be that the executing thread is set to null
+      // between the if-check and the actual execution. Just ignore if that happens.
+      try {
+        this.executingThread.interrupt();
+      } catch (NullPointerException ignore) {
+      }
+    } else {
+      connection.getSpannerConnection().cancel();
+    }
   }
 
   @Override

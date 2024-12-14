@@ -19,24 +19,51 @@ package com.google.cloud.spanner.jdbc;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 
 import com.google.cloud.spanner.MockSpannerServiceImpl.SimulatedExecutionTime;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
+import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlExceptionImpl;
 import com.google.cloud.spanner.jdbc.JdbcSqlExceptionFactory.JdbcSqlTimeoutException;
+import com.google.rpc.Code;
+import com.google.spanner.v1.ExecuteSqlRequest;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 /**
  * Tests setting a statement timeout. This test is by default not included in unit test runs, as the
  * minimum timeout value in JDBC is 1 second, which again makes this test relatively slow.
  */
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class JdbcStatementTimeoutTest extends AbstractMockServerTest {
+
+  @Parameter public boolean useVirtualThreads;
+
+  @Parameters(name = "useVirtualThreads = {0}")
+  public static Object[] data() {
+    return new Boolean[] {false, true};
+  }
+
+  @Override
+  protected String getBaseUrl() {
+    return super.getBaseUrl() + ";useVirtualThreads=" + this.useVirtualThreads;
+  }
+
+  @After
+  public void resetExecutionTimes() {
+    mockSpanner.removeAllExecutionTimes();
+  }
 
   @Test
   public void testExecuteTimeout() throws SQLException {
@@ -116,6 +143,37 @@ public class JdbcStatementTimeoutTest extends AbstractMockServerTest {
         statement.addBatch(INSERT_STATEMENT.getSql());
         assertThrows(JdbcSqlTimeoutException.class, statement::executeBatch);
       }
+    }
+  }
+
+  @Test
+  public void testCancel() throws Exception {
+    ExecutorService service = Executors.newSingleThreadExecutor();
+    String sql = INSERT_STATEMENT.getSql();
+
+    try (java.sql.Connection connection = createJdbcConnection();
+        Statement statement = connection.createStatement()) {
+      mockSpanner.freeze();
+      Future<Void> future =
+          service.submit(
+              () -> {
+                // Wait until the request has landed on the server and then cancel the statement.
+                mockSpanner.waitForRequestsToContain(
+                    message ->
+                        message instanceof ExecuteSqlRequest
+                            && ((ExecuteSqlRequest) message).getSql().equals(sql),
+                    5000L);
+                System.out.println("Cancelling statement");
+                statement.cancel();
+                return null;
+              });
+      JdbcSqlExceptionImpl exception =
+          assertThrows(JdbcSqlExceptionImpl.class, () -> statement.execute(sql));
+      assertEquals(Code.CANCELLED, exception.getCode());
+      assertNull(future.get());
+    } finally {
+      mockSpanner.unfreeze();
+      service.shutdown();
     }
   }
 }
