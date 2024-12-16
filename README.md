@@ -105,6 +105,9 @@ The Cloud Spanner JDBC driver supports the following connection URL properties. 
 these can also be supplied in a Properties instance that is passed to the
 `DriverManager#getConnection(String url, Properties properties)` method.
 
+See [Supported Connection Properties](documentation/connection_properties.md) for a full list of all
+supported connection properties.
+
 #### Commonly Used Properties
 - credentials (String): URL for the credentials file to use for the connection. If you do not specify any credentials at all, the default credentials of the environment as returned by `GoogleCredentials#getApplicationDefault()` is used. Example: `jdbc:cloudspanner:/projects/my-project/instances/my-instance/databases/my-db;credentials=/path/to/credentials.json`
 - autocommit (boolean): Sets the initial autocommit mode for the connection. Default is true.
@@ -135,7 +138,8 @@ these can also be supplied in a Properties instance that is passed to the
 - oauthToken (string): A valid pre-existing OAuth token to use for authentication for this connection. Setting this property will take precedence over any value set for a credentials file.
 - lenient (boolean): Enable this to force the JDBC driver to ignore unknown properties in the connection URL. Some applications automatically add additional properties to the URL that are not recognized by the JDBC driver. Normally, the JDBC driver will reject this, unless `lenient` mode is enabled.
 
-For a full list of supported connection properties see https://github.com/googleapis/java-spanner/blob/main/google-cloud-spanner/src/main/java/com/google/cloud/spanner/connection/ConnectionProperties.java.
+For a full list of supported connection properties, see
+[Supported Connection Properties](documentation/connection_properties.md).
 
 ### Jar with Dependencies
 A single jar with all dependencies can be downloaded from https://repo1.maven.org/maven2/com/google/cloud/google-cloud-spanner-jdbc/latest
