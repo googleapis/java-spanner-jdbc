@@ -22,6 +22,10 @@ import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.SpannerExceptionFactory;
 import com.google.cloud.spanner.SpannerOptions;
+import com.google.cloud.spanner.Struct;
+import com.google.cloud.spanner.Type;
+import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.admin.database.v1.DatabaseAdminClient;
 import com.google.cloud.spanner.admin.database.v1.DatabaseAdminSettings;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
@@ -1519,6 +1523,59 @@ public final class JdbcSample {
   }
   // [END spanner_postgresql_partitioned_dml]
 
+  static void arrayOfStructAsQueryParameter(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      try (Statement statement = connection.createStatement()) {
+        statement.execute(
+            "create table if not exists my_table "
+                + "(col1 string(max), col2 int64) primary key (col1)");
+        statement.execute(
+            "insert or update into my_table (col1, col2) "
+                + "values ('value1', 1), ('value2', 2), ('value3', 3)");
+      }
+
+      try (PreparedStatement statement = connection.prepareStatement(
+          "select * from my_table "
+              + "where STRUCT<col1 STRING, col2 INT64>(col1, col2) "
+              + "in unnest (?)")) {
+        statement.setObject(
+            1,
+            Value.structArray(
+                com.google.cloud.spanner.Type.struct(
+                    StructField.of("col1", Type.string()),
+                    StructField.of("col2", Type.int64())),
+                ImmutableList.of(
+                    Struct.newBuilder()
+                        .set("col1").to("value1")
+                        .set("col2").to(1L)
+                        .build(),
+                    Struct.newBuilder()
+                        .set("col1").to("value2")
+                        .set("col2").to(2L)
+                        .build())));
+        try (java.sql.ResultSet resultSet = statement.executeQuery()) {
+          while (resultSet.next()) {
+            for (int col = 1;
+                col <= resultSet.getMetaData().getColumnCount();
+                col++) {
+              System.out.printf("%s;", resultSet.getString(col));
+            }
+            System.out.println();
+          }
+        }
+      }
+    }
+  }
+
   /** The expected number of command line arguments. */
   private static final int NUM_EXPECTED_ARGS = 3;
 
@@ -1692,6 +1749,13 @@ public final class JdbcSample {
         return true;
       case "pdml":
         partitionedDml(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "arrayofstructparam":
+        arrayOfStructAsQueryParameter(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),
