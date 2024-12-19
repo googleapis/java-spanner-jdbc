@@ -22,6 +22,7 @@ import com.google.cloud.spanner.SessionPoolOptions;
 import com.google.cloud.spanner.SessionPoolOptionsHelper;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.ConnectionOptionsHelper;
 import com.google.cloud.spanner.connection.ConnectionPropertiesHelper;
 import com.google.cloud.spanner.connection.ConnectionProperty;
 import com.google.rpc.Code;
@@ -245,6 +246,9 @@ public class JdbcDriver implements Driver {
     // Enable multiplexed sessions by default for the JDBC driver.
     builder.setSessionPoolOptions(
         SessionPoolOptionsHelper.useMultiplexedSessions(SessionPoolOptions.newBuilder()).build());
+    // Enable direct executor for JDBC, as we don't use the async API.
+    builder =
+        ConnectionOptionsHelper.useDirectExecutorIfNotUseVirtualThreads(connectionUrl, builder);
     return builder.build();
   }
 

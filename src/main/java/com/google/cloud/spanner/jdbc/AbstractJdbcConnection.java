@@ -21,6 +21,7 @@ import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.AbstractStatementParser;
 import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.ConnectionOptionsHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.rpc.Code;
 import java.sql.CallableStatement;
@@ -53,6 +54,7 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
   private final ConnectionOptions options;
   private final com.google.cloud.spanner.connection.Connection spanner;
   private final Properties clientInfo;
+  private final boolean usesDirectExecutor;
   private AbstractStatementParser parser;
 
   private SQLWarning firstWarning = null;
@@ -63,6 +65,7 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
     this.options = options;
     this.spanner = options.getConnection();
     this.clientInfo = new Properties(JdbcDatabaseMetaData.getDefaultClientInfoProperties());
+    this.usesDirectExecutor = ConnectionOptionsHelper.usesDirectExecutor(options);
   }
 
   /** Return the corresponding {@link com.google.cloud.spanner.connection.Connection} */
@@ -81,6 +84,10 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
 
   Spanner getSpanner() {
     return this.spanner.getSpanner();
+  }
+
+  boolean usesDirectExecutor() {
+    return this.usesDirectExecutor;
   }
 
   @Override
