@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.25.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.25.1...v2.25.2) (2024-12-19)
+
+
+### Performance Improvements
+
+* Use direct executor ([#1864](https://github.com/googleapis/java-spanner-jdbc/issues/1864)) ([6d6d500](https://github.com/googleapis/java-spanner-jdbc/commit/6d6d50006eec29bba47ebe08339ef0c440530710))
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.55.0 ([#1869](https://github.com/googleapis/java-spanner-jdbc/issues/1869)) ([dee17e2](https://github.com/googleapis/java-spanner-jdbc/commit/dee17e2130819e722106100032975bbcbbef360a))
+* Update dependency com.google.cloud:google-cloud-trace to v2.55.0 ([#1870](https://github.com/googleapis/java-spanner-jdbc/issues/1870)) ([0e78510](https://github.com/googleapis/java-spanner-jdbc/commit/0e78510229378319dd67c3bc240a10b6330886e2))
+
+
+### Documentation
+
+* Auto-generate connection properties documentation ([#1860](https://github.com/googleapis/java-spanner-jdbc/issues/1860)) ([c22e654](https://github.com/googleapis/java-spanner-jdbc/commit/c22e654c23511ec108a454928da3d426e78dda0d))
+* Fix troubleshooting link ([#1861](https://github.com/googleapis/java-spanner-jdbc/issues/1861)) ([6c08ffa](https://github.com/googleapis/java-spanner-jdbc/commit/6c08ffa536b7b0f0c6c65e54391f119399ce8bbf)), closes [#1770](https://github.com/googleapis/java-spanner-jdbc/issues/1770)
+
 ## [2.25.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.25.0...v2.25.1) (2024-12-14)
 
 
