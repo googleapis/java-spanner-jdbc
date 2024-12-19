@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.25.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.25.2...v2.25.3) (2024-12-19)
+
+
+### Dependencies
+
+* Update dependency org.springframework.boot:spring-boot to v3.4.1 ([#1873](https://github.com/googleapis/java-spanner-jdbc/issues/1873)) ([c81941c](https://github.com/googleapis/java-spanner-jdbc/commit/c81941ca62face226804619e11b3e9de9b0aa801))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.4.1 ([#1874](https://github.com/googleapis/java-spanner-jdbc/issues/1874)) ([cc3fc3e](https://github.com/googleapis/java-spanner-jdbc/commit/cc3fc3e8a2f455909eb9687a81d742250decb8c3))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.4.1 ([#1876](https://github.com/googleapis/java-spanner-jdbc/issues/1876)) ([ea02e5d](https://github.com/googleapis/java-spanner-jdbc/commit/ea02e5da9d220782c2223bc7f2d4969e70a1b868))
+
 ## [2.25.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.25.1...v2.25.2) (2024-12-19)
 
 
