@@ -31,6 +31,7 @@ import com.google.spanner.v1.ExecuteSqlRequest;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -41,10 +42,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
-/**
- * Tests setting a statement timeout. This test is by default not included in unit test runs, as the
- * minimum timeout value in JDBC is 1 second, which again makes this test relatively slow.
- */
+/** Tests setting a statement timeout. */
 @RunWith(Parameterized.class)
 public class JdbcStatementTimeoutTest extends AbstractMockServerTest {
 
@@ -77,7 +75,7 @@ public class JdbcStatementTimeoutTest extends AbstractMockServerTest {
         // Simulate that executeSql takes 2 seconds and set a statement timeout of 1 second.
         mockSpanner.setExecuteSqlExecutionTime(
             SimulatedExecutionTime.ofMinimumAndRandomTime(2000, 0));
-        statement.setQueryTimeout(1);
+        ((JdbcStatement) statement).setQueryTimeout(Duration.ofMillis(5L));
         assertThrows(
             JdbcSqlTimeoutException.class, () -> statement.execute(INSERT_STATEMENT.getSql()));
       }
@@ -101,7 +99,7 @@ public class JdbcStatementTimeoutTest extends AbstractMockServerTest {
         // second.
         mockSpanner.setExecuteStreamingSqlExecutionTime(
             SimulatedExecutionTime.ofMinimumAndRandomTime(2000, 0));
-        statement.setQueryTimeout(1);
+        ((JdbcStatement) statement).setQueryTimeout(Duration.ofMillis(5L));
         assertThrows(
             JdbcSqlTimeoutException.class,
             () -> statement.executeQuery(SELECT_RANDOM_STATEMENT.getSql()));
@@ -119,7 +117,7 @@ public class JdbcStatementTimeoutTest extends AbstractMockServerTest {
         // Simulate that executeSql takes 2 seconds and set a statement timeout of 1 second.
         mockSpanner.setExecuteSqlExecutionTime(
             SimulatedExecutionTime.ofMinimumAndRandomTime(2000, 0));
-        statement.setQueryTimeout(1);
+        ((JdbcStatement) statement).setQueryTimeout(Duration.ofMillis(5L));
         assertThrows(
             JdbcSqlTimeoutException.class,
             () -> statement.executeUpdate(INSERT_STATEMENT.getSql()));
@@ -139,7 +137,7 @@ public class JdbcStatementTimeoutTest extends AbstractMockServerTest {
         // Simulate that executeBatchDml takes 2 seconds and set a statement timeout of 1 second.
         mockSpanner.setExecuteBatchDmlExecutionTime(
             SimulatedExecutionTime.ofMinimumAndRandomTime(2000, 0));
-        statement.setQueryTimeout(1);
+        ((JdbcStatement) statement).setQueryTimeout(Duration.ofMillis(5L));
         statement.addBatch(INSERT_STATEMENT.getSql());
         assertThrows(JdbcSqlTimeoutException.class, statement::executeBatch);
       }
