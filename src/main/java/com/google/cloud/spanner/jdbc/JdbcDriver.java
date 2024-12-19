@@ -22,8 +22,9 @@ import com.google.cloud.spanner.SessionPoolOptions;
 import com.google.cloud.spanner.SessionPoolOptionsHelper;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.ConnectionOptions;
-import com.google.cloud.spanner.connection.ConnectionOptions.ConnectionProperty;
 import com.google.cloud.spanner.connection.ConnectionOptionsHelper;
+import com.google.cloud.spanner.connection.ConnectionPropertiesHelper;
+import com.google.cloud.spanner.connection.ConnectionProperty;
 import com.google.rpc.Code;
 import io.opentelemetry.api.OpenTelemetry;
 import java.sql.Connection;
@@ -269,27 +270,14 @@ public class JdbcDriver implements Driver {
   @Override
   public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) {
     String connectionUri = appendPropertiesToUrl(url.substring(5), info);
-    DriverPropertyInfo[] res = new DriverPropertyInfo[ConnectionOptions.VALID_PROPERTIES.size()];
+    DriverPropertyInfo[] res =
+        new DriverPropertyInfo[ConnectionPropertiesHelper.VALID_CONNECTION_PROPERTIES.size()];
     int i = 0;
-    for (ConnectionProperty prop : ConnectionOptions.VALID_PROPERTIES) {
-      res[i] =
-          new DriverPropertyInfo(
-              prop.getName(),
-              parseUriProperty(connectionUri, prop.getName(), prop.getDefaultValue()));
-      res[i].description = prop.getDescription();
-      res[i].choices = prop.getValidValues();
+    for (ConnectionProperty<?> prop : ConnectionPropertiesHelper.VALID_CONNECTION_PROPERTIES) {
+      res[i] = ConnectionPropertiesHelper.toDriverPropertyInfo(connectionUri, prop);
       i++;
     }
     return res;
-  }
-
-  private String parseUriProperty(String uri, String property, String defaultValue) {
-    Pattern pattern = Pattern.compile(String.format("(?is)(?:;|\\?)%s=(.*?)(?:;|$)", property));
-    Matcher matcher = pattern.matcher(uri);
-    if (matcher.find() && matcher.groupCount() == 1) {
-      return matcher.group(1);
-    }
-    return defaultValue;
   }
 
   @Override

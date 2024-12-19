@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.25.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.25.0...v2.25.1) (2024-12-14)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.83.0 ([#1863](https://github.com/googleapis/java-spanner-jdbc/issues/1863)) ([0e5680b](https://github.com/googleapis/java-spanner-jdbc/commit/0e5680b5dd7b433c850b389a64e8c8c1343151ed))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.41.0 ([#1857](https://github.com/googleapis/java-spanner-jdbc/issues/1857)) ([162fa47](https://github.com/googleapis/java-spanner-jdbc/commit/162fa476b6b45ec14700efe5fea8f6fad7d1c5ad))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.45.0 ([#1853](https://github.com/googleapis/java-spanner-jdbc/issues/1853)) ([350e755](https://github.com/googleapis/java-spanner-jdbc/commit/350e75519d13c81c820c51f88786ca8a61662858))
+* Update dependency org.springframework.data:spring-data-bom to v2024.1.1 ([#1859](https://github.com/googleapis/java-spanner-jdbc/issues/1859)) ([150827c](https://github.com/googleapis/java-spanner-jdbc/commit/150827c54042f9d754f1d130287f56ebfadeb7c8))
+
 ## [2.25.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.24.2...v2.25.0) (2024-12-04)
 
 

@@ -20,7 +20,7 @@ If you are using Maven, add this to your pom.xml file:
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>2.25.0</version>
+  <version>2.25.1</version>
 </dependency>
 ```
 <!--- {x-version-update-end} -->
@@ -30,7 +30,7 @@ If you are using Gradle without BOM, add this to your dependencies
 
 <!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```Groovy
-implementation 'com.google.cloud:google-cloud-spanner-jdbc:2.25.0'
+implementation 'com.google.cloud:google-cloud-spanner-jdbc:2.25.1'
 ```
 <!--- {x-version-update-end} -->
 
@@ -38,7 +38,7 @@ If you are using SBT, add this to your dependencies
 
 <!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.25.0"
+libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.25.1"
 ```
 <!--- {x-version-update-end} -->
 
@@ -105,6 +105,9 @@ The Cloud Spanner JDBC driver supports the following connection URL properties. 
 these can also be supplied in a Properties instance that is passed to the
 `DriverManager#getConnection(String url, Properties properties)` method.
 
+See [Supported Connection Properties](documentation/connection_properties.md) for a full list of all
+supported connection properties.
+
 #### Commonly Used Properties
 - credentials (String): URL for the credentials file to use for the connection. If you do not specify any credentials at all, the default credentials of the environment as returned by `GoogleCredentials#getApplicationDefault()` is used. Example: `jdbc:cloudspanner:/projects/my-project/instances/my-instance/databases/my-db;credentials=/path/to/credentials.json`
 - autocommit (boolean): Sets the initial autocommit mode for the connection. Default is true.
@@ -135,7 +138,8 @@ these can also be supplied in a Properties instance that is passed to the
 - oauthToken (string): A valid pre-existing OAuth token to use for authentication for this connection. Setting this property will take precedence over any value set for a credentials file.
 - lenient (boolean): Enable this to force the JDBC driver to ignore unknown properties in the connection URL. Some applications automatically add additional properties to the URL that are not recognized by the JDBC driver. Normally, the JDBC driver will reject this, unless `lenient` mode is enabled.
 
-For a full list of supported connection properties see https://github.com/googleapis/java-spanner/blob/main/google-cloud-spanner/src/main/java/com/google/cloud/spanner/connection/ConnectionProperties.java.
+For a full list of supported connection properties, see
+[Supported Connection Properties](documentation/connection_properties.md).
 
 ### Jar with Dependencies
 A single jar with all dependencies can be downloaded from https://repo1.maven.org/maven2/com/google/cloud/google-cloud-spanner-jdbc/latest
@@ -259,7 +263,7 @@ Java is a registered trademark of Oracle and/or its affiliates.
 [developer-console]: https://console.developers.google.com/
 [create-project]: https://cloud.google.com/resource-manager/docs/creating-managing-projects
 [cloud-sdk]: https://cloud.google.com/sdk/
-[troubleshooting]: https://github.com/googleapis/google-cloud-common/blob/main/troubleshooting/readme.md#troubleshooting
+[troubleshooting]: https://github.com/googleapis/google-cloud-java/blob/main/TROUBLESHOOTING.md
 [contributing]: https://github.com/googleapis/java-spanner-jdbc/blob/main/CONTRIBUTING.md
 [code-of-conduct]: https://github.com/googleapis/java-spanner-jdbc/blob/main/CODE_OF_CONDUCT.md#contributor-code-of-conduct
 [license]: https://github.com/googleapis/java-spanner-jdbc/blob/main/LICENSE
