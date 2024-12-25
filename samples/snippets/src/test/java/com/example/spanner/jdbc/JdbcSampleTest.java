@@ -18,6 +18,7 @@ package com.example.spanner.jdbc;
 
 import static com.example.spanner.jdbc.JdbcSample.addColumn;
 import static com.example.spanner.jdbc.JdbcSample.addColumnPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.arrayOfStructAsQueryParameter;
 import static com.example.spanner.jdbc.JdbcSample.createConnection;
 import static com.example.spanner.jdbc.JdbcSample.createConnectionWithEmulator;
 import static com.example.spanner.jdbc.JdbcSample.createDatabase;
@@ -243,6 +244,10 @@ public class JdbcSampleTest {
 
     result = runSample(() -> partitionedDml(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("Updated at least 3 albums\n", result);
+
+    result = runSample(
+        () -> arrayOfStructAsQueryParameter(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("value1;1;\nvalue2;2;\n", result);
   }
 
   @Test
