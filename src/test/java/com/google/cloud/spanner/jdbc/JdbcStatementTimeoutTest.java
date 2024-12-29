@@ -161,7 +161,6 @@ public class JdbcStatementTimeoutTest extends AbstractMockServerTest {
                         message instanceof ExecuteSqlRequest
                             && ((ExecuteSqlRequest) message).getSql().equals(sql),
                     5000L);
-                System.out.println("Cancelling statement");
                 statement.cancel();
                 return null;
               });
