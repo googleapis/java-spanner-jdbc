@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.25.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.25.2...v2.25.3) (2025-01-06)
+
+
+### Bug Fixes
+
+* Clear interrupted flag after cancel ([#1880](https://github.com/googleapis/java-spanner-jdbc/issues/1880)) ([e1fd4e1](https://github.com/googleapis/java-spanner-jdbc/commit/e1fd4e131a039b80306991cc93c5c097f2538c90)), closes [#1879](https://github.com/googleapis/java-spanner-jdbc/issues/1879)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.84.0 ([#1881](https://github.com/googleapis/java-spanner-jdbc/issues/1881)) ([42ffaad](https://github.com/googleapis/java-spanner-jdbc/commit/42ffaadf0e671806269ba6c0fba8ce470911b8fe))
+* Update dependency org.springframework.boot:spring-boot to v3.4.1 ([#1873](https://github.com/googleapis/java-spanner-jdbc/issues/1873)) ([c81941c](https://github.com/googleapis/java-spanner-jdbc/commit/c81941ca62face226804619e11b3e9de9b0aa801))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.4.1 ([#1874](https://github.com/googleapis/java-spanner-jdbc/issues/1874)) ([cc3fc3e](https://github.com/googleapis/java-spanner-jdbc/commit/cc3fc3e8a2f455909eb9687a81d742250decb8c3))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.4.1 ([#1876](https://github.com/googleapis/java-spanner-jdbc/issues/1876)) ([ea02e5d](https://github.com/googleapis/java-spanner-jdbc/commit/ea02e5da9d220782c2223bc7f2d4969e70a1b868))
+
+
+### Documentation
+
+* Add sample for using array of struct query param ([#1871](https://github.com/googleapis/java-spanner-jdbc/issues/1871)) ([d7cb90d](https://github.com/googleapis/java-spanner-jdbc/commit/d7cb90d264eaf0793422d3bfcaadd5be2ebd6412))
+
 ## [2.25.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.25.1...v2.25.2) (2024-12-19)
 
 
