@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.ErrorCode;
 import com.google.cloud.spanner.Options;
 import com.google.cloud.spanner.Options.QueryOption;
 import com.google.cloud.spanner.ReadContext.QueryAnalyzeMode;
@@ -34,6 +35,7 @@ import java.sql.Statement;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -47,6 +49,7 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
   final AbstractStatementParser parser;
   private final Lock executingLock;
   private volatile Thread executingThread;
+  private final AtomicBoolean cancelled = new AtomicBoolean();
   private boolean closed;
   private boolean closeOnCompletion;
   private boolean poolable;
@@ -259,10 +262,18 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       connection.recordClientLibLatencyMetric(executionDuration.toMillis());
       return result;
     } catch (SpannerException spannerException) {
+      if (this.cancelled.get()
+          && spannerException.getErrorCode() == ErrorCode.CANCELLED
+          && this.executingLock != null) {
+        // Clear the interrupted flag of the thread.
+        //noinspection ResultOfMethodCallIgnored
+        Thread.interrupted();
+      }
       throw JdbcSqlExceptionFactory.of(spannerException);
     } finally {
       if (this.executingLock != null) {
         this.executingThread = null;
+        this.cancelled.set(false);
         this.executingLock.unlock();
       }
       if (shouldResetTimeout.apply(result)) {
@@ -374,8 +385,14 @@ abstract class AbstractJdbcStatement extends AbstractJdbcWrapper implements Stat
       // This is a best-effort operation. It could be that the executing thread is set to null
       // between the if-check and the actual execution. Just ignore if that happens.
       try {
+        this.cancelled.set(true);
         this.executingThread.interrupt();
       } catch (NullPointerException ignore) {
+        // ignore, this just means that the execution finished before we got to the point where we
+        // could interrupt the thread.
+      } catch (SecurityException securityException) {
+        throw JdbcSqlExceptionFactory.of(
+            securityException.getMessage(), Code.PERMISSION_DENIED, securityException);
       }
     } else {
       connection.getSpannerConnection().cancel();
