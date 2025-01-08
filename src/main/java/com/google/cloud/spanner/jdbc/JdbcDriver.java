@@ -25,6 +25,7 @@ import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptionsHelper;
 import com.google.cloud.spanner.connection.ConnectionPropertiesHelper;
 import com.google.cloud.spanner.connection.ConnectionProperty;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.rpc.Code;
 import io.opentelemetry.api.OpenTelemetry;
 import java.sql.Connection;
@@ -147,8 +148,9 @@ public class JdbcDriver implements Driver {
   private static final Pattern URL_PATTERN = Pattern.compile(JDBC_URL_FORMAT);
   private static final String JDBC_EXTERNAL_HOST_FORMAT =
       "jdbc:" + ConnectionOptions.Builder.EXTERNAL_HOST_FORMAT;
-  private static final Pattern EXTERNAL_HOST_URL_PATTERN =
-      Pattern.compile(JDBC_EXTERNAL_HOST_FORMAT);
+
+  @VisibleForTesting
+  static final Pattern EXTERNAL_HOST_URL_PATTERN = Pattern.compile(JDBC_EXTERNAL_HOST_FORMAT);
 
   @InternalApi
   public static String getClientLibToken() {
