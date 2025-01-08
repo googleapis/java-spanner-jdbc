@@ -145,6 +145,10 @@ public class JdbcDriver implements Driver {
   private static final String JDBC_URL_FORMAT =
       "jdbc:" + ConnectionOptions.Builder.SPANNER_URI_FORMAT;
   private static final Pattern URL_PATTERN = Pattern.compile(JDBC_URL_FORMAT);
+  private static final String JDBC_EXTERNAL_HOST_FORMAT =
+      "jdbc:" + ConnectionOptions.Builder.EXTERNAL_HOST_FORMAT;
+  private static final Pattern EXTERNAL_HOST_URL_PATTERN =
+      Pattern.compile(JDBC_EXTERNAL_HOST_FORMAT);
 
   @InternalApi
   public static String getClientLibToken() {
@@ -213,7 +217,8 @@ public class JdbcDriver implements Driver {
     if (url != null && url.startsWith("jdbc:cloudspanner")) {
       try {
         Matcher matcher = URL_PATTERN.matcher(url);
-        if (matcher.matches()) {
+        Matcher matcherExternalHost = EXTERNAL_HOST_URL_PATTERN.matcher(url);
+        if (matcher.matches() || matcherExternalHost.matches()) {
           // strip 'jdbc:' from the URL, add any extra properties and pass on to the generic
           // Connection API
           String connectionUri = appendPropertiesToUrl(url.substring(5), info);
