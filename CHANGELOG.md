@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.26.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.25.3...v2.26.0) (2025-01-11)
+
+
+### Features
+
+* Support for spanner external host ([#1884](https://github.com/googleapis/java-spanner-jdbc/issues/1884)) ([123a7bc](https://github.com/googleapis/java-spanner-jdbc/commit/123a7bcd9825b20bfbf7e9b057c2bd0f5213cac3))
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.56.0 ([#1887](https://github.com/googleapis/java-spanner-jdbc/issues/1887)) ([2016d9c](https://github.com/googleapis/java-spanner-jdbc/commit/2016d9c47a5c6d12ba101827fe933c3ddd334e78))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.85.0 ([#1889](https://github.com/googleapis/java-spanner-jdbc/issues/1889)) ([3424d38](https://github.com/googleapis/java-spanner-jdbc/commit/3424d382a89b33d0870b00f04fd10dafa62bcc3d))
+* Update dependency com.google.cloud:google-cloud-trace to v2.56.0 ([#1888](https://github.com/googleapis/java-spanner-jdbc/issues/1888)) ([ce78b18](https://github.com/googleapis/java-spanner-jdbc/commit/ce78b188e70f30776e58a1e3a7d8c4b1559e4d68))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.41.1 ([#1886](https://github.com/googleapis/java-spanner-jdbc/issues/1886)) ([73eacc6](https://github.com/googleapis/java-spanner-jdbc/commit/73eacc66bacfd5c367f764ed3db805309cb0d1c8))
+
 ## [2.25.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.25.2...v2.25.3) (2025-01-06)
 
 
