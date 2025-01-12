@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.26.0...v2.26.1) (2025-01-12)
+
+
+### Dependencies
+
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.46.0 ([#1892](https://github.com/googleapis/java-spanner-jdbc/issues/1892)) ([c700c9c](https://github.com/googleapis/java-spanner-jdbc/commit/c700c9c9a4f6844360f6257a5e57aceff03cfa00))
+
 ## [2.26.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.25.3...v2.26.0) (2025-01-11)
 
 
