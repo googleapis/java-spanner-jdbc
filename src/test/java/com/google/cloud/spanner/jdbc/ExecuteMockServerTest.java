@@ -38,6 +38,7 @@ import com.google.rpc.Code;
 import com.google.spanner.admin.database.v1.UpdateDatabaseDdlMetadata;
 import com.google.spanner.v1.CommitRequest;
 import com.google.spanner.v1.ExecuteBatchDmlRequest;
+import com.google.spanner.v1.ExecuteSqlRequest;
 import com.google.spanner.v1.ResultSetMetadata;
 import com.google.spanner.v1.ResultSetStats;
 import com.google.spanner.v1.StructType;
@@ -869,5 +870,105 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
         mockSpanner.getRequestsOfType(ExecuteBatchDmlRequest.class).get(0);
     assertEquals(3, request.getStatementsCount());
     assertEquals(1, mockSpanner.countRequestsOfType(CommitRequest.class));
+  }
+  
+  @Test
+  public void testLastStatement_AutoCommit_Query() throws SQLException {
+    try (Connection connection = createJdbcConnection();
+        Statement statement = connection.createStatement()) {
+      //noinspection EmptyTryBlock
+      try (ResultSet ignore = statement.executeQuery(query)) {
+      }
+    }
+    assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+    assertFalse(mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0).getLastStatement());
+  }
+
+  @Test
+  public void testLastStatement_AutoCommit_Dml() throws SQLException {
+    try (Connection connection = createJdbcConnection();
+        Statement statement = connection.createStatement()) {
+      statement.executeUpdate(dml);
+    }
+    assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+    assertTrue(mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0).getLastStatement());
+  }
+
+  @Test
+  public void testLastStatement_AutoCommit_DmlReturning() throws SQLException {
+    try (Connection connection = createJdbcConnection();
+        Statement statement = connection.createStatement()) {
+      //noinspection EmptyTryBlock
+      try (ResultSet ignore = statement.executeQuery(dmlReturning)) {
+      }
+    }
+    assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+    assertTrue(mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0).getLastStatement());
+  }
+
+  @Test
+  public void testLastStatement_AutoCommit_BatchDml() throws SQLException {
+    try (Connection connection = createJdbcConnection();
+        Statement statement = connection.createStatement()) {
+      statement.addBatch(dml);
+      statement.addBatch(dml);
+      statement.executeBatch();
+    }
+    assertEquals(1, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
+    assertTrue(mockSpanner.getRequestsOfType(ExecuteBatchDmlRequest.class).get(0).getLastStatements());
+  }
+
+  @Test
+  public void testLastStatement_Transaction_Query() throws SQLException {
+    try (Connection connection = createJdbcConnection();
+        Statement statement = connection.createStatement()) {
+      connection.setAutoCommit(false);
+      //noinspection EmptyTryBlock
+      try (ResultSet ignore = statement.executeQuery(query)) {
+      }
+      connection.commit();
+    }
+    assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+    assertFalse(mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0).getLastStatement());
+  }
+
+  @Test
+  public void testLastStatement_Transaction_Dml() throws SQLException {
+    try (Connection connection = createJdbcConnection();
+        Statement statement = connection.createStatement()) {
+      connection.setAutoCommit(false);
+      statement.executeUpdate(dml);
+      connection.commit();
+    }
+    assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+    assertFalse(mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0).getLastStatement());
+  }
+
+  @Test
+  public void testLastStatement_Transaction_DmlReturning() throws SQLException {
+    try (Connection connection = createJdbcConnection();
+        Statement statement = connection.createStatement()) {
+      connection.setAutoCommit(false);
+      //noinspection EmptyTryBlock
+      try (ResultSet ignore = statement.executeQuery(dmlReturning)) {
+      }
+      connection.commit();
+    }
+    assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+    assertFalse(mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0).getLastStatement());
+  }
+
+  @Test
+  public void testLastStatement_Transaction_BatchDml() throws SQLException {
+    try (Connection connection = createJdbcConnection();
+        Statement statement = connection.createStatement()) {
+      connection.setAutoCommit(false);
+      statement.addBatch(dml);
+      statement.addBatch(dml);
+      statement.executeBatch();
+      connection.commit();
+    }
+    assertEquals(1, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
+    assertFalse(mockSpanner.getRequestsOfType(ExecuteBatchDmlRequest.class).get(0).getLastStatements());
   }
 }
