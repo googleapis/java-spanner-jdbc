@@ -16,6 +16,8 @@
 
 package com.example.spanner.jdbc;
 
+import com.example.spanner.jdbc.SingerProto.Genre;
+import com.example.spanner.jdbc.SingerProto.SingerInfo;
 import com.google.api.gax.core.NoCredentialsProvider;
 import com.google.api.gax.grpc.InstantiatingGrpcChannelProvider;
 import com.google.cloud.spanner.DatabaseId;
@@ -29,6 +31,8 @@ import com.google.cloud.spanner.Value;
 import com.google.cloud.spanner.admin.database.v1.DatabaseAdminClient;
 import com.google.cloud.spanner.admin.database.v1.DatabaseAdminSettings;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
+import com.google.cloud.spanner.jdbc.ProtoEnumType;
+import com.google.cloud.spanner.jdbc.ProtoMessageType;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.spanner.admin.database.v1.CreateDatabaseRequest;
@@ -36,6 +40,8 @@ import com.google.spanner.admin.database.v1.DatabaseDialect;
 import com.google.spanner.admin.instance.v1.InstanceName;
 import com.google.spanner.v1.DatabaseName;
 import io.grpc.ManagedChannelBuilder;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -1576,6 +1582,98 @@ public final class JdbcSample {
     }
   }
 
+  static void protoColumns(
+      final String project,
+      final String instance,
+      final String database,
+      final Properties properties) throws SQLException, IOException {
+    try (Connection connection =
+        DriverManager.getConnection(
+            String.format(
+                "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s",
+                project, instance, database),
+            properties)) {
+      // Create a PROTO BUNDLE and a table.
+      try (Statement statement = connection.createStatement();
+          InputStream protoDescriptors = JdbcSample.class.getClassLoader()
+              .getResourceAsStream("com/example/spanner/jdbc/descriptors.pb")) {
+        if (protoDescriptors == null) {
+          throw new IllegalArgumentException("proto descriptors not found");
+        }
+
+        // Unwrap the CloudSpannerJdbcConnection interface to set the proto
+        // descriptors that should be used for the next DDL statements.
+        connection
+            .unwrap(CloudSpannerJdbcConnection.class)
+            .setProtoDescriptors(protoDescriptors);
+        // Execute the DDL statements as one batch.
+        // This will reduce execution time compared to executing each statement
+        // sequentially.
+        statement.addBatch("CREATE PROTO BUNDLE (\n"
+            + "examples.spanner.music.SingerInfo,\n"
+            + "examples.spanner.music.Genre,\n"
+            + ")");
+        statement.addBatch("CREATE TABLE SingersWithProto (\n"
+            + "  SingerId INT64 NOT NULL,\n"
+            + "  SingerInfo examples.spanner.music.SingerInfo,\n"
+            + "  SingerGenre examples.spanner.music.Genre,\n"
+            + ")  PRIMARY KEY (SingerId)");
+        statement.executeBatch();
+      }
+
+      // Insert a couple of rows using a prepared statement.
+      try (PreparedStatement statement = connection.prepareStatement(
+          "INSERT INTO SingersWithProto "
+              + "(SingerId, SingerInfo, SingerGenre) "
+              + "VALUES (?, ?, ?)")) {
+        int param = 0;
+        statement.setLong(++param, 1L);
+        statement.setObject(++param,
+            SingerInfo.newBuilder()
+                .setGenre(Genre.ROCK)
+                .setBirthDate("1998-07-04")
+                .setSingerId(1L)
+                .setNationality("ES")
+                .build(), ProtoMessageType.VENDOR_TYPE_NUMBER);
+        statement.setObject(++param, Genre.ROCK,
+            ProtoEnumType.VENDOR_TYPE_NUMBER);
+        statement.addBatch();
+
+        param = 0;
+        statement.setLong(++param, 2L);
+        statement.setObject(++param,
+            SingerInfo.newBuilder()
+                .setGenre(Genre.POP)
+                .setBirthDate("2001-12-03")
+                .setSingerId(2L)
+                .setNationality("FO")
+                .build(), ProtoMessageType.VENDOR_TYPE_NUMBER);
+        statement.setObject(++param, Genre.POP,
+            ProtoEnumType.VENDOR_TYPE_NUMBER);
+        statement.addBatch();
+
+        int[] updateCounts = statement.executeBatch();
+        System.out.printf("Inserted %d singers\n",
+            Arrays.stream(updateCounts).sum());
+      }
+
+      // Read the inserted rows.
+      try (ResultSet resultSet = connection.createStatement()
+          .executeQuery("SELECT * FROM SingersWithProto")) {
+        while (resultSet.next()) {
+          long singerId = resultSet.getLong("SingerId");
+          // Proto messages and proto enums can be retrieved with the
+          // ResultSet#getObject(int, Class) method.
+          // The Spanner JDBC driver automatically deserializes
+          // and converts the column to the Java class representation.
+          SingerInfo info = resultSet.getObject("SingerInfo", SingerInfo.class);
+          Genre genre = resultSet.getObject("SingerGenre", Genre.class);
+          System.out.printf("%d:\n%s\n%s\n", singerId, info, genre);
+        }
+      }
+    }
+  }
+
   /** The expected number of command line arguments. */
   private static final int NUM_EXPECTED_ARGS = 3;
 
@@ -1756,6 +1854,13 @@ public final class JdbcSample {
         return true;
       case "arrayofstructparam":
         arrayOfStructAsQueryParameter(
+            database.getInstanceId().getProject(),
+            database.getInstanceId().getInstance(),
+            database.getDatabase(),
+            createProperties());
+        return true;
+      case "protocolumns":
+        protoColumns(
             database.getInstanceId().getProject(),
             database.getInstanceId().getInstance(),
             database.getDatabase(),

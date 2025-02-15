@@ -29,6 +29,7 @@ import static com.example.spanner.jdbc.JdbcSample.ddlBatch;
 import static com.example.spanner.jdbc.JdbcSample.ddlBatchPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.partitionedDml;
 import static com.example.spanner.jdbc.JdbcSample.partitionedDmlPostgreSQL;
+import static com.example.spanner.jdbc.JdbcSample.protoColumns;
 import static com.example.spanner.jdbc.JdbcSample.queryData;
 import static com.example.spanner.jdbc.JdbcSample.queryDataPostgreSQL;
 import static com.example.spanner.jdbc.JdbcSample.queryDataWithNewColumn;
@@ -248,6 +249,24 @@ public class JdbcSampleTest {
     result = runSample(
         () -> arrayOfStructAsQueryParameter(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
     assertEquals("value1;1;\nvalue2;2;\n", result);
+
+    result = runSample(
+        () -> protoColumns(PROJECT_ID, INSTANCE_ID, DATABASE_ID, properties));
+    assertEquals("Inserted 2 singers\n"
+        + "2:\n"
+        + "singer_id: 2\n"
+        + "birth_date: \"2001-12-03\"\n"
+        + "nationality: \"FO\"\n"
+        + "genre: POP\n"
+        + "\n"
+        + "POP\n"
+        + "1:\n"
+        + "singer_id: 1\n"
+        + "birth_date: \"1998-07-04\"\n"
+        + "nationality: \"ES\"\n"
+        + "genre: ROCK\n"
+        + "\n"
+        + "ROCK\n", result);
   }
 
   @Test

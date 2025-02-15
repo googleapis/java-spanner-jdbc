@@ -155,8 +155,19 @@ activate the `shade` profile like this:
  mvn package -Pshade
  ```
 
+## Samples
 
+See the [samples](/samples) directory for various examples for using the Spanner JDBC driver.
 
+- [snippets](/samples/snippets): Contains small code snippets for commonly used JDBC and Spanner
+  features. Refer to these snippets for examples on how to execute DDL and DML batches, use various
+  data types with the JDBC driver, execute various types of transactions (read/write, read-only,
+  Partitioned DML), use request and transaction tags, etc.
+- [spring-data-jdbc](/samples/spring-data-jdbc): Contains a sample application that uses Spring Data
+  JDBC in combination with a Spanner PostgreSQL database.
+- [spring-data-mybatis](/samples/spring-data-mybatis): Contains a sample application that uses
+  Spring Data MyBatis in combination with a Spanner PostgreSQL database.
+- [quickperf](/samples/quickperf): Contains a simple benchmarking application.
 
 
 ## Troubleshooting
