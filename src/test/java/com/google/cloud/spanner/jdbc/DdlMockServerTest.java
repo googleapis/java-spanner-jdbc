@@ -24,15 +24,18 @@ import static org.junit.Assert.assertTrue;
 import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
+import com.google.common.collect.ImmutableList;
 import com.google.longrunning.Operation;
 import com.google.protobuf.Any;
 import com.google.protobuf.Empty;
 import com.google.rpc.Code;
+import com.google.spanner.admin.database.v1.GetDatabaseDdlResponse;
 import com.google.spanner.admin.database.v1.UpdateDatabaseDdlMetadata;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -48,6 +51,29 @@ public class DdlMockServerTest extends AbstractMockServerTest {
 
   private Connection createConnection(boolean autoCommit) throws SQLException {
     return DriverManager.getConnection(createUrl(autoCommit));
+  }
+
+  @Test
+  public void testGetDatabaseDdl() throws SQLException {
+    List<String> expectedDdl =
+        ImmutableList.of(
+            "create table foo (id int64) primary key (id)",
+            "create table bar (id int64) primary key (id)");
+    mockDatabaseAdmin.addResponse(
+        GetDatabaseDdlResponse.newBuilder().addAllStatements(expectedDdl).build());
+
+    try (Connection connection = createConnection(/* autoCommit = */ true)) {
+      CloudSpannerJdbcConnection spannerJdbcConnection =
+          connection.unwrap(CloudSpannerJdbcConnection.class);
+      List<String> ddl =
+          spannerJdbcConnection
+              .getSpanner()
+              .getDatabaseAdminClient()
+              .getDatabaseDdl(
+                  spannerJdbcConnection.getDatabaseId().getInstanceId().getInstance(),
+                  spannerJdbcConnection.getDatabaseId().getDatabase());
+      assertEquals(expectedDdl, ddl);
+    }
   }
 
   @Test

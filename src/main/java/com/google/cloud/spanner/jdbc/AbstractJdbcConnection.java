@@ -16,6 +16,8 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.DatabaseClient;
+import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerException;
@@ -68,6 +70,16 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
     this.usesDirectExecutor = ConnectionOptionsHelper.usesDirectExecutor(options);
   }
 
+  @Override
+  public DatabaseId getDatabaseId() {
+    return this.options.getDatabaseId();
+  }
+
+  @Override
+  public DatabaseClient getDatabaseClient() {
+    return getSpannerConnection().getDatabaseClient();
+  }
+
   /** Return the corresponding {@link com.google.cloud.spanner.connection.Connection} */
   com.google.cloud.spanner.connection.Connection getSpannerConnection() {
     return spanner;
@@ -82,7 +94,8 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
     return options;
   }
 
-  Spanner getSpanner() {
+  @Override
+  public Spanner getSpanner() {
     return this.spanner.getSpanner();
   }
 

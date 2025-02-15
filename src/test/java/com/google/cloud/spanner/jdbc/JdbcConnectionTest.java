@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -98,6 +99,16 @@ public class JdbcConnectionTest {
     ConnectionOptions options = mock(ConnectionOptions.class);
     when(options.getDatabaseId()).thenReturn(DatabaseId.of("project", "instance", "database"));
     return options;
+  }
+
+  @Test
+  public void testGetDatabaseClient() throws SQLException {
+    ConnectionOptions options = mockOptions();
+    try (Connection connection = createConnection(options)) {
+      CloudSpannerJdbcConnection spannerJdbcConnection =
+          connection.unwrap(CloudSpannerJdbcConnection.class);
+      assertNotNull(spannerJdbcConnection.getDatabaseClient());
+    }
   }
 
   @Test

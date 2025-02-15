@@ -20,10 +20,13 @@ import com.google.cloud.spanner.AbortedDueToConcurrentModificationException;
 import com.google.cloud.spanner.AbortedException;
 import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.CommitStats;
+import com.google.cloud.spanner.DatabaseClient;
+import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.Options.QueryOption;
 import com.google.cloud.spanner.PartitionOptions;
+import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
 import com.google.cloud.spanner.connection.SavepointSupport;
@@ -46,6 +49,28 @@ import javax.annotation.Nonnull;
  * CloudSpannerJdbcConnection} instance.
  */
 public interface CloudSpannerJdbcConnection extends Connection {
+
+  /**
+   * Returns the {@link DatabaseId} of the database that this {@link Connection} is connected to.
+   */
+  default DatabaseId getDatabaseId() {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Returns the underlying {@link DatabaseClient} that is used by this connection. Operations that
+   * are executed on the {@link DatabaseClient} that is returned has no impact on this {@link
+   * Connection}, e.g. starting a read/write transaction on the {@link DatabaseClient} will not
+   * start a transaction on this connection.
+   */
+  default DatabaseClient getDatabaseClient() {
+    throw new UnsupportedOperationException();
+  }
+
+  /** Returns the underlying {@link Spanner} instance that is used by this connection. */
+  default Spanner getSpanner() {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Sets the transaction tag to use for the current transaction. This method may only be called

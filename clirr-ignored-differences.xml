@@ -108,4 +108,19 @@
     <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
     <method>void setAutoBatchDmlUpdateCountVerification(boolean)</method>
   </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>com.google.cloud.spanner.DatabaseClient getDatabaseClient()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>com.google.cloud.spanner.Spanner getSpanner()</method>
+  </difference>
+  <difference>
+    <differenceType>7012</differenceType>
+    <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
+    <method>com.google.cloud.spanner.DatabaseId getDatabaseId()</method>
+  </difference>
 </differences>
