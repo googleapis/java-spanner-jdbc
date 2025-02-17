@@ -479,7 +479,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
 
   @Override
   public boolean supportsSelectForUpdate() {
-    return false;
+    return true;
   }
 
   @Override
