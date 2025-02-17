@@ -250,7 +250,7 @@ public class JdbcDatabaseMetaDataTest {
     assertTrue(meta.supportsSchemasInPrivilegeDefinitions());
     assertTrue(meta.supportsSchemasInProcedureCalls());
     assertTrue(meta.supportsSchemasInTableDefinitions());
-    assertFalse(meta.supportsSelectForUpdate());
+    assertTrue(meta.supportsSelectForUpdate());
     assertFalse(meta.supportsStatementPooling());
     assertFalse(meta.supportsStoredFunctionsUsingCallSyntax());
     assertFalse(meta.supportsStoredProcedures());
