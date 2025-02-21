@@ -50,7 +50,6 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -230,37 +229,29 @@ public class JdbcDriverTest {
 
   @Test
   public void testJdbcExternalHostFormat() {
-    Matcher matcher =
-        Pattern.compile("jdbc:\\(\\?:([a-z]+):.*").matcher(EXTERNAL_HOST_URL_PATTERN.pattern());
-    String prefix = matcher.matches() ? matcher.group(1) : null;
     Matcher matcherWithoutInstance =
-        EXTERNAL_HOST_URL_PATTERN.matcher(
-            String.format("jdbc:%s://localhost:15000/databases/test-db", prefix));
+        EXTERNAL_HOST_URL_PATTERN.matcher("jdbc:cloudspanner://localhost:15000/databases/test-db");
     assertTrue(matcherWithoutInstance.matches());
     assertEquals("test-db", matcherWithoutInstance.group("DATABASEGROUP"));
     Matcher matcherWithProperty =
         EXTERNAL_HOST_URL_PATTERN.matcher(
-            String.format(
-                "jdbc:%s://localhost:15000/instances/default/databases/singers-db?usePlainText=true",
-                prefix));
+            "jdbc:cloudspanner://localhost:15000/instances/default/databases/singers-db?usePlainText=true");
     assertTrue(matcherWithProperty.matches());
     assertEquals("default", matcherWithProperty.group("INSTANCEGROUP"));
     assertEquals("singers-db", matcherWithProperty.group("DATABASEGROUP"));
     Matcher matcherWithoutPort =
         EXTERNAL_HOST_URL_PATTERN.matcher(
-            String.format("jdbc:%s://localhost/instances/default/databases/test-db", prefix));
+            "jdbc:cloudspanner://localhost/instances/default/databases/test-db");
     assertTrue(matcherWithoutPort.matches());
     assertEquals("default", matcherWithoutPort.group("INSTANCEGROUP"));
     assertEquals("test-db", matcherWithoutPort.group("DATABASEGROUP"));
     Matcher matcherWithProject =
         EXTERNAL_HOST_URL_PATTERN.matcher(
-            String.format(
-                "jdbc:%s://localhost:15000/projects/default/instances/default/databases/singers-db",
-                prefix));
+            "jdbc:cloudspanner://localhost:15000/projects/default/instances/default/databases/singers-db");
     assertFalse(matcherWithProject.matches());
     Matcher matcherWithoutHost =
         EXTERNAL_HOST_URL_PATTERN.matcher(
-            String.format("jdbc:%s:/instances/default/databases/singers-db", prefix));
+            "jdbc:cloudspanner:/instances/default/databases/singers-db");
     assertFalse(matcherWithoutHost.matches());
   }
 }

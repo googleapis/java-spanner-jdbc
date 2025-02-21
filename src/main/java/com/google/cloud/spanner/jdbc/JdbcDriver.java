@@ -271,7 +271,7 @@ public class JdbcDriver implements Driver {
 
   @Override
   public boolean acceptsURL(String url) {
-    return URL_PATTERN.matcher(url).matches();
+    return URL_PATTERN.matcher(url).matches() || EXTERNAL_HOST_URL_PATTERN.matcher(url).matches();
   }
 
   @Override
