@@ -67,6 +67,8 @@ import org.junit.runners.Parameterized.Parameters;
  */
 @RunWith(Parameterized.class)
 public class ExecuteMockServerTest extends AbstractMockServerTest {
+  private static final IllegalStateException REQUEST_NOT_FOUND =
+      new IllegalStateException("request not found");
   private static Dialect currentDialect;
 
   @Parameters(name = "dialect = {0}")
@@ -220,9 +222,27 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       try (ResultSet resultSet = statement.executeQuery(query)) {
         verifyResultSet(resultSet);
       }
+      ExecuteSqlRequest request =
+          mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
+              .filter(r -> r.getSql().equals(query))
+              .findAny()
+              .orElseThrow(() -> REQUEST_NOT_FOUND);
+      assertTrue(request.getTransaction().hasSingleUse());
+      assertTrue(request.getTransaction().getSingleUse().hasReadOnly());
+      assertFalse(request.getLastStatement());
+
       try (ResultSet resultSet = statement.executeQuery(dmlReturning)) {
         verifyResultSet(resultSet);
       }
+      request =
+          mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
+              .filter(r -> r.getSql().equals(dmlReturning))
+              .findAny()
+              .orElseThrow(() -> REQUEST_NOT_FOUND);
+      assertTrue(request.getTransaction().hasBegin());
+      assertTrue(request.getTransaction().getBegin().hasReadWrite());
+      assertTrue(request.getLastStatement());
+
       try (ResultSet resultSet = statement.executeQuery(clientSideQuery)) {
         verifyClientSideResultSet(resultSet);
       }
@@ -238,6 +258,15 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       assertEquals(1, statement.executeUpdate(dml));
+      ExecuteSqlRequest request =
+          mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
+              .filter(r -> r.getSql().equals(dml))
+              .findAny()
+              .orElseThrow(() -> REQUEST_NOT_FOUND);
+      assertTrue(request.getTransaction().hasBegin());
+      assertTrue(request.getTransaction().getBegin().hasReadWrite());
+      assertTrue(request.getLastStatement());
+
       assertEquals(0, statement.executeUpdate(DDL));
 
       connection.setAutoCommit(false);
@@ -257,6 +286,14 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
         Statement statement = connection.createStatement()) {
       // TODO: Add tests for RETURN_GENERATED_KEYS when that is supported.
       assertEquals(1, statement.executeUpdate(dml, Statement.NO_GENERATED_KEYS));
+      ExecuteSqlRequest request =
+          mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
+              .findAny()
+              .orElseThrow(() -> REQUEST_NOT_FOUND);
+      assertTrue(request.getTransaction().hasBegin());
+      assertTrue(request.getTransaction().getBegin().hasReadWrite());
+      assertTrue(request.getLastStatement());
+
       assertEquals(0, statement.executeUpdate(DDL, Statement.NO_GENERATED_KEYS));
       assertEquals(0, statement.executeUpdate(clientSideUpdate, Statement.NO_GENERATED_KEYS));
 
@@ -272,6 +309,14 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       assertEquals(1, statement.executeUpdate(dml, new String[] {"id"}));
+      ExecuteSqlRequest request =
+          mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
+              .findAny()
+              .orElseThrow(() -> REQUEST_NOT_FOUND);
+      assertTrue(request.getTransaction().hasBegin());
+      assertTrue(request.getTransaction().getBegin().hasReadWrite());
+      assertTrue(request.getLastStatement());
+
       assertEquals(0, statement.executeUpdate(DDL, new String[] {"id"}));
       assertEquals(0, statement.executeUpdate(clientSideUpdate, new String[] {"id"}));
 
@@ -290,6 +335,14 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       assertEquals(1, statement.executeUpdate(dml, new int[] {1}));
+      ExecuteSqlRequest request =
+          mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
+              .findAny()
+              .orElseThrow(() -> REQUEST_NOT_FOUND);
+      assertTrue(request.getTransaction().hasBegin());
+      assertTrue(request.getTransaction().getBegin().hasReadWrite());
+      assertTrue(request.getLastStatement());
+
       assertEquals(0, statement.executeUpdate(DDL, new int[] {1}));
       assertEquals(0, statement.executeUpdate(clientSideUpdate, new int[] {1}));
       verifyOverflow(() -> statement.executeUpdate(largeDml, new int[] {1}));
@@ -304,6 +357,14 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       assertEquals(1L, statement.executeLargeUpdate(dml));
+      ExecuteSqlRequest request =
+          mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
+              .findAny()
+              .orElseThrow(() -> REQUEST_NOT_FOUND);
+      assertTrue(request.getTransaction().hasBegin());
+      assertTrue(request.getTransaction().getBegin().hasReadWrite());
+      assertTrue(request.getLastStatement());
+
       assertEquals(0L, statement.executeLargeUpdate(DDL));
       assertEquals(0L, statement.executeLargeUpdate(clientSideUpdate));
       assertEquals(LARGE_UPDATE_COUNT, statement.executeLargeUpdate(largeDml));
@@ -319,6 +380,14 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
         Statement statement = connection.createStatement()) {
       // TODO: Add tests for RETURN_GENERATED_KEYS when that is supported.
       assertEquals(1, statement.executeLargeUpdate(dml, Statement.NO_GENERATED_KEYS));
+      ExecuteSqlRequest request =
+          mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
+              .findAny()
+              .orElseThrow(() -> REQUEST_NOT_FOUND);
+      assertTrue(request.getTransaction().hasBegin());
+      assertTrue(request.getTransaction().getBegin().hasReadWrite());
+      assertTrue(request.getLastStatement());
+
       assertEquals(0, statement.executeLargeUpdate(DDL, Statement.NO_GENERATED_KEYS));
       assertEquals(0, statement.executeLargeUpdate(clientSideUpdate, Statement.NO_GENERATED_KEYS));
       assertEquals(
@@ -871,14 +940,13 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     assertEquals(3, request.getStatementsCount());
     assertEquals(1, mockSpanner.countRequestsOfType(CommitRequest.class));
   }
-  
+
   @Test
   public void testLastStatement_AutoCommit_Query() throws SQLException {
     try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       //noinspection EmptyTryBlock
-      try (ResultSet ignore = statement.executeQuery(query)) {
-      }
+      try (ResultSet ignore = statement.executeQuery(query)) {}
     }
     assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
     assertFalse(mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0).getLastStatement());
@@ -899,8 +967,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
     try (Connection connection = createJdbcConnection();
         Statement statement = connection.createStatement()) {
       //noinspection EmptyTryBlock
-      try (ResultSet ignore = statement.executeQuery(dmlReturning)) {
-      }
+      try (ResultSet ignore = statement.executeQuery(dmlReturning)) {}
     }
     assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
     assertTrue(mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0).getLastStatement());
@@ -915,7 +982,8 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       statement.executeBatch();
     }
     assertEquals(1, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
-    assertTrue(mockSpanner.getRequestsOfType(ExecuteBatchDmlRequest.class).get(0).getLastStatements());
+    assertTrue(
+        mockSpanner.getRequestsOfType(ExecuteBatchDmlRequest.class).get(0).getLastStatements());
   }
 
   @Test
@@ -924,8 +992,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
         Statement statement = connection.createStatement()) {
       connection.setAutoCommit(false);
       //noinspection EmptyTryBlock
-      try (ResultSet ignore = statement.executeQuery(query)) {
-      }
+      try (ResultSet ignore = statement.executeQuery(query)) {}
       connection.commit();
     }
     assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
@@ -950,8 +1017,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
         Statement statement = connection.createStatement()) {
       connection.setAutoCommit(false);
       //noinspection EmptyTryBlock
-      try (ResultSet ignore = statement.executeQuery(dmlReturning)) {
-      }
+      try (ResultSet ignore = statement.executeQuery(dmlReturning)) {}
       connection.commit();
     }
     assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
@@ -969,6 +1035,7 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       connection.commit();
     }
     assertEquals(1, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
-    assertFalse(mockSpanner.getRequestsOfType(ExecuteBatchDmlRequest.class).get(0).getLastStatements());
+    assertFalse(
+        mockSpanner.getRequestsOfType(ExecuteBatchDmlRequest.class).get(0).getLastStatements());
   }
 }
