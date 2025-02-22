@@ -216,7 +216,7 @@ public class JdbcDriver implements Driver {
 
   @Override
   public Connection connect(String url, Properties info) throws SQLException {
-    if (url != null && url.startsWith("jdbc:cloudspanner")) {
+    if (url != null && (url.startsWith("jdbc:cloudspanner") || url.startsWith("jdbc:spanner"))) {
       try {
         Matcher matcher = URL_PATTERN.matcher(url);
         Matcher matcherExternalHost = EXTERNAL_HOST_URL_PATTERN.matcher(url);
@@ -271,7 +271,7 @@ public class JdbcDriver implements Driver {
 
   @Override
   public boolean acceptsURL(String url) {
-    return URL_PATTERN.matcher(url).matches();
+    return URL_PATTERN.matcher(url).matches() || EXTERNAL_HOST_URL_PATTERN.matcher(url).matches();
   }
 
   @Override
