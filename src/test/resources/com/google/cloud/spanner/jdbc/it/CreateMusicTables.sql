@@ -49,7 +49,7 @@ CREATE TABLE Songs (
   TrackId   INT64 NOT NULL,
   SongName  STRING(MAX),
   Duration  INT64,
-  SongGenre STRING(25)
+  SongGenre STRING(25) DEFAULT ('Jazz')
 ) PRIMARY KEY(SingerId, AlbumId, TrackId),
   INTERLEAVE IN PARENT Albums ON DELETE CASCADE;
 
@@ -69,14 +69,14 @@ CREATE TABLE Concerts (
 
 CREATE TABLE TableWithAllColumnTypes (
   ColInt64		INT64		NOT NULL,
-  ColFloat64	FLOAT64		NOT NULL,
-  ColFloat32	FLOAT32		NOT NULL,
+  ColFloat64	FLOAT64		NOT NULL DEFAULT (0.0),
+  ColFloat32	FLOAT32		NOT NULL DEFAULT (0.0),
   ColBool		BOOL		NOT NULL,
-  ColString		STRING(100) NOT NULL,
+  ColString		STRING(100) NOT NULL DEFAULT ('Hello World!'),
   ColStringMax	STRING(MAX)	NOT NULL,
   ColBytes		BYTES(100)	NOT NULL,
   ColBytesMax	BYTES(MAX)	NOT NULL,
-  ColDate		DATE		NOT NULL,
+  ColDate		DATE		NOT NULL DEFAULT (DATE '2000-01-01'),
   ColTimestamp	TIMESTAMP	NOT NULL,
   ColCommitTS	TIMESTAMP	NOT NULL OPTIONS (allow_commit_timestamp=true),
   ColNumeric	NUMERIC		NOT NULL,
