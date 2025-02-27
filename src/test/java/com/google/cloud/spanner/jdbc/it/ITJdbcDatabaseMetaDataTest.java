@@ -21,7 +21,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.DatabaseAdminClient;
@@ -62,10 +61,6 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
 
   @BeforeClass
   public static void setup() throws Exception {
-    assumeFalse(
-        "Named schemas are not yet supported on the emulator",
-        EmulatorSpannerHelper.isUsingEmulator());
-
     database =
         env.getOrCreateDatabase(
             Dialect.GOOGLE_STANDARD_SQL, getMusicTablesDdl(Dialect.GOOGLE_STANDARD_SQL));
@@ -89,6 +84,18 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
             .map(statement -> statement.replace(" ON ", " ON test."))
             .map(statement -> statement.replace(" ON test.DELETE", " ON DELETE"))
             .map(statement -> statement.replace(" REFERENCES ", " REFERENCES test."))
+            .map(
+                statement ->
+                    EmulatorSpannerHelper.isUsingEmulator()
+                        ? statement.replace("Fk_Concerts_Singer", "test_Fk_Concerts_Singer")
+                        : statement)
+            .map(
+                statement ->
+                    EmulatorSpannerHelper.isUsingEmulator()
+                        ? statement.replace(
+                            "Fk_TableWithRef_TableWithAllColumnTypes",
+                            "test_Fk_TableWithRef_TableWithAllColumnTypes")
+                        : statement)
             .collect(Collectors.toList());
     tables.add(0, "create schema test");
     client
@@ -110,6 +117,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
     private final boolean nullable;
     private final Integer charOctetLength;
     private final boolean computed;
+    private final String defaultValue;
 
     private Column(
         String name,
@@ -120,7 +128,17 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
         Integer radix,
         boolean nullable,
         Integer charOctetLength) {
-      this(name, type, typeName, colSize, decimalDigits, radix, nullable, charOctetLength, false);
+      this(
+          name,
+          type,
+          typeName,
+          colSize,
+          decimalDigits,
+          radix,
+          nullable,
+          charOctetLength,
+          false,
+          null);
     }
 
     private Column(
@@ -132,7 +150,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
         Integer radix,
         boolean nullable,
         Integer charOctetLength,
-        boolean computed) {
+        boolean computed,
+        String defaultValue) {
       this.name = name;
       this.type = type;
       this.typeName = typeName;
@@ -142,21 +161,42 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
       this.nullable = nullable;
       this.charOctetLength = charOctetLength;
       this.computed = computed;
+      this.defaultValue = defaultValue;
     }
   }
 
   private static final List<Column> EXPECTED_COLUMNS =
       Arrays.asList(
           new Column("ColInt64", Types.BIGINT, "INT64", 19, null, 10, false, null),
-          new Column("ColFloat64", Types.DOUBLE, "FLOAT64", 15, 16, 2, false, null),
-          new Column("ColFloat32", Types.REAL, "FLOAT32", 15, 16, 2, false, null),
+          new Column("ColFloat64", Types.DOUBLE, "FLOAT64", 15, 16, 2, false, null, false, "0.0"),
+          new Column("ColFloat32", Types.REAL, "FLOAT32", 15, 16, 2, false, null, false, "0.0"),
           new Column("ColBool", Types.BOOLEAN, "BOOL", null, null, null, false, null),
-          new Column("ColString", Types.NVARCHAR, "STRING(100)", 100, null, null, false, 100),
+          new Column(
+              "ColString",
+              Types.NVARCHAR,
+              "STRING(100)",
+              100,
+              null,
+              null,
+              false,
+              100,
+              false,
+              "'Hello World!'"),
           new Column(
               "ColStringMax", Types.NVARCHAR, "STRING(MAX)", 2621440, null, null, false, 2621440),
           new Column("ColBytes", Types.BINARY, "BYTES(100)", 100, null, null, false, null),
           new Column("ColBytesMax", Types.BINARY, "BYTES(MAX)", 10485760, null, null, false, null),
-          new Column("ColDate", Types.DATE, "DATE", 10, null, null, false, null),
+          new Column(
+              "ColDate",
+              Types.DATE,
+              "DATE",
+              10,
+              null,
+              null,
+              false,
+              null,
+              false,
+              "DATE '2000-01-01'"),
           new Column("ColTimestamp", Types.TIMESTAMP, "TIMESTAMP", 35, null, null, false, null),
           new Column("ColCommitTS", Types.TIMESTAMP, "TIMESTAMP", 35, null, null, false, null),
           new Column("ColNumeric", Types.NUMERIC, "NUMERIC", 15, null, 10, false, null),
@@ -202,7 +242,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
               null,
               true,
               2621440,
-              true));
+              true,
+              null));
 
   @Test
   public void testGetColumns() throws SQLException {
@@ -244,7 +285,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
                 col.nullable ? DatabaseMetaData.columnNullable : DatabaseMetaData.columnNoNulls,
                 rs.getInt("NULLABLE"));
             assertNull(rs.getString("REMARKS"));
-            assertNull(rs.getString("COLUMN_DEF"));
+            assertEquals(col.defaultValue, rs.getString("COLUMN_DEF"));
             assertEquals(0, rs.getInt("SQL_DATA_TYPE"));
             assertEquals(0, rs.getInt("SQL_DATETIME_SUB"));
             if (col.charOctetLength == null) {
@@ -360,7 +401,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           assertEquals(1, rs.getShort("KEY_SEQ"));
           assertEquals(DatabaseMetaData.importedKeyNoAction, rs.getShort("UPDATE_RULE"));
           assertEquals(DatabaseMetaData.importedKeyNoAction, rs.getShort("DELETE_RULE"));
-          assertEquals("Fk_Concerts_Singer", rs.getString("FK_NAME"));
+          if (EmulatorSpannerHelper.isUsingEmulator() && "test".equals(schema)) {
+            assertEquals("test_Fk_Concerts_Singer", rs.getString("FK_NAME"));
+          } else {
+            assertEquals("Fk_Concerts_Singer", rs.getString("FK_NAME"));
+          }
           assertEquals("PK_Singers", rs.getString("PK_NAME"));
           assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getShort("DEFERRABILITY"));
           assertFalse(rs.next());
@@ -389,7 +434,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           assertEquals(1, rs.getShort("KEY_SEQ"));
           assertEquals(DatabaseMetaData.importedKeyNoAction, rs.getShort("UPDATE_RULE"));
           assertEquals(DatabaseMetaData.importedKeyNoAction, rs.getShort("DELETE_RULE"));
-          assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+          if (EmulatorSpannerHelper.isUsingEmulator() && "test".equals(schema)) {
+            assertEquals("test_Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+          } else {
+            assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+          }
           assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getShort("DEFERRABILITY"));
 
           assertTrue(rs.next());
@@ -404,7 +453,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           assertEquals(2, rs.getShort("KEY_SEQ"));
           assertEquals(DatabaseMetaData.importedKeyNoAction, rs.getShort("UPDATE_RULE"));
           assertEquals(DatabaseMetaData.importedKeyNoAction, rs.getShort("DELETE_RULE"));
-          assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+          if (EmulatorSpannerHelper.isUsingEmulator() && "test".equals(schema)) {
+            assertEquals("test_Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+          } else {
+            assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+          }
           assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getShort("DEFERRABILITY"));
 
           assertTrue(rs.next());
@@ -419,7 +472,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           assertEquals(3, rs.getShort("KEY_SEQ"));
           assertEquals(DatabaseMetaData.importedKeyNoAction, rs.getShort("UPDATE_RULE"));
           assertEquals(DatabaseMetaData.importedKeyNoAction, rs.getShort("DELETE_RULE"));
-          assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+          if (EmulatorSpannerHelper.isUsingEmulator() && "test".equals(schema)) {
+            assertEquals("test_Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+          } else {
+            assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+          }
           assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getShort("DEFERRABILITY"));
 
           assertFalse(rs.next());
@@ -519,6 +576,12 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
             connection.getMetaData().getIndexInfo(DEFAULT_CATALOG, schema, null, false, false)) {
 
           for (IndexInfo index : EXPECTED_INDICES) {
+            // The emulator does not generate indexes for foreign keys in a non-default schema.
+            if (EmulatorSpannerHelper.isUsingEmulator()
+                && "test".equals(schema)
+                && ("FOREIGN_KEY".equals(index.indexName) || "GENERATED".equals(index.indexName))) {
+              continue;
+            }
             assertTrue(rs.next());
             assertEquals(DEFAULT_CATALOG, rs.getString("TABLE_CAT"));
             assertEquals(schema, rs.getString("TABLE_SCHEM"));
@@ -612,7 +675,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
     assertEquals(1, rs.getShort("KEY_SEQ"));
     assertEquals(DatabaseMetaData.importedKeyRestrict, rs.getInt("UPDATE_RULE"));
     assertEquals(DatabaseMetaData.importedKeyRestrict, rs.getInt("DELETE_RULE"));
-    assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+    if (EmulatorSpannerHelper.isUsingEmulator() && "test".equals(schema)) {
+      assertEquals("test_Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+    } else {
+      assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+    }
     assertNotNull(rs.getString("PK_NAME")); // Index name is generated.
     assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getInt("DEFERRABILITY"));
 
@@ -628,7 +695,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
     assertEquals(2, rs.getShort("KEY_SEQ"));
     assertEquals(DatabaseMetaData.importedKeyRestrict, rs.getInt("UPDATE_RULE"));
     assertEquals(DatabaseMetaData.importedKeyRestrict, rs.getInt("DELETE_RULE"));
-    assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+    if (EmulatorSpannerHelper.isUsingEmulator() && "test".equals(schema)) {
+      assertEquals("test_Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+    } else {
+      assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+    }
     assertNotNull(rs.getString("PK_NAME")); // Index name is generated.
     assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getInt("DEFERRABILITY"));
 
@@ -644,7 +715,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
     assertEquals(3, rs.getShort("KEY_SEQ"));
     assertEquals(DatabaseMetaData.importedKeyRestrict, rs.getInt("UPDATE_RULE"));
     assertEquals(DatabaseMetaData.importedKeyRestrict, rs.getInt("DELETE_RULE"));
-    assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+    if (EmulatorSpannerHelper.isUsingEmulator() && "test".equals(schema)) {
+      assertEquals("test_Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+    } else {
+      assertEquals("Fk_TableWithRef_TableWithAllColumnTypes", rs.getString("FK_NAME"));
+    }
     assertNotNull(rs.getString("PK_NAME")); // Index name is generated.
     assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getInt("DEFERRABILITY"));
 
@@ -684,7 +759,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
     assertEquals(1, rs.getShort("KEY_SEQ"));
     assertEquals(DatabaseMetaData.importedKeyRestrict, rs.getInt("UPDATE_RULE"));
     assertEquals(DatabaseMetaData.importedKeyRestrict, rs.getInt("DELETE_RULE"));
-    assertEquals("Fk_Concerts_Singer", rs.getString("FK_NAME"));
+    if (EmulatorSpannerHelper.isUsingEmulator() && "test".equals(schema)) {
+      assertEquals("test_Fk_Concerts_Singer", rs.getString("FK_NAME"));
+    } else {
+      assertEquals("Fk_Concerts_Singer", rs.getString("FK_NAME"));
+    }
     assertEquals("PK_Singers", rs.getString("PK_NAME"));
     assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getInt("DEFERRABILITY"));
 
@@ -720,7 +799,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
     assertEquals(1, rs.getShort("KEY_SEQ"));
     assertEquals(DatabaseMetaData.importedKeyRestrict, rs.getInt("UPDATE_RULE"));
     assertEquals(DatabaseMetaData.importedKeyRestrict, rs.getInt("DELETE_RULE"));
-    assertEquals("Fk_Concerts_Singer", rs.getString("FK_NAME"));
+    if (EmulatorSpannerHelper.isUsingEmulator() && "test".equals(schema)) {
+      assertEquals("test_Fk_Concerts_Singer", rs.getString("FK_NAME"));
+    } else {
+      assertEquals("Fk_Concerts_Singer", rs.getString("FK_NAME"));
+    }
     assertEquals("PK_Singers", rs.getString("PK_NAME"));
     assertEquals(DatabaseMetaData.importedKeyNotDeferrable, rs.getInt("DEFERRABILITY"));
 
@@ -888,9 +971,6 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
         try (ResultSet rs =
             connection.getMetaData().getTables(DEFAULT_CATALOG, schema, null, null)) {
           for (Table table : EXPECTED_TABLES) {
-            if (EmulatorSpannerHelper.isUsingEmulator() && table.name.equals("SingersView")) {
-              continue;
-            }
             assertTrue(rs.next());
             assertEquals(DEFAULT_CATALOG, rs.getString("TABLE_CAT"));
             assertEquals(schema, rs.getString("TABLE_SCHEM"));
