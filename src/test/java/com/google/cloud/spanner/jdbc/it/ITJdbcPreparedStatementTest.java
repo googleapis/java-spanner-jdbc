@@ -744,7 +744,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               assertEquals(testTimestamp.getTime(), inDefaultTZ.getTime());
               // Then get it in the test timezone.
               if (testCalendar != null
-                  && !System.getProperty("java.vm.name", "").toLowerCase().contains("graalvm")) {
+                  && !System.getProperty("java.vm.name", "").toLowerCase().contains("graalvm")
+                  && !System.getProperty("java.vendor", "").toLowerCase().contains("graalvm")) {
                 Timestamp inOtherTZ = rs.getTimestamp(4, testCalendar);
                 assertEquals(
                     "Timezone: "
@@ -754,7 +755,9 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                         + ", os="
                         + System.getProperty("os.name")
                         + ", vm="
-                        + System.getProperty("java.vm.name"),
+                        + System.getProperty("java.vm.name")
+                        + ", vendor="
+                        + System.getProperty("java.vendor"),
                     testTimestamp.getTime() + testCalendar.getTimeZone().getRawOffset(),
                     inOtherTZ.getTime());
               }
@@ -764,9 +767,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               inDefaultTZ = rs.getTimestamp(5);
               if (testCalendar == null) {
                 assertEquals(testTimestamp.getTime(), inDefaultTZ.getTime());
-              } else if (!System.getProperty("java.vm.name", "")
-                  .toLowerCase()
-                  .contains("graalvm")) {
+              } else if (!System.getProperty("java.vm.name", "").toLowerCase().contains("graalvm")
+                  && !System.getProperty("java.vendor", "").toLowerCase().contains("graalvm")) {
                 assertEquals(
                     "Timezone: "
                         + testCalendar
@@ -775,7 +777,9 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                         + ", os="
                         + System.getProperty("os.name")
                         + ", vm="
-                        + System.getProperty("java.vm.name"),
+                        + System.getProperty("java.vm.name")
+                        + ", vendor="
+                        + System.getProperty("java.vendor"),
                     testTimestamp.getTime() - testCalendar.getTimeZone().getRawOffset(),
                     inDefaultTZ.getTime());
               }
