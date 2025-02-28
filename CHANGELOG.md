@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.27.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.27.0...v2.27.1) (2025-02-28)
+
+
+### Bug Fixes
+
+* Include COLUMN_DEFAULT in the returned metadata ([#1937](https://github.com/googleapis/java-spanner-jdbc/issues/1937)) ([98eb542](https://github.com/googleapis/java-spanner-jdbc/commit/98eb542201330188570ef995e38fa2a690e1160f))
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.59.0 ([#1938](https://github.com/googleapis/java-spanner-jdbc/issues/1938)) ([5458023](https://github.com/googleapis/java-spanner-jdbc/commit/54580230f61584f0691730693497171ff9bfc734))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.88.0 ([#1939](https://github.com/googleapis/java-spanner-jdbc/issues/1939)) ([3c23e90](https://github.com/googleapis/java-spanner-jdbc/commit/3c23e90b7a7dee52169db8041523f38a7ceeb6ad))
+* Update dependency com.google.cloud:google-cloud-trace to v2.59.0 ([#1940](https://github.com/googleapis/java-spanner-jdbc/issues/1940)) ([b31dd6e](https://github.com/googleapis/java-spanner-jdbc/commit/b31dd6e78b5f9b529b7cc7a9a34ea176231e22dc))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.44.0 ([#1931](https://github.com/googleapis/java-spanner-jdbc/issues/1931)) ([568a464](https://github.com/googleapis/java-spanner-jdbc/commit/568a464f29055383b7930deb42505bedad506339))
+
+
+### Documentation
+
+* Add defaultSequenceKind connection property documentation ([#1935](https://github.com/googleapis/java-spanner-jdbc/issues/1935)) ([c30b09a](https://github.com/googleapis/java-spanner-jdbc/commit/c30b09ab554d57adccaee72c36969407bbb1d4dd))
+
 ## [2.27.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.26.1...v2.27.0) (2025-02-21)
 
 
