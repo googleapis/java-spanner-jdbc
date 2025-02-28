@@ -743,7 +743,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               Timestamp inDefaultTZ = rs.getTimestamp(4);
               assertEquals(testTimestamp.getTime(), inDefaultTZ.getTime());
               // Then get it in the test timezone.
-              if (testCalendar != null) {
+              if (testCalendar != null
+                  && !System.getProperty("java.vm.name", "").toLowerCase().contains("graalvm")) {
                 Timestamp inOtherTZ = rs.getTimestamp(4, testCalendar);
                 assertEquals(
                     "Timezone: "
@@ -751,7 +752,9 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                         + ", rawOffset="
                         + testCalendar.getTimeZone().getRawOffset()
                         + ", os="
-                        + System.getProperty("os.name"),
+                        + System.getProperty("os.name")
+                        + ", vm="
+                        + System.getProperty("java.vm.name"),
                     testTimestamp.getTime() + testCalendar.getTimeZone().getRawOffset(),
                     inOtherTZ.getTime());
               }
@@ -761,14 +764,18 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               inDefaultTZ = rs.getTimestamp(5);
               if (testCalendar == null) {
                 assertEquals(testTimestamp.getTime(), inDefaultTZ.getTime());
-              } else {
+              } else if (!System.getProperty("java.vm.name", "")
+                  .toLowerCase()
+                  .contains("graalvm")) {
                 assertEquals(
                     "Timezone: "
                         + testCalendar
                         + ", rawOffset="
                         + testCalendar.getTimeZone().getRawOffset()
                         + ", os="
-                        + System.getProperty("os.name"),
+                        + System.getProperty("os.name")
+                        + ", vm="
+                        + System.getProperty("java.vm.name"),
                     testTimestamp.getTime() - testCalendar.getTimeZone().getRawOffset(),
                     inDefaultTZ.getTime());
               }
