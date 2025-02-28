@@ -746,6 +746,12 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               if (testCalendar != null) {
                 Timestamp inOtherTZ = rs.getTimestamp(4, testCalendar);
                 assertEquals(
+                    "Timezone: "
+                        + testCalendar
+                        + ", rawOffset="
+                        + testCalendar.getTimeZone().getRawOffset()
+                        + ", os="
+                        + System.getProperty("os.name"),
                     testTimestamp.getTime() + testCalendar.getTimeZone().getRawOffset(),
                     inOtherTZ.getTime());
               }
@@ -757,6 +763,12 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                 assertEquals(testTimestamp.getTime(), inDefaultTZ.getTime());
               } else {
                 assertEquals(
+                    "Timezone: "
+                        + testCalendar
+                        + ", rawOffset="
+                        + testCalendar.getTimeZone().getRawOffset()
+                        + ", os="
+                        + System.getProperty("os.name"),
                     testTimestamp.getTime() - testCalendar.getTimeZone().getRawOffset(),
                     inDefaultTZ.getTime());
               }
