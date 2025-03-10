@@ -118,6 +118,7 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
     private final Integer charOctetLength;
     private final boolean computed;
     private final String defaultValue;
+    private final boolean autoIncrement;
 
     private Column(
         String name,
@@ -138,7 +139,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
           nullable,
           charOctetLength,
           false,
-          null);
+          null,
+          false);
     }
 
     private Column(
@@ -151,7 +153,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
         boolean nullable,
         Integer charOctetLength,
         boolean computed,
-        String defaultValue) {
+        String defaultValue,
+        boolean autoIncrement) {
       this.name = name;
       this.type = type;
       this.typeName = typeName;
@@ -162,14 +165,17 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
       this.charOctetLength = charOctetLength;
       this.computed = computed;
       this.defaultValue = defaultValue;
+      this.autoIncrement = autoIncrement;
     }
   }
 
   private static final List<Column> EXPECTED_COLUMNS =
       Arrays.asList(
           new Column("ColInt64", Types.BIGINT, "INT64", 19, null, 10, false, null),
-          new Column("ColFloat64", Types.DOUBLE, "FLOAT64", 15, 16, 2, false, null, false, "0.0"),
-          new Column("ColFloat32", Types.REAL, "FLOAT32", 15, 16, 2, false, null, false, "0.0"),
+          new Column(
+              "ColFloat64", Types.DOUBLE, "FLOAT64", 15, 16, 2, false, null, false, "0.0", false),
+          new Column(
+              "ColFloat32", Types.REAL, "FLOAT32", 15, 16, 2, false, null, false, "0.0", false),
           new Column("ColBool", Types.BOOLEAN, "BOOL", null, null, null, false, null),
           new Column(
               "ColString",
@@ -181,7 +187,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
               false,
               100,
               false,
-              "'Hello World!'"),
+              "'Hello World!'",
+              false),
           new Column(
               "ColStringMax", Types.NVARCHAR, "STRING(MAX)", 2621440, null, null, false, 2621440),
           new Column("ColBytes", Types.BINARY, "BYTES(100)", 100, null, null, false, null),
@@ -196,7 +203,8 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
               false,
               null,
               false,
-              "DATE '2000-01-01'"),
+              "DATE '2000-01-01'",
+              false),
           new Column("ColTimestamp", Types.TIMESTAMP, "TIMESTAMP", 35, null, null, false, null),
           new Column("ColCommitTS", Types.TIMESTAMP, "TIMESTAMP", 35, null, null, false, null),
           new Column("ColNumeric", Types.NUMERIC, "NUMERIC", 15, null, 10, false, null),
@@ -243,7 +251,10 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
               true,
               2621440,
               true,
-              null));
+              null,
+              false),
+          new Column(
+              "ColIdentity", Types.BIGINT, "INT64", 19, null, 10, true, null, false, null, true));
 
   @Test
   public void testGetColumns() throws SQLException {
@@ -301,8 +312,11 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
             assertNull(rs.getString("SCOPE_TABLE"));
             assertEquals(0, rs.getShort("SOURCE_DATA_TYPE"));
             assertTrue(rs.wasNull());
-            assertEquals("NO", rs.getString("IS_AUTOINCREMENT"));
             assertEquals(col.computed ? "YES" : "NO", rs.getString("IS_GENERATEDCOLUMN"));
+            // TODO: Remove check when the emulator correctly returns IS_IDENTITY
+            if (!EmulatorSpannerHelper.isUsingEmulator()) {
+              assertEquals(col.autoIncrement ? "YES" : "NO", rs.getString("IS_AUTOINCREMENT"));
+            }
             assertEquals(24, rs.getMetaData().getColumnCount());
           }
           assertFalse(rs.next());

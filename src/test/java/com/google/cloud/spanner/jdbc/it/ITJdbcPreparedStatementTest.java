@@ -1129,7 +1129,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
       try (PreparedStatement ps =
           con.prepareStatement("SELECT * FROM TableWithAllColumnTypes WHERE ColInt64=?")) {
         ResultSetMetaData metadata = ps.getMetaData();
-        assertEquals(26, metadata.getColumnCount());
+        assertEquals(27, metadata.getColumnCount());
         int index = 0;
         assertEquals("ColInt64", metadata.getColumnLabel(++index));
         assertEquals("ColFloat64", metadata.getColumnLabel(++index));
@@ -1157,6 +1157,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
         assertEquals("ColNumericArray", metadata.getColumnLabel(++index));
         assertEquals("ColJsonArray", metadata.getColumnLabel(++index));
         assertEquals("ColComputed", metadata.getColumnLabel(++index));
+        assertEquals("ColIdentity", metadata.getColumnLabel(++index));
       }
     }
   }
