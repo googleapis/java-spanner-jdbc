@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.28.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.27.1...v2.28.0) (2025-03-13)
+
+
+### Features
+
+* Return is_autoincrement for getColumns ([#1944](https://github.com/googleapis/java-spanner-jdbc/issues/1944)) ([b9fcae9](https://github.com/googleapis/java-spanner-jdbc/commit/b9fcae942b1f52f82bbd5ae4357e1d4e84bee5a4))
+
+
+### Dependencies
+
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.18.3 ([#1943](https://github.com/googleapis/java-spanner-jdbc/issues/1943)) ([dc9af80](https://github.com/googleapis/java-spanner-jdbc/commit/dc9af80b20bbb798a7e6f4c6de577ab8249c426d))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.45.0 ([#1951](https://github.com/googleapis/java-spanner-jdbc/issues/1951)) ([00f163b](https://github.com/googleapis/java-spanner-jdbc/commit/00f163bdc016e5411d0f64af27fe353c2be75065))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.48.0 ([#1950](https://github.com/googleapis/java-spanner-jdbc/issues/1950)) ([99b70ce](https://github.com/googleapis/java-spanner-jdbc/commit/99b70ce1bac31dee520cb1ca3743c64c296fb901))
+* Update dependency org.testcontainers:testcontainers to v1.20.6 ([#1946](https://github.com/googleapis/java-spanner-jdbc/issues/1946)) ([2b3e1d8](https://github.com/googleapis/java-spanner-jdbc/commit/2b3e1d839d6d8b903c5b45f84a4c6db651f732db))
+* Update dependency org.testcontainers:testcontainers-bom to v1.20.6 ([#1947](https://github.com/googleapis/java-spanner-jdbc/issues/1947)) ([0b9fb38](https://github.com/googleapis/java-spanner-jdbc/commit/0b9fb3833fb79cf211bcb1de307194ff39fe18c8))
+
 ## [2.27.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.27.0...v2.27.1) (2025-02-28)
 
 
