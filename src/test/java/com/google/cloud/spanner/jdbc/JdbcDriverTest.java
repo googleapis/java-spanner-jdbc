@@ -135,13 +135,14 @@ public class JdbcDriverTest {
 
   @Test
   public void testConnect() throws SQLException {
-    try (Connection connection =
-        DriverManager.getConnection(
-            String.format(
-                "jdbc:cloudspanner://localhost:%d/projects/some-company.com:test-project/instances/static-test-instance/databases/test-database;usePlainText=true;credentials=%s",
-                server.getPort(), TEST_KEY_PATH))) {
-      assertThat(connection.isClosed()).isFalse();
-    }
+    for (String prefix : new String[] {"cloudspanner", "spanner"})
+      try (Connection connection =
+          DriverManager.getConnection(
+              String.format(
+                  "jdbc:%s://localhost:%d/projects/some-company.com:test-project/instances/static-test-instance/databases/test-database;usePlainText=true;credentials=%s",
+                  prefix, server.getPort(), TEST_KEY_PATH))) {
+        assertThat(connection.isClosed()).isFalse();
+      }
   }
 
   @Test(expected = SQLException.class)
@@ -213,6 +214,17 @@ public class JdbcDriverTest {
       assertThat(jdbc.getMessage()).contains("foo");
       assertThat(jdbc.getCode()).isEqualTo(Code.INVALID_ARGUMENT);
     }
+  }
+
+  @Test
+  public void testAcceptsURL() throws SQLException {
+    JdbcDriver driver = JdbcDriver.getRegisteredDriver();
+    assertTrue(
+        driver.acceptsURL(
+            "jdbc:cloudspanner:/projects/my-project/instances/my-instance/databases/my-database"));
+    assertTrue(
+        driver.acceptsURL(
+            "jdbc:spanner:/projects/my-project/instances/my-instance/databases/my-database"));
   }
 
   @Test
