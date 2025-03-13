@@ -4,7 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>2.26.2-SNAPSHOT</version><!-- {x-version-update:google-cloud-spanner-jdbc:current} -->
+  <version>2.27.2-SNAPSHOT</version><!-- {x-version-update:google-cloud-spanner-jdbc:current} -->
   <packaging>jar</packaging>
   <name>Google Cloud Spanner JDBC</name>
   <url>https://github.com/googleapis/java-spanner-jdbc</url>
@@ -14,7 +14,7 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>sdk-platform-java-config</artifactId>
-    <version>3.43.0</version>
+    <version>3.44.0</version>
   </parent>
   <developers>
     <developer>
@@ -61,7 +61,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>6.86.0</version>
+        <version>6.88.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -166,7 +166,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.20.4</version>
+      <version>1.20.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -208,15 +208,21 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api-incubator</artifactId>
+      <version>1.45.0-alpha</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-trace</artifactId>
-      <version>2.58.0</version>
+      <version>2.59.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-trace-v1</artifactId>
-      <version>2.58.0</version>
+      <version>2.59.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -462,7 +468,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.8.0</version>
+        <version>3.9.0</version>
         <reportSets>
           <reportSet>
             <reports>
