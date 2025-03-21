@@ -205,8 +205,6 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
     CreateSessionRequest request = mockSpanner.getRequestsOfType(CreateSessionRequest.class).get(0);
     assertTrue(request.getSession().getMultiplexed());
     // There should be no regular sessions in use.
-    // However, the query that detects the dialect that is used, uses a regular session.
-    // This should be fixed in the Java client.
-    assertEquals(1, mockSpanner.countRequestsOfType(BatchCreateSessionsRequest.class));
+    assertEquals(0, mockSpanner.countRequestsOfType(BatchCreateSessionsRequest.class));
   }
 }

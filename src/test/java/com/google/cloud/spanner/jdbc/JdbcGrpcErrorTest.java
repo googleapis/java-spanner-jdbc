@@ -430,8 +430,7 @@ public class JdbcGrpcErrorTest {
 
   @Test
   public void readOnlyCreateSession() throws SQLException {
-    mockSpanner.setBatchCreateSessionsExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setCreateSessionExecutionTime(SimulatedExecutionTime.ofException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
