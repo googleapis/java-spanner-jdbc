@@ -1,5 +1,36 @@
 # Changelog
 
+## [2.28.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.27.1...v2.28.0) (2025-03-21)
+
+
+### Features
+
+* Return is_autoincrement for getColumns ([#1944](https://github.com/googleapis/java-spanner-jdbc/issues/1944)) ([b9fcae9](https://github.com/googleapis/java-spanner-jdbc/commit/b9fcae942b1f52f82bbd5ae4357e1d4e84bee5a4))
+
+
+### Performance Improvements
+
+* Get database dialect using multiplexed session ([c5f3297](https://github.com/googleapis/java-spanner-jdbc/commit/c5f32979a682643e135a40dfd7681de841bce0de))
+* Skip gRPC trailers for successful queries ([c5f3297](https://github.com/googleapis/java-spanner-jdbc/commit/c5f32979a682643e135a40dfd7681de841bce0de))
+
+
+### Dependencies
+
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.18.3 ([#1943](https://github.com/googleapis/java-spanner-jdbc/issues/1943)) ([dc9af80](https://github.com/googleapis/java-spanner-jdbc/commit/dc9af80b20bbb798a7e6f4c6de577ab8249c426d))
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.60.0 ([#1958](https://github.com/googleapis/java-spanner-jdbc/issues/1958)) ([37fca7b](https://github.com/googleapis/java-spanner-jdbc/commit/37fca7b47ca8480afc64f45db3e364218686674e))
+* Update dependency com.google.cloud:google-cloud-trace to v2.60.0 ([#1959](https://github.com/googleapis/java-spanner-jdbc/issues/1959)) ([f154740](https://github.com/googleapis/java-spanner-jdbc/commit/f15474061f8c4780fe2a8457882761598f1ecc8c))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.45.0 ([#1951](https://github.com/googleapis/java-spanner-jdbc/issues/1951)) ([00f163b](https://github.com/googleapis/java-spanner-jdbc/commit/00f163bdc016e5411d0f64af27fe353c2be75065))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.45.1 ([#1952](https://github.com/googleapis/java-spanner-jdbc/issues/1952)) ([c7c7363](https://github.com/googleapis/java-spanner-jdbc/commit/c7c7363736f105d9d0c2593d3a354d7789c1a801))
+* Update dependency com.google.cloud.opentelemetry:exporter-metrics to v0.34.0 ([#1955](https://github.com/googleapis/java-spanner-jdbc/issues/1955)) ([b52cadd](https://github.com/googleapis/java-spanner-jdbc/commit/b52caddd2a08ead671db0f64dea48957bdb4ac1c))
+* Update dependency com.google.cloud.opentelemetry:exporter-trace to v0.34.0 ([#1956](https://github.com/googleapis/java-spanner-jdbc/issues/1956)) ([2158ff2](https://github.com/googleapis/java-spanner-jdbc/commit/2158ff241c4adf27229fa409780282be4106dd5f))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.48.0 ([#1950](https://github.com/googleapis/java-spanner-jdbc/issues/1950)) ([99b70ce](https://github.com/googleapis/java-spanner-jdbc/commit/99b70ce1bac31dee520cb1ca3743c64c296fb901))
+* Update dependency org.springframework.boot:spring-boot to v3.4.4 ([#1962](https://github.com/googleapis/java-spanner-jdbc/issues/1962)) ([86b05e2](https://github.com/googleapis/java-spanner-jdbc/commit/86b05e2dba04603198f595e91fdc2f5b66f4eb80))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.4.4 ([#1963](https://github.com/googleapis/java-spanner-jdbc/issues/1963)) ([53d3e8b](https://github.com/googleapis/java-spanner-jdbc/commit/53d3e8b120806f9603f10dec47bb6745bfed493b))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.4.4 ([#1964](https://github.com/googleapis/java-spanner-jdbc/issues/1964)) ([bf5402b](https://github.com/googleapis/java-spanner-jdbc/commit/bf5402b0e85d3a0c854401a1121bc7b82c5d06a1))
+* Update dependency org.springframework.data:spring-data-bom to v2024.1.4 ([#1953](https://github.com/googleapis/java-spanner-jdbc/issues/1953)) ([fa65ead](https://github.com/googleapis/java-spanner-jdbc/commit/fa65ead20018c083749bb1bd1cc1993f48745ef9))
+* Update dependency org.testcontainers:testcontainers to v1.20.6 ([#1946](https://github.com/googleapis/java-spanner-jdbc/issues/1946)) ([2b3e1d8](https://github.com/googleapis/java-spanner-jdbc/commit/2b3e1d839d6d8b903c5b45f84a4c6db651f732db))
+* Update dependency org.testcontainers:testcontainers-bom to v1.20.6 ([#1947](https://github.com/googleapis/java-spanner-jdbc/issues/1947)) ([0b9fb38](https://github.com/googleapis/java-spanner-jdbc/commit/0b9fb3833fb79cf211bcb1de307194ff39fe18c8))
+
 ## [2.27.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.27.0...v2.27.1) (2025-02-28)
 
 
