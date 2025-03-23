@@ -199,6 +199,12 @@
       <classifier>testlib</classifier>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.google.api</groupId>
+      <artifactId>gax</artifactId>
+      <classifier>testlib</classifier>
+      <scope>test</scope>
+    </dependency>
 
     <!-- Add OpenTelemetry implementation and exporters for use in integration tests. -->
     <dependency>
