@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import java.sql.DriverPropertyInfo;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ public class ConnectionPropertiesHelper {
         connectionProperty.getValidValues() == null
             ? null
             : Arrays.stream(connectionProperty.getValidValues())
-                .map(Object::toString)
+                .map(Objects::toString)
                 .toArray(String[]::new);
     return result;
   }

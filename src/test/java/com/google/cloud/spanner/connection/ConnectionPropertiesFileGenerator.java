@@ -20,6 +20,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /** Generator for the documentation/connection_properties.md file. */
@@ -65,7 +66,7 @@ public class ConnectionPropertiesFileGenerator {
     return connectionProperty.getValidValues() == null
         ? ""
         : Arrays.stream(connectionProperty.getValidValues())
-            .map(Object::toString)
+            .map(Objects::toString)
             .collect(Collectors.joining(", "));
   }
 }
