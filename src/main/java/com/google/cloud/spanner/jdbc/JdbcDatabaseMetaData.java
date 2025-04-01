@@ -664,7 +664,12 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
 
   @Override
   public boolean supportsTransactionIsolationLevel(int level) {
-    return Connection.TRANSACTION_SERIALIZABLE == level;
+    return supportsIsolationLevel(level);
+  }
+
+  static boolean supportsIsolationLevel(int level) {
+    return Connection.TRANSACTION_SERIALIZABLE == level
+        || Connection.TRANSACTION_REPEATABLE_READ == level;
   }
 
   @Override

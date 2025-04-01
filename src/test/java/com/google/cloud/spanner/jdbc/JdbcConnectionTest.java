@@ -366,34 +366,28 @@ public class JdbcConnectionTest {
   public void testTransactionIsolation() throws SQLException {
     ConnectionOptions options = mockOptions();
     try (JdbcConnection connection = createConnection(options)) {
-      assertThat(connection.getTransactionIsolation())
-          .isEqualTo(Connection.TRANSACTION_SERIALIZABLE);
-      // assert that setting it to this value is ok.
+      assertEquals(Connection.TRANSACTION_SERIALIZABLE, connection.getTransactionIsolation());
+      // assert that setting it to these values is ok.
       connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+      assertEquals(Connection.TRANSACTION_SERIALIZABLE, connection.getTransactionIsolation());
+      connection.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+      assertEquals(Connection.TRANSACTION_REPEATABLE_READ, connection.getTransactionIsolation());
       // assert that setting it to something else is not ok.
-      int[] settings =
+      int[] invalidValues =
           new int[] {
-            Connection.TRANSACTION_READ_COMMITTED,
-            Connection.TRANSACTION_READ_UNCOMMITTED,
-            Connection.TRANSACTION_REPEATABLE_READ,
-            -100
+            Connection.TRANSACTION_READ_COMMITTED, Connection.TRANSACTION_READ_UNCOMMITTED, -100
           };
-      for (int setting : settings) {
-        boolean exception = false;
-        try {
-          connection.setTransactionIsolation(setting);
-        } catch (SQLException e) {
-          if (setting == -100) {
-            exception =
-                (e instanceof JdbcSqlException
-                    && ((JdbcSqlException) e).getCode() == Code.INVALID_ARGUMENT);
-          } else {
-            exception =
-                (e instanceof JdbcSqlException
-                    && ((JdbcSqlException) e).getCode() == Code.UNIMPLEMENTED);
-          }
+      for (int invalidValue : invalidValues) {
+        SQLException exception =
+            assertThrows(
+                SQLException.class, () -> connection.setTransactionIsolation(invalidValue));
+        assertTrue(exception instanceof JdbcSqlException);
+        JdbcSqlException spannerException = (JdbcSqlException) exception;
+        if (invalidValue == -100) {
+          assertEquals(Code.INVALID_ARGUMENT, spannerException.getCode());
+        } else {
+          assertEquals(Code.UNIMPLEMENTED, spannerException.getCode());
         }
-        assertThat(exception).isTrue();
       }
     }
   }

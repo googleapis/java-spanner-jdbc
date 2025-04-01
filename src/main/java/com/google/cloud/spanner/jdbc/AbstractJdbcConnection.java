@@ -41,8 +41,8 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
     implements CloudSpannerJdbcConnection {
   private static final String CALLABLE_STATEMENTS_UNSUPPORTED =
       "Callable statements are not supported";
-  private static final String ONLY_SERIALIZABLE =
-      "Only isolation level TRANSACTION_SERIALIZABLE is supported";
+  private static final String ONLY_SERIALIZABLE_OR_REPEATABLE_READ =
+      "Only isolation levels TRANSACTION_SERIALIZABLE and TRANSACTION_REPEATABLE_READ are supported";
   private static final String ONLY_CLOSE_ALLOWED =
       "Only holdability CLOSE_CURSORS_AT_COMMIT is supported";
   private static final String SQLXML_UNSUPPORTED = "SQLXML is not supported";
@@ -147,13 +147,15 @@ abstract class AbstractJdbcConnection extends AbstractJdbcWrapper
             || level == TRANSACTION_READ_COMMITTED,
         "Not a transaction isolation level");
     JdbcPreconditions.checkSqlFeatureSupported(
-        level == TRANSACTION_SERIALIZABLE, ONLY_SERIALIZABLE);
+        JdbcDatabaseMetaData.supportsIsolationLevel(level), ONLY_SERIALIZABLE_OR_REPEATABLE_READ);
+    spanner.setDefaultIsolationLevel(IsolationLevelConverter.convertToSpanner(level));
   }
 
   @Override
   public int getTransactionIsolation() throws SQLException {
     checkClosed();
-    return TRANSACTION_SERIALIZABLE;
+    //noinspection MagicConstant
+    return IsolationLevelConverter.convertToJdbc(spanner.getDefaultIsolationLevel());
   }
 
   @Override
