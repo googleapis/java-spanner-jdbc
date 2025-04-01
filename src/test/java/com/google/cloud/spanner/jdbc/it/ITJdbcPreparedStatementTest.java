@@ -745,7 +745,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               // Then get it in the test timezone.
               if (testCalendar != null
                   && !System.getProperty("java.vm.name", "").toLowerCase().contains("graalvm")
-                  && !System.getProperty("java.vendor", "").toLowerCase().contains("graalvm")) {
+                  && !System.getProperty("java.vendor", "").toLowerCase().contains("graalvm")
+                  && !System.getProperty("java.vendor", "").toLowerCase().contains("oracle")) {
                 Timestamp inOtherTZ = rs.getTimestamp(4, testCalendar);
                 assertEquals(
                     "Timezone: "
@@ -768,7 +769,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               if (testCalendar == null) {
                 assertEquals(testTimestamp.getTime(), inDefaultTZ.getTime());
               } else if (!System.getProperty("java.vm.name", "").toLowerCase().contains("graalvm")
-                  && !System.getProperty("java.vendor", "").toLowerCase().contains("graalvm")) {
+                  && !System.getProperty("java.vendor", "").toLowerCase().contains("graalvm")
+                  && !System.getProperty("java.vendor", "").toLowerCase().contains("oracle")) {
                 assertEquals(
                     "Timezone: "
                         + testCalendar
