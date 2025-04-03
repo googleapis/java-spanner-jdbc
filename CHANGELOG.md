@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.29.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.28.0...v2.29.0) (2025-04-03)
+
+
+### Features
+
+* Support isolation level repeatable read ([#1973](https://github.com/googleapis/java-spanner-jdbc/issues/1973)) ([010a502](https://github.com/googleapis/java-spanner-jdbc/commit/010a502310db88f8c676960c641a7e9a6581bf11))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.90.0 ([#1970](https://github.com/googleapis/java-spanner-jdbc/issues/1970)) ([7153c39](https://github.com/googleapis/java-spanner-jdbc/commit/7153c39464fd9b83609bb7cc2ada5c0f9aab3af8))
+
 ## [2.28.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.27.1...v2.28.0) (2025-03-21)
 
 
