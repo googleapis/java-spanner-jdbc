@@ -265,12 +265,12 @@ public class JdbcDatabaseMetaDataTest {
     assertFalse(meta.usesLocalFiles());
     assertFalse(meta.usesLocalFilePerTable());
     assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE));
+    assertTrue(meta.supportsTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ));
     for (int level :
         new int[] {
           Connection.TRANSACTION_NONE,
           Connection.TRANSACTION_READ_COMMITTED,
           Connection.TRANSACTION_READ_UNCOMMITTED,
-          Connection.TRANSACTION_REPEATABLE_READ
         }) {
       assertFalse(meta.supportsTransactionIsolationLevel(level));
     }

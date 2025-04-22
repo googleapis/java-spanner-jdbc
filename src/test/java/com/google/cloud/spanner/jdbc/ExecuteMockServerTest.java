@@ -176,22 +176,19 @@ public class ExecuteMockServerTest extends AbstractMockServerTest {
       mockSpanner.putStatementResult(
           StatementResult.query(
               com.google.cloud.spanner.Statement.of(dmlReturning),
-              resultSet
-                  .toBuilder()
+              resultSet.toBuilder()
                   .setStats(ResultSetStats.newBuilder().setRowCountExact(1L).build())
                   .build()));
       mockSpanner.putStatementResult(
           StatementResult.query(
               com.google.cloud.spanner.Statement.of(DML_THEN_RETURN_ID),
-              returnIdResultSet
-                  .toBuilder()
+              returnIdResultSet.toBuilder()
                   .setStats(ResultSetStats.newBuilder().setRowCountExact(1L).build())
                   .build()));
       mockSpanner.putStatementResult(
           StatementResult.query(
               com.google.cloud.spanner.Statement.of(LARGE_DML_THEN_RETURN_ID),
-              returnIdResultSet
-                  .toBuilder()
+              returnIdResultSet.toBuilder()
                   .setStats(
                       ResultSetStats.newBuilder().setRowCountExact(LARGE_UPDATE_COUNT).build())
                   .build()));

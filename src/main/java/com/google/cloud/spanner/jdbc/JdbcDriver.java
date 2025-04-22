@@ -26,6 +26,7 @@ import com.google.cloud.spanner.connection.ConnectionOptionsHelper;
 import com.google.cloud.spanner.connection.ConnectionPropertiesHelper;
 import com.google.cloud.spanner.connection.ConnectionProperty;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Suppliers;
 import com.google.rpc.Code;
 import io.opentelemetry.api.OpenTelemetry;
 import java.sql.Connection;
@@ -222,7 +223,9 @@ public class JdbcDriver implements Driver {
         Matcher matcherExternalHost = EXTERNAL_HOST_URL_PATTERN.matcher(url);
         if (matcher.matches() || matcherExternalHost.matches()) {
           // strip 'jdbc:' from the URL, add any extra properties and pass on to the generic
-          // Connection API
+          // Connection API. Also set the user-agent if we detect that the connection
+          // comes from known framework like Hibernate, and there is no other user-agent set.
+          maybeAddUserAgent(info);
           String connectionUri = appendPropertiesToUrl(url.substring(5), info);
           ConnectionOptions options = buildConnectionOptions(connectionUri, info);
           JdbcConnection connection = new JdbcConnection(url, options);
@@ -257,6 +260,48 @@ public class JdbcDriver implements Driver {
     builder =
         ConnectionOptionsHelper.useDirectExecutorIfNotUseVirtualThreads(connectionUrl, builder);
     return builder.build();
+  }
+
+  static void maybeAddUserAgent(Properties properties) {
+    if (properties.containsKey("userAgent")) {
+      return;
+    }
+    if (isHibernate()) {
+      properties.setProperty("userAgent", "sp-hib");
+    }
+  }
+
+  static boolean isHibernate() {
+    // Cache the result as the check is relatively expensive, and we also don't want to create
+    // multiple different Spanner instances just to get the correct user-agent in every case.
+    return Suppliers.memoize(
+            () -> {
+              try {
+                // First check if the Spanner Hibernate dialect is on the classpath. If it is, then
+                // we assume that Hibernate will (eventually) be used.
+                Class.forName(
+                    "com.google.cloud.spanner.hibernate.SpannerDialect",
+                    /*initialize=*/ false,
+                    JdbcDriver.class.getClassLoader());
+                return true;
+              } catch (Throwable ignore) {
+              }
+
+              // If we did not find the Spanner Hibernate dialect on the classpath, then do a
+              // check if the connection is still being created by Hibernate using the built-in
+              // Spanner dialect in Hibernate.
+              try {
+                StackTraceElement[] callStack = Thread.currentThread().getStackTrace();
+                for (StackTraceElement element : callStack) {
+                  if (element.getClassName().contains(".hibernate.")) {
+                    return true;
+                  }
+                }
+              } catch (Throwable ignore) {
+              }
+              return false;
+            })
+        .get();
   }
 
   private String appendPropertiesToUrl(String url, Properties info) {
