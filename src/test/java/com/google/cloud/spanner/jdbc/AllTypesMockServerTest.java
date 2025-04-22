@@ -144,8 +144,7 @@ public class AllTypesMockServerTest
     if (dialect == Dialect.POSTGRESQL) {
       Statement insertStatement = createInsertStatement(dialect);
       insertStatement =
-          insertStatement
-              .toBuilder()
+          insertStatement.toBuilder()
               .replace(insertStatement.getSql().replaceAll("@p", "\\$"))
               .bind("p16")
               .to(

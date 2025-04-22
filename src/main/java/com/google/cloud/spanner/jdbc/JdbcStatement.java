@@ -201,15 +201,13 @@ class JdbcStatement extends AbstractJdbcStatement implements CloudSpannerJdbcSta
       if (generatedKeysColumns.size() == 1
           && ALL_COLUMNS.get(0).equals(generatedKeysColumns.get(0))) {
         // Add a 'THEN RETURN/RETURNING *' clause to the statement.
-        return statement
-            .toBuilder()
+        return statement.toBuilder()
             .replace(statement.getSql() + getReturningAllColumnsClause())
             .build();
       }
       // Add a 'THEN RETURN/RETURNING col1, col2, ...' to the statement.
       // The column names will be quoted using the dialect-specific identifier quoting character.
-      return statement
-          .toBuilder()
+      return statement.toBuilder()
           .replace(
               generatedKeysColumns.stream()
                   .map(this::quoteColumn)
