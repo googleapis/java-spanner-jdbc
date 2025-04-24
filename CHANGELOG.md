@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.29.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.28.0...v2.29.0) (2025-04-22)
+
+
+### Features
+
+* Support isolation level repeatable read ([#1973](https://github.com/googleapis/java-spanner-jdbc/issues/1973)) ([010a502](https://github.com/googleapis/java-spanner-jdbc/commit/010a502310db88f8c676960c641a7e9a6581bf11))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.90.0 ([#1970](https://github.com/googleapis/java-spanner-jdbc/issues/1970)) ([7153c39](https://github.com/googleapis/java-spanner-jdbc/commit/7153c39464fd9b83609bb7cc2ada5c0f9aab3af8))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.91.1 ([#1993](https://github.com/googleapis/java-spanner-jdbc/issues/1993)) ([97d4840](https://github.com/googleapis/java-spanner-jdbc/commit/97d4840bd3e7cee7f1ddb9b26f3946f1b10ed894))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.46.0 ([#1992](https://github.com/googleapis/java-spanner-jdbc/issues/1992)) ([ea0b557](https://github.com/googleapis/java-spanner-jdbc/commit/ea0b55729d1bf9e8b5994758314841591ea0c883))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.49.0 ([#1982](https://github.com/googleapis/java-spanner-jdbc/issues/1982)) ([6b7ddf4](https://github.com/googleapis/java-spanner-jdbc/commit/6b7ddf4352d4db87eab6d9f3fd4945e5650e7798))
+* Update dependency org.springframework.data:spring-data-bom to v2024.1.5 ([#1995](https://github.com/googleapis/java-spanner-jdbc/issues/1995)) ([6bedf12](https://github.com/googleapis/java-spanner-jdbc/commit/6bedf124b9da233e6f4001dff2c1b56f0249aaad))
+
 ## [2.28.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.27.1...v2.28.0) (2025-03-21)
 
 

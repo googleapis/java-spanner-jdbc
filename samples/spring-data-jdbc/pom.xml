@@ -23,14 +23,14 @@
       <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-bom</artifactId>
-        <version>2024.1.4</version>
+        <version>2024.1.5</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>6.90.0</version>
+        <version>6.91.1</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
