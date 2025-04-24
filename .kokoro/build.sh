@@ -115,6 +115,11 @@ graalvm)
     mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
     RETURN_CODE=$?
     ;;
+graalvmA)
+    # Run Unit and Integration Tests with Native Image A.
+    NATIVE_IMAGE_OPTIONS="--strict-image-heap" mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
+    RETURN_CODE=$?
+    ;;
 samples)
     SAMPLES_DIR=samples
     # only run ITs in snapshot/ on presubmit PRs. run ITs in all 3 samples/ subdirectories otherwise.
