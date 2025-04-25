@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.29.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.29.0...v2.29.1) (2025-04-25)
+
+
+### Dependencies
+
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.19.0 ([#2020](https://github.com/googleapis/java-spanner-jdbc/issues/2020)) ([0d4a663](https://github.com/googleapis/java-spanner-jdbc/commit/0d4a66366ca0e1d6849c8886a5875581473e1ffe))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.46.2 ([#2014](https://github.com/googleapis/java-spanner-jdbc/issues/2014)) ([4775d30](https://github.com/googleapis/java-spanner-jdbc/commit/4775d30b9e1448a4381545f84dae36b8dae4ec0e))
+* Update dependency org.springframework.boot:spring-boot to v3.4.5 ([#2017](https://github.com/googleapis/java-spanner-jdbc/issues/2017)) ([33e6f08](https://github.com/googleapis/java-spanner-jdbc/commit/33e6f08274612a1369aad799539f85fd43ceb93b))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.4.5 ([#2018](https://github.com/googleapis/java-spanner-jdbc/issues/2018)) ([9592099](https://github.com/googleapis/java-spanner-jdbc/commit/9592099ed5c7c1696186a34690cae3bf5a724e4f))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.4.5 ([#2019](https://github.com/googleapis/java-spanner-jdbc/issues/2019)) ([c6cf077](https://github.com/googleapis/java-spanner-jdbc/commit/c6cf077fc6bae591deed6d75ef97e5524fcffcbc))
+* Update dependency org.testcontainers:testcontainers to v1.21.0 ([#2015](https://github.com/googleapis/java-spanner-jdbc/issues/2015)) ([22c59bc](https://github.com/googleapis/java-spanner-jdbc/commit/22c59bc09f8b9b863e2e86d976e514922152c6bc))
+* Update dependency org.testcontainers:testcontainers-bom to v1.21.0 ([#2016](https://github.com/googleapis/java-spanner-jdbc/issues/2016)) ([5eab2e7](https://github.com/googleapis/java-spanner-jdbc/commit/5eab2e7b2628adcee9405da425c1ad5d3c89ef3e))
+
 ## [2.29.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.28.0...v2.29.0) (2025-04-22)
 
 
