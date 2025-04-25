@@ -45,7 +45,7 @@ fi
 # Start the Spanner emulator if the environment variable for it has been set.
 # TODO: Change if statement once the env var can be set in the config.
 #if [[ ! -z "${SPANNER_EMULATOR_HOST}" ]]; then
-if [[ "$JOB_TYPE" == "graalvm" ]]; then
+if [[ "$JOB_TYPE" =~ ^graalvm ]]; then
   echo "Starting emulator"
   export SPANNER_EMULATOR_HOST=localhost:9010
   docker pull gcr.io/cloud-spanner-emulator/emulator
@@ -117,7 +117,8 @@ graalvm)
     ;;
 graalvmA)
     # Run Unit and Integration Tests with Native Image A.
-    mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
+	   
+    NATIVE_IMAGE_OPTIONS="--strict-image-heap" mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
     RETURN_CODE=$?
     ;;
 samples)
