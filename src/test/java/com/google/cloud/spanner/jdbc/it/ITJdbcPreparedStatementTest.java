@@ -650,9 +650,6 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
 
   @Test
   public void test04_Timestamps() throws SQLException {
-    assumeFalse(
-        "Timestamp type is not supported on POSTGRESQL dialect",
-        dialect.dialect == Dialect.POSTGRESQL);
     List<String> expectedValues = new ArrayList<>();
     expectedValues.add("2008-01-01 10:00:00");
     expectedValues.add("2000-01-01 00:00:00");
@@ -711,8 +708,16 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                     Types.TIMESTAMP,
                     Types.TIMESTAMP,
                     Types.ARRAY),
-                ImmutableList.of(
-                    "INT64", "INT64", "DATE", "TIMESTAMP", "TIMESTAMP", "ARRAY<INT64>"),
+                dialect.dialect == Dialect.POSTGRESQL
+                    ? ImmutableList.of(
+                        "bigint",
+                        "bigint",
+                        "date",
+                        "timestamp with time zone",
+                        "timestamp with time zone",
+                        "bigint[]")
+                    : ImmutableList.of(
+                        "INT64", "INT64", "DATE", "TIMESTAMP", "TIMESTAMP", "ARRAY<INT64>"),
                 ImmutableList.of(
                     Long.class,
                     Long.class,
@@ -743,10 +748,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               Timestamp inDefaultTZ = rs.getTimestamp(4);
               assertEquals(testTimestamp.getTime(), inDefaultTZ.getTime());
               // Then get it in the test timezone.
-              if (testCalendar != null
-                  && !System.getProperty("java.vm.name", "").toLowerCase().contains("graalvm")
-                  && !System.getProperty("java.vendor", "").toLowerCase().contains("graalvm")
-                  && !System.getProperty("java.vendor", "").toLowerCase().contains("oracle")) {
+              if (testCalendar != null) {
                 Timestamp inOtherTZ = rs.getTimestamp(4, testCalendar);
                 assertEquals(
                     "Timezone: "
@@ -759,7 +761,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                         + System.getProperty("java.vm.name")
                         + ", vendor="
                         + System.getProperty("java.vendor"),
-                    testTimestamp.getTime() + testCalendar.getTimeZone().getRawOffset(),
+                    testTimestamp.getTime()
+                        + testCalendar.getTimeZone().getOffset(inDefaultTZ.getTime()),
                     inOtherTZ.getTime());
               }
 
@@ -768,9 +771,7 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
               inDefaultTZ = rs.getTimestamp(5);
               if (testCalendar == null) {
                 assertEquals(testTimestamp.getTime(), inDefaultTZ.getTime());
-              } else if (!System.getProperty("java.vm.name", "").toLowerCase().contains("graalvm")
-                  && !System.getProperty("java.vendor", "").toLowerCase().contains("graalvm")
-                  && !System.getProperty("java.vendor", "").toLowerCase().contains("oracle")) {
+              } else {
                 assertEquals(
                     "Timezone: "
                         + testCalendar
@@ -782,7 +783,8 @@ public class ITJdbcPreparedStatementTest extends ITAbstractJdbcTest {
                         + System.getProperty("java.vm.name")
                         + ", vendor="
                         + System.getProperty("java.vendor"),
-                    testTimestamp.getTime() - testCalendar.getTimeZone().getRawOffset(),
+                    testTimestamp.getTime()
+                        - testCalendar.getTimeZone().getOffset(inDefaultTZ.getTime()),
                     inDefaultTZ.getTime());
               }
               // Then get it in the test timezone.
