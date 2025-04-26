@@ -25,6 +25,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - name: Run tests
+      - name: Run GoogleSQL sample tests
         run: mvn test
-        working-directory: samples/spring-data-mybatis
+        working-directory: samples/spring-data-mybatis/googlesql
+      - name: Run PostgreSQL sample tests
+        run: mvn test
+        working-directory: samples/spring-data-mybatis/postgresql

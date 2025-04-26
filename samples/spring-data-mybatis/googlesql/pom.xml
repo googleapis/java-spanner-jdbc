@@ -5,10 +5,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.example</groupId>
-  <artifactId>cloud-spanner-spring-data-mybatis-example</artifactId>
+  <artifactId>cloud-spanner-spring-data-mybatis-googlesql-example</artifactId>
   <version>1.0-SNAPSHOT</version>
   <description>
-    Sample application showing how to use Spring Data MyBatis with Cloud Spanner PostgreSQL.
+    Sample application showing how to use Spring Data MyBatis with Spanner GoogleSQL.
   </description>
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -61,21 +61,23 @@
       <version>1.5.2</version>
     </dependency>
 
-    <!-- Add both the Cloud Spanner and the PostgreSQL JDBC driver. -->
+    <!-- Add the Spanner JDBC driver. -->
+    <!-- TODO: Remove the explicit versions when we have a new BOM release. -->
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-spanner</artifactId>
+      <version>6.91.1</version>
+    </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner-jdbc</artifactId>
+      <version>2.29.1</version>
       <exclusions>
         <exclusion>
           <groupId>com.google.api.grpc</groupId>
           <artifactId>proto-google-cloud-spanner-executor-v1</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>42.7.5</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
@@ -92,6 +94,7 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>
+      <version>6.91.1</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
