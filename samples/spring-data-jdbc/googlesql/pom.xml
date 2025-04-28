@@ -5,10 +5,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.example</groupId>
-  <artifactId>cloud-spanner-spring-data-jdbc-example</artifactId>
+  <artifactId>cloud-spanner-spring-data-jdbc-googlesql-example</artifactId>
   <version>1.0-SNAPSHOT</version>
   <description>
-    Sample application showing how to use Spring Data JDBC with Cloud Spanner PostgreSQL.
+    Sample application showing how to use Spring Data JDBC with Cloud Spanner GoogleSQL.
   </description>
 
   <properties>
@@ -58,7 +58,7 @@
       <version>3.4.5</version>
     </dependency>
 
-    <!-- Add both the Cloud Spanner and the PostgreSQL JDBC driver. -->
+    <!-- Add the Spanner JDBC driver. -->
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner-jdbc</artifactId>
@@ -69,12 +69,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>42.7.5</version>
-    </dependency>
-    
+
     <!-- Add OpenTelemetry for tracing and metrics. -->
     <dependency>
       <groupId>io.opentelemetry</groupId>
@@ -89,6 +84,13 @@
       <groupId>com.google.cloud.opentelemetry</groupId>
       <artifactId>exporter-metrics</artifactId>
       <version>0.34.0</version>
+    </dependency>
+
+    <!-- Add testcontainers for running the Spanner emulator -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>1.21.0</version>
     </dependency>
 
     <dependency>
@@ -114,13 +116,6 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-      <version>1.21.0</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
   

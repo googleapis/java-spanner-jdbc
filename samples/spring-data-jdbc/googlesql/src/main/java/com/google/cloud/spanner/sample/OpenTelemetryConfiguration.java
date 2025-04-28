@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,18 +39,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+// @AutoConfiguration(before = DataSourceAutoConfiguration.class)
 @Configuration
 public class OpenTelemetryConfiguration {
 
   @Value("${open_telemetry.enabled}")
   private boolean enabled;
 
+  @Value("${spanner.emulator}")
+  private boolean emulator;
+
   @Value("${open_telemetry.project}")
   private String project;
 
   @Bean
   public OpenTelemetry openTelemetry() {
-    if (!enabled) {
+    if (!enabled || emulator) {
       return OpenTelemetry.noop();
     }
 
@@ -102,16 +106,16 @@ public class OpenTelemetryConfiguration {
         .buildAndRegisterGlobal();
   }
 
-  @Bean
-  public Tracer tracer(OpenTelemetry openTelemetry) {
-    return openTelemetry.getTracer("com.google.cloud.spanner.jdbc.sample.spring-data-jdbc");
-  }
-
   private boolean hasDefaultCredentials() {
     try {
       return GoogleCredentials.getApplicationDefault() != null;
     } catch (IOException exception) {
       return false;
     }
+  }
+
+  @Bean
+  public Tracer tracer(OpenTelemetry openTelemetry) {
+    return openTelemetry.getTracer("com.google.cloud.spanner.jdbc.sample.spring-data-jdbc");
   }
 }

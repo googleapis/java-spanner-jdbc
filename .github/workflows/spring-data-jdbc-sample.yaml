@@ -25,6 +25,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - name: Run tests
+      - name: Run tests on GoogleSQL
         run: mvn test
-        working-directory: samples/spring-data-jdbc
+        working-directory: samples/spring-data-jdbc/googlesql
+      - name: Run tests on PostgreSQL
+        run: mvn test
+        working-directory: samples/spring-data-jdbc/postgresql
