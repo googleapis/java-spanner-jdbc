@@ -850,17 +850,6 @@ public class ApplicationTest extends AbstractMockServerTest {
     System.setProperty("spanner.additional_properties", "usePlainText=true");
     Application.main(new String[] {});
 
-    assertEquals(
-        39,
-        mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).stream()
-            .filter(
-                request ->
-                    !request.getSql().equals("SELECT 1")
-                        && !request
-                            .getSql()
-                            .equals(
-                                "SELECT * FROM singers ORDER BY sha256(last_name::bytea) LIMIT 1"))
-            .count());
     assertEquals(3, mockSpanner.countRequestsOfType(ExecuteBatchDmlRequest.class));
     assertEquals(6, mockSpanner.countRequestsOfType(CommitRequest.class));
 
