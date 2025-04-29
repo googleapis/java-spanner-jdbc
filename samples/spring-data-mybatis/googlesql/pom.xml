@@ -34,6 +34,13 @@
       </dependency>
       <dependency>
         <groupId>com.google.cloud</groupId>
+        <artifactId>google-cloud-spanner-bom</artifactId>
+        <version>6.91.1</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
         <version>26.59.0</version>
         <scope>import</scope>
@@ -62,16 +69,9 @@
     </dependency>
 
     <!-- Add the Spanner JDBC driver. -->
-    <!-- TODO: Remove the explicit versions when we have a new BOM release. -->
-    <dependency>
-      <groupId>com.google.cloud</groupId>
-      <artifactId>google-cloud-spanner</artifactId>
-      <version>6.91.1</version>
-    </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner-jdbc</artifactId>
-      <version>2.29.1</version>
       <exclusions>
         <exclusion>
           <groupId>com.google.api.grpc</groupId>
