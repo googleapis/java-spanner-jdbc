@@ -510,6 +510,10 @@ public class JdbcDatabaseMetaDataTest {
         assertEquals(Types.NUMERIC, rs.getInt("DATA_TYPE"));
         assertEquals(Types.NUMERIC, rs.getShort("DATA_TYPE"));
         assertTrue(rs.next());
+        assertEquals("UUID", rs.getString("TYPE_NAME"));
+        assertEquals(Types.OTHER, rs.getInt("DATA_TYPE"));
+        assertEquals(Types.OTHER, rs.getShort("DATA_TYPE"));
+        assertTrue(rs.next());
         if (dialect == Dialect.POSTGRESQL) {
           assertEquals("JSONB", rs.getString("TYPE_NAME"));
           assertEquals(PgJsonbType.VENDOR_TYPE_NUMBER, rs.getInt("DATA_TYPE"));
