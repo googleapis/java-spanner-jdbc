@@ -82,6 +82,9 @@ class JdbcTypeConverter {
     if (value == null) {
       return null;
     }
+    if (value.getClass().equals(targetType)) {
+      return value;
+    }
     try {
       if (targetType.equals(Value.class)) {
         return convertToSpannerValue(value, type);
@@ -370,7 +373,9 @@ class JdbcTypeConverter {
 
   private static void checkValidTypeAndValueForConvert(Type type, Object value)
       throws SQLException {
-    if (value == null) return;
+    if (value == null) {
+      return;
+    }
     JdbcPreconditions.checkArgument(
         type.getCode() != Code.ARRAY || Array.class.isAssignableFrom(value.getClass()),
         "input type is array, but input value is not an instance of java.sql.Array");
