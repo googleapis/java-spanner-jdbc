@@ -729,7 +729,12 @@ public class JdbcParameterStoreTest {
     verifyParameter(params, Value.string("test"));
     params.setParameter(1, UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"), (Integer) null);
     assertEquals(UUID.fromString("83b988cf-1f4e-428a-be3d-cc712621942e"), params.getParameter(1));
-    verifyParameter(params, Value.string("83b988cf-1f4e-428a-be3d-cc712621942e"));
+    verifyParameter(
+        params,
+        Value.untyped(
+            com.google.protobuf.Value.newBuilder()
+                .setStringValue("83b988cf-1f4e-428a-be3d-cc712621942e")
+                .build()));
 
     String jsonString = "{\"test\": \"value\"}";
     params.setParameter(1, Value.json(jsonString), (Integer) null);

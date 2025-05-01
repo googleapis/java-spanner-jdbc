@@ -28,6 +28,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,6 +78,7 @@ public class RandomResultSetTest extends AbstractMockServerTest {
         assertEquals(Types.NVARCHAR, metadata.getColumnType(++col));
         assertEquals(Types.BINARY, metadata.getColumnType(++col));
         assertEquals(Types.DATE, metadata.getColumnType(++col));
+        assertEquals(Types.OTHER, metadata.getColumnType(++col));
         assertEquals(Types.TIMESTAMP, metadata.getColumnType(++col));
         if (dialect == Dialect.POSTGRESQL) {
           assertEquals(Types.BIGINT, metadata.getColumnType(++col));
@@ -91,6 +93,7 @@ public class RandomResultSetTest extends AbstractMockServerTest {
         assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // nvarchar
         assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // binary
         assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // date
+        assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // uuid
         assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // timestamp
         if (dialect == Dialect.POSTGRESQL) {
           assertEquals(Types.ARRAY, metadata.getColumnType(++col)); // oid
@@ -112,9 +115,7 @@ public class RandomResultSetTest extends AbstractMockServerTest {
         while (resultSet.next()) {
           // Verify that we can get all columns as an object.
           for (col = 1; col <= resultSet.getMetaData().getColumnCount(); col++) {
-            if (dialect == Dialect.GOOGLE_STANDARD_SQL && col > 20) {
-              // Proto columns are not yet supported, so skipping.
-            } else if (dialect == Dialect.POSTGRESQL && col == 16) {
+            if (dialect == Dialect.POSTGRESQL && col == 17) {
               // getObject for ARRAY<PG_NUMERIC> tries to get the array as a List<BigDecimal>.
               // That fails if the array contains a NaN, so skipping.
             } else {
@@ -133,6 +134,7 @@ public class RandomResultSetTest extends AbstractMockServerTest {
           resultSet.getString(++col); // JSON
           resultSet.getBytes(++col);
           resultSet.getDate(++col);
+          resultSet.getObject(++col, UUID.class);
           resultSet.getTimestamp(++col);
           if (dialect == Dialect.POSTGRESQL) {
             resultSet.getLong(++col); // oid
@@ -149,6 +151,7 @@ public class RandomResultSetTest extends AbstractMockServerTest {
           } else {
             resultSet.getArray(++col);
           }
+          resultSet.getArray(++col);
           resultSet.getArray(++col);
           resultSet.getArray(++col);
           resultSet.getArray(++col);

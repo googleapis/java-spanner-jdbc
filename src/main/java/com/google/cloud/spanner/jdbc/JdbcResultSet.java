@@ -52,6 +52,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import javax.annotation.Nonnull;
 
 /** Implementation of {@link ResultSet} for Cloud Spanner */
@@ -623,6 +624,38 @@ class JdbcResultSet extends AbstractJdbcResultSet {
     }
   }
 
+  public UUID getUUID(int columnIndex) throws SQLException {
+    checkClosedAndValidRow();
+    if (isNull(columnIndex)) {
+      return null;
+    }
+    int spannerIndex = columnIndex - 1;
+    Code type = getMainTypeCode(spanner.getColumnType(spannerIndex));
+    switch (type) {
+      case UUID:
+        return spanner.getUuid(spannerIndex);
+      case STRING:
+        return UUID.fromString(spanner.getString(spannerIndex));
+      case BYTES:
+      case DATE:
+      case TIMESTAMP:
+      case BOOL:
+      case FLOAT32:
+      case FLOAT64:
+      case INT64:
+      case NUMERIC:
+      case PG_NUMERIC:
+      case JSON:
+      case PG_JSONB:
+      case STRUCT:
+      case PROTO:
+      case ENUM:
+      case ARRAY:
+      default:
+        throw createInvalidToGetAs("uuid", type);
+    }
+  }
+
   private InputStream getInputStream(String val, Charset charset) {
     if (val == null) return null;
     byte[] b = val.getBytes(charset);
@@ -764,35 +797,46 @@ class JdbcResultSet extends AbstractJdbcResultSet {
   }
 
   private Object getObject(Type type, int columnIndex) throws SQLException {
-    // TODO: Refactor to check based on type code.
-    if (type == Type.bool()) return getBoolean(columnIndex);
-    if (type == Type.bytes()) return getBytes(columnIndex);
-    if (type == Type.date()) return getDate(columnIndex);
-    if (type == Type.float32()) {
-      return getFloat(columnIndex);
+    JdbcPreconditions.checkArgument(type != null, "type is null");
+    switch (type.getCode()) {
+      case BOOL:
+        return getBoolean(columnIndex);
+      case BYTES:
+      case PROTO:
+        return getBytes(columnIndex);
+      case DATE:
+        return getDate(columnIndex);
+      case FLOAT32:
+        return getFloat(columnIndex);
+      case FLOAT64:
+        return getDouble(columnIndex);
+      case INT64:
+      case PG_OID:
+      case ENUM:
+        return getLong(columnIndex);
+      case NUMERIC:
+        return getBigDecimal(columnIndex);
+      case PG_NUMERIC:
+        final String value = getString(columnIndex);
+        try {
+          return parseBigDecimal(value);
+        } catch (Exception e) {
+          return parseDouble(value);
+        }
+      case STRING:
+      case JSON:
+      case PG_JSONB:
+        return getString(columnIndex);
+      case TIMESTAMP:
+        return getTimestamp(columnIndex);
+      case UUID:
+        return getUUID(columnIndex);
+      case ARRAY:
+        return getArray(columnIndex);
+      default:
+        throw JdbcSqlExceptionFactory.of(
+            "Unknown type: " + type, com.google.rpc.Code.INVALID_ARGUMENT);
     }
-    if (type == Type.float64()) return getDouble(columnIndex);
-    if (type == Type.int64() || type == Type.pgOid()) {
-      return getLong(columnIndex);
-    }
-    if (type == Type.numeric()) return getBigDecimal(columnIndex);
-    if (type == Type.pgNumeric()) {
-      final String value = getString(columnIndex);
-      try {
-        return parseBigDecimal(value);
-      } catch (Exception e) {
-        return parseDouble(value);
-      }
-    }
-    if (type == Type.string()) return getString(columnIndex);
-    if (type == Type.json() || type == Type.pgJsonb()) {
-      return getString(columnIndex);
-    }
-    if (type == Type.timestamp()) return getTimestamp(columnIndex);
-    if (type.getCode() == Code.PROTO) return getBytes(columnIndex);
-    if (type.getCode() == Code.ENUM) return getLong(columnIndex);
-    if (type.getCode() == Code.ARRAY) return getArray(columnIndex);
-    throw JdbcSqlExceptionFactory.of("Unknown type: " + type, com.google.rpc.Code.INVALID_ARGUMENT);
   }
 
   @Override

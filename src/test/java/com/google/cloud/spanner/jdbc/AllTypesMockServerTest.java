@@ -40,6 +40,7 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,6 +75,7 @@ public class AllTypesMockServerTest
             new java.sql.Date(
                 DATE_VALUE.getYear() - 1900, DATE_VALUE.getMonth() - 1, DATE_VALUE.getDayOfMonth()),
             resultSet.getDate(++col));
+        assertEquals(UUID_VALUE, resultSet.getObject(++col, UUID.class));
         assertEquals(TIMESTAMP_VALUE.toSqlTimestamp(), resultSet.getTimestamp(++col));
         if (dialect == Dialect.POSTGRESQL) {
           assertEquals(PG_OID_VALUE, resultSet.getLong(++col));
@@ -121,6 +123,8 @@ public class AllTypesMockServerTest
                 .collect(Collectors.toList()),
             Arrays.asList((Date[]) resultSet.getArray(++col).getArray()));
         assertEquals(
+            UUID_ARRAY_VALUE, Arrays.asList((UUID[]) resultSet.getArray(++col).getArray()));
+        assertEquals(
             TIMESTAMP_ARRAY_VALUE.stream()
                 .map(timestamp -> timestamp == null ? null : timestamp.toSqlTimestamp())
                 .collect(Collectors.toList()),
@@ -140,13 +144,13 @@ public class AllTypesMockServerTest
   @Override
   @Test
   public void testInsertAllTypes() {
-    // TODO: Remove when PG_NUMERIC NaN is supported.
+    Statement insertStatement = createInsertStatement(dialect);
     if (dialect == Dialect.POSTGRESQL) {
-      Statement insertStatement = createInsertStatement(dialect);
+      // TODO: Remove when PG_NUMERIC NaN is supported.
       insertStatement =
           insertStatement.toBuilder()
               .replace(insertStatement.getSql().replaceAll("@p", "\\$"))
-              .bind("p16")
+              .bind("p17")
               .to(
                   com.google.cloud.spanner.Value.pgNumericArray(
                       NUMERIC_ARRAY_VALUE.stream()
@@ -155,8 +159,10 @@ public class AllTypesMockServerTest
                                   bigDecimal == null ? null : bigDecimal.toEngineeringString())
                           .collect(Collectors.toList())))
               .build();
-      mockSpanner.putStatementResult(StatementResult.update(insertStatement, 1L));
     }
+    // The JDBC driver binds UUID values as untyped strings, so we need to add it as 'partial'
+    // result, meaning that the match will only be made based on the SQL string.
+    mockSpanner.putPartialStatementResult(StatementResult.update(insertStatement, 1L));
     try (Connection connection = createJdbcConnection()) {
       try (PreparedStatement statement =
           connection.prepareStatement(
@@ -184,6 +190,7 @@ public class AllTypesMockServerTest
                 DATE_VALUE.getYear() - 1900,
                 DATE_VALUE.getMonth() - 1,
                 DATE_VALUE.getDayOfMonth()));
+        statement.setObject(++param, UUID_VALUE);
         statement.setTimestamp(++param, TIMESTAMP_VALUE.toSqlTimestamp());
         if (dialect == Dialect.POSTGRESQL) {
           statement.setLong(++param, PG_OID_VALUE);
@@ -244,6 +251,8 @@ public class AllTypesMockServerTest
                                     date.getDayOfMonth()))
                     .toArray(Date[]::new)));
         statement.setArray(
+            ++param, connection.createArrayOf("UUID", UUID_ARRAY_VALUE.toArray(new UUID[0])));
+        statement.setArray(
             ++param,
             connection.createArrayOf(
                 "TIMESTAMP",
@@ -262,8 +271,10 @@ public class AllTypesMockServerTest
       ExecuteSqlRequest request = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0);
       Map<String, Type> paramTypes = request.getParamTypesMap();
       Map<String, Value> params = request.getParams().getFieldsMap();
-      assertEquals(dialect == Dialect.POSTGRESQL ? 22 : 20, paramTypes.size());
-      assertEquals(dialect == Dialect.POSTGRESQL ? 22 : 20, params.size());
+      // UUID is sent without any type information to allow it to be used with any type of column
+      // that accepts a STRING value.
+      assertEquals(dialect == Dialect.POSTGRESQL ? 23 : 21, paramTypes.size());
+      assertEquals(dialect == Dialect.POSTGRESQL ? 24 : 22, params.size());
 
       // Verify param types.
       ImmutableList<TypeCode> expectedTypes =
@@ -277,18 +288,25 @@ public class AllTypesMockServerTest
               TypeCode.JSON,
               TypeCode.BYTES,
               TypeCode.DATE,
+              TypeCode.TYPE_CODE_UNSPECIFIED, // UUID
               TypeCode.TIMESTAMP);
       if (dialect == Dialect.POSTGRESQL) {
         expectedTypes =
             ImmutableList.<TypeCode>builder().addAll(expectedTypes).add(TypeCode.INT64).build();
       }
       for (int col = 0; col < expectedTypes.size(); col++) {
-        assertEquals(expectedTypes.get(col), paramTypes.get("p" + (col + 1)).getCode());
+        TypeCode expectedType = expectedTypes.get(col);
+        if (expectedType == TypeCode.TYPE_CODE_UNSPECIFIED) {
+          assertFalse(paramTypes.containsKey("p" + (col + 1)));
+        } else {
+          assertEquals(expectedType, paramTypes.get("p" + (col + 1)).getCode());
+        }
         int arrayCol = col + expectedTypes.size();
         assertEquals(TypeCode.ARRAY, paramTypes.get("p" + (arrayCol + 1)).getCode());
-        assertEquals(
-            expectedTypes.get(col),
-            paramTypes.get("p" + (arrayCol + 1)).getArrayElementType().getCode());
+        if (expectedType != TypeCode.TYPE_CODE_UNSPECIFIED) {
+          assertEquals(
+              expectedType, paramTypes.get("p" + (arrayCol + 1)).getArrayElementType().getCode());
+        }
       }
 
       // Verify param values.
@@ -306,6 +324,7 @@ public class AllTypesMockServerTest
           Base64.getEncoder().encodeToString(BYTES_VALUE),
           params.get("p" + ++col).getStringValue());
       assertEquals(DATE_VALUE.toString(), params.get("p" + ++col).getStringValue());
+      assertEquals(UUID_VALUE.toString(), params.get("p" + ++col).getStringValue());
       assertEquals(TIMESTAMP_VALUE.toString(), params.get("p" + ++col).getStringValue());
       if (dialect == Dialect.POSTGRESQL) {
         assertEquals(String.valueOf(PG_OID_VALUE), params.get("p" + ++col).getStringValue());
@@ -375,6 +394,11 @@ public class AllTypesMockServerTest
                       value.hasNullValue()
                           ? null
                           : com.google.cloud.Date.parseDate(value.getStringValue()))
+              .collect(Collectors.toList()));
+      assertEquals(
+          UUID_ARRAY_VALUE,
+          params.get("p" + ++col).getListValue().getValuesList().stream()
+              .map(value -> value.hasNullValue() ? null : UUID.fromString(value.getStringValue()))
               .collect(Collectors.toList()));
       assertEquals(
           TIMESTAMP_ARRAY_VALUE,
