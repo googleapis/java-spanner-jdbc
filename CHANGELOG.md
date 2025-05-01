@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.30.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.29.1...v2.30.0) (2025-05-01)
+
+
+### Features
+
+* Add UUID data type ([#2036](https://github.com/googleapis/java-spanner-jdbc/issues/2036)) ([0df29fc](https://github.com/googleapis/java-spanner-jdbc/commit/0df29fc8e88d4ad285fe22125b75b860ad21c371))
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.61.0 ([#2034](https://github.com/googleapis/java-spanner-jdbc/issues/2034)) ([d5b88db](https://github.com/googleapis/java-spanner-jdbc/commit/d5b88dbc66c5e4d33493dba6308be43f1601a5af))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.92.0 ([#2031](https://github.com/googleapis/java-spanner-jdbc/issues/2031)) ([4fe13a3](https://github.com/googleapis/java-spanner-jdbc/commit/4fe13a31e6fdcd65860047b9f29f370039c54db8))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.92.0 ([#2032](https://github.com/googleapis/java-spanner-jdbc/issues/2032)) ([d313e3e](https://github.com/googleapis/java-spanner-jdbc/commit/d313e3e60d23e1adeff50da496dd5207bc78fb84))
+* Update dependency com.google.cloud:google-cloud-trace to v2.61.0 ([#2035](https://github.com/googleapis/java-spanner-jdbc/issues/2035)) ([9b2712e](https://github.com/googleapis/java-spanner-jdbc/commit/9b2712e2b9950a8d1cb49c3a91b178726821d3b3))
+
+
+### Documentation
+
+* Add sample for MyBatis with GoogleSQL ([#2026](https://github.com/googleapis/java-spanner-jdbc/issues/2026)) ([5d7b9de](https://github.com/googleapis/java-spanner-jdbc/commit/5d7b9de545015655a095f4336c301148b4a9640d))
+* Add sample for Spring Data JDBC with GoogleSQL ([#2027](https://github.com/googleapis/java-spanner-jdbc/issues/2027)) ([3476106](https://github.com/googleapis/java-spanner-jdbc/commit/347610686406c7e4129e0ed101924926f4dca2b5))
+
 ## [2.29.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.29.0...v2.29.1) (2025-04-25)
 
 
