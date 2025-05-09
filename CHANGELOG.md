@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.30.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.30.0...v2.30.1) (2025-05-09)
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.62.0 ([#2044](https://github.com/googleapis/java-spanner-jdbc/issues/2044)) ([92b082a](https://github.com/googleapis/java-spanner-jdbc/commit/92b082a11f14b253f2e3f369be711cd89f5279db))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.93.0 ([#2046](https://github.com/googleapis/java-spanner-jdbc/issues/2046)) ([7badfc7](https://github.com/googleapis/java-spanner-jdbc/commit/7badfc73a69119618749e7d61a2cfd2e2924039d))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.93.0 ([#2047](https://github.com/googleapis/java-spanner-jdbc/issues/2047)) ([0bb369c](https://github.com/googleapis/java-spanner-jdbc/commit/0bb369cd09d1132a5111d2686c32becefe166405))
+* Update dependency com.google.cloud:google-cloud-trace to v2.62.0 ([#2045](https://github.com/googleapis/java-spanner-jdbc/issues/2045)) ([7f43114](https://github.com/googleapis/java-spanner-jdbc/commit/7f43114856fa7ea7bef319c74620c55201cc9833))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.46.3 ([#2039](https://github.com/googleapis/java-spanner-jdbc/issues/2039)) ([6da7077](https://github.com/googleapis/java-spanner-jdbc/commit/6da70771a552ae1bc218691a3badb13fbb846107))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.47.0 ([#2043](https://github.com/googleapis/java-spanner-jdbc/issues/2043)) ([7208cbc](https://github.com/googleapis/java-spanner-jdbc/commit/7208cbc9f661db2d5908bcc3c824539bbd14cc6a))
+* Update dependency com.spotify.fmt:fmt-maven-plugin to v2.27 ([#2042](https://github.com/googleapis/java-spanner-jdbc/issues/2042)) ([e612954](https://github.com/googleapis/java-spanner-jdbc/commit/e61295402b9c5dbf5d64217450a2f567db2cff55))
+
 ## [2.30.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.29.1...v2.30.0) (2025-05-01)
 
 
