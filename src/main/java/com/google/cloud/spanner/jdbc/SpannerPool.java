@@ -16,12 +16,16 @@
 
 package com.google.cloud.spanner.jdbc;
 
-/** @see com.google.cloud.spanner.connection.SpannerPool */
+/**
+ * @see com.google.cloud.spanner.connection.SpannerPool
+ */
 @Deprecated
 public class SpannerPool {
   private SpannerPool() {}
 
-  /** @see com.google.cloud.spanner.connection.SpannerPool#closeSpannerPool() */
+  /**
+   * @see com.google.cloud.spanner.connection.SpannerPool#closeSpannerPool()
+   */
   @Deprecated
   public static void closeSpannerPool() {
     com.google.cloud.spanner.connection.SpannerPool.closeSpannerPool();

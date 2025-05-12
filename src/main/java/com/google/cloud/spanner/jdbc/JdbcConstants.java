@@ -27,6 +27,7 @@ public final class JdbcConstants {
    * was executed with {@link Statement#execute(String)} returned a {@link ResultSet}.
    */
   public static final int STATEMENT_RESULT_SET = -1;
+
   /**
    * Special value that is used to indicate that a statement had no result. The method {@link
    * Statement#getUpdateCount()} will return this value if the previous statement that was executed

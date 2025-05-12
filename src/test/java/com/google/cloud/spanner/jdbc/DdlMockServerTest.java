@@ -62,7 +62,7 @@ public class DdlMockServerTest extends AbstractMockServerTest {
     mockDatabaseAdmin.addResponse(
         GetDatabaseDdlResponse.newBuilder().addAllStatements(expectedDdl).build());
 
-    try (Connection connection = createConnection(/* autoCommit = */ true)) {
+    try (Connection connection = createConnection(/* autoCommit= */ true)) {
       CloudSpannerJdbcConnection spannerJdbcConnection =
           connection.unwrap(CloudSpannerJdbcConnection.class);
       List<String> ddl =
@@ -85,7 +85,7 @@ public class DdlMockServerTest extends AbstractMockServerTest {
             .setMetadata(Any.pack(UpdateDatabaseDdlMetadata.getDefaultInstance()))
             .build());
 
-    try (Connection connection = createConnection(/* autoCommit = */ true)) {
+    try (Connection connection = createConnection(/* autoCommit= */ true)) {
       assertFalse(
           connection.createStatement().execute("create table foo (id int64) primary key (id)"));
     }
@@ -100,7 +100,7 @@ public class DdlMockServerTest extends AbstractMockServerTest {
             .setMetadata(Any.pack(UpdateDatabaseDdlMetadata.getDefaultInstance()))
             .build());
 
-    try (Connection connection = createConnection(/* autoCommit = */ false)) {
+    try (Connection connection = createConnection(/* autoCommit= */ false)) {
       assertFalse(
           connection.createStatement().execute("create table foo (id int64) primary key (id)"));
     }
@@ -111,7 +111,7 @@ public class DdlMockServerTest extends AbstractMockServerTest {
     mockSpanner.putStatementResult(
         StatementResult.update(Statement.of("update foo set bar=1 where true"), 1L));
 
-    try (Connection connection = createConnection(/* autoCommit = */ false)) {
+    try (Connection connection = createConnection(/* autoCommit= */ false)) {
       assertFalse(connection.createStatement().execute("update foo set bar=1 where true"));
       SQLException exception =
           assertThrows(

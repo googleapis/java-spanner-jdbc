@@ -88,7 +88,9 @@ public interface CloudSpannerJdbcConnection extends Connection {
     throw new UnsupportedOperationException();
   }
 
-  /** @return The transaction tag of the current transaction. */
+  /**
+   * @return The transaction tag of the current transaction.
+   */
   default String getTransactionTag() throws SQLException {
     throw new UnsupportedOperationException();
   }
@@ -242,7 +244,9 @@ public interface CloudSpannerJdbcConnection extends Connection {
    */
   void setReturnCommitStats(boolean returnCommitStats) throws SQLException;
 
-  /** @return true if this connection requests commit statistics from Cloud Spanner. */
+  /**
+   * @return true if this connection requests commit statistics from Cloud Spanner.
+   */
   boolean isReturnCommitStats() throws SQLException;
 
   /**
@@ -359,7 +363,9 @@ public interface CloudSpannerJdbcConnection extends Connection {
    */
   String getConnectionUrl();
 
-  /** @return The {@link Dialect} that is used by this connection. */
+  /**
+   * @return The {@link Dialect} that is used by this connection.
+   */
   default Dialect getDialect() {
     return Dialect.GOOGLE_STANDARD_SQL;
   }
