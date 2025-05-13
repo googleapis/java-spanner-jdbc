@@ -27,8 +27,9 @@ import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.jdbc.CloudSpannerJdbcConnection;
 import com.google.cloud.spanner.jdbc.JdbcDataSource;
 import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -229,7 +230,7 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   public void testConnectWithOAuthToken() throws Exception {
     GoogleCredentials credentials;
     if (hasValidKeyFile()) {
-      credentials = GoogleCredentials.fromStream(new FileInputStream(getKeyFile()));
+      credentials = GoogleCredentials.fromStream(Files.newInputStream(Paths.get(getKeyFile())));
     } else {
       try {
         credentials = GoogleCredentials.getApplicationDefault();
