@@ -25,13 +25,19 @@ import java.sql.SQLException;
  */
 public interface JdbcSqlException {
 
-  /** @see Throwable#getMessage() */
+  /**
+   * @see Throwable#getMessage()
+   */
   String getMessage();
 
-  /** @see Throwable#getCause() */
+  /**
+   * @see Throwable#getCause()
+   */
   Throwable getCause();
 
-  /** @see SQLException#getSQLState() */
+  /**
+   * @see SQLException#getSQLState()
+   */
   String getSQLState();
 
   /** Returns the gRPC error code as an int */

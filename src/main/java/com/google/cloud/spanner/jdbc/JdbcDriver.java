@@ -196,7 +196,9 @@ public class JdbcDriver implements Driver {
     registeredDriver = null;
   }
 
-  /** @return {@code true} if the driver is registered against {@link DriverManager} */
+  /**
+   * @return {@code true} if the driver is registered against {@link DriverManager}
+   */
   static boolean isRegistered() {
     return registeredDriver != null;
   }
@@ -281,7 +283,7 @@ public class JdbcDriver implements Driver {
                 // we assume that Hibernate will (eventually) be used.
                 Class.forName(
                     "com.google.cloud.spanner.hibernate.SpannerDialect",
-                    /*initialize=*/ false,
+                    /* initialize= */ false,
                     JdbcDriver.class.getClassLoader());
                 return true;
               } catch (Throwable ignore) {

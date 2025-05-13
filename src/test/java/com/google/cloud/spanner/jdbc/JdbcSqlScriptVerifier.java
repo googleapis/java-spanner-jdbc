@@ -119,6 +119,7 @@ public class JdbcSqlScriptVerifier extends AbstractSqlScriptVerifier {
 
   public static class JdbcGenericConnection extends GenericConnection {
     private final CloudSpannerJdbcConnection connection;
+
     /**
      * Use this to strip comments from a statement before the statement is executed. This should
      * only be used when the connection is used in a unit test with a mocked underlying connection.

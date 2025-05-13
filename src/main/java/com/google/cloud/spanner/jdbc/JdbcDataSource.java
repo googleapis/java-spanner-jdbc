@@ -114,12 +114,16 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
     return false;
   }
 
-  /** @return the JDBC URL to use for this {@link DataSource}. */
+  /**
+   * @return the JDBC URL to use for this {@link DataSource}.
+   */
   public String getUrl() {
     return url;
   }
 
-  /** @param url The JDBC URL to use for this {@link DataSource}. */
+  /**
+   * @param url The JDBC URL to use for this {@link DataSource}.
+   */
   public void setUrl(String url) {
     this.url = url;
   }

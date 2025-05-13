@@ -39,6 +39,7 @@ import java.sql.Timestamp;
 abstract class AbstractJdbcResultSet extends AbstractJdbcWrapper implements ResultSet {
   /** The underlying Cloud Spanner {@link com.google.cloud.spanner.ResultSet}. */
   final com.google.cloud.spanner.ResultSet spanner;
+
   /** Current fetch size hint for this result set. */
   private int fetchSize;
 
