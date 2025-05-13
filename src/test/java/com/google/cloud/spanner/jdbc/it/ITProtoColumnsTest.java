@@ -16,6 +16,8 @@
 
 package com.google.cloud.spanner.jdbc.it;
 
+import static com.google.cloud.spanner.testing.EmulatorSpannerHelper.SPANNER_EMULATOR_HOST;
+import static com.google.cloud.spanner.testing.EmulatorSpannerHelper.isUsingEmulator;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,7 +36,6 @@ import com.google.cloud.spanner.jdbc.ProtoEnumType;
 import com.google.cloud.spanner.jdbc.ProtoMessageType;
 import com.google.cloud.spanner.jdbc.it.SingerProto.Genre;
 import com.google.cloud.spanner.jdbc.it.SingerProto.SingerInfo;
-import com.google.cloud.spanner.testing.EmulatorSpannerHelper;
 import com.google.cloud.spanner.testing.RemoteSpannerHelper;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -68,8 +69,6 @@ public class ITProtoColumnsTest {
 
   @BeforeClass
   public static void setup() throws Exception {
-    assumeFalse(
-        "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
     assumeFalse("Skipping tests on GraalVM", isUsingGraalVm());
     RemoteSpannerHelper testHelper = env.getTestHelper();
     final String projectId = testHelper.getInstanceId().getProject();
@@ -87,7 +86,12 @@ public class ITProtoColumnsTest {
             .setDialect(Dialect.GOOGLE_STANDARD_SQL)
             .setProtoDescriptors(in)
             .build();
-    final String host = SpannerTestHost.getHost();
+    final String host;
+    if (isUsingEmulator()) {
+      host = System.getenv(SPANNER_EMULATOR_HOST);
+    } else {
+      host = SpannerTestHost.getHost();
+    }
 
     database =
         databaseAdminClient
@@ -109,6 +113,9 @@ public class ITProtoColumnsTest {
 
     in.close();
     url = "jdbc:cloudspanner://" + host + "/" + database.getId();
+    if (isUsingEmulator()) {
+      url += "?autoConfigEmulator=true";
+    }
   }
 
   @AfterClass
@@ -121,8 +128,6 @@ public class ITProtoColumnsTest {
 
   @Test
   public void testNonNullElements() throws Exception {
-    assumeFalse(
-        "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
     assumeFalse("Skipping tests on GraalVM", isUsingGraalVm());
     SingerInfo singerInfo =
         SingerInfo.newBuilder()
@@ -166,8 +171,6 @@ public class ITProtoColumnsTest {
 
   @Test
   public void testNullElements() throws Exception {
-    assumeFalse(
-        "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
     assumeFalse("Skipping tests on GraalVM", isUsingGraalVm());
     try (Connection connection = DriverManager.getConnection(url);
         PreparedStatement ps =
@@ -201,8 +204,6 @@ public class ITProtoColumnsTest {
 
   @Test
   public void testUntypedNullElements() throws Exception {
-    assumeFalse(
-        "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
     assumeFalse("Skipping tests on GraalVM", isUsingGraalVm());
     try (Connection connection = DriverManager.getConnection(url);
         PreparedStatement ps =
@@ -231,8 +232,6 @@ public class ITProtoColumnsTest {
 
   @Test
   public void testInterCompatibility() throws Exception {
-    assumeFalse(
-        "Proto columns is not supported in the emulator", EmulatorSpannerHelper.isUsingEmulator());
     assumeFalse("Skipping tests on GraalVM", isUsingGraalVm());
     SingerInfo singerInfo =
         SingerInfo.newBuilder()
