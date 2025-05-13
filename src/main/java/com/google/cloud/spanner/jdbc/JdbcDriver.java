@@ -23,7 +23,6 @@ import com.google.cloud.spanner.SessionPoolOptionsHelper;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptionsHelper;
-import com.google.cloud.spanner.connection.ConnectionPropertiesHelper;
 import com.google.cloud.spanner.connection.ConnectionProperty;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;

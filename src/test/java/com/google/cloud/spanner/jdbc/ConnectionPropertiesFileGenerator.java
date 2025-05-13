@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.cloud.spanner.connection;
+package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.connection.ConnectionProperty;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
