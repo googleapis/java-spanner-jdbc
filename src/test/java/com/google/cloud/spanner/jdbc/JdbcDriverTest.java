@@ -26,7 +26,6 @@ import static org.junit.Assert.fail;
 
 import com.google.cloud.ServiceOptions;
 import com.google.cloud.spanner.MockSpannerServiceImpl;
-import com.google.cloud.spanner.connection.ConnectionPropertiesHelper;
 import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;

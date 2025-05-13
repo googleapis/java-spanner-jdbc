@@ -351,7 +351,7 @@
               <goal>java</goal>
             </goals>
             <configuration>
-              <mainClass>com.google.cloud.spanner.connection.ConnectionPropertiesFileGenerator</mainClass>
+              <mainClass>com.google.cloud.spanner.jdbc.ConnectionPropertiesFileGenerator</mainClass>
               <classpathScope>test</classpathScope>
               <skip>false</skip>
             </configuration>

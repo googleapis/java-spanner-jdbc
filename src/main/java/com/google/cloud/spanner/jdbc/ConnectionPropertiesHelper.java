@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.cloud.spanner.connection;
+package com.google.cloud.spanner.jdbc;
 
-import com.google.api.core.InternalApi;
+import com.google.cloud.spanner.connection.ConnectionProperties;
+import com.google.cloud.spanner.connection.ConnectionProperty;
 import com.google.common.collect.ImmutableList;
 import java.sql.DriverPropertyInfo;
 import java.util.Arrays;
@@ -26,16 +27,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-// TODO: Remove this class when the Connection API has made the list of properties public.
-@InternalApi
-public class ConnectionPropertiesHelper {
-  public static ImmutableList<ConnectionProperty<?>> VALID_CONNECTION_PROPERTIES =
+class ConnectionPropertiesHelper {
+  static ImmutableList<ConnectionProperty<?>> VALID_CONNECTION_PROPERTIES =
       ImmutableList.copyOf(
-          ConnectionProperties.CONNECTION_PROPERTIES.values().stream()
+          ConnectionProperties.VALID_CONNECTION_PROPERTIES.stream()
               .sorted(Comparator.comparing(ConnectionProperty::getName))
               .collect(Collectors.toList()));
 
-  public static DriverPropertyInfo toDriverPropertyInfo(
+  static DriverPropertyInfo toDriverPropertyInfo(
       String connectionUri, ConnectionProperty<?> connectionProperty) {
     DriverPropertyInfo result =
         new DriverPropertyInfo(
@@ -56,7 +55,7 @@ public class ConnectionPropertiesHelper {
     return result;
   }
 
-  public static String getConnectionPropertyName(ConnectionProperty<?> connectionProperty) {
+  static String getConnectionPropertyName(ConnectionProperty<?> connectionProperty) {
     return connectionProperty.getName();
   }
 

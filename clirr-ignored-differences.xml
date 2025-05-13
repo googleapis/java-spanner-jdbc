@@ -123,4 +123,8 @@
     <className>com/google/cloud/spanner/jdbc/CloudSpannerJdbcConnection</className>
     <method>com.google.cloud.spanner.DatabaseId getDatabaseId()</method>
   </difference>
+  <difference>
+    <differenceType>8001</differenceType>
+    <className>com/google/cloud/spanner/connection/ConnectionPropertiesHelper</className>
+  </difference>
 </differences>
