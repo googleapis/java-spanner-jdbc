@@ -20,7 +20,7 @@ If you are using Maven, add this to your pom.xml file:
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>2.30.3</version>
+  <version>2.30.4</version>
 </dependency>
 ```
 <!--- {x-version-update-end} -->
@@ -30,7 +30,7 @@ If you are using Gradle without BOM, add this to your dependencies
 
 <!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```Groovy
-implementation 'com.google.cloud:google-cloud-spanner-jdbc:2.30.3'
+implementation 'com.google.cloud:google-cloud-spanner-jdbc:2.30.4'
 ```
 <!--- {x-version-update-end} -->
 
@@ -38,7 +38,7 @@ If you are using SBT, add this to your dependencies
 
 <!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.30.3"
+libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.30.4"
 ```
 <!--- {x-version-update-end} -->
 
