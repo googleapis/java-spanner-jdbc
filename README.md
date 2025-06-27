@@ -137,6 +137,7 @@ supported connection properties.
   into one batch.
 - oauthToken (string): A valid pre-existing OAuth token to use for authentication for this connection. Setting this property will take precedence over any value set for a credentials file.
 - lenient (boolean): Enable this to force the JDBC driver to ignore unknown properties in the connection URL. Some applications automatically add additional properties to the URL that are not recognized by the JDBC driver. Normally, the JDBC driver will reject this, unless `lenient` mode is enabled.
+- enableDirectAccess (boolean): Sets whether the JDBC connection should establish connection using Directpath. Setting this property will enable client to establish connection directly to Spanner if client is running in GCP VM, Otherwise it will fall back standard network path. 
 
 For a full list of supported connection properties, see
 [Supported Connection Properties](documentation/connection_properties.md).
