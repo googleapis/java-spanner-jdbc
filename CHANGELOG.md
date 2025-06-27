@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.31.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.30.5...v2.31.0) (2025-06-27)
+
+
+### Features
+
+* Allow JDBC connection to configure direct access ([#2116](https://github.com/googleapis/java-spanner-jdbc/issues/2116)) ([d72242a](https://github.com/googleapis/java-spanner-jdbc/commit/d72242a9d73056394af9469ada7e6439d3678a59))
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.66.0 ([#2105](https://github.com/googleapis/java-spanner-jdbc/issues/2105)) ([619bea7](https://github.com/googleapis/java-spanner-jdbc/commit/619bea764083e7b253de3b6e3a944235dab42109))
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.67.0 ([#2114](https://github.com/googleapis/java-spanner-jdbc/issues/2114)) ([60d5aa7](https://github.com/googleapis/java-spanner-jdbc/commit/60d5aa7df330008085bce7fc1a70b8e8abb9f05d))
+* Update dependency com.google.cloud:google-cloud-trace to v2.66.0 ([#2106](https://github.com/googleapis/java-spanner-jdbc/issues/2106)) ([161683a](https://github.com/googleapis/java-spanner-jdbc/commit/161683aefe0c93446524c3733e9d3b8aa2e76f94))
+* Update dependency com.google.cloud:google-cloud-trace to v2.67.0 ([#2112](https://github.com/googleapis/java-spanner-jdbc/issues/2112)) ([70e21a6](https://github.com/googleapis/java-spanner-jdbc/commit/70e21a68677ac4adac436e1f4e67a1201c85d427))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.50.0 ([#2108](https://github.com/googleapis/java-spanner-jdbc/issues/2108)) ([816c2b6](https://github.com/googleapis/java-spanner-jdbc/commit/816c2b67098b622013e2c7fcfea0bc8855d427eb))
+* Update dependency com.google.cloud.opentelemetry:exporter-metrics to v0.36.0 ([#2109](https://github.com/googleapis/java-spanner-jdbc/issues/2109)) ([7a3fa70](https://github.com/googleapis/java-spanner-jdbc/commit/7a3fa7018dda8c4bda5a1fce2fb42c632058d66d))
+* Update dependency com.google.cloud.opentelemetry:exporter-trace to v0.36.0 ([#2110](https://github.com/googleapis/java-spanner-jdbc/issues/2110)) ([89ea86b](https://github.com/googleapis/java-spanner-jdbc/commit/89ea86b2608938f062ce7ac4fa61e591811f65e4))
+
 ## [2.30.5](https://github.com/googleapis/java-spanner-jdbc/compare/v2.30.4...v2.30.5) (2025-06-20)
 
 
