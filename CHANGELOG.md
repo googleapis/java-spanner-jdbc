@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.31.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.31.0...v2.31.1) (2025-07-01)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner to v6.96.0 ([#2117](https://github.com/googleapis/java-spanner-jdbc/issues/2117)) ([e8eb64a](https://github.com/googleapis/java-spanner-jdbc/commit/e8eb64a668c7d95076a9940fe8fa38c293594598))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.96.1 ([#2124](https://github.com/googleapis/java-spanner-jdbc/issues/2124)) ([3d5be5e](https://github.com/googleapis/java-spanner-jdbc/commit/3d5be5ecf17f8618c30c815319b90fd3c53202cc))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.96.0 ([#2118](https://github.com/googleapis/java-spanner-jdbc/issues/2118)) ([f1ca551](https://github.com/googleapis/java-spanner-jdbc/commit/f1ca55144efabb37f872909fa97a6f33a1c3c0e9))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.96.1 ([#2125](https://github.com/googleapis/java-spanner-jdbc/issues/2125)) ([6b83bcd](https://github.com/googleapis/java-spanner-jdbc/commit/6b83bcdc090017d531839fa6da555a6e4c8d428a))
+* Update dependency org.testcontainers:testcontainers to v1.21.3 ([#2122](https://github.com/googleapis/java-spanner-jdbc/issues/2122)) ([241b19d](https://github.com/googleapis/java-spanner-jdbc/commit/241b19d89f221abe7eeee29bc1e605f1edb1a69f))
+* Update dependency org.testcontainers:testcontainers-bom to v1.21.3 ([#2123](https://github.com/googleapis/java-spanner-jdbc/issues/2123)) ([92dd5ea](https://github.com/googleapis/java-spanner-jdbc/commit/92dd5eaad584c680b62ca4f1f297f78188101ab5))
+
 ## [2.31.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.30.5...v2.31.0) (2025-06-27)
 
 
