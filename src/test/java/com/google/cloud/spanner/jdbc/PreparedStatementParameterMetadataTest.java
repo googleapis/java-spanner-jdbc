@@ -24,6 +24,7 @@ import com.google.cloud.spanner.MockSpannerServiceImpl.StatementResult;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
 import com.google.cloud.spanner.connection.SpannerPool;
+import com.google.spanner.v1.ExecuteSqlRequest;
 import com.google.spanner.v1.ResultSet;
 import com.google.spanner.v1.ResultSetMetadata;
 import com.google.spanner.v1.ResultSetStats;
@@ -133,6 +134,7 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
         assertEquals("ARRAY<TIMESTAMP>", metadata.getParameterTypeName(index));
       }
+      assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
     }
   }
 
@@ -214,6 +216,36 @@ public class PreparedStatementParameterMetadataTest extends AbstractMockServerTe
         assertEquals(Types.ARRAY, metadata.getParameterType(++index));
         assertEquals("timestamp with time zone[]", metadata.getParameterTypeName(index));
       }
+      assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+    }
+  }
+
+  @Test
+  public void testSimpleJdbcParameterMetadata() throws SQLException {
+    mockSpanner.putStatementResult(
+        MockSpannerServiceImpl.StatementResult.detectDialectResult(Dialect.GOOGLE_STANDARD_SQL));
+    String baseSql =
+        "insert into all_types (col_bool, col_bytes, col_date, col_float32, col_float64, col_int64, "
+            + "col_json, col_numeric, col_string, col_timestamp, col_bool_array, col_bytes_array, "
+            + "col_date_array, col_float32_array, col_float64_array, col_int64_array, col_json_array,"
+            + "col_numeric_array, col_string_array, col_timestamp_array) values (%s)";
+    String jdbcSql =
+        String.format(
+            baseSql,
+            IntStream.range(0, 20).mapToObj(ignored -> "?").collect(Collectors.joining(", ")));
+
+    System.setProperty(JdbcSimpleParameterMetaData.USE_SIMPLE_PARAMETER_METADATA_KEY, "true");
+    try (Connection connection = createJdbcConnection()) {
+      try (PreparedStatement statement = connection.prepareStatement(jdbcSql)) {
+        ParameterMetaData metadata = statement.getParameterMetaData();
+        assertEquals(20, metadata.getParameterCount());
+        for (int i = 0; i < metadata.getParameterCount(); i++) {
+          assertEquals(Types.OTHER, metadata.getParameterType(i));
+        }
+      }
+      assertEquals(0, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+    } finally {
+      System.clearProperty(JdbcSimpleParameterMetaData.USE_SIMPLE_PARAMETER_METADATA_KEY);
     }
   }
 
