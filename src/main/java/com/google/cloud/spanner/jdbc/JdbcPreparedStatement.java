@@ -29,6 +29,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.rpc.Code;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -117,8 +118,16 @@ class JdbcPreparedStatement extends AbstractJdbcPreparedStatement
   }
 
   @Override
-  public JdbcParameterMetaData getParameterMetaData() throws SQLException {
+  public ParameterMetaData getParameterMetaData() throws SQLException {
     checkClosed();
+
+    // NOTE: JdbcSimpleParameterMetaData is an experimental feature that can be removed without
+    // warning in a future version. Your application should not assume that this feature will
+    // continue to be supported.
+    if (JdbcSimpleParameterMetaData.useSimpleParameterMetadata()) {
+      return new JdbcSimpleParameterMetaData(this.parameters);
+    }
+
     if (cachedParameterMetadata == null) {
       if (getConnection().getParser().isUpdateStatement(sql)
           && !getConnection().getParser().checkReturningClause(sql)) {
