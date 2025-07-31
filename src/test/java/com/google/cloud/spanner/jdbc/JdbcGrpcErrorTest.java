@@ -85,9 +85,10 @@ public class JdbcGrpcErrorTest {
   private static MockSpannerServiceImpl mockSpanner;
   private static Server server;
 
-  // FAILED_PRECONDITION is chosen as the test error code as it should never be retryable.
+  // INVALID_ARGUMENT is chosen as the test error code as it should never be retryable, and it does
+  // not overlap with the 'are multiplexed sessions supported?' check.
   private final Exception serverException =
-      Status.FAILED_PRECONDITION.withDescription("test exception").asRuntimeException();
+      Status.INVALID_ARGUMENT.withDescription("test exception").asRuntimeException();
 
   @BeforeClass
   public static void startStaticServer() throws IOException {
@@ -152,7 +153,7 @@ public class JdbcGrpcErrorTest {
   @Test
   public void autocommitBeginTransaction() throws SQLException {
     mockSpanner.setBeginTransactionExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       // This triggers a retry with an explicit BeginTransaction RPC.
       mockSpanner.abortNextStatement();
@@ -160,7 +161,7 @@ public class JdbcGrpcErrorTest {
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
@@ -168,14 +169,14 @@ public class JdbcGrpcErrorTest {
   @Test
   public void autocommitBeginPDMLTransaction() throws SQLException {
     mockSpanner.setBeginTransactionExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().execute("SET AUTOCOMMIT_DML_MODE='PARTITIONED_NON_ATOMIC'");
       JdbcSqlExceptionImpl sqlException =
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
@@ -183,7 +184,7 @@ public class JdbcGrpcErrorTest {
   @Test
   public void transactionalBeginTransaction() throws SQLException {
     mockSpanner.setBeginTransactionExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       // This triggers a retry with an explicit BeginTransaction RPC.
@@ -192,7 +193,7 @@ public class JdbcGrpcErrorTest {
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
@@ -200,7 +201,7 @@ public class JdbcGrpcErrorTest {
   @Test
   public void readOnlyBeginTransaction() throws SQLException {
     mockSpanner.setBeginTransactionExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
@@ -208,20 +209,21 @@ public class JdbcGrpcErrorTest {
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeQuery(SELECT1.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
   public void autocommitExecuteSql() throws SQLException {
-    mockSpanner.setExecuteSqlExecutionTime(SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setExecuteSqlExecutionTime(
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       JdbcSqlExceptionImpl sqlException =
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
@@ -235,28 +237,29 @@ public class JdbcGrpcErrorTest {
     }
 
     mockSpanner.setExecuteStreamingSqlExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.createStatement().execute("SET AUTOCOMMIT_DML_MODE='PARTITIONED_NON_ATOMIC'");
       JdbcSqlExceptionImpl sqlException =
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
   public void transactionalExecuteSql() throws SQLException {
-    mockSpanner.setExecuteSqlExecutionTime(SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setExecuteSqlExecutionTime(
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       JdbcSqlExceptionImpl sqlException =
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
@@ -264,14 +267,14 @@ public class JdbcGrpcErrorTest {
   @Test
   public void autocommitExecuteBatchDml() throws SQLException {
     mockSpanner.setExecuteBatchDmlExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       try (java.sql.Statement statement = connection.createStatement()) {
         statement.addBatch(UPDATE_STATEMENT.getSql());
         statement.addBatch(UPDATE_STATEMENT.getSql());
         JdbcSqlExceptionImpl sqlException =
             assertThrows(JdbcSqlExceptionImpl.class, statement::executeBatch);
-        assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+        assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
         assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
       }
     }
@@ -280,7 +283,7 @@ public class JdbcGrpcErrorTest {
   @Test
   public void transactionalExecuteBatchDml() throws SQLException {
     mockSpanner.setExecuteBatchDmlExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       try (java.sql.Statement statement = connection.createStatement()) {
@@ -288,7 +291,7 @@ public class JdbcGrpcErrorTest {
         statement.addBatch(UPDATE_STATEMENT.getSql());
         JdbcSqlExceptionImpl sqlException =
             assertThrows(JdbcSqlExceptionImpl.class, statement::executeBatch);
-        assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+        assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
         assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
       }
     }
@@ -296,26 +299,26 @@ public class JdbcGrpcErrorTest {
 
   @Test
   public void autocommitCommit() throws SQLException {
-    mockSpanner.setCommitExecutionTime(SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setCommitExecutionTime(SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       JdbcSqlExceptionImpl sqlException =
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
   public void transactionalCommit() throws SQLException {
-    mockSpanner.setCommitExecutionTime(SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setCommitExecutionTime(SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
       JdbcSqlExceptionImpl sqlException =
           assertThrows(JdbcSqlExceptionImpl.class, connection::commit);
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
@@ -324,7 +327,7 @@ public class JdbcGrpcErrorTest {
   public void autocommitRollback() throws SQLException {
     // The JDBC driver should throw the exception of the SQL statement and ignore any errors from
     // the rollback() method.
-    mockSpanner.setRollbackExecutionTime(SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setRollbackExecutionTime(SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       JdbcSqlExceptionImpl sqlException =
           assertThrows(
@@ -340,7 +343,7 @@ public class JdbcGrpcErrorTest {
   public void transactionalRollback() throws SQLException {
     // Rollback exceptions are ignored by the client library and not propagated to the JDBC driver.
     // This method will therefore not throw any errors.
-    mockSpanner.setRollbackExecutionTime(SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setRollbackExecutionTime(SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql());
@@ -357,13 +360,13 @@ public class JdbcGrpcErrorTest {
     }
 
     mockSpanner.setExecuteStreamingSqlExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       JdbcSqlExceptionImpl sqlException =
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeQuery(SELECT1.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
@@ -371,14 +374,14 @@ public class JdbcGrpcErrorTest {
   @Test
   public void transactionalExecuteStreamingSql() throws SQLException {
     mockSpanner.setExecuteStreamingSqlExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       JdbcSqlExceptionImpl sqlException =
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeQuery(SELECT1.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
@@ -386,7 +389,7 @@ public class JdbcGrpcErrorTest {
   @Test
   public void readOnlyExecuteStreamingSql() throws SQLException {
     mockSpanner.setExecuteStreamingSqlExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
@@ -394,43 +397,44 @@ public class JdbcGrpcErrorTest {
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeQuery(SELECT1.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
   public void autocommitCreateSession() throws SQLException {
-    mockSpanner.setBatchCreateSessionsExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setCreateSessionExecutionTime(
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       JdbcSqlExceptionImpl sqlException =
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
   public void transactionalCreateSession() throws SQLException {
-    mockSpanner.setBatchCreateSessionsExecutionTime(
-        SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setCreateSessionExecutionTime(
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       JdbcSqlExceptionImpl sqlException =
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeUpdate(UPDATE_STATEMENT.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
 
   @Test
   public void readOnlyCreateSession() throws SQLException {
-    mockSpanner.setCreateSessionExecutionTime(SimulatedExecutionTime.ofException(serverException));
+    mockSpanner.setCreateSessionExecutionTime(
+        SimulatedExecutionTime.ofStickyException(serverException));
     try (java.sql.Connection connection = createConnection()) {
       connection.setAutoCommit(false);
       connection.setReadOnly(true);
@@ -438,7 +442,7 @@ public class JdbcGrpcErrorTest {
           assertThrows(
               JdbcSqlExceptionImpl.class,
               () -> connection.createStatement().executeQuery(SELECT1.getSql()));
-      assertEquals(Code.FAILED_PRECONDITION, sqlException.getCode());
+      assertEquals(Code.INVALID_ARGUMENT, sqlException.getCode());
       assertTrue(sqlException.getMessage(), sqlException.getMessage().contains("test exception"));
     }
   }
