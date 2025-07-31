@@ -117,8 +117,8 @@ supported connection properties.
 - optimizerVersion (String): Sets the default query optimizer version to use for this connection. See also https://cloud.google.com/spanner/docs/query-optimizer/query-optimizer-versions.
 
 #### Advanced Properties
-- minSessions (int): Sets the minimum number of sessions in the backing session pool. Defaults to 100.
-- maxSessions (int): Sets the maximum number of sessions in the backing session pool. Defaults to 400.
+- DEPRECATED minSessions (int): Sets the minimum number of sessions in the backing session pool. Defaults to 100. This configuration option is no longer needed, as the JDBC driver by default uses a [single multiplexed session for all operations](https://cloud.google.com/spanner/docs/sessions#multiplexed_sessions).
+- DEPRECATED maxSessions (int): Sets the maximum number of sessions in the backing session pool. Defaults to 400. This configuration option is no longer needed, as the JDBC driver by default uses a [single multiplexed session for all operations](https://cloud.google.com/spanner/docs/sessions#multiplexed_sessions).
 - numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
 - retryAbortsInternally (boolean): The JDBC driver will by default automatically retry aborted transactions internally. This is done by keeping track of all statements and the results of these during a transaction, and if the transaction is aborted by Cloud Spanner, it will replay the statements on a new transaction and compare the results with the initial attempt. Disable this option if you want to handle aborted transactions in your own application.
 - autocommit_dml_mode (string): Determines the transaction type that is used to execute
