@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.32.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.31.3...v2.32.0) (2025-07-31)
+
+
+### Features
+
+* A single multiplexed session is used for all operations ([#2162](https://github.com/googleapis/java-spanner-jdbc/issues/2162)) ([21438cc](https://github.com/googleapis/java-spanner-jdbc/commit/21438cc88b9b5f5cb196c2a0e1c233a7ecb07b62))
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.70.0 ([#2157](https://github.com/googleapis/java-spanner-jdbc/issues/2157)) ([9679471](https://github.com/googleapis/java-spanner-jdbc/commit/9679471e9e97b1770fc41b39a0050b8f77542588))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.98.0 ([#2160](https://github.com/googleapis/java-spanner-jdbc/issues/2160)) ([5893055](https://github.com/googleapis/java-spanner-jdbc/commit/589305520aa5474f36954018a72b561a6e0d8189))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.98.0 ([#2161](https://github.com/googleapis/java-spanner-jdbc/issues/2161)) ([b5345b1](https://github.com/googleapis/java-spanner-jdbc/commit/b5345b18506c1437c3a23e4aa3b7eb54db519e74))
+* Update dependency com.google.cloud:google-cloud-trace to v2.70.0 ([#2158](https://github.com/googleapis/java-spanner-jdbc/issues/2158)) ([d0caeb9](https://github.com/googleapis/java-spanner-jdbc/commit/d0caeb9ddb586fc44405ec1c7c4790ad82cd20cb))
+
 ## [2.31.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.31.2...v2.31.3) (2025-07-28)
 
 
