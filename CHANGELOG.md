@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.32.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.32.0...v2.32.1) (2025-08-12)
+
+
+### Dependencies
+
+* Update actions/checkout action to v5 ([#2174](https://github.com/googleapis/java-spanner-jdbc/issues/2174)) ([46378ca](https://github.com/googleapis/java-spanner-jdbc/commit/46378caa33c6d78223d65cb0ea11e39784d75a9e))
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.71.0 ([#2171](https://github.com/googleapis/java-spanner-jdbc/issues/2171)) ([6713d5c](https://github.com/googleapis/java-spanner-jdbc/commit/6713d5c2ef7af8fb68e3a1ada8b1f71f4137a209))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.98.1 ([#2175](https://github.com/googleapis/java-spanner-jdbc/issues/2175)) ([3a4d7ec](https://github.com/googleapis/java-spanner-jdbc/commit/3a4d7ecc907eb7c5da1bd19ce50d86cf677deaa8))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.98.1 ([#2176](https://github.com/googleapis/java-spanner-jdbc/issues/2176)) ([f44a15e](https://github.com/googleapis/java-spanner-jdbc/commit/f44a15e25b3c7b4163ae1075f6932e6e3c5cb5f1))
+* Update dependency com.google.cloud:google-cloud-trace to v2.71.0 ([#2172](https://github.com/googleapis/java-spanner-jdbc/issues/2172)) ([3159c4f](https://github.com/googleapis/java-spanner-jdbc/commit/3159c4f1c6c81db4e1095f0a52c7e7d51e51c6a2))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.51.0 ([#2168](https://github.com/googleapis/java-spanner-jdbc/issues/2168)) ([ecf1a07](https://github.com/googleapis/java-spanner-jdbc/commit/ecf1a0782defc37af9ccffe7488506e904950809))
+* Update dependency commons-cli:commons-cli to v1.10.0 ([#2167](https://github.com/googleapis/java-spanner-jdbc/issues/2167)) ([1ef709d](https://github.com/googleapis/java-spanner-jdbc/commit/1ef709d22e9131f2e84dc657cd8a2a56d682d29a))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.53.0 ([#2173](https://github.com/googleapis/java-spanner-jdbc/issues/2173)) ([a61de5c](https://github.com/googleapis/java-spanner-jdbc/commit/a61de5c62d90d16e0ad6207e24424aa57442e349))
+
 ## [2.32.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.31.3...v2.32.0) (2025-07-31)
 
 
