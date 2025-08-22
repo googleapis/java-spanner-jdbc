@@ -55,7 +55,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jdbc</artifactId>
-      <version>3.5.4</version>
+      <version>3.5.5</version>
     </dependency>
 
     <!-- Add the Spanner JDBC driver. -->
