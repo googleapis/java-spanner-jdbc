@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.32.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.32.1...v2.32.2) (2025-08-28)
+
+
+### Dependencies
+
+* Update actions/setup-java action to v5 ([#2185](https://github.com/googleapis/java-spanner-jdbc/issues/2185)) ([a0e1cec](https://github.com/googleapis/java-spanner-jdbc/commit/a0e1cec3789d12282b3a5d3b0e2353f3dfa0b68c))
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.72.0 ([#2179](https://github.com/googleapis/java-spanner-jdbc/issues/2179)) ([3df3cf7](https://github.com/googleapis/java-spanner-jdbc/commit/3df3cf7c836b032968c78ed4ffefc4c0c6545494))
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.73.0 ([#2189](https://github.com/googleapis/java-spanner-jdbc/issues/2189)) ([bc45d56](https://github.com/googleapis/java-spanner-jdbc/commit/bc45d567b462967a4cfbe8068027dbf14344c5a0))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.99.0 ([#2192](https://github.com/googleapis/java-spanner-jdbc/issues/2192)) ([db9732e](https://github.com/googleapis/java-spanner-jdbc/commit/db9732e11c5f83f3b2c53bb9c2b6b2a16d0579de))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.99.0 ([#2193](https://github.com/googleapis/java-spanner-jdbc/issues/2193)) ([54d482f](https://github.com/googleapis/java-spanner-jdbc/commit/54d482fc7723d63a0f1d98317c62fc798385b33a))
+* Update dependency com.google.cloud:google-cloud-trace to v2.72.0 ([#2180](https://github.com/googleapis/java-spanner-jdbc/issues/2180)) ([2ce3c39](https://github.com/googleapis/java-spanner-jdbc/commit/2ce3c39b4c5a2a42afca48de6ea065c6c6e85949))
+* Update dependency com.google.cloud:google-cloud-trace to v2.73.0 ([#2190](https://github.com/googleapis/java-spanner-jdbc/issues/2190)) ([a116a8f](https://github.com/googleapis/java-spanner-jdbc/commit/a116a8fac1773aeaf9543d92d6facbfd60a75461))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.52.0 ([#2184](https://github.com/googleapis/java-spanner-jdbc/issues/2184)) ([79ce6bc](https://github.com/googleapis/java-spanner-jdbc/commit/79ce6bcc3b4c46a46a09a5261019dc55ae2992b8))
+* Update dependency org.springframework.boot:spring-boot to v3.5.5 ([#2186](https://github.com/googleapis/java-spanner-jdbc/issues/2186)) ([75e71cc](https://github.com/googleapis/java-spanner-jdbc/commit/75e71ccd4f15016bf48d73f257f714cd676c19b4))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v3.5.5 ([#2187](https://github.com/googleapis/java-spanner-jdbc/issues/2187)) ([803f0dd](https://github.com/googleapis/java-spanner-jdbc/commit/803f0dd1c38abe2d6f78a1b3cf1676257e98ca9f))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.5.5 ([#2188](https://github.com/googleapis/java-spanner-jdbc/issues/2188)) ([fd383c7](https://github.com/googleapis/java-spanner-jdbc/commit/fd383c702b82b87e96cae6b77006ce6563c5a14b))
+* Update dependency org.springframework.data:spring-data-bom to v2025.0.3 ([#2181](https://github.com/googleapis/java-spanner-jdbc/issues/2181)) ([a1bab5a](https://github.com/googleapis/java-spanner-jdbc/commit/a1bab5a2d195c2974146c6d2e5756d4c265c4a21))
+
 ## [2.32.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.32.0...v2.32.1) (2025-08-12)
 
 
