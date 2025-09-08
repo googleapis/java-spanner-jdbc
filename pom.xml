@@ -372,6 +372,8 @@
           <artifactId>maven-dependency-plugin</artifactId>
           <configuration>
             <ignoredUsedUndeclaredDependencies>
+              <!-- This dependency is used for its native image configuration in the test scope -->
+              <ignoredUnusedDeclaredDependency>com.google.api:gax:jar</ignoredUnusedDeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.graalvm.sdk:graal-sdk</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>com.google.api.grpc:grpc-google-cloud-spanner-v1</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>com.google.api.grpc:proto-google-cloud-spanner-admin-instance-v1</ignoredUsedUndeclaredDependency>
