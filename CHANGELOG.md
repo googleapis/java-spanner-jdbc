@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.32.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.32.2...v2.32.3) (2025-09-13)
+
+
+### Dependencies
+
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.20.0 ([#2197](https://github.com/googleapis/java-spanner-jdbc/issues/2197)) ([70726b6](https://github.com/googleapis/java-spanner-jdbc/commit/70726b66b71fe1801dff6d43c321f9917f4d3e10))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.100.0 ([#2206](https://github.com/googleapis/java-spanner-jdbc/issues/2206)) ([ce63133](https://github.com/googleapis/java-spanner-jdbc/commit/ce63133c3d90873703096d7ffe62814646982d98))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.100.0 ([#2207](https://github.com/googleapis/java-spanner-jdbc/issues/2207)) ([8f3f00b](https://github.com/googleapis/java-spanner-jdbc/commit/8f3f00bceca948e8337e795d6801c27128b810c5))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.52.1 ([#2198](https://github.com/googleapis/java-spanner-jdbc/issues/2198)) ([6f6f80b](https://github.com/googleapis/java-spanner-jdbc/commit/6f6f80b369a2a4af23aea6ec163122692f03fa8f))
+* Update dependency com.spotify.fmt:fmt-maven-plugin to v2.28 ([#2203](https://github.com/googleapis/java-spanner-jdbc/issues/2203)) ([23545de](https://github.com/googleapis/java-spanner-jdbc/commit/23545deb10bc718040f56063a09ae65f906a828f))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.54.0 ([#2199](https://github.com/googleapis/java-spanner-jdbc/issues/2199)) ([b5e02dd](https://github.com/googleapis/java-spanner-jdbc/commit/b5e02dd7dd2a520b4a91a10b72dba777c5c6990d))
+
 ## [2.32.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.32.1...v2.32.2) (2025-08-28)
 
 
