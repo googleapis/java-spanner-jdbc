@@ -110,8 +110,11 @@ integration-cloud-staging)
     ;;
 graalvm)
     # Run Unit and Integration Tests with Native Image.
-	curl -s "https://get.sdkman.io" | bash
-    sdk install java 25-graalce
+	set -ex
+    microdnf install zip
+    curl -s "https://get.sdkman.io" | bash -e
+    source "/root/.sdkman/bin/sdkman-init.sh"
+    sdk install java 25-graalce -Y
     java -version
     mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**"
     RETURN_CODE=$?
