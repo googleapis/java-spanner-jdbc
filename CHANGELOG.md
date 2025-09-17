@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.32.4](https://github.com/googleapis/java-spanner-jdbc/compare/v2.32.3...v2.32.4) (2025-09-17)
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.74.0 ([#2205](https://github.com/googleapis/java-spanner-jdbc/issues/2205)) ([84dd68c](https://github.com/googleapis/java-spanner-jdbc/commit/84dd68cd661623132c007ac1bed9e69950aa3cac))
+* Update dependency com.google.cloud:google-cloud-trace to v2.74.0 ([#2211](https://github.com/googleapis/java-spanner-jdbc/issues/2211)) ([ac95834](https://github.com/googleapis/java-spanner-jdbc/commit/ac958346f19faad5eaf8dd53ce88b995261e9897))
+* Update dependency com.spotify.fmt:fmt-maven-plugin to v2.29 ([#2214](https://github.com/googleapis/java-spanner-jdbc/issues/2214)) ([a73a772](https://github.com/googleapis/java-spanner-jdbc/commit/a73a77245f4827afb8580912d437543b5cc59317))
+* Update dependency org.springframework.data:spring-data-bom to v2025.0.4 ([#2204](https://github.com/googleapis/java-spanner-jdbc/issues/2204)) ([f6327c7](https://github.com/googleapis/java-spanner-jdbc/commit/f6327c79ce4d3dd30994b0c2419ae5b6b058d156))
+
 ## [2.32.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.32.2...v2.32.3) (2025-09-13)
 
 
