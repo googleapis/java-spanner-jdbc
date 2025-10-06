@@ -45,7 +45,7 @@ public class ConnectionPropertiesFileGenerator {
           .append("| ")
           .append(connectionProperty.getName())
           .append(" | ")
-          .append(connectionProperty.getDescription())
+          .append(connectionProperty.getDescription().replace("\n", " "))
           .append(" | ")
           .append(
               connectionProperty.getDefaultValue() == null
