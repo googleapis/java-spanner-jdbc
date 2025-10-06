@@ -28,7 +28,10 @@ SELECT TABLE_CATALOG AS "TABLE_CAT", TABLE_SCHEMA AS "TABLE_SCHEM", TABLE_NAME A
            WHEN DATA_TYPE = 'jsonb' THEN -9
            WHEN DATA_TYPE = 'timestamp with time zone' THEN 93
            END AS "DATA_TYPE",
-       DATA_TYPE AS "TYPE_NAME",
+       CASE
+           WHEN spanner_type LIKE 'character varying[]' then '_varchar'
+           ELSE DATA_TYPE
+           END AS "TYPE_NAME",
        CASE
            WHEN DATA_TYPE LIKE 'ARRAY' THEN 0
            WHEN DATA_TYPE = 'boolean' THEN NULL

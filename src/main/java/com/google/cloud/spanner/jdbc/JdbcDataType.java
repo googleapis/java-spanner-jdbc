@@ -297,6 +297,32 @@ enum JdbcDataType {
       return Type.string();
     }
   },
+  TEXT {
+    @Override
+    public int getSqlType() {
+      return Types.NVARCHAR;
+    }
+
+    @Override
+    public Class<String> getJavaClass() {
+      return String.class;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.STRING;
+    }
+
+    @Override
+    public List<String> getArrayElements(ResultSet rs, int columnIndex) {
+      return rs.getStringList(columnIndex);
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.string();
+    }
+  },
   JSON {
     @Override
     public int getSqlType() {
