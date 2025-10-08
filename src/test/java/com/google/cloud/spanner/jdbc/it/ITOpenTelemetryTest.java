@@ -23,6 +23,8 @@ import static org.junit.Assume.assumeFalse;
 
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.rpc.ResourceExhaustedException;
+import com.google.auth.Credentials;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.opentelemetry.trace.TraceConfiguration;
 import com.google.cloud.opentelemetry.trace.TraceExporter;
 import com.google.cloud.spanner.Database;
@@ -282,14 +284,19 @@ public class ITOpenTelemetryTest extends ITAbstractJdbcTest {
   }
 
   private void assertTrace(String sql) throws IOException, InterruptedException {
+    Credentials credentials;
+    if (env.getTestHelper().getOptions().getCredentials() != null) {
+      credentials = env.getTestHelper().getOptions().getCredentials();
+    } else {
+      credentials = GoogleCredentials.getApplicationDefault();
+    }
+    if (credentials == null) {
+      throw new IllegalStateException("No credentials found");
+    }
     TraceServiceSettings settings =
-        env.getTestHelper().getOptions().getCredentials() == null
-            ? TraceServiceSettings.newBuilder().build()
-            : TraceServiceSettings.newBuilder()
-                .setCredentialsProvider(
-                    FixedCredentialsProvider.create(
-                        env.getTestHelper().getOptions().getCredentials()))
-                .build();
+        TraceServiceSettings.newBuilder()
+            .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+            .build();
     try (TraceServiceClient client = TraceServiceClient.create(settings)) {
       // It can take a few seconds before the trace is visible.
       Thread.sleep(5000L);

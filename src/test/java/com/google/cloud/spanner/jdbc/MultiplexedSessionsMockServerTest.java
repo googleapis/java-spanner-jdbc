@@ -137,7 +137,7 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
   }
 
   @Test
-  public void testUsesRegularSessionForDmlInAutoCommit() throws SQLException {
+  public void testUsesMultiplexedSessionForDmlInAutoCommit() throws SQLException {
     try (Connection connection = createJdbcConnection()) {
       assertTrue(connection.getAutoCommit());
       assertEquals(1, connection.createStatement().executeUpdate(INSERT_SQL));
@@ -154,11 +154,11 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
     String sessionId = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0).getSession();
     Session session = MockServerHelper.getSession(mockSpanner, sessionId);
     assertNotNull(session);
-    assertFalse(session.getMultiplexed());
+    assertTrue(session.getMultiplexed());
   }
 
   @Test
-  public void testUsesRegularSessionForQueryInTransaction() throws SQLException {
+  public void testUsesMultiplexedSessionForQueryInTransaction() throws SQLException {
     try (Connection connection = createJdbcConnection()) {
       connection.setAutoCommit(false);
       assertFalse(connection.getAutoCommit());
@@ -183,7 +183,7 @@ public class MultiplexedSessionsMockServerTest extends AbstractMockServerTest {
     String sessionId = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0).getSession();
     Session session = MockServerHelper.getSession(mockSpanner, sessionId);
     assertNotNull(session);
-    assertFalse(session.getMultiplexed());
+    assertTrue(session.getMultiplexed());
   }
 
   @Test

@@ -192,7 +192,10 @@ public class JdbcConnectionTest {
 
   @Test
   public void testClosedJdbcConnection()
-      throws SQLException, NoSuchMethodException, SecurityException, IllegalAccessException,
+      throws SQLException,
+          NoSuchMethodException,
+          SecurityException,
+          IllegalAccessException,
           IllegalArgumentException {
     testClosed(Connection.class, "getCatalog");
     testClosed(Connection.class, "getWarnings");
@@ -328,14 +331,20 @@ public class JdbcConnectionTest {
   }
 
   private void testClosed(Class<? extends Connection> clazz, String name)
-      throws NoSuchMethodException, SecurityException, SQLException, IllegalAccessException,
+      throws NoSuchMethodException,
+          SecurityException,
+          SQLException,
+          IllegalAccessException,
           IllegalArgumentException {
     testClosed(clazz, name, null, null);
   }
 
   private void testClosed(
       Class<? extends Connection> clazz, String name, Class<?>[] paramTypes, Object[] args)
-      throws NoSuchMethodException, SecurityException, SQLException, IllegalAccessException,
+      throws NoSuchMethodException,
+          SecurityException,
+          SQLException,
+          IllegalAccessException,
           IllegalArgumentException {
     Method method = clazz.getDeclaredMethod(name, paramTypes);
     testInvokeMethodOnClosedConnection(method, args);

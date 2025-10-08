@@ -27,11 +27,13 @@ import java.sql.SQLType;
  */
 public class ProtoEnumType implements SQLType {
   public static final ProtoEnumType INSTANCE = new ProtoEnumType();
+
   /**
    * Spanner does not have any type numbers, but the code values are unique. Add 100,000 to avoid
    * conflicts with the type numbers in java.sql.Types.
    */
   public static final int VENDOR_TYPE_NUMBER = 100_000 + TypeCode.ENUM_VALUE;
+
   /**
    * Define a short type number as well, as this is what is expected to be returned in {@link
    * DatabaseMetaData#getTypeInfo()}.

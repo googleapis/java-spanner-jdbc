@@ -221,7 +221,7 @@ public class JdbcPreparedStatementTest {
       ps.setObject(52, "{}", JsonType.VENDOR_TYPE_NUMBER);
       ps.setObject(53, "{}", PgJsonbType.VENDOR_TYPE_NUMBER);
 
-      JdbcParameterMetaData pmd = ps.getParameterMetaData();
+      JdbcParameterMetaData pmd = (JdbcParameterMetaData) ps.getParameterMetaData();
       assertEquals(numberOfParams, pmd.getParameterCount());
       assertEquals(JdbcArray.class.getName(), pmd.getParameterClassName(1));
       assertEquals(ByteArrayInputStream.class.getName(), pmd.getParameterClassName(2));
@@ -281,7 +281,7 @@ public class JdbcPreparedStatementTest {
       assertEquals(String.class.getName(), pmd.getParameterClassName(51));
 
       ps.clearParameters();
-      pmd = ps.getParameterMetaData();
+      pmd = (JdbcParameterMetaData) ps.getParameterMetaData();
       assertEquals(numberOfParams, pmd.getParameterCount());
     }
   }
@@ -329,12 +329,12 @@ public class JdbcPreparedStatementTest {
       ps.setNull(++index, Types.NULL);
       assertEquals(numberOfParameters, index);
 
-      JdbcParameterMetaData pmd = ps.getParameterMetaData();
+      JdbcParameterMetaData pmd = (JdbcParameterMetaData) ps.getParameterMetaData();
       assertEquals(numberOfParameters, pmd.getParameterCount());
       assertEquals(Timestamp.class.getName(), pmd.getParameterClassName(15));
 
       ps.clearParameters();
-      pmd = ps.getParameterMetaData();
+      pmd = (JdbcParameterMetaData) ps.getParameterMetaData();
       assertEquals(numberOfParameters, pmd.getParameterCount());
     }
   }

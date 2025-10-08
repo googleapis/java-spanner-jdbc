@@ -4,7 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>2.29.2-SNAPSHOT</version><!-- {x-version-update:google-cloud-spanner-jdbc:current} -->
+  <version>2.33.1-SNAPSHOT</version><!-- {x-version-update:google-cloud-spanner-jdbc:current} -->
   <packaging>jar</packaging>
   <name>Google Cloud Spanner JDBC</name>
   <url>https://github.com/googleapis/java-spanner-jdbc</url>
@@ -14,7 +14,7 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>sdk-platform-java-config</artifactId>
-    <version>3.46.2</version>
+    <version>3.52.3</version>
   </parent>
   <developers>
     <developer>
@@ -51,7 +51,7 @@
     <site.installationModule>google-cloud-spanner-jdbc</site.installationModule>
     <junit.version>4.13.2</junit.version>
     <findbugs.version>3.0.2</findbugs.version>
-    <truth.version>1.4.4</truth.version>
+    <truth.version>1.4.5</truth.version>
     <mockito.version>4.11.0</mockito.version>
     <opencensus.version>0.31.1</opencensus.version>
   </properties>
@@ -61,7 +61,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>6.91.1</version>
+        <version>6.101.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -166,7 +166,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.21.0</version>
+      <version>1.21.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -204,7 +204,7 @@
     <dependency>
       <groupId>com.google.cloud.opentelemetry</groupId>
       <artifactId>exporter-trace</artifactId>
-      <version>0.34.0</version>
+      <version>0.36.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -216,13 +216,13 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-trace</artifactId>
-      <version>2.60.0</version>
+      <version>2.75.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.api.grpc</groupId>
       <artifactId>proto-google-cloud-trace-v1</artifactId>
-      <version>2.60.0</version>
+      <version>2.75.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -279,7 +279,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.6.0</version>
+        <version>3.6.1</version>
         <executions>
           <execution>
             <goals>
@@ -351,7 +351,7 @@
               <goal>java</goal>
             </goals>
             <configuration>
-              <mainClass>com.google.cloud.spanner.connection.ConnectionPropertiesFileGenerator</mainClass>
+              <mainClass>com.google.cloud.spanner.jdbc.ConnectionPropertiesFileGenerator</mainClass>
               <classpathScope>test</classpathScope>
               <skip>false</skip>
             </configuration>
@@ -449,7 +449,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-shade-plugin</artifactId>
-            <version>3.6.0</version>
+            <version>3.6.1</version>
             <executions>
               <execution>
                 <configuration>

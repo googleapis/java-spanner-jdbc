@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /** Enum for mapping Cloud Spanner data types to Java classes and JDBC SQL {@link Types}. */
 enum JdbcDataType {
@@ -377,6 +378,32 @@ enum JdbcDataType {
     @Override
     public Type getSpannerType() {
       return Type.timestamp();
+    }
+  },
+  UUID {
+    @Override
+    public int getSqlType() {
+      return UuidType.VENDOR_TYPE_NUMBER;
+    }
+
+    @Override
+    public Class<UUID> getJavaClass() {
+      return UUID.class;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.UUID;
+    }
+
+    @Override
+    public List<UUID> getArrayElements(ResultSet rs, int columnIndex) {
+      return rs.getUuidList(columnIndex);
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.uuid();
     }
   },
   STRUCT {

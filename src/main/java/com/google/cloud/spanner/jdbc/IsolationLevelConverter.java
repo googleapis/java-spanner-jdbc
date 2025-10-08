@@ -40,7 +40,7 @@ class IsolationLevelConverter {
 
   static int convertToJdbc(IsolationLevel isolationLevel) {
     switch (isolationLevel) {
-        // Translate UNSPECIFIED to SERIALIZABLE as that is the default isolation level.
+      // Translate UNSPECIFIED to SERIALIZABLE as that is the default isolation level.
       case ISOLATION_LEVEL_UNSPECIFIED:
       case SERIALIZABLE:
         return Connection.TRANSACTION_SERIALIZABLE;

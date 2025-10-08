@@ -62,7 +62,7 @@ test)
     RETURN_CODE=$?
     ;;
 lint)
-    mvn com.coveo:fmt-maven-plugin:check -B -ntp
+    mvn com.spotify.fmt:fmt-maven-plugin:check -B -ntp
     RETURN_CODE=$?
     ;;
 javadoc)
@@ -76,8 +76,6 @@ integration)
       -DtrimStackTrace=false \
       -Dclirr.skip=true \
       -Denforcer.skip=true \
-      -Dspanner.testenv.instance=projects/span-cloud-testing/instances/java-client-integration-test \
-      -Dspanner.gce.config.project_id=span-cloud-testing \
       -fae \
       verify
     RETURN_CODE=$?

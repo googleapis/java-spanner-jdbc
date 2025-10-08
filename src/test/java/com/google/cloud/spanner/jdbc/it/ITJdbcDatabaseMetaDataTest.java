@@ -313,10 +313,6 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
             assertEquals(0, rs.getShort("SOURCE_DATA_TYPE"));
             assertTrue(rs.wasNull());
             assertEquals(col.computed ? "YES" : "NO", rs.getString("IS_GENERATEDCOLUMN"));
-            // TODO: Remove check when the emulator correctly returns IS_IDENTITY
-            if (!EmulatorSpannerHelper.isUsingEmulator()) {
-              assertEquals(col.autoIncrement ? "YES" : "NO", rs.getString("IS_AUTOINCREMENT"));
-            }
             assertEquals(24, rs.getMetaData().getColumnCount());
           }
           assertFalse(rs.next());
@@ -590,12 +586,6 @@ public class ITJdbcDatabaseMetaDataTest extends ITAbstractJdbcTest {
             connection.getMetaData().getIndexInfo(DEFAULT_CATALOG, schema, null, false, false)) {
 
           for (IndexInfo index : EXPECTED_INDICES) {
-            // The emulator does not generate indexes for foreign keys in a non-default schema.
-            if (EmulatorSpannerHelper.isUsingEmulator()
-                && "test".equals(schema)
-                && ("FOREIGN_KEY".equals(index.indexName) || "GENERATED".equals(index.indexName))) {
-              continue;
-            }
             assertTrue(rs.next());
             assertEquals(DEFAULT_CATALOG, rs.getString("TABLE_CAT"));
             assertEquals(schema, rs.getString("TABLE_SCHEM"));

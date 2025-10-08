@@ -20,7 +20,7 @@ If you are using Maven, add this to your pom.xml file:
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>2.29.1</version>
+  <version>2.33.0</version>
 </dependency>
 ```
 <!--- {x-version-update-end} -->
@@ -30,7 +30,7 @@ If you are using Gradle without BOM, add this to your dependencies
 
 <!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```Groovy
-implementation 'com.google.cloud:google-cloud-spanner-jdbc:2.29.1'
+implementation 'com.google.cloud:google-cloud-spanner-jdbc:2.33.0'
 ```
 <!--- {x-version-update-end} -->
 
@@ -38,7 +38,7 @@ If you are using SBT, add this to your dependencies
 
 <!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.29.1"
+libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.33.0"
 ```
 <!--- {x-version-update-end} -->
 
@@ -117,8 +117,8 @@ supported connection properties.
 - optimizerVersion (String): Sets the default query optimizer version to use for this connection. See also https://cloud.google.com/spanner/docs/query-optimizer/query-optimizer-versions.
 
 #### Advanced Properties
-- minSessions (int): Sets the minimum number of sessions in the backing session pool. Defaults to 100.
-- maxSessions (int): Sets the maximum number of sessions in the backing session pool. Defaults to 400.
+- DEPRECATED minSessions (int): Sets the minimum number of sessions in the backing session pool. Defaults to 100. This configuration option is no longer needed, as the JDBC driver by default uses a [single multiplexed session for all operations](https://cloud.google.com/spanner/docs/sessions#multiplexed_sessions).
+- DEPRECATED maxSessions (int): Sets the maximum number of sessions in the backing session pool. Defaults to 400. This configuration option is no longer needed, as the JDBC driver by default uses a [single multiplexed session for all operations](https://cloud.google.com/spanner/docs/sessions#multiplexed_sessions).
 - numChannels (int): Sets the number of gRPC channels to use. Defaults to 4.
 - retryAbortsInternally (boolean): The JDBC driver will by default automatically retry aborted transactions internally. This is done by keeping track of all statements and the results of these during a transaction, and if the transaction is aborted by Cloud Spanner, it will replay the statements on a new transaction and compare the results with the initial attempt. Disable this option if you want to handle aborted transactions in your own application.
 - autocommit_dml_mode (string): Determines the transaction type that is used to execute
@@ -137,6 +137,7 @@ supported connection properties.
   into one batch.
 - oauthToken (string): A valid pre-existing OAuth token to use for authentication for this connection. Setting this property will take precedence over any value set for a credentials file.
 - lenient (boolean): Enable this to force the JDBC driver to ignore unknown properties in the connection URL. Some applications automatically add additional properties to the URL that are not recognized by the JDBC driver. Normally, the JDBC driver will reject this, unless `lenient` mode is enabled.
+- enableDirectAccess (boolean): Sets whether the JDBC connection should establish connection using Directpath. Setting this property will enable client to establish connection directly to Spanner if client is running in GCP VM, Otherwise it will fall back standard network path. 
 
 For a full list of supported connection properties, see
 [Supported Connection Properties](documentation/connection_properties.md).

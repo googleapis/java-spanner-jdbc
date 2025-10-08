@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,17 +22,17 @@ import java.sql.PreparedStatement;
 import java.sql.SQLType;
 
 /**
- * Custom SQL type for Spanner JSON data type. This type (or the vendor type number) must be used
- * when setting a JSON parameter using {@link PreparedStatement#setObject(int, Object, SQLType)}.
+ * Custom SQL type for Spanner UUID data type. This type (or the vendor type number) must be used
+ * when setting a UUID parameter using {@link PreparedStatement#setObject(int, Object, SQLType)}.
  */
-public class JsonType implements SQLType {
-  public static final JsonType INSTANCE = new JsonType();
+public class UuidType implements SQLType {
+  public static final UuidType INSTANCE = new UuidType();
 
   /**
    * Spanner does not have any type numbers, but the code values are unique. Add 100,000 to avoid
    * conflicts with the type numbers in java.sql.Types.
    */
-  public static final int VENDOR_TYPE_NUMBER = 100_000 + TypeCode.JSON_VALUE;
+  public static final int VENDOR_TYPE_NUMBER = 100_000 + TypeCode.UUID_VALUE;
 
   /**
    * Define a short type number as well, as this is what is expected to be returned in {@link
@@ -40,16 +40,16 @@ public class JsonType implements SQLType {
    */
   public static final short SHORT_VENDOR_TYPE_NUMBER = (short) VENDOR_TYPE_NUMBER;
 
-  private JsonType() {}
+  private UuidType() {}
 
   @Override
   public String getName() {
-    return "JSON";
+    return "UUID";
   }
 
   @Override
   public String getVendor() {
-    return JsonType.class.getPackage().getName();
+    return UuidType.class.getPackage().getName();
   }
 
   @Override

@@ -729,6 +729,12 @@ class JdbcParameterStore {
     } else if (Time.class.isAssignableFrom(value.getClass())) {
       Time timeValue = (Time) value;
       return binder.to(JdbcTypeConverter.toGoogleTimestamp(new Timestamp(timeValue.getTime())));
+    } else if (UUID.class.isAssignableFrom(value.getClass())) {
+      // Bind UUID values as untyped strings to allow them to be used with all types that support
+      // string values (e.g. STRING, UUID).
+      return binder.to(
+          Value.untyped(
+              com.google.protobuf.Value.newBuilder().setStringValue(value.toString()).build()));
     } else if (String.class.isAssignableFrom(value.getClass())) {
       String stringVal = (String) value;
       return binder.to(stringVal);
@@ -853,6 +859,9 @@ class JdbcParameterStore {
                   com.google.protobuf.Value.newBuilder()
                       .setNullValue(NullValue.NULL_VALUE)
                       .build()));
+        case UuidType.VENDOR_TYPE_NUMBER:
+        case UuidType.SHORT_VENDOR_TYPE_NUMBER:
+          return binder.toUuidArray(null);
         default:
           return binder.to(
               Value.untyped(
@@ -907,6 +916,8 @@ class JdbcParameterStore {
       return binder.toDateArray(JdbcTypeConverter.toGoogleDates((Date[]) value));
     } else if (Timestamp[].class.isAssignableFrom(value.getClass())) {
       return binder.toTimestampArray(JdbcTypeConverter.toGoogleTimestamps((Timestamp[]) value));
+    } else if (UUID[].class.isAssignableFrom(value.getClass())) {
+      return binder.toUuidArray(Arrays.asList((UUID[]) value));
     } else if (String[].class.isAssignableFrom(value.getClass())) {
       if (type == JsonType.VENDOR_TYPE_NUMBER || type == JsonType.SHORT_VENDOR_TYPE_NUMBER) {
         return binder.toJsonArray(Arrays.asList((String[]) value));
