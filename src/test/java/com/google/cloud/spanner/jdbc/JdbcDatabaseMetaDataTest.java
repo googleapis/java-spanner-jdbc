@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptionsTest;
@@ -555,8 +555,8 @@ public class JdbcDatabaseMetaDataTest {
 
   @Test
   public void testGetUserName() throws SQLException, IOException {
-    GoogleCredentials credentials =
-        GoogleCredentials.fromStream(
+    ServiceAccountCredentials credentials =
+        ServiceAccountCredentials.fromStream(
             Objects.requireNonNull(ConnectionOptionsTest.class.getResource("test-key.json"))
                 .openStream());
     JdbcConnection connection = mock(JdbcConnection.class);
