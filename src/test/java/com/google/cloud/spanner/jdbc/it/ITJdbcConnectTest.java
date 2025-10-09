@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.spanner.Database;
 import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ParallelIntegrationTest;
@@ -230,7 +231,8 @@ public class ITJdbcConnectTest extends ITAbstractJdbcTest {
   public void testConnectWithOAuthToken() throws Exception {
     GoogleCredentials credentials;
     if (hasValidKeyFile()) {
-      credentials = GoogleCredentials.fromStream(Files.newInputStream(Paths.get(getKeyFile())));
+      credentials =
+          ServiceAccountCredentials.fromStream(Files.newInputStream(Paths.get(getKeyFile())));
     } else {
       try {
         credentials = GoogleCredentials.getApplicationDefault();
