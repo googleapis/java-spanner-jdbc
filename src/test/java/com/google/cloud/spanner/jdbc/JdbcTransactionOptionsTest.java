@@ -27,10 +27,15 @@ import com.google.cloud.spanner.Mutation;
 import com.google.cloud.spanner.connection.AbstractMockServerTest;
 import com.google.cloud.spanner.connection.SpannerPool;
 import com.google.spanner.v1.CommitRequest;
+import com.google.spanner.v1.ExecuteSqlRequest;
+import com.google.spanner.v1.TransactionOptions.IsolationLevel;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -136,6 +141,65 @@ public class JdbcTransactionOptionsTest extends AbstractMockServerTest {
       assertEquals(1, mockSpanner.countRequestsOfType(CommitRequest.class));
       CommitRequest request = mockSpanner.getRequestsOfType(CommitRequest.class).get(0);
       assertEquals(Duration.ofMillis(50).toNanos(), request.getMaxCommitDelay().getNanos());
+    }
+  }
+
+  @Test
+  public void testDefaultIsolationLevel() throws SQLException {
+    for (IsolationLevel isolationLevel :
+        Arrays.stream(IsolationLevel.values())
+            .filter(level -> !level.equals(IsolationLevel.UNRECOGNIZED))
+            .collect(Collectors.toList())) {
+      try (java.sql.Connection connection =
+          DriverManager.getConnection(
+              "jdbc:" + getBaseUrl() + ";default_isolation_level=" + isolationLevel.name())) {
+        connection.setAutoCommit(false);
+        try (ResultSet resultSet =
+            connection.createStatement().executeQuery(SELECT1_STATEMENT.getSql())) {
+          while (resultSet.next()) {
+            // ignore
+          }
+        }
+        connection.commit();
+        assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+        ExecuteSqlRequest request = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0);
+        assertTrue(request.hasTransaction());
+        assertTrue(request.getTransaction().hasBegin());
+        assertTrue(request.getTransaction().getBegin().hasReadWrite());
+        assertEquals(isolationLevel, request.getTransaction().getBegin().getIsolationLevel());
+        assertEquals(1, mockSpanner.countRequestsOfType(CommitRequest.class));
+
+        mockSpanner.clearRequests();
+      }
+    }
+  }
+
+  @Test
+  public void testSetIsolationLevel() throws SQLException {
+    try (java.sql.Connection connection = createJdbcConnection()) {
+      connection.setAutoCommit(false);
+      for (int isolationLevel :
+          new int[] {Connection.TRANSACTION_REPEATABLE_READ, Connection.TRANSACTION_SERIALIZABLE}) {
+        connection.setTransactionIsolation(isolationLevel);
+        try (ResultSet resultSet =
+            connection.createStatement().executeQuery(SELECT1_STATEMENT.getSql())) {
+          while (resultSet.next()) {
+            // ignore
+          }
+        }
+        connection.commit();
+        assertEquals(1, mockSpanner.countRequestsOfType(ExecuteSqlRequest.class));
+        ExecuteSqlRequest request = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class).get(0);
+        assertTrue(request.hasTransaction());
+        assertTrue(request.getTransaction().hasBegin());
+        assertTrue(request.getTransaction().getBegin().hasReadWrite());
+        assertEquals(
+            IsolationLevelConverter.convertToSpanner(isolationLevel),
+            request.getTransaction().getBegin().getIsolationLevel());
+        assertEquals(1, mockSpanner.countRequestsOfType(CommitRequest.class));
+
+        mockSpanner.clearRequests();
+      }
     }
   }
 }
