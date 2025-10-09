@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.33.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.33.0...v2.33.1) (2025-10-09)
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.76.0 ([#2240](https://github.com/googleapis/java-spanner-jdbc/issues/2240)) ([442565e](https://github.com/googleapis/java-spanner-jdbc/commit/442565ea8bf22ee926126fbd11a68a869b0772c7))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.101.1 ([#2227](https://github.com/googleapis/java-spanner-jdbc/issues/2227)) ([275c6bd](https://github.com/googleapis/java-spanner-jdbc/commit/275c6bd7f3f58b3f980e9ffaa576d1f910ecf08b))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.102.0 ([#2244](https://github.com/googleapis/java-spanner-jdbc/issues/2244)) ([383a392](https://github.com/googleapis/java-spanner-jdbc/commit/383a39222c7526163323575734c8473a34d4098d))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.101.1 ([#2228](https://github.com/googleapis/java-spanner-jdbc/issues/2228)) ([ded7944](https://github.com/googleapis/java-spanner-jdbc/commit/ded79447b8ecd294e56560b43cb02e45464706f1))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.102.0 ([#2246](https://github.com/googleapis/java-spanner-jdbc/issues/2246)) ([7162ac2](https://github.com/googleapis/java-spanner-jdbc/commit/7162ac236a77c24b4f0faccefa2cf3bdee6b96ab))
+* Update dependency com.google.cloud:google-cloud-trace to v2.76.0 ([#2241](https://github.com/googleapis/java-spanner-jdbc/issues/2241)) ([ff2432d](https://github.com/googleapis/java-spanner-jdbc/commit/ff2432d46cd23df2230671297f06c8e6fca8f1d7))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.52.3 ([#2236](https://github.com/googleapis/java-spanner-jdbc/issues/2236)) ([9a44975](https://github.com/googleapis/java-spanner-jdbc/commit/9a44975e0ab7ca49514be1d9ea03e8e760a0f3bc))
+* Update dependency net.bytebuddy:byte-buddy to v1.17.8 ([#2245](https://github.com/googleapis/java-spanner-jdbc/issues/2245)) ([60a3a8f](https://github.com/googleapis/java-spanner-jdbc/commit/60a3a8f0fcf86742128f8803ee3297670b713923))
+* Update dependency net.bytebuddy:byte-buddy-agent to v1.17.8 ([#2243](https://github.com/googleapis/java-spanner-jdbc/issues/2243)) ([952c08a](https://github.com/googleapis/java-spanner-jdbc/commit/952c08afbf2f7838ad864b8bb58423e8b566d325))
+
+
+### Documentation
+
+* Add samples for transaction isolation level ([#2030](https://github.com/googleapis/java-spanner-jdbc/issues/2030)) ([ca243d1](https://github.com/googleapis/java-spanner-jdbc/commit/ca243d194ef392d44cea561a148c0376b9af630d))
+
 ## [2.33.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.32.3...v2.33.0) (2025-09-27)
 
 
