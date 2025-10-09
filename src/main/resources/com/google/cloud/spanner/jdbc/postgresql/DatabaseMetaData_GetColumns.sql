@@ -29,7 +29,17 @@ SELECT TABLE_CATALOG AS "TABLE_CAT", TABLE_SCHEMA AS "TABLE_SCHEM", TABLE_NAME A
            WHEN DATA_TYPE = 'timestamp with time zone' THEN 93
            END AS "DATA_TYPE",
        CASE
-           WHEN spanner_type LIKE 'character varying[]' then '_varchar'
+           WHEN DATA_TYPE LIKE 'ARRAY' THEN
+               CASE
+                   WHEN spanner_type LIKE '%[]' THEN
+                       CONCAT('_',
+                              REPLACE(
+                                      REPLACE(
+                                              REPLACE(spanner_type, '[]', ''),
+                                              'character varying', 'varchar'),
+                                      'boolean', 'bool'))
+                   ELSE spanner_type
+                   END
            ELSE DATA_TYPE
            END AS "TYPE_NAME",
        CASE

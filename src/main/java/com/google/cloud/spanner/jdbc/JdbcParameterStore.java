@@ -914,6 +914,8 @@ class JdbcParameterStore {
       }
     } else if (Date[].class.isAssignableFrom(value.getClass())) {
       return binder.toDateArray(JdbcTypeConverter.toGoogleDates((Date[]) value));
+    } else if (LocalDate[].class.isAssignableFrom(value.getClass())) {
+      return binder.toDateArray(JdbcTypeConverter.toGoogleDates((LocalDate[]) value));
     } else if (Timestamp[].class.isAssignableFrom(value.getClass())) {
       return binder.toTimestampArray(JdbcTypeConverter.toGoogleTimestamps((Timestamp[]) value));
     } else if (UUID[].class.isAssignableFrom(value.getClass())) {

@@ -24,15 +24,43 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /** Enum for mapping Cloud Spanner data types to Java classes and JDBC SQL {@link Types}. */
 enum JdbcDataType {
+  INTEGER {
+    public int getSqlType() {
+      return Types.INTEGER;
+    }
+
+    @Override
+    public Class<Integer> getJavaClass() {
+      return Integer.class;
+    }
+
+    @Override
+    public Code getCode() {
+      return Code.INT64;
+    }
+
+    @Override
+    public List<Integer> getArrayElements(ResultSet rs, int columnIndex) {
+      return rs.getLongList(columnIndex).stream().map(Long::intValue).collect(Collectors.toList());
+    }
+
+    @Override
+    public Type getSpannerType() {
+      return Type.int64();
+    }
+  },
   BOOL {
     @Override
     public int getSqlType() {
@@ -57,6 +85,11 @@ enum JdbcDataType {
     @Override
     public Type getSpannerType() {
       return Type.bool();
+    }
+
+    @Override
+    public List<String> getAliases() {
+      return Collections.singletonList("boolean");
     }
   },
   BYTES {
@@ -86,6 +119,8 @@ enum JdbcDataType {
     }
   },
   DATE {
+    private final Set<Class<?>> classes = new HashSet<>(Arrays.asList(Date.class, LocalDate.class));
+
     @Override
     public int getSqlType() {
       return Types.DATE;
@@ -94,6 +129,11 @@ enum JdbcDataType {
     @Override
     public Class<Date> getJavaClass() {
       return Date.class;
+    }
+
+    @Override
+    public Set<? extends Class<?>> getSupportedJavaClasses() {
+      return classes;
     }
 
     @Override
@@ -218,6 +258,11 @@ enum JdbcDataType {
     public Type getSpannerType() {
       return Type.int64();
     }
+
+    @Override
+    public List<String> getAliases() {
+      return Collections.singletonList("bigint");
+    }
   },
   NUMERIC {
     @Override
@@ -243,6 +288,11 @@ enum JdbcDataType {
     @Override
     public Type getSpannerType() {
       return Type.numeric();
+    }
+
+    @Override
+    public List<String> getAliases() {
+      return Collections.singletonList("decimal");
     }
   },
   PG_NUMERIC {
@@ -296,31 +346,10 @@ enum JdbcDataType {
     public Type getSpannerType() {
       return Type.string();
     }
-  },
-  TEXT {
-    @Override
-    public int getSqlType() {
-      return Types.NVARCHAR;
-    }
 
     @Override
-    public Class<String> getJavaClass() {
-      return String.class;
-    }
-
-    @Override
-    public Code getCode() {
-      return Code.STRING;
-    }
-
-    @Override
-    public List<String> getArrayElements(ResultSet rs, int columnIndex) {
-      return rs.getStringList(columnIndex);
-    }
-
-    @Override
-    public Type getSpannerType() {
-      return Type.string();
+    public List<String> getAliases() {
+      return Arrays.asList("text");
     }
   },
   JSON {
@@ -523,6 +552,10 @@ enum JdbcDataType {
   public abstract Code getCode();
 
   public abstract Type getSpannerType();
+
+  public List<String> getAliases() {
+    return new ArrayList<>();
+  }
 
   // TODO: Implement and use this method for all types.
   public int getPrecision() {
