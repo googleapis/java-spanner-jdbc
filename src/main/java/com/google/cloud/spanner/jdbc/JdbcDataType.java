@@ -163,6 +163,7 @@ enum JdbcDataType {
   },
   FLOAT64 {
     private final Set<Class<?>> classes = new HashSet<>(Arrays.asList(Float.class, Double.class));
+    private final Set<String> aliases = new HashSet<>(Collections.singletonList("float8"));
 
     @Override
     public int getSqlType() {
@@ -192,6 +193,11 @@ enum JdbcDataType {
     @Override
     public Type getSpannerType() {
       return Type.float64();
+    }
+
+    @Override
+    public Set<String> getAliases() {
+      return aliases;
     }
   },
   INT64 {
