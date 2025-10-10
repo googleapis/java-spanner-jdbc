@@ -5,6 +5,43 @@ queries and transactions and to determine whether transactions or requests are b
 addition, all metrics described in [Latency points in a Spanner request](https://cloud.google.com/spanner/docs/latency-points)
 are also collected by the JDBC driver and can be used for debugging.
 
+## Isolation Level
+
+A common reason for high latency in read/write transactions is lock contention. Spanner by default
+uses isolation level `SERIALIZABLE`. This causes all queries in read/write transactions to take
+locks for all rows that are scanned by a query. Using isolation level `REPEATABLE_READ` reduces the
+number of locks that are taken during a read/write transaction, and can significantly improve
+performance for applications that execute many and/or large queries in read/write transactions.
+
+Enable isolation level `REPEATABLE_READ` by default for all transactions that are executed by the
+JDBC driver by setting the `default_isolation_level` connection property like this in the connection
+URL:
+
+```java
+String projectId = "my-project";
+String instanceId = "my-instance";
+String databaseId = "my-database";
+String isolationLevel = "REPEATABLE_READ";
+
+try (Connection connection =
+    DriverManager.getConnection(
+        String.format(
+            "jdbc:cloudspanner:/projects/%s/instances/%s/databases/%s?default_isolation_level=%s",
+            projectId, instanceId, databaseId, isolationLevel))) {
+  try (Statement statement = connection.createStatement()) {
+    try (ResultSet rs = statement.executeQuery("SELECT CURRENT_TIMESTAMP()")) {
+      while (rs.next()) {
+        System.out.printf(
+            "Connected to Cloud Spanner at [%s]%n", rs.getTimestamp(1).toString());
+      }
+    }
+  }
+}
+```
+
+See https://cloud.google.com/spanner/docs/isolation-levels for more information on the supported
+isolation levels in Spanner.
+
 ## Configuration
 
 You can configure the OpenTelemetry instance that should be used in two ways:

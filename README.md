@@ -20,7 +20,7 @@ If you are using Maven, add this to your pom.xml file:
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-spanner-jdbc</artifactId>
-  <version>2.33.0</version>
+  <version>2.33.1</version>
 </dependency>
 ```
 <!--- {x-version-update-end} -->
@@ -30,7 +30,7 @@ If you are using Gradle without BOM, add this to your dependencies
 
 <!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```Groovy
-implementation 'com.google.cloud:google-cloud-spanner-jdbc:2.33.0'
+implementation 'com.google.cloud:google-cloud-spanner-jdbc:2.33.1'
 ```
 <!--- {x-version-update-end} -->
 
@@ -38,7 +38,7 @@ If you are using SBT, add this to your dependencies
 
 <!--- {x-version-update-start:google-cloud-spanner-jdbc:released} -->
 ```Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.33.0"
+libraryDependencies += "com.google.cloud" % "google-cloud-spanner-jdbc" % "2.33.1"
 ```
 <!--- {x-version-update-end} -->
 
@@ -109,6 +109,7 @@ See [Supported Connection Properties](documentation/connection_properties.md) fo
 supported connection properties.
 
 #### Commonly Used Properties
+- default_isolation_level (String): Spanner supports isolation levels REPEATABLE_READ or SERIALIZABLE. SERIALIZABLE is the default. Using isolation level REPEATABLE_READ improves performance by reducing the amount of locks that are taken by transactions that execute a large number of queries in read/write transactions. See https://cloud.google.com/spanner/docs/isolation-levels for more information on the supported isolation levels in Spanner.
 - credentials (String): URL for the credentials file to use for the connection. If you do not specify any credentials at all, the default credentials of the environment as returned by `GoogleCredentials#getApplicationDefault()` is used. Example: `jdbc:cloudspanner:/projects/my-project/instances/my-instance/databases/my-db;credentials=/path/to/credentials.json`
 - autocommit (boolean): Sets the initial autocommit mode for the connection. Default is true.
 - readonly (boolean): Sets the initial readonly mode for the connection. Default is false.
