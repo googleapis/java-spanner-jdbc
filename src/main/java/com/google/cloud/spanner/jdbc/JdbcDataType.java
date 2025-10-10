@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
@@ -25,14 +26,12 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /** Enum for mapping Cloud Spanner data types to Java classes and JDBC SQL {@link Types}. */
 enum JdbcDataType {
@@ -60,11 +59,6 @@ enum JdbcDataType {
     @Override
     public Type getSpannerType() {
       return Type.bool();
-    }
-
-    @Override
-    public List<String> getAliases() {
-      return Collections.singletonList("boolean");
     }
   },
   BYTES {
@@ -233,13 +227,11 @@ enum JdbcDataType {
     public Type getSpannerType() {
       return Type.int64();
     }
-
-    @Override
-    public List<String> getAliases() {
-      return Arrays.asList("bigint", "integer");
-    }
   },
   NUMERIC {
+
+    private final Set<String> aliases = new HashSet<>(Collections.singletonList("decimal"));
+
     @Override
     public int getSqlType() {
       return Types.NUMERIC;
@@ -266,8 +258,8 @@ enum JdbcDataType {
     }
 
     @Override
-    public List<String> getAliases() {
-      return Collections.singletonList("decimal");
+    public Set<String> getAliases() {
+      return aliases;
     }
   },
   PG_NUMERIC {
@@ -297,6 +289,8 @@ enum JdbcDataType {
     }
   },
   STRING {
+    private final Set<String> aliases = new HashSet<>(Arrays.asList("varchar", "text"));
+
     @Override
     public int getSqlType() {
       return Types.NVARCHAR;
@@ -323,8 +317,8 @@ enum JdbcDataType {
     }
 
     @Override
-    public List<String> getAliases() {
-      return Arrays.asList("text");
+    public Set<String> getAliases() {
+      return aliases;
     }
   },
   JSON {
@@ -528,8 +522,19 @@ enum JdbcDataType {
 
   public abstract Type getSpannerType();
 
-  public List<String> getAliases() {
-    return new ArrayList<>();
+  public Set<String> getAliases() {
+    return Collections.emptySet();
+  }
+
+  /***
+   * @param typeName type of the column
+   * @return true if type name matches current type name or matches with one of postgres aliases
+   * or if it matches equivalent postgres type.
+   */
+  public boolean matches(String typeName) {
+    return getTypeName().equalsIgnoreCase(typeName)
+        || getAliases().contains(typeName.toLowerCase())
+        || getSpannerType().getSpannerTypeName(Dialect.POSTGRESQL).equalsIgnoreCase(typeName);
   }
 
   // TODO: Implement and use this method for all types.

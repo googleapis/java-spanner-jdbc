@@ -60,9 +60,9 @@ class JdbcArray implements Array {
    *     the elements array is not compatible with the base type of the array.
    */
   static JdbcArray createArray(String typeName, Object[] elements) throws SQLException {
-    if(typeName != null) {
+    if (typeName != null) {
       for (JdbcDataType type : JdbcDataType.values()) {
-        if (type.getTypeName().equalsIgnoreCase(typeName) || type.getAliases().contains(typeName.toLowerCase())) {
+        if (type.matches(typeName)) {
           return new JdbcArray(type, elements);
         }
       }
@@ -94,7 +94,8 @@ class JdbcArray implements Array {
                 elements.getClass().getComponentType(), elements.length);
       } else {
         Class<?> clazz = type.getJavaClass();
-        if(elements.length > 0 && type.getSupportedJavaClasses().contains(elements[0].getClass())) {
+        if (elements.length > 0
+            && type.getSupportedJavaClasses().contains(elements[0].getClass())) {
           clazz = elements[0].getClass();
         }
         this.data = java.lang.reflect.Array.newInstance(clazz, elements.length);
