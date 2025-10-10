@@ -36,31 +36,6 @@ import java.util.stream.Collectors;
 
 /** Enum for mapping Cloud Spanner data types to Java classes and JDBC SQL {@link Types}. */
 enum JdbcDataType {
-  INTEGER {
-    public int getSqlType() {
-      return Types.INTEGER;
-    }
-
-    @Override
-    public Class<Integer> getJavaClass() {
-      return Integer.class;
-    }
-
-    @Override
-    public Code getCode() {
-      return Code.INT64;
-    }
-
-    @Override
-    public List<Integer> getArrayElements(ResultSet rs, int columnIndex) {
-      return rs.getLongList(columnIndex).stream().map(Long::intValue).collect(Collectors.toList());
-    }
-
-    @Override
-    public Type getSpannerType() {
-      return Type.int64();
-    }
-  },
   BOOL {
     @Override
     public int getSqlType() {
@@ -261,7 +236,7 @@ enum JdbcDataType {
 
     @Override
     public List<String> getAliases() {
-      return Collections.singletonList("bigint");
+      return Arrays.asList("bigint", "integer");
     }
   },
   NUMERIC {
