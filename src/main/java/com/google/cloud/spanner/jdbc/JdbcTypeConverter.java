@@ -425,6 +425,10 @@ class JdbcTypeConverter {
     return Date.fromYearMonthDay(1970, 1, 1);
   }
 
+  static Date toGoogleDate(LocalDate date) {
+    return Date.fromYearMonthDay(date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+  }
+
   @SuppressWarnings("deprecation")
   static Date toGoogleDate(java.sql.Timestamp date) {
     return date == null
@@ -435,6 +439,14 @@ class JdbcTypeConverter {
   static List<Date> toGoogleDates(java.sql.Date[] dates) {
     List<com.google.cloud.Date> res = new ArrayList<>(dates.length);
     for (java.sql.Date date : dates) {
+      res.add(toGoogleDate(date));
+    }
+    return res;
+  }
+
+  static List<Date> toGoogleDates(LocalDate[] dates) {
+    List<com.google.cloud.Date> res = new ArrayList<>(dates.length);
+    for (LocalDate date : dates) {
       res.add(toGoogleDate(date));
     }
     return res;
