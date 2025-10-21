@@ -72,7 +72,7 @@ javadoc)
 integration)
     mvn -B ${INTEGRATION_TEST_ARGS} \
       -ntp \
-      -Dprotobuf.version=4.32.1 \
+      -Dprotobuf.version=4.33.0 \
       -Penable-integration-tests \
       -DtrimStackTrace=false \
       -Dclirr.skip=true \
@@ -84,7 +84,7 @@ integration)
 integration-cloud-devel)
     mvn -B ${INTEGRATION_TEST_ARGS} \
       -ntp \
-      -Dprotobuf.version=4.32.1 \
+      -Dprotobuf.version=4.33.0 \
       -Penable-integration-tests \
       -DtrimStackTrace=false \
       -Dclirr.skip=true \
@@ -99,7 +99,7 @@ integration-cloud-devel)
 integration-cloud-staging)
     mvn -B ${INTEGRATION_TEST_ARGS} \
       -ntp \
-      -Dprotobuf.version=4.32.1 \
+      -Dprotobuf.version=4.33.0 \
       -Penable-integration-tests \
       -DtrimStackTrace=false \
       -Dclirr.skip=true \
@@ -114,14 +114,14 @@ integration-cloud-staging)
 graalvm)
     # Run Unit and Integration Tests with Native Image.
     mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**" \
-      -Dprotobuf.version=4.32.1
+      -Dprotobuf.version=4.33.0
     RETURN_CODE=$?
     ;;
 graalvmA)
     # Run Unit and Integration Tests with Native Image A.
 	   
     NATIVE_IMAGE_OPTIONS="--strict-image-heap" mvn -B ${INTEGRATION_TEST_ARGS} -ntp -Pnative -Penable-integration-tests test "-Dtest=com.google.cloud.spanner.jdbc.it.**" \
-      -Dprotobuf.version=4.32.1
+      -Dprotobuf.version=4.33.0
     RETURN_CODE=$?
     ;;
 samples)
