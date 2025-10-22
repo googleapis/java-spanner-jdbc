@@ -133,10 +133,10 @@ public class JdbcDatabaseMetaDataTest {
     assertTrue(meta.nullPlusNonNullIsNull());
     assertFalse(meta.isCatalogAtStart());
     assertEquals(connection.isReadOnly(), meta.isReadOnly());
-    if(dialect == Dialect.GOOGLE_STANDARD_SQL) {
-      assertFalse(meta.storesLowerCaseIdentifiers());
-    } else {
+    if (dialect == Dialect.POSTGRESQL) {
       assertTrue(meta.storesLowerCaseIdentifiers());
+    } else {
+      assertFalse(meta.storesLowerCaseIdentifiers());
     }
     assertFalse(meta.storesLowerCaseQuotedIdentifiers());
     assertTrue(meta.storesMixedCaseIdentifiers());
