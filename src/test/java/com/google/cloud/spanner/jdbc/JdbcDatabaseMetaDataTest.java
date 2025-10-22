@@ -61,6 +61,7 @@ public class JdbcDatabaseMetaDataTest {
   @Test
   public void testTrivialMethods() throws SQLException {
     JdbcConnection connection = mock(JdbcConnection.class);
+    when(connection.getDialect()).thenReturn(dialect);
     DatabaseMetaData meta = new JdbcDatabaseMetaData(connection);
     assertTrue(meta.allProceduresAreCallable());
     assertTrue(meta.allTablesAreSelectable());
@@ -132,7 +133,11 @@ public class JdbcDatabaseMetaDataTest {
     assertTrue(meta.nullPlusNonNullIsNull());
     assertFalse(meta.isCatalogAtStart());
     assertEquals(connection.isReadOnly(), meta.isReadOnly());
-    assertFalse(meta.storesLowerCaseIdentifiers());
+    if(dialect == Dialect.GOOGLE_STANDARD_SQL) {
+      assertFalse(meta.storesLowerCaseIdentifiers());
+    } else {
+      assertTrue(meta.storesLowerCaseIdentifiers());
+    }
     assertFalse(meta.storesLowerCaseQuotedIdentifiers());
     assertTrue(meta.storesMixedCaseIdentifiers());
     assertTrue(meta.storesMixedCaseQuotedIdentifiers());
