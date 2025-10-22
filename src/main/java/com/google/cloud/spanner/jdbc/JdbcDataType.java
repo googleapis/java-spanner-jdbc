@@ -188,7 +188,7 @@ enum JdbcDataType {
     }
 
     @Override
-    public Set<String> getAliases() {
+    public Set<String> getPostgreSQLAliases() {
       return aliases;
     }
   },
@@ -256,7 +256,7 @@ enum JdbcDataType {
     }
 
     @Override
-    public Set<String> getAliases() {
+    public Set<String> getPostgreSQLAliases() {
       return aliases;
     }
   },
@@ -315,7 +315,7 @@ enum JdbcDataType {
     }
 
     @Override
-    public Set<String> getAliases() {
+    public Set<String> getPostgreSQLAliases() {
       return aliases;
     }
   },
@@ -520,7 +520,7 @@ enum JdbcDataType {
 
   public abstract Type getSpannerType();
 
-  public Set<String> getAliases() {
+  public Set<String> getPostgreSQLAliases() {
     return Collections.emptySet();
   }
 
@@ -529,9 +529,9 @@ enum JdbcDataType {
    * @return true if type name matches current type name or matches with one of postgres aliases
    * or if it matches equivalent postgres type.
    */
-  public boolean matches(String typeName) {
+  boolean matches(String typeName) {
     return getTypeName().equalsIgnoreCase(typeName)
-        || getAliases().contains(typeName.toLowerCase())
+        || getPostgreSQLAliases().contains(typeName.toLowerCase())
         || getSpannerType().getSpannerTypeName(Dialect.POSTGRESQL).equalsIgnoreCase(typeName);
   }
 
