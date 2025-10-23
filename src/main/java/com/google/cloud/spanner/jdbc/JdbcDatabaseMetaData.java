@@ -187,7 +187,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
 
   @Override
   public boolean storesLowerCaseIdentifiers() {
-    return false;
+    return connection.getDialect() == Dialect.POSTGRESQL;
   }
 
   @Override
