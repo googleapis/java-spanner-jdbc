@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.Struct;
 import com.google.cloud.spanner.Type;
@@ -154,6 +155,7 @@ enum JdbcDataType {
   },
   FLOAT64 {
     private final Set<Class<?>> classes = new HashSet<>(Arrays.asList(Float.class, Double.class));
+    private final Set<String> aliases = new HashSet<>(Collections.singletonList("float8"));
 
     @Override
     public int getSqlType() {
@@ -183,6 +185,11 @@ enum JdbcDataType {
     @Override
     public Type getSpannerType() {
       return Type.float64();
+    }
+
+    @Override
+    public Set<String> getPostgreSQLAliases() {
+      return aliases;
     }
   },
   INT64 {
@@ -220,6 +227,9 @@ enum JdbcDataType {
     }
   },
   NUMERIC {
+
+    private final Set<String> aliases = new HashSet<>(Collections.singletonList("decimal"));
+
     @Override
     public int getSqlType() {
       return Types.NUMERIC;
@@ -243,6 +253,11 @@ enum JdbcDataType {
     @Override
     public Type getSpannerType() {
       return Type.numeric();
+    }
+
+    @Override
+    public Set<String> getPostgreSQLAliases() {
+      return aliases;
     }
   },
   PG_NUMERIC {
@@ -272,6 +287,8 @@ enum JdbcDataType {
     }
   },
   STRING {
+    private final Set<String> aliases = new HashSet<>(Arrays.asList("varchar", "text"));
+
     @Override
     public int getSqlType() {
       return Types.NVARCHAR;
@@ -295,6 +312,11 @@ enum JdbcDataType {
     @Override
     public Type getSpannerType() {
       return Type.string();
+    }
+
+    @Override
+    public Set<String> getPostgreSQLAliases() {
+      return aliases;
     }
   },
   JSON {
@@ -497,6 +519,21 @@ enum JdbcDataType {
   public abstract Code getCode();
 
   public abstract Type getSpannerType();
+
+  public Set<String> getPostgreSQLAliases() {
+    return Collections.emptySet();
+  }
+
+  /***
+   * @param typeName type of the column
+   * @return true if type name matches current type name or matches with one of postgres aliases
+   * or if it matches equivalent postgres type.
+   */
+  boolean matches(String typeName) {
+    return getTypeName().equalsIgnoreCase(typeName)
+        || getPostgreSQLAliases().contains(typeName.toLowerCase())
+        || getSpannerType().getSpannerTypeName(Dialect.POSTGRESQL).equalsIgnoreCase(typeName);
+  }
 
   // TODO: Implement and use this method for all types.
   public int getPrecision() {
