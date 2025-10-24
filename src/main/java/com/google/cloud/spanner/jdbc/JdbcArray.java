@@ -60,9 +60,11 @@ class JdbcArray implements Array {
    *     the elements array is not compatible with the base type of the array.
    */
   static JdbcArray createArray(String typeName, Object[] elements) throws SQLException {
-    for (JdbcDataType type : JdbcDataType.values()) {
-      if (type.getTypeName().equalsIgnoreCase(typeName)) {
-        return new JdbcArray(type, elements);
+    if (typeName != null) {
+      for (JdbcDataType type : JdbcDataType.values()) {
+        if (type.matches(typeName)) {
+          return new JdbcArray(type, elements);
+        }
       }
     }
     throw JdbcSqlExceptionFactory.of(
