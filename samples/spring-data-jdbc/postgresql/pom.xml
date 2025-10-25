@@ -30,7 +30,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>6.102.0</version>
+        <version>6.102.1</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -55,7 +55,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jdbc</artifactId>
-      <version>3.5.6</version>
+      <version>3.5.7</version>
     </dependency>
 
     <!-- Add both the Cloud Spanner and the PostgreSQL JDBC driver. -->

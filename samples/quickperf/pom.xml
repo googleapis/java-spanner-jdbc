@@ -12,7 +12,7 @@
   <parent>
     <groupId>com.google.cloud</groupId>
     <artifactId>sdk-platform-java-config</artifactId>
-    <version>3.52.3</version>
+    <version>3.53.0</version>
     <relativePath/>
   </parent>
 
@@ -79,7 +79,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot</artifactId>
-      <version>3.5.6</version>
+      <version>3.5.7</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -95,7 +95,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>3.6.2</version>
         <configuration>
           <mainClass>com.google.cloud.jdbc.quickperf.QuickPerf</mainClass>
         </configuration>
