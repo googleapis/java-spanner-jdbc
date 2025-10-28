@@ -32,7 +32,7 @@ SELECT TABLE_CATALOG AS "TABLE_CAT", TABLE_SCHEMA AS "TABLE_SCHEM", TABLE_NAME A
            WHEN DATA_TYPE LIKE 'ARRAY' THEN
                CASE
                    WHEN spanner_type LIKE '%[]' THEN
-                       CONCAT('_', REPLACE(spanner_type, '[]', ''))
+                       CONCAT('_'::varchar, REPLACE(spanner_type, '[]'::varchar, ''::varchar))
                    ELSE spanner_type
                    END
            ELSE DATA_TYPE
