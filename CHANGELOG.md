@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.33.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.33.2...v2.33.3) (2025-10-28)
+
+
+### Bug Fixes
+
+* Run DatabaseMetadata tests for PG on emulator ([#2271](https://github.com/googleapis/java-spanner-jdbc/issues/2271)) ([e7b20eb](https://github.com/googleapis/java-spanner-jdbc/commit/e7b20ebd0ec1554e969c9097c1d5b7c5b6dcc232))
+
 ## [2.33.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.33.1...v2.33.2) (2025-10-24)
 
 
