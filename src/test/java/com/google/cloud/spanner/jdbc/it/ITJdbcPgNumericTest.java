@@ -182,6 +182,14 @@ public class ITJdbcPgNumericTest {
       assertEquals(new BigDecimal(negativeBigNumeric), resultSet.getBigDecimal("col1"));
       assertEquals(new BigDecimal(negativeBigNumeric), resultSet.getObject("col1"));
       assertEquals(Value.pgNumeric(negativeBigNumeric), resultSet.getObject("col1", Value.class));
+
+      // Just verify that the getColumns method works
+      try (ResultSet columns = connection.getMetaData().getColumns(null, null, null, null)) {
+        //noinspection StatementWithEmptyBody
+        while (columns.next()) {
+          // ignore
+        }
+      }
     }
   }
 
