@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.33.4](https://github.com/googleapis/java-spanner-jdbc/compare/v2.33.3...v2.33.4) (2025-10-31)
+
+
+### Dependencies
+
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.20.1 ([#2275](https://github.com/googleapis/java-spanner-jdbc/issues/2275)) ([559cdee](https://github.com/googleapis/java-spanner-jdbc/commit/559cdee7633ae508f857890770f173ac2f18d2ca))
+
 ## [2.33.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.33.2...v2.33.3) (2025-10-28)
 
 
