@@ -29,6 +29,7 @@ import com.google.cloud.spanner.TimestampBound;
 import com.google.cloud.spanner.connection.AutocommitDmlMode;
 import com.google.cloud.spanner.connection.Connection;
 import com.google.cloud.spanner.connection.ConnectionOptions;
+import com.google.cloud.spanner.connection.ConnectionProperties;
 import com.google.cloud.spanner.connection.SavepointSupport;
 import com.google.cloud.spanner.connection.TransactionMode;
 import com.google.common.annotations.VisibleForTesting;
@@ -234,6 +235,11 @@ class JdbcConnection extends AbstractJdbcConnection {
   public String getOptimizerVersion() throws SQLException {
     checkClosed();
     return getSpannerConnection().getOptimizerVersion();
+  }
+
+  /** Returns the value that should be returned for column types with an unknown length. */
+  int getColumnTypeUnknownLength() {
+    return getSpannerConnection().getConnectionPropertyValue(ConnectionProperties.UNKNOWN_LENGTH);
   }
 
   @Override
