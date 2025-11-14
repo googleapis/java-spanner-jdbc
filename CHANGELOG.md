@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.33.4](https://github.com/googleapis/java-spanner-jdbc/compare/v2.33.3...v2.33.4) (2025-11-14)
+
+
+### Dependencies
+
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.20.1 ([#2275](https://github.com/googleapis/java-spanner-jdbc/issues/2275)) ([559cdee](https://github.com/googleapis/java-spanner-jdbc/commit/559cdee7633ae508f857890770f173ac2f18d2ca))
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.79.0 ([#2281](https://github.com/googleapis/java-spanner-jdbc/issues/2281)) ([3a15afa](https://github.com/googleapis/java-spanner-jdbc/commit/3a15afa13b1583e0941a909ac09acac49c532a36))
+* Update dependency com.google.cloud:google-cloud-trace to v2.79.0 ([#2282](https://github.com/googleapis/java-spanner-jdbc/issues/2282)) ([ebbb0de](https://github.com/googleapis/java-spanner-jdbc/commit/ebbb0deb3e7c1e7f564a9a1a792ecba336d5fcb0))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.54.1 ([#2277](https://github.com/googleapis/java-spanner-jdbc/issues/2277)) ([7a48db6](https://github.com/googleapis/java-spanner-jdbc/commit/7a48db68cb769246b9307e39e37d8af12641a0fb))
+* Update dependency commons-cli:commons-cli to v1.11.0 ([#2283](https://github.com/googleapis/java-spanner-jdbc/issues/2283)) ([7582363](https://github.com/googleapis/java-spanner-jdbc/commit/75823638436e446f1e0a7904dd485b2f84b16f3d))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.56.0 ([#2278](https://github.com/googleapis/java-spanner-jdbc/issues/2278)) ([1fd49aa](https://github.com/googleapis/java-spanner-jdbc/commit/1fd49aa604a395032df675f5f9589eed9ea901c2))
+* Update dependency net.bytebuddy:byte-buddy to v1.18.1 ([#2279](https://github.com/googleapis/java-spanner-jdbc/issues/2279)) ([fa83919](https://github.com/googleapis/java-spanner-jdbc/commit/fa83919382619c3cb6abc567e7d6753a2e2ead33))
+* Update dependency net.bytebuddy:byte-buddy-agent to v1.18.1 ([#2280](https://github.com/googleapis/java-spanner-jdbc/issues/2280)) ([4237635](https://github.com/googleapis/java-spanner-jdbc/commit/4237635cc33784cecf9aa62d757fbf3fd4d1702d))
+* Update dependency org.testcontainers:testcontainers to v2.0.2 ([#2284](https://github.com/googleapis/java-spanner-jdbc/issues/2284)) ([092f5a1](https://github.com/googleapis/java-spanner-jdbc/commit/092f5a129761f0c8c9d8207c611232a086328896))
+* Update dependency org.testcontainers:testcontainers-bom to v2.0.2 ([#2285](https://github.com/googleapis/java-spanner-jdbc/issues/2285)) ([360a9fb](https://github.com/googleapis/java-spanner-jdbc/commit/360a9fbe0077abe072f2834823c9f208e2325fcf))
+
 ## [2.33.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.33.2...v2.33.3) (2025-10-28)
 
 
