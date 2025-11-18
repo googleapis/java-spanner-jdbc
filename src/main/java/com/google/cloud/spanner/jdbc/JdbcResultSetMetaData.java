@@ -17,7 +17,9 @@
 package com.google.cloud.spanner.jdbc;
 
 import com.google.cloud.spanner.ResultSet;
+import com.google.cloud.spanner.connection.ConnectionProperties;
 import com.google.common.base.Preconditions;
+import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -25,12 +27,6 @@ import java.sql.Types;
 
 /** Implementation of {@link ResultSetMetaData} for Cloud Spanner */
 class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMetaData {
-  /**
-   * The default column display size for columns with a data type of variable size that is used when
-   * the actual column size is not known.
-   */
-  private static final int DEFAULT_COL_DISPLAY_SIZE_FOR_VARIABLE_LENGTH_COLS = 50;
-
   private final ResultSet spannerResultSet;
   private final Statement statement;
 
@@ -83,16 +79,15 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   }
 
   @Override
-  public int getColumnDisplaySize(int column) {
+  public int getColumnDisplaySize(int column) throws SQLException {
     int colType = getColumnType(column);
     switch (colType) {
       case Types.ARRAY:
-        return DEFAULT_COL_DISPLAY_SIZE_FOR_VARIABLE_LENGTH_COLS;
+        return getUnknownLength();
       case Types.BOOLEAN:
         return 5;
       case Types.BINARY:
-        int binaryLength = getPrecision(column);
-        return binaryLength == 0 ? DEFAULT_COL_DISPLAY_SIZE_FOR_VARIABLE_LENGTH_COLS : binaryLength;
+        return getPrecision(column);
       case Types.DATE:
         return 10;
       case Types.REAL:
@@ -105,8 +100,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
       case Types.NUMERIC:
         return 14;
       case Types.NVARCHAR:
-        int length = getPrecision(column);
-        return length == 0 ? DEFAULT_COL_DISPLAY_SIZE_FOR_VARIABLE_LENGTH_COLS : length;
+        return getPrecision(column);
       case Types.TIMESTAMP:
         return 16;
       default:
@@ -130,7 +124,7 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
   }
 
   @Override
-  public int getPrecision(int column) {
+  public int getPrecision(int column) throws SQLException {
     int colType = getColumnType(column);
     switch (colType) {
       case Types.BOOLEAN:
@@ -153,9 +147,20 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
         // For column types with variable size, such as text columns, we should return the length
         // in characters. We could try to fetch it from INFORMATION_SCHEMA, but that would mean
         // parsing the SQL statement client side in order to figure out which column it actually
-        // is. For now we just return the default column display size.
-        return DEFAULT_COL_DISPLAY_SIZE_FOR_VARIABLE_LENGTH_COLS;
+        // is. Instead, we return a configurable fixed length. This is also consistent with for
+        // example the PostgreSQL JDBC driver. See the 'unknownLength' connection property:
+        // https://jdbc.postgresql.org/documentation/use/#connection-parameters
+        return getUnknownLength();
     }
+  }
+
+  private int getUnknownLength() throws SQLException {
+    Connection connection = statement.getConnection();
+    if (connection instanceof JdbcConnection) {
+      JdbcConnection jdbcConnection = (JdbcConnection) connection;
+      return jdbcConnection.getColumnTypeUnknownLength();
+    }
+    return ConnectionProperties.UNKNOWN_LENGTH.getDefaultValue();
   }
 
   @Override
