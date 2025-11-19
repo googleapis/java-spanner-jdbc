@@ -362,7 +362,7 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetColumnDisplaySize() {
+  public void testGetColumnDisplaySize() throws SQLException {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(
           "Wrong column display size for " + TEST_COLUMNS.get(i - 1).type,
@@ -371,7 +371,7 @@ public class JdbcResultSetMetaDataTest {
     }
   }
 
-  private int getDefaultDisplaySize(Type type, int column) {
+  private int getDefaultDisplaySize(Type type, int column) throws SQLException {
     Preconditions.checkNotNull(type);
     switch (type.getCode()) {
       case BOOL:
@@ -425,7 +425,7 @@ public class JdbcResultSetMetaDataTest {
   }
 
   @Test
-  public void testGetPrecision() {
+  public void testGetPrecision() throws SQLException {
     for (int i = 1; i <= TEST_COLUMNS.size(); i++) {
       assertEquals(
           "Wrong precision for type " + TEST_COLUMNS.get(i - 1).type,
