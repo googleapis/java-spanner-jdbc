@@ -256,7 +256,7 @@ public class AbstractJdbcWrapperTest {
   }
 
   @Test
-  public void testCheckedCastToFloat() {
+  public void testCheckedCastToFloat() throws SQLException {
     final CheckedCastChecker<Double> checker =
         new CheckedCastChecker<>(AbstractJdbcWrapper::checkedCastToFloat);
     assertThat(checker.cast(0D)).isTrue();
@@ -268,6 +268,16 @@ public class AbstractJdbcWrapperTest {
     assertThat(checker.cast((double) Float.MIN_VALUE)).isTrue();
     assertThat(checker.cast(-Float.MAX_VALUE * 2d)).isFalse();
     assertThat(checker.cast(-Double.MAX_VALUE)).isFalse();
+
+    assertEquals(
+        Float.POSITIVE_INFINITY,
+        AbstractJdbcWrapper.checkedCastToFloat(Double.POSITIVE_INFINITY),
+        0.0d);
+    assertEquals(
+        Float.NEGATIVE_INFINITY,
+        AbstractJdbcWrapper.checkedCastToFloat(Double.NEGATIVE_INFINITY),
+        0.0d);
+    assertEquals(Float.NaN, AbstractJdbcWrapper.checkedCastToFloat(Double.NaN), 0.0d);
   }
 
   @Test
