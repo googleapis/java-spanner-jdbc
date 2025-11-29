@@ -291,7 +291,7 @@ abstract class AbstractJdbcWrapper implements Wrapper {
 
   /** Cast value and throw {@link SQLException} if out-of-range. */
   static float checkedCastToFloat(double val) throws SQLException {
-    if (val > Float.MAX_VALUE || val < -Float.MAX_VALUE) {
+    if (Double.isFinite(val) && (val > Float.MAX_VALUE || val < -Float.MAX_VALUE)) {
       throw JdbcSqlExceptionFactory.of(
           String.format(OUT_OF_RANGE_MSG, "float", val), com.google.rpc.Code.OUT_OF_RANGE);
     }
