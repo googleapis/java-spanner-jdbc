@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.34.1-rc1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.34.0...v2.34.1-rc1) (2025-12-04)
+
+
+### Bug Fixes
+
+* cast double Inf and NaN to float ([#2304](https://github.com/googleapis/java-spanner-jdbc/issues/2304)) ([a947024](https://github.com/googleapis/java-spanner-jdbc/commit/a94702446aee20013157b45bf1d9c3938f0b6982)), closes [#2256](https://github.com/googleapis/java-spanner-jdbc/issues/2256)
+* next release candidate ([3caf5ca](https://github.com/googleapis/java-spanner-jdbc/commit/3caf5caa1879730110e94ac7a804728d335e5890))
+
+
+### Dependencies
+
+* update actions/checkout action to v6 ([#2299](https://github.com/googleapis/java-spanner-jdbc/issues/2299)) ([fbc8969](https://github.com/googleapis/java-spanner-jdbc/commit/fbc8969d66f4687ce91268309a862a0cbe0a114c))
+* update dependency org.springframework.boot:spring-boot to v4 ([#2300](https://github.com/googleapis/java-spanner-jdbc/issues/2300)) ([a6dddf2](https://github.com/googleapis/java-spanner-jdbc/commit/a6dddf2aef2e9d35ec2bf26ea1a1586ab65e122a))
+* update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v4 ([#2301](https://github.com/googleapis/java-spanner-jdbc/issues/2301)) ([92efa98](https://github.com/googleapis/java-spanner-jdbc/commit/92efa986a0880524a3d19685df0e08cf7815a69a))
+* update dependency org.springframework.boot:spring-boot-starter-parent to v3.5.8 ([#2298](https://github.com/googleapis/java-spanner-jdbc/issues/2298)) ([5603846](https://github.com/googleapis/java-spanner-jdbc/commit/5603846fc004a0e31cbcf10bc246d477cd80d9dd))
+
 ## [2.34.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.33.3...v2.34.0) (2025-11-18)
 
 
