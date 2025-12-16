@@ -41,6 +41,11 @@
       </dependency>
       <dependency>
         <groupId>com.google.cloud</groupId>
+        <artifactId>grpc-gcp</artifactId>
+        <version>1.9.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
         <version>26.72.0</version>
         <scope>import</scope>
