@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.34.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.34.0...v2.34.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* Cast double Inf and NaN to float ([#2304](https://github.com/googleapis/java-spanner-jdbc/issues/2304)) ([a947024](https://github.com/googleapis/java-spanner-jdbc/commit/a94702446aee20013157b45bf1d9c3938f0b6982)), closes [#2256](https://github.com/googleapis/java-spanner-jdbc/issues/2256)
+
+
+### Dependencies
+
+* Update actions/checkout action to v6 ([#2299](https://github.com/googleapis/java-spanner-jdbc/issues/2299)) ([fbc8969](https://github.com/googleapis/java-spanner-jdbc/commit/fbc8969d66f4687ce91268309a862a0cbe0a114c))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.104.0 ([#2312](https://github.com/googleapis/java-spanner-jdbc/issues/2312)) ([930797b](https://github.com/googleapis/java-spanner-jdbc/commit/930797b71f30e458dee20679178ff3510fcba919))
+* Update dependency com.google.cloud:google-cloud-spanner to v6.105.0 ([#2325](https://github.com/googleapis/java-spanner-jdbc/issues/2325)) ([34a9768](https://github.com/googleapis/java-spanner-jdbc/commit/34a9768b203c967f4191427a815b71e1a503de8f))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.104.0 ([#2313](https://github.com/googleapis/java-spanner-jdbc/issues/2313)) ([5250e2d](https://github.com/googleapis/java-spanner-jdbc/commit/5250e2d069179bdeb773e5e0a1f2a5defd411811))
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.105.0 ([#2326](https://github.com/googleapis/java-spanner-jdbc/issues/2326)) ([8f3e6b7](https://github.com/googleapis/java-spanner-jdbc/commit/8f3e6b72baccc5ae8dd5ce3c55807bc889a7f208))
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.54.2 ([#2322](https://github.com/googleapis/java-spanner-jdbc/issues/2322)) ([2faffb4](https://github.com/googleapis/java-spanner-jdbc/commit/2faffb46c71e4b44b42dbc4bfd5d70a3e55eb5f6))
+* Update dependency io.opentelemetry:opentelemetry-bom to v1.57.0 ([#2316](https://github.com/googleapis/java-spanner-jdbc/issues/2316)) ([77aab00](https://github.com/googleapis/java-spanner-jdbc/commit/77aab00ec385a7bfe61615b6b250c0b97a9a9f07))
+* Update dependency net.bytebuddy:byte-buddy to v1.18.2 ([#2306](https://github.com/googleapis/java-spanner-jdbc/issues/2306)) ([ba7430c](https://github.com/googleapis/java-spanner-jdbc/commit/ba7430cd229214487dfe4db208cb274d4662bf19))
+* Update dependency net.bytebuddy:byte-buddy-agent to v1.18.2 ([#2307](https://github.com/googleapis/java-spanner-jdbc/issues/2307)) ([86dc72b](https://github.com/googleapis/java-spanner-jdbc/commit/86dc72b0e1d7199b229474008cb68400458f233e))
+* Update dependency org.springframework.boot:spring-boot to v4 ([#2300](https://github.com/googleapis/java-spanner-jdbc/issues/2300)) ([a6dddf2](https://github.com/googleapis/java-spanner-jdbc/commit/a6dddf2aef2e9d35ec2bf26ea1a1586ab65e122a))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v4 ([#2301](https://github.com/googleapis/java-spanner-jdbc/issues/2301)) ([92efa98](https://github.com/googleapis/java-spanner-jdbc/commit/92efa986a0880524a3d19685df0e08cf7815a69a))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.5.8 ([#2298](https://github.com/googleapis/java-spanner-jdbc/issues/2298)) ([5603846](https://github.com/googleapis/java-spanner-jdbc/commit/5603846fc004a0e31cbcf10bc246d477cd80d9dd))
+* Update dependency org.testcontainers:testcontainers to v2.0.3 ([#2323](https://github.com/googleapis/java-spanner-jdbc/issues/2323)) ([65302d4](https://github.com/googleapis/java-spanner-jdbc/commit/65302d44315548af3406853121e341523c89521c))
+* Update dependency org.testcontainers:testcontainers-bom to v2.0.3 ([#2324](https://github.com/googleapis/java-spanner-jdbc/issues/2324)) ([8e8b3a0](https://github.com/googleapis/java-spanner-jdbc/commit/8e8b3a0b4c613324a07609fa142330322e8eab95))
+
 ## [2.34.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.33.3...v2.34.0) (2025-11-18)
 
 
