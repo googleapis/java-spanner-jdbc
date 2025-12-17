@@ -6,4 +6,9 @@ branches:
   releaseType: java-yoshi
   bumpMinorPreMajor: true
   handleGHRelease: true
+- branch: protobuf-4.x-rc
+  releaseType: java-yoshi
+  bumpMinorPreMajor: true
+  handleGHRelease: true
+  manifest: true
 extraFiles: ["README.md"]
