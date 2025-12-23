@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.34.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.34.1...v2.34.2) (2025-12-23)
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.81.0 ([#2331](https://github.com/googleapis/java-spanner-jdbc/issues/2331)) ([a207dea](https://github.com/googleapis/java-spanner-jdbc/commit/a207dea27e97fde2b84da412dd701890c5d8a308))
+* Update dependency com.google.cloud:google-cloud-trace to v2.81.0 ([#2332](https://github.com/googleapis/java-spanner-jdbc/issues/2332)) ([c389ffc](https://github.com/googleapis/java-spanner-jdbc/commit/c389ffce9fdfde1f1a24742f64ec00b4fc8845b7))
+
 ## [2.34.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.34.0...v2.34.1) (2025-12-16)
 
 
