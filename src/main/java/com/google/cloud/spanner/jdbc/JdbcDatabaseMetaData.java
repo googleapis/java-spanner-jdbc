@@ -48,6 +48,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
   private static final int DATABASE_MAJOR_VERSION = 1;
   private static final int DATABASE_MINOR_VERSION = 0;
   private static final String PRODUCT_NAME = "Google Cloud Spanner";
+  private static final String POSTGRESQL_PRODUCT_NAME = PRODUCT_NAME + " PostgreSQL";
 
   @VisibleForTesting
   static String readSqlFromFile(String filename, Dialect dialect) {
@@ -137,7 +138,7 @@ class JdbcDatabaseMetaData extends AbstractJdbcWrapper implements DatabaseMetaDa
 
   @Override
   public String getDatabaseProductName() {
-    return PRODUCT_NAME;
+    return connection.getDialect() == Dialect.POSTGRESQL ? POSTGRESQL_PRODUCT_NAME : PRODUCT_NAME;
   }
 
   @Override
