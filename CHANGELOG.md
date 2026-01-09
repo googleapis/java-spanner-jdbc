@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.34.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.34.1...v2.34.2) (2026-01-09)
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.81.0 ([#2331](https://github.com/googleapis/java-spanner-jdbc/issues/2331)) ([a207dea](https://github.com/googleapis/java-spanner-jdbc/commit/a207dea27e97fde2b84da412dd701890c5d8a308))
+* Update dependency com.google.cloud:google-cloud-trace to v2.81.0 ([#2332](https://github.com/googleapis/java-spanner-jdbc/issues/2332)) ([c389ffc](https://github.com/googleapis/java-spanner-jdbc/commit/c389ffce9fdfde1f1a24742f64ec00b4fc8845b7))
+* Update dependency com.google.cloud:grpc-gcp to v1.9.1 ([#2348](https://github.com/googleapis/java-spanner-jdbc/issues/2348)) ([7de2507](https://github.com/googleapis/java-spanner-jdbc/commit/7de25072cc5b1706c0a66a09d78e08ff67212441))
+* Update dependency org.springframework.boot:spring-boot to v4.0.1 ([#2343](https://github.com/googleapis/java-spanner-jdbc/issues/2343)) ([9f84c07](https://github.com/googleapis/java-spanner-jdbc/commit/9f84c0782fccf3e93d03498b247e926ad6d24056))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v4.0.1 ([#2344](https://github.com/googleapis/java-spanner-jdbc/issues/2344)) ([661566d](https://github.com/googleapis/java-spanner-jdbc/commit/661566d90fe91a31b7152181704c5f508c3dcb36))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.5.9 ([#2342](https://github.com/googleapis/java-spanner-jdbc/issues/2342)) ([e1fb27a](https://github.com/googleapis/java-spanner-jdbc/commit/e1fb27a821f0fe2b61b0790be578ba6851bf3b96))
+
 ## [2.34.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.34.0...v2.34.1) (2025-12-16)
 
 
