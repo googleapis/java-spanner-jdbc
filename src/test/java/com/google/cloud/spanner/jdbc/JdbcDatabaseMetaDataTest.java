@@ -57,6 +57,8 @@ public class JdbcDatabaseMetaDataTest {
   private static final int DATABASE_MAJOR_VERSION = 1;
   private static final int DATABASE_MINOR_VERSION = 0;
   private static final String DATABASE_PRODUCT_NAME = "Google Cloud Spanner";
+  private static final String POSTGRESQL_DATABASE_PRODUCT_NAME =
+      DATABASE_PRODUCT_NAME + " PostgreSQL";
 
   @Test
   public void testTrivialMethods() throws SQLException {
@@ -90,7 +92,6 @@ public class JdbcDatabaseMetaDataTest {
     assertEquals("CATALOG", meta.getCatalogTerm());
     assertEquals(DATABASE_MAJOR_VERSION, meta.getDatabaseMajorVersion());
     assertEquals(DATABASE_MINOR_VERSION, meta.getDatabaseMinorVersion());
-    assertEquals(DATABASE_PRODUCT_NAME, meta.getDatabaseProductName());
     assertEquals(
         DATABASE_MAJOR_VERSION + "." + DATABASE_MINOR_VERSION, meta.getDatabaseProductVersion());
     assertEquals(Connection.TRANSACTION_SERIALIZABLE, meta.getDefaultTransactionIsolation());
@@ -134,8 +135,10 @@ public class JdbcDatabaseMetaDataTest {
     assertFalse(meta.isCatalogAtStart());
     assertEquals(connection.isReadOnly(), meta.isReadOnly());
     if (dialect == Dialect.POSTGRESQL) {
+      assertEquals(POSTGRESQL_DATABASE_PRODUCT_NAME, meta.getDatabaseProductName());
       assertTrue(meta.storesLowerCaseIdentifiers());
     } else {
+      assertEquals(DATABASE_PRODUCT_NAME, meta.getDatabaseProductName());
       assertFalse(meta.storesLowerCaseIdentifiers());
     }
     assertFalse(meta.storesLowerCaseQuotedIdentifiers());
