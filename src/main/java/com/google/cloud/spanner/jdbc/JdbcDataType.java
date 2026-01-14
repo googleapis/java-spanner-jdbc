@@ -113,6 +113,8 @@ enum JdbcDataType {
     }
   },
   FLOAT32 {
+    private final Set<String> aliases = new HashSet<>(Collections.singletonList("float4"));
+
     @Override
     public int getSqlType() {
       return Types.REAL;
@@ -151,6 +153,11 @@ enum JdbcDataType {
     @Override
     public Type getSpannerType() {
       return Type.float32();
+    }
+
+    @Override
+    public Set<String> getPostgreSQLAliases() {
+      return aliases;
     }
   },
   FLOAT64 {
