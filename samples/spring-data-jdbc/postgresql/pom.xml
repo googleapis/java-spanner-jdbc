@@ -30,7 +30,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-spanner-bom</artifactId>
-        <version>6.105.0</version>
+        <version>6.107.0</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -48,7 +48,7 @@
       <dependency>
         <groupId>io.opentelemetry</groupId>
         <artifactId>opentelemetry-bom</artifactId>
-        <version>1.57.0</version>
+        <version>1.58.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -76,7 +76,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.7.8</version>
+      <version>42.7.9</version>
     </dependency>
     
     <!-- Add OpenTelemetry for tracing and metrics. -->
@@ -118,13 +118,13 @@
     <dependency>
       <groupId>net.bytebuddy</groupId>
       <artifactId>byte-buddy</artifactId>
-      <version>1.18.2</version>
+      <version>1.18.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>net.bytebuddy</groupId>
       <artifactId>byte-buddy-agent</artifactId>
-      <version>1.18.2</version>
+      <version>1.18.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
