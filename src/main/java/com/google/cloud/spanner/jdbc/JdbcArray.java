@@ -92,19 +92,41 @@ class JdbcArray implements Array {
         this.data =
             java.lang.reflect.Array.newInstance(
                 elements.getClass().getComponentType(), elements.length);
+        System.arraycopy(elements, 0, this.data, 0, elements.length);
+      } else if (type == JdbcDataType.INT64 && requiresWideningToLong(elements)) {
+        // Convert Byte[], Short[], and Integer[] to Long[] for INT64 type
+        // since Spanner only supports ARRAY<INT64>
+        this.data = convertToLongArray(elements);
       } else {
         this.data = java.lang.reflect.Array.newInstance(type.getJavaClass(), elements.length);
-      }
-      try {
-        System.arraycopy(elements, 0, this.data, 0, elements.length);
-      } catch (Exception e) {
-        throw JdbcSqlExceptionFactory.of(
-            "Could not copy array elements. Make sure the supplied array only contains elements of class "
-                + type.getJavaClass().getName(),
-            Code.UNKNOWN,
-            e);
+        try {
+          System.arraycopy(elements, 0, this.data, 0, elements.length);
+        } catch (Exception e) {
+          throw JdbcSqlExceptionFactory.of(
+              "Could not copy array elements. Make sure the supplied array only contains elements of class "
+                  + type.getJavaClass().getName(),
+              Code.UNKNOWN,
+              e);
+        }
       }
     }
+  }
+
+  private static boolean requiresWideningToLong(Object[] elements) {
+    Class<?> componentType = elements.getClass().getComponentType();
+    return componentType == Byte.class
+        || componentType == Short.class
+        || componentType == Integer.class;
+  }
+
+  private static Long[] convertToLongArray(Object[] elements) {
+    Long[] longElements = new Long[elements.length];
+    for (int i = 0; i < elements.length; i++) {
+      if (elements[i] != null) {
+        longElements[i] = ((Number) elements[i]).longValue();
+      }
+    }
+    return longElements;
   }
 
   private JdbcArray(JdbcDataType type, List<?> elements) {
