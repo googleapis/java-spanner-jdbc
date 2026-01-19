@@ -144,6 +144,82 @@ public class JdbcArrayTest {
       assertThat(rs.next()).isFalse();
     }
 
+    // Test that Byte[] arrays are automatically widened to Long[] for INT64 type
+    Long[] data;
+    array = JdbcArray.createArray("INT64", new Byte[] {1, 2, 3, null, Byte.MAX_VALUE});
+    assertThat(array.getBaseType()).isEqualTo(Types.BIGINT);
+    // Data should be stored as Long[]
+    assertThat(array.getArray()).isInstanceOf(Long[].class);
+    data = (Long[]) array.getArray();
+    assertThat(data[0]).isEqualTo(1L);
+    assertThat(data[1]).isEqualTo(2L);
+    assertThat(data[2]).isEqualTo(3L);
+    assertThat(data[3]).isNull();
+    assertThat(data[4]).isEqualTo((long) Byte.MAX_VALUE);
+
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(1L);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(2L);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(3L);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(0L);
+      assertTrue(rs.wasNull());
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo((long) Byte.MAX_VALUE);
+      assertThat(rs.next()).isFalse();
+    }
+
+    // Test that Short[] arrays are automatically widened to Long[] for INT64 type
+    array = JdbcArray.createArray("INT64", new Short[] {100, 200, null, Short.MAX_VALUE});
+    assertThat(array.getBaseType()).isEqualTo(Types.BIGINT);
+    // Data should be stored as Long[]
+    assertThat(array.getArray()).isInstanceOf(Long[].class);
+    data = (Long[]) array.getArray();
+    assertThat(data[0]).isEqualTo(100L);
+    assertThat(data[1]).isEqualTo(200L);
+    assertThat(data[2]).isNull();
+    assertThat(data[3]).isEqualTo((long) Short.MAX_VALUE);
+
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(100L);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(200L);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(0L);
+      assertTrue(rs.wasNull());
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo((long) Short.MAX_VALUE);
+      assertThat(rs.next()).isFalse();
+    }
+
+    // Test that Integer[] arrays are automatically widened to Long[] for INT64 type
+    array = JdbcArray.createArray("INT64", new Integer[] {1000, 2000, null, Integer.MAX_VALUE});
+    assertThat(array.getBaseType()).isEqualTo(Types.BIGINT);
+    // Data should be stored as Long[]
+    assertThat(array.getArray()).isInstanceOf(Long[].class);
+    data = (Long[]) array.getArray();
+    assertThat(data[0]).isEqualTo(1000L);
+    assertThat(data[1]).isEqualTo(2000L);
+    assertThat(data[2]).isNull();
+    assertThat(data[3]).isEqualTo((long) Integer.MAX_VALUE);
+
+    try (ResultSet rs = array.getResultSet()) {
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(1000L);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(2000L);
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo(0L);
+      assertTrue(rs.wasNull());
+      assertThat(rs.next()).isTrue();
+      assertThat(rs.getLong(2)).isEqualTo((long) Integer.MAX_VALUE);
+      assertThat(rs.next()).isFalse();
+    }
+
     array =
         JdbcArray.createArray("NUMERIC", new BigDecimal[] {BigDecimal.ONE, null, BigDecimal.TEN});
     assertThat(array.getBaseType()).isEqualTo(Types.NUMERIC);
