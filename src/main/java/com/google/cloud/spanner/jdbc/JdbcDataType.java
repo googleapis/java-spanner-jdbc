@@ -201,7 +201,7 @@ enum JdbcDataType {
   },
   INT64 {
     private final Set<Class<?>> classes =
-        new HashSet<>(Arrays.asList(Byte.class, Integer.class, Long.class));
+        new HashSet<>(Arrays.asList(Byte.class, Short.class, Integer.class, Long.class));
 
     @Override
     public int getSqlType() {
