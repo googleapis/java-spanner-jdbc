@@ -875,6 +875,8 @@ class JdbcParameterStore {
       return binder.toBoolArray((boolean[]) value);
     } else if (Boolean[].class.isAssignableFrom(value.getClass())) {
       return binder.toBoolArray(Arrays.asList((Boolean[]) value));
+    } else if (Byte[].class.isAssignableFrom(value.getClass())) {
+      return binder.toInt64Array(toLongList((Byte[]) value));
     } else if (short[].class.isAssignableFrom(value.getClass())) {
       long[] l = new long[((short[]) value).length];
       for (int i = 0; i < l.length; i++) {
