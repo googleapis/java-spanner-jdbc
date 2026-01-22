@@ -59,7 +59,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jdbc</artifactId>
-      <version>4.0.1</version>
+      <version>4.0.2</version>
     </dependency>
 
     <!-- Add both the Cloud Spanner and the PostgreSQL JDBC driver. -->
