@@ -16,11 +16,14 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.cloud.spanner.jdbc.JdbcDriver.appendPropertiesToUrl;
+import static com.google.cloud.spanner.jdbc.JdbcDriver.buildConnectionOptions;
+import static com.google.cloud.spanner.jdbc.JdbcDriver.maybeAddUserAgent;
+
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.rpc.Code;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
@@ -34,6 +37,8 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
   private Boolean autocommit;
   private Boolean readonly;
   private Boolean retryAbortsInternally;
+
+  private volatile ConnectionOptions cachedConnectionOptions;
 
   // Make sure the JDBC driver class is loaded.
   static {
@@ -76,12 +81,22 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
       throw JdbcSqlExceptionFactory.of(
           "There is no URL specified for this data source", Code.FAILED_PRECONDITION);
     }
-    if (!JdbcDriver.getRegisteredDriver().acceptsURL(getUrl())) {
-      throw JdbcSqlExceptionFactory.of(
-          "The URL " + getUrl() + " is not valid for the data source " + getClass().getName(),
-          Code.FAILED_PRECONDITION);
+    if (cachedConnectionOptions == null) {
+      synchronized (this) {
+        if (cachedConnectionOptions == null) {
+          if (!JdbcDriver.getRegisteredDriver().acceptsURL(getUrl())) {
+            throw JdbcSqlExceptionFactory.of(
+                "The URL " + getUrl() + " is not valid for the data source " + getClass().getName(),
+                Code.FAILED_PRECONDITION);
+          }
+          Properties properties = createProperties();
+          maybeAddUserAgent(properties);
+          String connectionUri = appendPropertiesToUrl(url.substring(5), properties);
+          cachedConnectionOptions = buildConnectionOptions(connectionUri, properties);
+        }
+      }
     }
-    return DriverManager.getConnection(getUrl(), createProperties());
+    return new JdbcConnection(getUrl(), cachedConnectionOptions);
   }
 
   @Override
@@ -114,6 +129,12 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
     return false;
   }
 
+  private void clearCachedConnectionOptions() {
+    synchronized (this) {
+      cachedConnectionOptions = null;
+    }
+  }
+
   /**
    * @return the JDBC URL to use for this {@link DataSource}.
    */
@@ -125,6 +146,7 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
    * @param url The JDBC URL to use for this {@link DataSource}.
    */
   public void setUrl(String url) {
+    clearCachedConnectionOptions();
     this.url = url;
   }
 
@@ -143,6 +165,7 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
    *     connection URL will be used.
    */
   public void setCredentials(String credentials) {
+    clearCachedConnectionOptions();
     this.credentials = credentials;
   }
 
@@ -161,6 +184,7 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
    *     the connection URL will be used.
    */
   public void setAutocommit(Boolean autocommit) {
+    clearCachedConnectionOptions();
     this.autocommit = autocommit;
   }
 
@@ -179,6 +203,7 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
    *     URL will be used.
    */
   public void setReadonly(Boolean readonly) {
+    clearCachedConnectionOptions();
     this.readonly = readonly;
   }
 
@@ -197,6 +222,7 @@ public class JdbcDataSource extends AbstractJdbcWrapper implements DataSource {
    *     this property, the value in the connection URL will be used.
    */
   public void setRetryAbortsInternally(Boolean retryAbortsInternally) {
+    clearCachedConnectionOptions();
     this.retryAbortsInternally = retryAbortsInternally;
   }
 }

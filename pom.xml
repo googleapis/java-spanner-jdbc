@@ -260,6 +260,7 @@
             <spanner.testenv.instance>
               projects/gcloud-devel/instances/spanner-testing-east1
             </spanner.testenv.instance>
+            <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
           </systemPropertyVariables>
         </configuration>
       </plugin>
@@ -274,6 +275,7 @@
             <spanner.testenv.instance>
               projects/gcloud-devel/instances/spanner-testing-east1
             </spanner.testenv.instance>
+            <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
           </systemPropertyVariables>
           <forkedProcessTimeoutInSeconds>2400</forkedProcessTimeoutInSeconds>
           <forkCount>4</forkCount>
