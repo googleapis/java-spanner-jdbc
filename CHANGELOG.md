@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.35.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.35.0...v2.35.1) (2026-01-26)
+
+
+### Bug Fixes
+
+* Accept Arrays of Integer, Short, Byte for Array&lt;Int64&gt; ([#2365](https://github.com/googleapis/java-spanner-jdbc/issues/2365)) ([7429508](https://github.com/googleapis/java-spanner-jdbc/commit/7429508b82b26a55b6d7910416f3c72cfa63af2e))
+
+
+### Performance Improvements
+
+* Optimize JdbcDataSource#getConnection() ([#2371](https://github.com/googleapis/java-spanner-jdbc/issues/2371)) ([832064c](https://github.com/googleapis/java-spanner-jdbc/commit/832064ca2bca0d2d29e00c6b1417c7a4ce22f847))
+
+
+### Dependencies
+
+* Update dependency com.fasterxml.jackson.core:jackson-databind to v2.21.0 ([#2364](https://github.com/googleapis/java-spanner-jdbc/issues/2364)) ([a4b5c21](https://github.com/googleapis/java-spanner-jdbc/commit/a4b5c21a449fca70bab45eb756addcba57f0b080))
+* Update dependency org.springframework.boot:spring-boot to v4.0.2 ([#2369](https://github.com/googleapis/java-spanner-jdbc/issues/2369)) ([6c2b28e](https://github.com/googleapis/java-spanner-jdbc/commit/6c2b28e966dbb4c12a8c877b7eac2935146eaeb5))
+* Update dependency org.springframework.boot:spring-boot-starter-data-jdbc to v4.0.2 ([#2370](https://github.com/googleapis/java-spanner-jdbc/issues/2370)) ([61714fb](https://github.com/googleapis/java-spanner-jdbc/commit/61714fb5537d3676e7942738a86f08ec0b6e2707))
+* Update dependency org.springframework.boot:spring-boot-starter-parent to v3.5.10 ([#2368](https://github.com/googleapis/java-spanner-jdbc/issues/2368)) ([db1755c](https://github.com/googleapis/java-spanner-jdbc/commit/db1755ca41b4c7fd0a232be94f66d5965677e46e))
+
+
+### Documentation
+
+* Update connection properties docs with DCP ([#2372](https://github.com/googleapis/java-spanner-jdbc/issues/2372)) ([094ab5a](https://github.com/googleapis/java-spanner-jdbc/commit/094ab5a62a723cd895a6ea54259a3bbef98d56fc))
+
 ## [2.35.0](https://github.com/googleapis/java-spanner-jdbc/compare/v2.34.1...v2.35.0) (2026-01-16)
 
 
