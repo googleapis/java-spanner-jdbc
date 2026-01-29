@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.35.2](https://github.com/googleapis/java-spanner-jdbc/compare/v2.35.1...v2.35.2) (2026-01-28)
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:sdk-platform-java-config to v3.56.0 ([#2373](https://github.com/googleapis/java-spanner-jdbc/issues/2373)) ([ffa398a](https://github.com/googleapis/java-spanner-jdbc/commit/ffa398a3ca079b337bf90b1344fc8eeac68c17af))
+
 ## [2.35.1](https://github.com/googleapis/java-spanner-jdbc/compare/v2.35.0...v2.35.1) (2026-01-26)
 
 
