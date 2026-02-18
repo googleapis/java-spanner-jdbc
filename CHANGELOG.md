@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.35.4](https://github.com/googleapis/java-spanner-jdbc/compare/v2.35.3...v2.35.4) (2026-02-18)
+
+
+### Dependencies
+
+* Update dependency com.google.api.grpc:proto-google-cloud-trace-v1 to v2.85.0 ([#2395](https://github.com/googleapis/java-spanner-jdbc/issues/2395)) ([8a214f8](https://github.com/googleapis/java-spanner-jdbc/commit/8a214f8b3ddb2c823dacc82ad1559cdf0db67004))
+* Update dependency com.google.cloud:google-cloud-trace to v2.85.0 ([#2396](https://github.com/googleapis/java-spanner-jdbc/issues/2396)) ([122545c](https://github.com/googleapis/java-spanner-jdbc/commit/122545c3b0b3c660defd9aeae37a9442a16ebd8f))
+* Update dependency net.bytebuddy:byte-buddy to v1.18.5 ([#2397](https://github.com/googleapis/java-spanner-jdbc/issues/2397)) ([6736c63](https://github.com/googleapis/java-spanner-jdbc/commit/6736c63fda79bfc1c2071b4de64e2e6bdd70594e))
+* Update dependency net.bytebuddy:byte-buddy-agent to v1.18.5 ([#2398](https://github.com/googleapis/java-spanner-jdbc/issues/2398)) ([deaef26](https://github.com/googleapis/java-spanner-jdbc/commit/deaef26f58d865a995dc99562fa058091455bcb4))
+
 ## [2.35.3](https://github.com/googleapis/java-spanner-jdbc/compare/v2.35.2...v2.35.3) (2026-02-13)
 
 
