@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 /** Convenience class for converting values between Java, JDBC and Cloud Spanner. */
@@ -496,10 +497,18 @@ class JdbcTypeConverter {
       Calendar newCal = Calendar.getInstance(cal.getTimeZone());
       // set the millisecond time on this calendar from the timestamp
       newCal.setTimeInMillis(sqlTs.getTime());
-      newCal.set(Calendar.MILLISECOND, 0);
+
+      TimeZone timeZone = newCal.getTimeZone();
+      long totalMillis = newCal.getTimeInMillis();
+      // to calculate the offset for DST correctly, we need to add DST savings and check if
+      // given epoch milli is in daylight savings time.
+      if (getOrSet == GetOrSetTimestampInCalendar.GET) {
+        totalMillis += timeZone.getRawOffset() + timeZone.getDSTSavings();
+      }
+
       // then shift the time of the calendar by the difference between UTC and the timezone of the
       // given calendar
-      int offset = newCal.getTimeZone().getOffset(newCal.getTimeInMillis());
+      int offset = newCal.getTimeZone().getOffset(totalMillis);
       newCal.add(
           Calendar.MILLISECOND, getOrSet == GetOrSetTimestampInCalendar.GET ? offset : -offset);
       // then use that to create a sql timestamp
