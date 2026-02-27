@@ -16,6 +16,7 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import static com.google.cloud.spanner.jdbc.AbstractJdbcWrapper.getSpannerColumnTypeName;
 import static com.google.cloud.spanner.jdbc.AbstractJdbcWrapper.getSpannerTypeName;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -502,5 +503,23 @@ public class AbstractJdbcWrapperTest {
         getSpannerTypeName(Type.array(Type.timestamp()), Dialect.POSTGRESQL));
     assertEquals("jsonb[]", getSpannerTypeName(Type.array(Type.pgJsonb()), Dialect.POSTGRESQL));
     assertEquals("numeric[]", getSpannerTypeName(Type.array(Type.pgNumeric()), Dialect.POSTGRESQL));
+
+    assertEquals("_bigint", getSpannerColumnTypeName(Type.array(Type.int64()), Dialect.POSTGRESQL));
+    assertEquals("_boolean", getSpannerColumnTypeName(Type.array(Type.bool()), Dialect.POSTGRESQL));
+    assertEquals(
+        "_double precision",
+        getSpannerColumnTypeName(Type.array(Type.float64()), Dialect.POSTGRESQL));
+    assertEquals(
+        "_character varying",
+        getSpannerColumnTypeName(Type.array(Type.string()), Dialect.POSTGRESQL));
+    assertEquals("_bytea", getSpannerColumnTypeName(Type.array(Type.bytes()), Dialect.POSTGRESQL));
+    assertEquals("_date", getSpannerColumnTypeName(Type.array(Type.date()), Dialect.POSTGRESQL));
+    assertEquals(
+        "_timestamp with time zone",
+        getSpannerColumnTypeName(Type.array(Type.timestamp()), Dialect.POSTGRESQL));
+    assertEquals(
+        "_jsonb", getSpannerColumnTypeName(Type.array(Type.pgJsonb()), Dialect.POSTGRESQL));
+    assertEquals(
+        "_numeric", getSpannerColumnTypeName(Type.array(Type.pgNumeric()), Dialect.POSTGRESQL));
   }
 }

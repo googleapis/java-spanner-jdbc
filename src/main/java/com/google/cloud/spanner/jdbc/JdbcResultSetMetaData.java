@@ -16,7 +16,9 @@
 
 package com.google.cloud.spanner.jdbc;
 
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ResultSet;
+import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.connection.ConnectionProperties;
 import com.google.common.base.Preconditions;
 import java.sql.Connection;
@@ -192,7 +194,12 @@ class JdbcResultSetMetaData extends AbstractJdbcWrapper implements ResultSetMeta
 
   @Override
   public String getColumnTypeName(int column) {
-    return spannerResultSet.getColumnType(column - 1).getCode().name();
+    Type columnType = spannerResultSet.getColumnType(column - 1);
+    if (statement instanceof JdbcStatement) {
+      Dialect dialect = ((JdbcStatement) statement).getConnection().getDialect();
+      return getSpannerColumnTypeName(columnType, dialect);
+    }
+    return columnType.getCode().name();
   }
 
   @Override

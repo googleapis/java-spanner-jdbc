@@ -80,6 +80,13 @@ abstract class AbstractJdbcWrapper implements Wrapper {
     return Preconditions.checkNotNull(type).getSpannerTypeName(dialect);
   }
 
+  static String getSpannerColumnTypeName(Type type, Dialect dialect) {
+    if (dialect == Dialect.POSTGRESQL && type.getCode() == Code.ARRAY) {
+      return "_" + getSpannerTypeName(type.getArrayElementType(), dialect);
+    }
+    return getSpannerTypeName(type, dialect);
+  }
+
   /**
    * Extract Spanner type name from {@link java.sql.Types} code.
    *
