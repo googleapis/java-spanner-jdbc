@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.cloud.ByteArray;
+import com.google.cloud.spanner.Dialect;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.ResultSets;
 import com.google.cloud.spanner.Struct;
@@ -536,6 +537,30 @@ public class JdbcResultSetMetaDataTest {
     int index = 1;
     for (TestColumn col : TEST_COLUMNS) {
       assertEquals(col.type.getCode().name(), subject.getColumnTypeName(index));
+      index++;
+    }
+  }
+
+  @Test
+  public void getColumnTypeNameForPostgreSQL() throws SQLException {
+    JdbcConnection connection = mock(JdbcConnection.class);
+    JdbcStatement statement = mock(JdbcStatement.class);
+    JdbcResultSet resultSet = getFooTestResultSet(statement);
+    when(connection.getSchema()).thenReturn("");
+    when(connection.getCatalog()).thenReturn("test-database");
+    when(statement.getConnection()).then(new Returns(connection));
+    when(connection.getDialect()).thenReturn(Dialect.POSTGRESQL);
+
+    JdbcResultSetMetaData sub = resultSet.getMetaData();
+
+    int index = 1;
+    for (TestColumn col : TEST_COLUMNS) {
+      if (col.type.getCode() == Type.Code.ARRAY
+          && col.type.getSpannerTypeName(Dialect.POSTGRESQL).contains("bool")) {
+        assertEquals("_boolean", sub.getColumnTypeName(index));
+      } else if (col.type.getCode() == Type.Code.BOOL) {
+        assertEquals("boolean", sub.getColumnTypeName(index));
+      }
       index++;
     }
   }

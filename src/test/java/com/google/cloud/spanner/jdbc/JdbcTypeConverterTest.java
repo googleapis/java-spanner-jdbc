@@ -51,6 +51,8 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -957,6 +959,29 @@ public class JdbcTypeConverterTest {
         .isEqualTo(
             com.google.cloud.Timestamp.parseTimestamp("2020-06-01T00:00:00+02:00")
                 .toSqlTimestamp());
+  }
+
+  @Test
+  public void testDateToSqlTimestampWithCalendarWithStartOfDST() {
+    TimeZone timeZone = TimeZone.getTimeZone("Europe/Oslo");
+
+    List<ZonedDateTime> zonedDateTimes =
+        Arrays.asList(
+            ZonedDateTime.of(2018, 3, 25, 2, 0, 0, 0, ZoneId.of("+01:00")),
+            ZonedDateTime.of(2018, 10, 28, 2, 0, 0, 0, ZoneId.of("+01:00")));
+
+    zonedDateTimes.forEach(
+        expected -> {
+          Timestamp expectedTimestamp = Timestamp.from(expected.toInstant());
+          Calendar cal = Calendar.getInstance(timeZone);
+          Timestamp storeTimestamp =
+              JdbcTypeConverter.setTimestampInCalendar(expectedTimestamp, cal);
+
+          Timestamp resultTimestamp = JdbcTypeConverter.getTimestampInCalendar(storeTimestamp, cal);
+          ZonedDateTime actual = resultTimestamp.toInstant().atZone(timeZone.toZoneId());
+
+          assertThat(actual).isEqualTo(expected.withZoneSameInstant(timeZone.toZoneId()));
+        });
   }
 
   @Test
