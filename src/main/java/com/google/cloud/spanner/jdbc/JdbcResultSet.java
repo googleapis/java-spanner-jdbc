@@ -307,7 +307,9 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case ENUM:
         return isNull ? (byte) 0 : checkedCastToByte(spanner.getLong(spannerIndex));
       case NUMERIC:
-        return isNull ? (byte) 0 : checkedCastToByte(spanner.getBigDecimal(spannerIndex));
+        return isNull
+            ? (byte) 0
+            : checkedCastToByte(spanner.getBigDecimal(spannerIndex).toBigInteger());
       case PG_NUMERIC:
         return isNull
             ? (byte) 0
@@ -354,7 +356,9 @@ class JdbcResultSet extends AbstractJdbcResultSet {
         }
         return isNull ? 0 : checkedCastToShort(spanner.getLong(spannerIndex));
       case NUMERIC:
-        return isNull ? 0 : checkedCastToShort(spanner.getBigDecimal(spannerIndex));
+        return isNull
+            ? (short) 0
+            : checkedCastToShort(spanner.getBigDecimal(spannerIndex).toBigInteger());
       case PG_NUMERIC:
         return isNull
             ? 0
@@ -395,7 +399,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case ENUM:
         return isNull ? 0 : checkedCastToInt(spanner.getLong(spannerIndex));
       case NUMERIC:
-        return isNull ? 0 : checkedCastToInt(spanner.getBigDecimal(spannerIndex));
+        return isNull ? 0 : checkedCastToInt(spanner.getBigDecimal(spannerIndex).toBigInteger());
       case PG_NUMERIC:
         return isNull
             ? 0
@@ -432,7 +436,7 @@ class JdbcResultSet extends AbstractJdbcResultSet {
       case ENUM:
         return isNull ? 0L : spanner.getLong(spannerIndex);
       case NUMERIC:
-        return isNull ? 0 : checkedCastToLong(parseBigDecimal(spanner.getString(spannerIndex)));
+        return isNull ? 0L : checkedCastToLong(spanner.getBigDecimal(spannerIndex).toBigInteger());
       case PG_NUMERIC:
         return isNull
             ? 0L

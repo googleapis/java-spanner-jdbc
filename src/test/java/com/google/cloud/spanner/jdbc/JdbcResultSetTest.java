@@ -141,6 +141,12 @@ public class JdbcResultSetTest {
   private static final BigDecimal NUMERIC_VALUE = new BigDecimal("3.14");
   private static final int NUMERIC_COLINDEX_NULL = 25;
   private static final int NUMERIC_COLINDEX_NOTNULL = 26;
+  private static final String PG_NUMERIC_COL_NULL = "PG_NUMERIC_COL_NULL";
+  private static final String PG_NUMERIC_COL_NOT_NULL = "PG_NUMERIC_COL_NOT_NULL";
+  private static final String PG_NUMERIC_COL_NAN = "PG_NUMERIC_COL_NAN";
+  private static final int PG_NUMERIC_COLINDEX_NULL = 44;
+  private static final int PG_NUMERIC_COLINDEX_NOTNULL = 45;
+  private static final int PG_NUMERIC_COLINDEX_NAN = 46;
   private static final String JSON_COL_NULL = "JSON_COL_NULL";
   private static final String JSON_COL_NOT_NULL = "JSON_COL_NOT_NULL";
   private static final int JSON_COLINDEX_NULL = 27;
@@ -237,7 +243,10 @@ public class JdbcResultSetTest {
                 Type.array(Type.proto(SingerInfo.getDescriptor().getFullName()))),
             StructField.of(
                 PROTO_ENUM_ARRAY_COL,
-                Type.array(Type.protoEnum(Genre.getDescriptor().getFullName())))),
+                Type.array(Type.protoEnum(Genre.getDescriptor().getFullName()))),
+            StructField.of(PG_NUMERIC_COL_NULL, Type.pgNumeric()),
+            StructField.of(PG_NUMERIC_COL_NOT_NULL, Type.pgNumeric()),
+            StructField.of(PG_NUMERIC_COL_NAN, Type.pgNumeric())),
         Collections.singletonList(
             Struct.newBuilder()
                 .set(STRING_COL_NULL)
@@ -327,6 +336,12 @@ public class JdbcResultSetTest {
                     PROTO_MSG_ARRAY_VALUE, SingerInfo.getDescriptor().getFullName())
                 .set(PROTO_ENUM_ARRAY_COL)
                 .toProtoEnumArray(PROTO_ENUM_ARRAY_VALUE, Genre.getDescriptor().getFullName())
+                .set(PG_NUMERIC_COL_NULL)
+                .to(Value.pgNumeric((String) null))
+                .set(PG_NUMERIC_COL_NOT_NULL)
+                .to(Value.pgNumeric("3.14"))
+                .set(PG_NUMERIC_COL_NAN)
+                .to(Value.pgNumeric("NaN"))
                 .build()));
   }
 
@@ -595,13 +610,105 @@ public class JdbcResultSetTest {
   }
 
   @Test
+  public void testGetIntegerTypesOnNumeric() throws SQLException {
+    assertEquals((byte) 0, subject.getByte(NUMERIC_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals((byte) 3, subject.getByte(NUMERIC_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+
+    assertEquals((short) 0, subject.getShort(NUMERIC_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals((short) 3, subject.getShort(NUMERIC_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+
+    assertEquals(0, subject.getInt(NUMERIC_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(3, subject.getInt(NUMERIC_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+
+    assertEquals(0L, subject.getLong(NUMERIC_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(3L, subject.getLong(NUMERIC_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+  }
+
+  @Test
+  public void testGetIntegerTypesOnPgNumeric() throws SQLException {
+    assertEquals((byte) 0, subject.getByte(PG_NUMERIC_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals((byte) 3, subject.getByte(PG_NUMERIC_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+
+    assertEquals((short) 0, subject.getShort(PG_NUMERIC_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals((short) 3, subject.getShort(PG_NUMERIC_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+
+    assertEquals(0, subject.getInt(PG_NUMERIC_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(3, subject.getInt(PG_NUMERIC_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+
+    assertEquals(0L, subject.getLong(PG_NUMERIC_COLINDEX_NULL));
+    assertTrue(subject.wasNull());
+    assertEquals(3L, subject.getLong(PG_NUMERIC_COLINDEX_NOTNULL));
+    assertFalse(subject.wasNull());
+  }
+
+  @Test
+  public void testGetIntegerTypesOnPgNumericNaN() throws SQLException {
+    assertTrue(Double.isNaN(subject.getDouble(PG_NUMERIC_COLINDEX_NAN)));
+    assertTrue(Float.isNaN(subject.getFloat(PG_NUMERIC_COLINDEX_NAN)));
+    assertEquals("NaN", subject.getString(PG_NUMERIC_COLINDEX_NAN));
+    try {
+      subject.getByte(PG_NUMERIC_COLINDEX_NAN);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+    }
+
+    try {
+      subject.getShort(PG_NUMERIC_COLINDEX_NAN);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+    }
+
+    try {
+      subject.getInt(PG_NUMERIC_COLINDEX_NAN);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+    }
+
+    try {
+      subject.getLong(PG_NUMERIC_COLINDEX_NAN);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+    }
+
+    try {
+      subject.getBigDecimal(PG_NUMERIC_COLINDEX_NAN);
+      fail("missing expected SQLException");
+    } catch (SQLException e) {
+      assertTrue(e instanceof JdbcSqlException);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+    }
+  }
+
+  @Test
   public void testGetLongIndexForString() {
     try {
       subject.getLong(STRING_COLINDEX_NOTNULL);
       fail("missing expected SQLException");
     } catch (SQLException e) {
       assertTrue(e instanceof JdbcSqlException);
-      assertEquals(((JdbcSqlException) e).getCode(), Code.INVALID_ARGUMENT);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
   }
 
@@ -625,7 +732,7 @@ public class JdbcResultSetTest {
       fail("missing expected SQLException");
     } catch (SQLException e) {
       assertTrue(e instanceof JdbcSqlException);
-      assertEquals(((JdbcSqlException) e).getCode(), Code.INVALID_ARGUMENT);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
   }
 
@@ -669,7 +776,7 @@ public class JdbcResultSetTest {
       fail("missing expected SQLException");
     } catch (SQLException e) {
       assertTrue(e instanceof JdbcSqlException);
-      assertEquals(((JdbcSqlException) e).getCode(), Code.INVALID_ARGUMENT);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
   }
 
@@ -1392,7 +1499,7 @@ public class JdbcResultSetTest {
       fail("missing expected SQLException");
     } catch (SQLException e) {
       assertTrue(e instanceof JdbcSqlException);
-      assertEquals(((JdbcSqlException) e).getCode(), Code.INVALID_ARGUMENT);
+      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
     }
   }
 
