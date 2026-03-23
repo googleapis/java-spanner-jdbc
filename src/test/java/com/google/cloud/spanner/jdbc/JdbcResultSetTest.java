@@ -556,20 +556,14 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetBooleanIndexForDate() {
-    try {
-      subject.getBoolean(DATE_COLINDEX_NOTNULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
-    try {
-      subject.getBoolean(DATE_COLINDEX_NULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e =
+        assertThrows(SQLException.class, () -> subject.getBoolean(DATE_COLINDEX_NOTNULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
+
+    e = assertThrows(SQLException.class, () -> subject.getBoolean(DATE_COLINDEX_NULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test
@@ -660,56 +654,34 @@ public class JdbcResultSetTest {
     assertTrue(Double.isNaN(subject.getDouble(PG_NUMERIC_COLINDEX_NAN)));
     assertTrue(Float.isNaN(subject.getFloat(PG_NUMERIC_COLINDEX_NAN)));
     assertEquals("NaN", subject.getString(PG_NUMERIC_COLINDEX_NAN));
-    try {
-      subject.getByte(PG_NUMERIC_COLINDEX_NAN);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e =
+        assertThrows(SQLException.class, () -> subject.getByte(PG_NUMERIC_COLINDEX_NAN));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
 
-    try {
-      subject.getShort(PG_NUMERIC_COLINDEX_NAN);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    e = assertThrows(SQLException.class, () -> subject.getShort(PG_NUMERIC_COLINDEX_NAN));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
 
-    try {
-      subject.getInt(PG_NUMERIC_COLINDEX_NAN);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    e = assertThrows(SQLException.class, () -> subject.getInt(PG_NUMERIC_COLINDEX_NAN));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
 
-    try {
-      subject.getLong(PG_NUMERIC_COLINDEX_NAN);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    e = assertThrows(SQLException.class, () -> subject.getLong(PG_NUMERIC_COLINDEX_NAN));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
 
-    try {
-      subject.getBigDecimal(PG_NUMERIC_COLINDEX_NAN);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    e = assertThrows(SQLException.class, () -> subject.getBigDecimal(PG_NUMERIC_COLINDEX_NAN));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test
   public void testGetLongIndexForString() {
-    try {
-      subject.getLong(STRING_COLINDEX_NOTNULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e =
+        assertThrows(SQLException.class, () -> subject.getLong(STRING_COLINDEX_NOTNULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test
@@ -727,13 +699,10 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetLongIndexForTimestamp() {
-    try {
-      subject.getLong(TIMESTAMP_COLINDEX_NOTNULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e =
+        assertThrows(SQLException.class, () -> subject.getLong(TIMESTAMP_COLINDEX_NOTNULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test
@@ -771,13 +740,10 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetDoubleIndexFromTimestamp() {
-    try {
-      subject.getDouble(TIMESTAMP_COLINDEX_NULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e =
+        assertThrows(SQLException.class, () -> subject.getDouble(TIMESTAMP_COLINDEX_NULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @SuppressWarnings("deprecation")
@@ -907,13 +873,9 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetDateIndexFromInt64() {
-    try {
-      subject.getDate(LONG_COLINDEX_NOTNULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e = assertThrows(SQLException.class, () -> subject.getDate(LONG_COLINDEX_NOTNULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test
@@ -1334,13 +1296,9 @@ public class JdbcResultSetTest {
     assertTrue(subject.wasNull());
     assertEquals(0, subject.getByte(STRING_COLINDEX_NULL));
     assertTrue(subject.wasNull());
-    try {
-      subject.getByte(TIMESTAMP_COL_NULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e = assertThrows(SQLException.class, () -> subject.getByte(TIMESTAMP_COL_NULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test
@@ -1372,13 +1330,9 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetShortIndexFromBytes() {
-    try {
-      subject.getShort(BYTES_COL_NULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e = assertThrows(SQLException.class, () -> subject.getShort(BYTES_COL_NULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test
@@ -1391,13 +1345,9 @@ public class JdbcResultSetTest {
     assertTrue(subject.wasNull());
     assertEquals(0, subject.getShort(STRING_COLINDEX_NULL));
     assertTrue(subject.wasNull());
-    try {
-      subject.getShort(TIMESTAMP_COL_NULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e = assertThrows(SQLException.class, () -> subject.getShort(TIMESTAMP_COL_NULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test
@@ -1430,13 +1380,9 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetIntIndexFromTimestamp() {
-    try {
-      subject.getInt(TIMESTAMP_COL_NULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e = assertThrows(SQLException.class, () -> subject.getInt(TIMESTAMP_COL_NULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test
@@ -1449,13 +1395,9 @@ public class JdbcResultSetTest {
     assertTrue(subject.wasNull());
     assertEquals(0, subject.getInt(STRING_COLINDEX_NULL));
     assertTrue(subject.wasNull());
-    try {
-      subject.getInt(TIMESTAMP_COL_NULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e = assertThrows(SQLException.class, () -> subject.getInt(TIMESTAMP_COL_NULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test
@@ -1494,13 +1436,10 @@ public class JdbcResultSetTest {
 
   @Test
   public void testGetFloatIndexFromTimestamp() {
-    try {
-      subject.getFloat(TIMESTAMP_COLINDEX_NULL);
-      fail("missing expected SQLException");
-    } catch (SQLException e) {
-      assertTrue(e instanceof JdbcSqlException);
-      assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
-    }
+    SQLException e =
+        assertThrows(SQLException.class, () -> subject.getFloat(TIMESTAMP_COLINDEX_NULL));
+    assertTrue(e instanceof JdbcSqlException);
+    assertEquals(Code.INVALID_ARGUMENT, ((JdbcSqlException) e).getCode());
   }
 
   @Test

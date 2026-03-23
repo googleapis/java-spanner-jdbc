@@ -57,13 +57,8 @@ public class ConcurrentTransactionOnEmulatorTest {
         new GenericContainer<>(
                 DockerImageName.parse("gcr.io/cloud-spanner-emulator/emulator:latest"))
             .withExposedPorts(9010)
-            .waitingFor(Wait.forListeningPorts(9010));
+            .waitingFor(Wait.forLogMessage(".*gRPC server listening at.*\\n", 1));
     emulator.start();
-    try {
-      Thread.sleep(1500); // Give gRPC server time to fully initialize
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
     properties = new Properties();
     properties.setProperty("autoConfigEmulator", "true");
     properties.setProperty(
