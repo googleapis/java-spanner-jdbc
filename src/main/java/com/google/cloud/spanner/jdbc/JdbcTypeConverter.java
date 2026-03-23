@@ -116,39 +116,55 @@ class JdbcTypeConverter {
         }
         if (type.getCode() == Code.FLOAT64) return (Double) value != 0d;
         if (type.getCode() == Code.NUMERIC) return !value.equals(BigDecimal.ZERO);
+        if (type.getCode() == Code.PG_NUMERIC)
+          return !AbstractJdbcWrapper.parseBigDecimal((String) value).equals(BigDecimal.ZERO);
       }
       if (targetType.equals(BigDecimal.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? BigDecimal.ONE : BigDecimal.ZERO;
         if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM)
           return BigDecimal.valueOf((Long) value);
         if (type.getCode() == Code.NUMERIC) return value;
+        if (type.getCode() == Code.PG_NUMERIC)
+          return AbstractJdbcWrapper.parseBigDecimal((String) value);
       }
       if (targetType.equals(Long.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1L : 0L;
         if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM) return value;
         if (type.getCode() == Code.NUMERIC)
-          return AbstractJdbcWrapper.checkedCastToLong((BigDecimal) value);
+          return AbstractJdbcWrapper.checkedCastToLong(((BigDecimal) value).toBigInteger());
+        if (type.getCode() == Code.PG_NUMERIC)
+          return AbstractJdbcWrapper.checkedCastToLong(
+              AbstractJdbcWrapper.parseBigDecimal((String) value).toBigInteger());
       }
       if (targetType.equals(Integer.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1 : 0;
         if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM)
           return AbstractJdbcWrapper.checkedCastToInt((Long) value);
         if (type.getCode() == Code.NUMERIC)
-          return AbstractJdbcWrapper.checkedCastToInt((BigDecimal) value);
+          return AbstractJdbcWrapper.checkedCastToInt(((BigDecimal) value).toBigInteger());
+        if (type.getCode() == Code.PG_NUMERIC)
+          return AbstractJdbcWrapper.checkedCastToInt(
+              AbstractJdbcWrapper.parseBigDecimal((String) value).toBigInteger());
       }
       if (targetType.equals(Short.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1 : 0;
         if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM)
           return AbstractJdbcWrapper.checkedCastToShort((Long) value);
         if (type.getCode() == Code.NUMERIC)
-          return AbstractJdbcWrapper.checkedCastToShort((BigDecimal) value);
+          return AbstractJdbcWrapper.checkedCastToShort(((BigDecimal) value).toBigInteger());
+        if (type.getCode() == Code.PG_NUMERIC)
+          return AbstractJdbcWrapper.checkedCastToShort(
+              AbstractJdbcWrapper.parseBigDecimal((String) value).toBigInteger());
       }
       if (targetType.equals(Byte.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? 1 : 0;
         if (type.getCode() == Code.INT64 || type.getCode() == Code.ENUM)
           return AbstractJdbcWrapper.checkedCastToByte((Long) value);
         if (type.getCode() == Code.NUMERIC)
-          return AbstractJdbcWrapper.checkedCastToByte((BigDecimal) value);
+          return AbstractJdbcWrapper.checkedCastToByte(((BigDecimal) value).toBigInteger());
+        if (type.getCode() == Code.PG_NUMERIC)
+          return AbstractJdbcWrapper.checkedCastToByte(
+              AbstractJdbcWrapper.parseBigDecimal((String) value).toBigInteger());
       }
       if (targetType.equals(BigInteger.class)) {
         if (type.getCode() == Code.BOOL) return (Boolean) value ? BigInteger.ONE : BigInteger.ZERO;
@@ -156,6 +172,9 @@ class JdbcTypeConverter {
           return BigInteger.valueOf((Long) value);
         if (type.getCode() == Code.NUMERIC)
           return AbstractJdbcWrapper.checkedCastToBigInteger((BigDecimal) value);
+        if (type.getCode() == Code.PG_NUMERIC)
+          return AbstractJdbcWrapper.checkedCastToBigInteger(
+              AbstractJdbcWrapper.parseBigDecimal((String) value));
       }
       if (targetType.equals(Float.class)) {
         if (type.getCode() == Code.BOOL)
@@ -166,6 +185,8 @@ class JdbcTypeConverter {
         if (type.getCode() == Code.FLOAT64)
           return AbstractJdbcWrapper.checkedCastToFloat((Double) value);
         if (type.getCode() == Code.NUMERIC) return ((BigDecimal) value).floatValue();
+        if (type.getCode() == Code.PG_NUMERIC)
+          return AbstractJdbcWrapper.parseFloat((String) value);
       }
       if (targetType.equals(Double.class)) {
         if (type.getCode() == Code.BOOL)
@@ -174,6 +195,8 @@ class JdbcTypeConverter {
           return value;
         }
         if (type.getCode() == Code.NUMERIC) return ((BigDecimal) value).doubleValue();
+        if (type.getCode() == Code.PG_NUMERIC)
+          return AbstractJdbcWrapper.parseDouble((String) value);
       }
       if (targetType.equals(java.sql.Date.class)) {
         if (type.getCode() == Code.DATE) return value;

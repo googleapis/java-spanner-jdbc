@@ -452,20 +452,61 @@ public class JdbcTypeConverterTest {
       assertThat(convert(d, Type.numeric(), String.class)).isEqualTo(String.valueOf(d));
       assertThat(convert(d, Type.numeric(), Boolean.class)).isEqualTo(!d.equals(BigDecimal.ZERO));
       if (d.compareTo(BigDecimal.valueOf(Long.MAX_VALUE)) > 0
-          || d.compareTo(BigDecimal.valueOf(Long.MIN_VALUE)) < 0
-          || d.scale() > 0) {
+          || d.compareTo(BigDecimal.valueOf(Long.MIN_VALUE)) < 0) {
         assertConvertThrows(d, Type.numeric(), Long.class, Code.OUT_OF_RANGE);
       } else {
         assertThat(convert(d, Type.numeric(), Long.class)).isEqualTo(d.longValue());
       }
       if (d.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) > 0
-          || d.compareTo(BigDecimal.valueOf(Integer.MIN_VALUE)) < 0
-          || d.scale() > 0) {
+          || d.compareTo(BigDecimal.valueOf(Integer.MIN_VALUE)) < 0) {
         assertConvertThrows(d, Type.numeric(), Integer.class, Code.OUT_OF_RANGE);
       } else {
         assertThat(convert(d, Type.numeric(), Integer.class)).isEqualTo(d.intValue());
       }
     }
+  }
+
+  @Test
+  public void testConvertPgNumeric() throws SQLException {
+    BigDecimal[] testValues =
+        new BigDecimal[] {
+          BigDecimal.ZERO,
+          BigDecimal.ONE.negate(),
+          BigDecimal.ONE,
+          BigDecimal.valueOf(Double.MIN_VALUE),
+          BigDecimal.valueOf(Double.MAX_VALUE),
+          BigDecimal.valueOf(Float.MIN_VALUE),
+          BigDecimal.valueOf(Float.MAX_VALUE),
+          BigDecimal.valueOf(Float.MAX_VALUE + 1D)
+        };
+    for (BigDecimal d : testValues) {
+      String strVal = String.valueOf(d);
+      assertThat(convert(strVal, Type.pgNumeric(), BigDecimal.class)).isEqualTo(d);
+      assertThat(convert(strVal, Type.pgNumeric(), Double.class)).isEqualTo(d.doubleValue());
+      assertThat(convert(strVal, Type.pgNumeric(), Float.class)).isEqualTo(d.floatValue());
+      assertThat(convert(strVal, Type.pgNumeric(), String.class)).isEqualTo(strVal);
+      assertThat(convert(strVal, Type.pgNumeric(), Boolean.class))
+          .isEqualTo(!d.equals(BigDecimal.ZERO));
+      if (d.compareTo(BigDecimal.valueOf(Long.MAX_VALUE)) > 0
+          || d.compareTo(BigDecimal.valueOf(Long.MIN_VALUE)) < 0) {
+        assertConvertThrows(strVal, Type.pgNumeric(), Long.class, Code.OUT_OF_RANGE);
+      } else {
+        assertThat(convert(strVal, Type.pgNumeric(), Long.class)).isEqualTo(d.longValue());
+      }
+      if (d.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) > 0
+          || d.compareTo(BigDecimal.valueOf(Integer.MIN_VALUE)) < 0) {
+        assertConvertThrows(strVal, Type.pgNumeric(), Integer.class, Code.OUT_OF_RANGE);
+      } else {
+        assertThat(convert(strVal, Type.pgNumeric(), Integer.class)).isEqualTo(d.intValue());
+      }
+    }
+
+    assertThat(convert("NaN", Type.pgNumeric(), Float.class)).isEqualTo(Float.NaN);
+    assertThat(convert("NaN", Type.pgNumeric(), Double.class)).isEqualTo(Double.NaN);
+    assertThat(convert("NaN", Type.pgNumeric(), String.class)).isEqualTo("NaN");
+    assertConvertThrows("NaN", Type.pgNumeric(), Long.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows("NaN", Type.pgNumeric(), Integer.class, Code.INVALID_ARGUMENT);
+    assertConvertThrows("NaN", Type.pgNumeric(), BigDecimal.class, Code.INVALID_ARGUMENT);
   }
 
   private void assertConvertThrows(Object t, Type type, Class<?> destinationType, Code code)
