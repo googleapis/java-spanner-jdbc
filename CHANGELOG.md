@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.35.5](https://github.com/googleapis/java-spanner-jdbc/compare/v2.35.4...v2.35.5) (2026-03-25)
+
+
+### Bug Fixes
+
+* Fix getLong on NUMERIC ([#2420](https://github.com/googleapis/java-spanner-jdbc/issues/2420)) ([cb10252](https://github.com/googleapis/java-spanner-jdbc/commit/cb1025258536371657ca3dcc04ae6d865e6bb4fb))
+
+
+### Dependencies
+
+* Update dependency com.google.cloud:google-cloud-spanner-bom to v6.113.0 ([#2423](https://github.com/googleapis/java-spanner-jdbc/issues/2423)) ([036e2b7](https://github.com/googleapis/java-spanner-jdbc/commit/036e2b72a0c1b2b11bd8e0d4b5075bd5b4d021c4))
+
 ## [2.35.4](https://github.com/googleapis/java-spanner-jdbc/compare/v2.35.3...v2.35.4) (2026-03-04)
 
 
