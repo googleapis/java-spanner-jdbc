@@ -1,3 +1,5 @@
+**_THIS REPOSITORY IS DEPRECATED. ALL OF ITS CONTENT AND HISTORY HAS BEEN MOVED TO [GOOGLE-CLOUD-JAVA](https://github.com/googleapis/google-cloud-java/tree/main/java-spanner-jdbc)_**
+
 # Google Google Cloud Spanner JDBC Client for Java
 
 Java idiomatic client for [Google Cloud Spanner JDBC][product-docs].
